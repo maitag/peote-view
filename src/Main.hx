@@ -26,18 +26,20 @@ class Main extends Application
 	
 	public override function onWindowCreate():Void
 	{
+		trace ("window.context.version:"+window.context.version);
+		trace ("window.context.type:" + window.context.type);
+
 		switch (window.context.type) {
-			case OPENGL, OPENGLES, WEBGL:
-				
-				trace ("window.context.version:"+window.context.version);
-				trace ("window.context.type:" + window.context.type);
-				
-				#if html5
+
+		#if html5
+			case WEBGL:
 				test = new Test(window.context.webgl, window.width, window.height);
-				#else
-				test = new Test(window.context.gl   , window.width, window.height);
-				#end
 				renderTest = true;
+		#else
+			case OPENGL, OPENGLES:
+				test = new Test(window.context.gl   , window.width, window.height);
+				renderTest = true;
+		#end
 				
 			default:
 				trace("only opengl supported");
