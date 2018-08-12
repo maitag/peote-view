@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+	
+	<meta title="PeoteViewNew" package="peote.view" version="0.7.0" company="Sylvio Sell - maitag" />
+	
+	<android target-sdk-version="26" />
+	
+	<!-- choose example to build: -->
+	<app main="Main" path="bin" file="Main" />
+	
+	<!--
+	<window fps="60" width="800" height="600" vsync="true" antialiasing="4" resizable="true" hardware="true" allow-shaders="true" require-shaders="true" depth-buffer="true" stencil-buffer="false" />
+	-->  <!-- does not run native with some parameters here: -->
+	<window fps="60" width="800" height="600" vsync="true" resizable="true" hardware="true" allow-shaders="true" require-shaders="true" depth-buffer="true" stencil-buffer="false" />
+	
+	<window if="html5||android" fps="60" width="0" height="0" />
+	
+	<source path="src" />
+	
+	<haxelib name="lime" />
+		
+	<!-- this is for optimize interleave vertex stride (filled auto up to 8 bytecount) .. may buggy on some device -->
+	<!--<haxedef name="peote_fillstride" />-->
+	
+	<!-- shader float precision for html5 and raspberry pi (and android?) -->
+	<haxedef name="peote_vert_medium_precision" if="html5||rpi||android" />
+	<haxedef name="peote_frag_medium_precision" if="html5||rpi" /><!-- midestens -->
+	<!--<haxedef name="debugshader" />-->
+
+	<!-- -Dwebgl -debug -->
+	<haxedef name="source-map-content" />
+	
+	<!-- <haxedef name="dce-debug" if="cpp" /> -->
+	<!-- <haxedef name="absolute-path" if="cpp" /> -->
+	<!-- <haxedef name="no-inline" if="cpp" /> -->
+	<!-- <haxedef name="no-opt"  if="cpp" /> -->
+	
+	<!-- <haxedef name="no-traces" /> -->
+	
+	<!-- <haxedef name="HXCPP_M64" if="cpp" /> -->
+	
+	<!-- full dead code elimination on html5 reduces js-code (default dce is std only) -->
+	<!-- <haxeflag name="-dce" value="full" if="android||html5" /> --> <!-- on cpp future-asset-imageload gives error for full dce-->
+	<!-- <haxeflag name="-dce" value="no" /> -->
+	<assets path="assets" exclude="lime.svg" embed="false" />
+	
+	<icon path="assets/lime.svg" />
+	
+</project>
