@@ -82,6 +82,10 @@ class $className implements BufferInterface
 		_gl.bindBuffer (_gl.ARRAY_BUFFER, _glBuffer);
 		_gl.bufferData (_gl.ARRAY_BUFFER, _bytes.length, _bytes, _gl.STATIC_DRAW); // _gl.DYNAMIC_DRAW _gl.STREAM_DRAW
 		_gl.bindBuffer (_gl.ARRAY_BUFFER, null);
+		
+		#if peoteview_instancedrawing
+		$p{elemField}.createInstanceBuffer(_gl);
+		#end		
 	}
 	
 	// rewrite element-buffer to GL-buffer

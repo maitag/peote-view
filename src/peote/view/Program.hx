@@ -72,7 +72,7 @@ class Program
 			}
 			else
 			{
-				#if peoteview_ubo
+				#if peoteview_uniformbuffers
 				// ------------- uniform block -------------
 				uProgramIndex = gl.getUniformBlockIndex(glProgram, 'UProgram');
 				gl.uniformBlockBinding(glProgram, uProgramIndex, 0);
@@ -96,7 +96,7 @@ class Program
 
 	}
 	
-	#if peoteview_ubo
+	#if peoteview_uniformbuffers
 	var uProgramBytes:Bytes;
 	var uProgramIndex:Int;
 	var uProgramBuffer:GLBuffer;
@@ -109,7 +109,7 @@ class Program
 		//trace("    ---program.render---");
 		peoteView.gl.useProgram(glProgram); // ------ Shader Program
 		
-		#if peoteview_ubo
+		#if peoteview_uniformbuffers
 		// ------------- uniform block -------------
 		//peoteView.gl.bindBufferRange(peoteView.gl.UNIFORM_BUFFER, 0, uProgramBuffer, 0, 8);
 		peoteView.gl.bindBufferBase(peoteView.gl.UNIFORM_BUFFER, 0, uProgramBuffer);
