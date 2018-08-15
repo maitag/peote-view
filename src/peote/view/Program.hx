@@ -80,6 +80,8 @@ class Program
 				uProgramBuffer = gl.createBuffer();
 				
 				uProgramBytes = Bytes.alloc(2 * 4);
+				
+				// TODO: function to set values
 				uProgramBytes.setFloat(0, 800);
 				uProgramBytes.setFloat(4, 600);
 				

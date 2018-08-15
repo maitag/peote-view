@@ -1,8 +1,8 @@
 package peote.view;
 
 #if html5
-typedef LimeGLRenderContext = lime.graphics.WebGLRenderContext;
-//typedef LimeGLRenderContext = lime.graphics.WebGL2RenderContext;
+//typedef LimeGLRenderContext = lime.graphics.WebGLRenderContext;
+typedef LimeGLRenderContext = lime.graphics.WebGL2RenderContext;
 #else
 typedef LimeGLRenderContext = lime.graphics.OpenGLRenderContext;
 //typedef LimeGLRenderContext = lime.graphics.OpenGLES2RenderContext;

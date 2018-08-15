@@ -21,7 +21,7 @@
   </classpaths>
   <!-- Build options -->
   <build>
-    <option directives="lime=7.0.0&#xA;tools=7.0.0&#xA;lime-canvas&#xA;howlerjs&#xA;no-compilation&#xA;lime-webgl&#xA;peote_frag_medium_precision&#xA;lime-dom&#xA;lime-howlerjs&#xA;lime-html5&#xA;source-map-content&#xA;peote_vert_medium_precision&#xA;html5&#xA;web&#xA;html5&#xA;html&#xA;display" />
+    <option directives="lime=7.0.0&#xA;tools=7.0.0&#xA;lime-canvas&#xA;howlerjs&#xA;no-compilation&#xA;peoteview_instancedrawing&#xA;lime-webgl&#xA;webgl&#xA;peote_frag_medium_precision&#xA;lime-dom&#xA;lime-howlerjs&#xA;lime-html5&#xA;source-map-content&#xA;peote_vert_medium_precision&#xA;html5&#xA;web&#xA;html5&#xA;html&#xA;display" />
     <option flashStrict="False" />
     <option noInlineOnDebug="False" />
     <option mainClass="ApplicationMain" />

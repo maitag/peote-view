@@ -18,7 +18,8 @@
 	<source path="src" />
 	
 	<haxelib name="lime" />
-		
+	<haxedef name="webgl" />
+	
 	<!-- this is for optimize interleave vertex stride (filled auto up to 8 bytecount) .. may buggy on some device -->
 	<!--<haxedef name="peote_fillstride" />-->
 	
@@ -26,6 +27,10 @@
 	<haxedef name="peote_vert_medium_precision" if="html5||rpi||android" />
 	<haxedef name="peote_frag_medium_precision" if="html5||rpi" /><!-- midestens -->
 	<!--<haxedef name="debugshader" />-->
+	
+	<!--<haxedef name="peoteview_uniformbuffers" />-->
+	<haxedef name="peoteview_instancedrawing" if="html5" />
+	
 
 	<!-- -Dwebgl -debug -->
 	<haxedef name="source-map-content" />

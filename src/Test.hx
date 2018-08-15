@@ -31,6 +31,7 @@ class Test
 		element1.x = 10;
 		element1.y = 200;
 		buffer.addElement(element1);     // element to buffer
+		
 		/*
 		element.x = 100;
 		element1.x =100;

@@ -33,13 +33,13 @@ class Main extends Application
 
 		#if html5
 			case WEBGL:
-				if (window.context.webgl2 != null) trace("YEEEAHHH");
-				test = new Test(window.context.webgl, window.width, window.height);
+				if (window.context.webgl2 != null) trace("WEBGL2 available.");
+				test = new Test(window.context.webgl2, window.width, window.height);
 				renderTest = true;
 		#else
 			case OPENGL, OPENGLES:
-				if (window.context.gles2 != null) trace("WOAHAHH");
-				if (window.context.gles3 != null) trace("(^_^)");
+				if (window.context.gles2 != null) trace("GLES2 available.");
+				if (window.context.gles3 != null) trace("GLES3 available. (^_^)");
 				test = new Test(window.context.gl   , window.width, window.height);
 				renderTest = true;
 		#end

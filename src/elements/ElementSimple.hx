@@ -23,7 +23,8 @@ class ElementSimple implements Element
 	static var glInstanceBuffer: lime.graphics.opengl.GLBuffer;
 	@:allow(peote.view) static function createInstanceBuffer(gl: peote.view.PeoteGL):Void
 	{
-		var bytes = haxe.io.Bytes.alloc(BUFF_SIZE);
+		trace("create instance buffer");
+		var bytes = haxe.io.Bytes.alloc(VERTEX_COUNT * 4);
 		var x = 0;
 		var y = 0;
 		var w = 1;
@@ -37,6 +38,7 @@ class ElementSimple implements Element
 		bytes.setUInt16(16, x ); bytes.setUInt16(18, y );
 		bytes.setUInt16(20, x ); bytes.setUInt16(22, y );
 		
+		glInstanceBuffer = gl.createBuffer();
 		gl.bindBuffer (gl.ARRAY_BUFFER, glInstanceBuffer);
 		gl.bufferData (gl.ARRAY_BUFFER, bytes.length, bytes, gl.STATIC_DRAW);
 		gl.bindBuffer (gl.ARRAY_BUFFER, null);
@@ -83,15 +85,18 @@ class ElementSimple implements Element
 	}
 	
 	@:allow(peote.view) static inline var VERTEX_COUNT:Int = 6;
-	@:allow(peote.view) static inline var VERTEX_STRIDE:Int  = 4;
-	@:allow(peote.view) static inline var BUFF_SIZE:Int = VERTEX_COUNT * VERTEX_STRIDE;
+	#if peoteview_instancedrawing
+	@:allow(peote.view) static inline var BUFF_SIZE:Int = 8;
+	#else
+	@:allow(peote.view) static inline var BUFF_SIZE:Int = VERTEX_COUNT * 4;
+	#end
 	
 	@:allow(peote.view) static inline function render(maxElements:Int, gl: peote.view.PeoteGL, glBuffer: lime.graphics.opengl.GLBuffer):Void
 	{
 		#if peoteview_instancedrawing
 		gl.bindBuffer(gl.ARRAY_BUFFER, glInstanceBuffer);
 		gl.enableVertexAttribArray (aPOSITION);
-		gl.vertexAttribPointer(aPOSITION, 2, gl.SHORT, false, VERTEX_STRIDE, 0 ); // vertexstride 0 should calc automatically
+		gl.vertexAttribPointer(aPOSITION, 2, gl.SHORT, false, 4, 0 ); // vertexstride 0 should calc automatically
 		
 		gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer);
 		gl.enableVertexAttribArray (aPOSSIZE);
@@ -107,7 +112,7 @@ class ElementSimple implements Element
 		gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer);
 		
 		gl.enableVertexAttribArray (aPOSITION);
-		gl.vertexAttribPointer(aPOSITION, 2, gl.SHORT, false, VERTEX_STRIDE, 0 ); // vertexstride 0 should calc automatically
+		gl.vertexAttribPointer(aPOSITION, 2, gl.SHORT, false, 4, 0 ); // vertexstride 0 should calc automatically
 		
 		gl.drawArrays (gl.TRIANGLE_STRIP,  0,  maxElements*VERTEX_COUNT);
 		
@@ -141,16 +146,26 @@ class ElementSimple implements Element
 	#end
 
 	#if peoteview_instancedrawing
-	+ "
-		attribute vec4 aPossize;
-	"
+		#if peoteview_uniformbuffers
+		+ "
+			in vec4 aPossize;
+		"
+		#else
+		+ "
+			attribute vec4 aPossize;
+		"
+		#end
 	#end
 	+ "
 		void main(void) {
 	"
 	#if peoteview_instancedrawing
 	+ "
-			aPosition = (aPosition * vec2(aPossize.x, aPossize.y)) + vec2(aPossize.z, aPossize.w);
+			vec2 position = (aPosition * vec2(aPossize.z, aPossize.w)) + vec2(aPossize.x, aPossize.y);
+	"
+	#else
+	+ "
+			vec2 position = aPosition;
 	"
 	#end	
 	+ "
@@ -171,7 +186,7 @@ class ElementSimple implements Element
 				vec4(0.0, 0.0, -1.0, 0.0),
 				vec4(-(right + left) / (right - left), -(top + bottom) / (top - bottom), 0.0, 1.0)
 			)
-			* vec4 (aPosition ,
+			* vec4 (position ,
 				0.0
 				, 1.0
 				);
@@ -179,7 +194,7 @@ class ElementSimple implements Element
 	";
 	
 	@:allow(peote.view) static inline var fragmentShader:String =	
-	#if peoteview_ubo
+	#if peoteview_uniformbuffers
 	"	#version 300 es
         precision highp float;
 		

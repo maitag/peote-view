@@ -92,6 +92,7 @@ class $className implements BufferInterface
 	public inline function updateElement(element: $elementType):Void
 	{	
 		trace("Buffer.updateElement", element.bytePos);
+		element.writeBytes(_bytes);
 		element.updateGlBuffer(_gl, _glBuffer);		
 	}
 	
@@ -103,7 +104,6 @@ class $className implements BufferInterface
 			element.dataPointer = new lime.utils.BytePointer(_bytes, element.bytePos);
 			trace("Buffer.addElement", _maxElements, element.bytePos);
 			_elements.set(_maxElements++, element);
-			element.writeBytes(_bytes);
 			updateElement(element);		
 		} 
 		else throw("Error: Element is already inside Buffer");
@@ -115,9 +115,9 @@ class $className implements BufferInterface
 			if (_maxElements > 1 && element.bytePos < (_maxElements-1) * $p{elemField}.BUFF_SIZE ) {
 				trace("Buffer.removeElement", element.bytePos);
 				var lastElement: $elementType = _elements.get(--_maxElements);
-				updateElement(lastElement);
 				lastElement.bytePos = element.bytePos;
 				lastElement.dataPointer = new lime.utils.BytePointer(_bytes, element.bytePos);
+				updateElement(lastElement);
 				_elements.set( Std.int(  element.bytePos / $p{elemField}.BUFF_SIZE ), lastElement);
 			}
 			else _maxElements--;
