@@ -33,14 +33,24 @@ class Main extends Application
 
 		#if html5
 			case WEBGL:
-				if (window.context.webgl2 != null) trace("WEBGL2 available.");
-				test = new Test(window.context.webgl2, window.width, window.height);
+				#if peoteview_es3
+					if (window.context.webgl2 != null) trace("WEBGL2 available.");
+					test = new Test(window.context.webgl2, window.width, window.height);
+				#elseif peoteview_es2
+					test = new Test(window.context.webgl , window.width, window.height);
+				#end
 				renderTest = true;
 		#else
 			case OPENGL, OPENGLES:
-				if (window.context.gles2 != null) trace("GLES2 available.");
-				if (window.context.gles3 != null) trace("GLES3 available. (^_^)");
-				test = new Test(window.context.gl   , window.width, window.height);
+				#if peoteview_es3
+					if (window.context.gles3 != null) trace("GLES3 available.");
+					test = new Test(window.context.gles3, window.width, window.height);
+				#elseif peoteview_es2
+					if (window.context.gles2 != null) trace("GLES2 available.");
+					test = new Test(window.context.gles2, window.width, window.height);
+				#else
+					test = new Test(window.context.gl   , window.width, window.height);
+				#end
 				renderTest = true;
 		#end
 				

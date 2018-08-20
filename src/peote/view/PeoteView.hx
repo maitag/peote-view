@@ -15,7 +15,7 @@ class PeoteView
 	
 	var width:Int;
 	var height:Int;
-	var zoom:Int = 1;
+	var zoom:Float = 1.0;
 	var xOffset:Int = 0;
 	var yOffset:Int = 0;
 	
@@ -26,7 +26,13 @@ class PeoteView
 	public function new(gl:PeoteGL, width:Int, height:Int)
 	{
 		this.gl = gl;
-		trace ("gl.version:"+gl.VERSION);
+		trace ("gl.version:" + gl.VERSION);
+		/*
+		// only ES2:
+		trace("precision range low precision", gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.LOW_FLOAT).precision);
+		trace("precision range low min", gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.LOW_FLOAT).rangeMin);
+		trace("precision range low max", gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.LOW_FLOAT).rangeMax);
+		*/
 		
 		this.width = width;
 		this.height = height;

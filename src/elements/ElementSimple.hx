@@ -19,10 +19,13 @@ class ElementSimple implements Element
 	@:allow(peote.view) var bytePos:Int = -1;
 	@:allow(peote.view) var dataPointer: lime.utils.DataPointer;
 	
-	#if peoteview_instancedrawing
+	#if (peoteview_es3 && peoteview_instancedrawing)
 	static var glInstanceBuffer: lime.graphics.opengl.GLBuffer;
+	#end
+	
 	@:allow(peote.view) static function createInstanceBuffer(gl: peote.view.PeoteGL):Void
 	{
+		#if (peoteview_es3 && peoteview_instancedrawing)
 		trace("create instance buffer");
 		var bytes = haxe.io.Bytes.alloc(VERTEX_COUNT * 4);
 		var x = 0;
@@ -42,12 +45,12 @@ class ElementSimple implements Element
 		gl.bindBuffer (gl.ARRAY_BUFFER, glInstanceBuffer);
 		gl.bufferData (gl.ARRAY_BUFFER, bytes.length, bytes, gl.STATIC_DRAW);
 		gl.bindBuffer (gl.ARRAY_BUFFER, null);
+		#end
 	}	
-	#end
 	
 	@:allow(peote.view) private function writeBytes(bytes:haxe.io.Bytes):Void
 	{
-		#if peoteview_instancedrawing
+		#if (peoteview_es3 && peoteview_instancedrawing)
 		bytes.setUInt16(bytePos + 0 , x); bytes.setUInt16(bytePos + 2,  y);
 		bytes.setUInt16(bytePos + 4 , w); bytes.setUInt16(bytePos + 6,  h);
 		#else
@@ -72,20 +75,22 @@ class ElementSimple implements Element
 		
 	// ----------------------------------------------------------------------------------
 	public static inline var aPOSITION:Int  = 0;
-	#if peoteview_instancedrawing
+	
+	#if (peoteview_es3 && peoteview_instancedrawing)
 	public static inline var aPOSSIZE:Int  = 1;
 	#end
 	
 	@:allow(peote.view) static inline function bindAttribLocations(gl: peote.view.PeoteGL, glProgram: lime.graphics.opengl.GLProgram):Void
 	{
 		gl.bindAttribLocation(glProgram, aPOSITION, "aPosition");
-		#if peoteview_instancedrawing
+		#if (peoteview_es3 && peoteview_instancedrawing)
 		gl.bindAttribLocation(glProgram, aPOSSIZE, "aPossize");
 		#end
 	}
 	
 	@:allow(peote.view) static inline var VERTEX_COUNT:Int = 6;
-	#if peoteview_instancedrawing
+	
+	#if (peoteview_es3 && peoteview_instancedrawing)
 	@:allow(peote.view) static inline var BUFF_SIZE:Int = 8;
 	#else
 	@:allow(peote.view) static inline var BUFF_SIZE:Int = VERTEX_COUNT * 4;
@@ -93,7 +98,7 @@ class ElementSimple implements Element
 	
 	@:allow(peote.view) static inline function render(maxElements:Int, gl: peote.view.PeoteGL, glBuffer: lime.graphics.opengl.GLBuffer):Void
 	{
-		#if peoteview_instancedrawing
+		#if (peoteview_es3 && peoteview_instancedrawing)
 		gl.bindBuffer(gl.ARRAY_BUFFER, glInstanceBuffer);
 		gl.enableVertexAttribArray (aPOSITION);
 		gl.vertexAttribPointer(aPOSITION, 2, gl.SHORT, false, 4, 0 ); // vertexstride 0 should calc automatically
@@ -123,95 +128,111 @@ class ElementSimple implements Element
 	}
 
 	// ----------------------------------------------------------------------------------	
-	// #extension GL_ARB_uniform_buffer_object : enable
-	@:allow(peote.view) static inline function getVertexShader():String {
-		return vertexShader;
-	}
-	@:allow(peote.view) static inline var vertexShader:String =
-	#if peoteview_uniformbuffers
-	"	#version 300 es
-		layout(std140) uniform UProgram
-        {
-            vec2 uResolution;
-		};
-		
-		in vec2 aPosition;
-	"
-	#else
-	"
-		uniform vec2 uResolution;
-		
-		attribute vec2 aPosition;
-	"
-	#end
+	public static var rComments:EReg = new EReg("//.*?$","gm");
+	public static var rEmptylines:EReg = new EReg("([ \t]*\r?\n)+", "g");
+	public static var rStartspaces:EReg = new EReg("^([ \t]*\r?\n)+", "g");
 
-	#if peoteview_instancedrawing
-		#if peoteview_uniformbuffers
-		+ "
-			in vec4 aPossize;
-		"
-		#else
-		+ "
-			attribute vec4 aPossize;
-		"
+	static inline function parseShader(shader:String):String {
+		var v = {
+			isES3:false,
+			ATTRIBUTE:"attribute",
+			isUBO:false,
+			isINSTANCED:false,
+		};
+		#if peoteview_es3
+		v.isES3 = true;
+		v.ATTRIBUTE = "in";
+			#if peoteview_uniformbuffers
+			v.isUBO = true;
+			#end
+			#if peoteview_instancedrawing
+			v.isINSTANCED = true;
+			#end
 		#end
-	#end
-	+ "
-		void main(void) {
+		
+		var template = new haxe.Template(shader);			
+		return rStartspaces.replace(rEmptylines.replace(rComments.replace(template.execute(v), ""), "\n"), "");
+	}
+	
+	@:allow(peote.view) static inline function get_vertexShader():String {
+		//trace("-------vertexShader----------");
+		//trace(parseShader(vertexShader));
+		return parseShader(vertexShader);
+	}
+	
+	@:allow(peote.view) static var vertexShader(get, null):String =
+	// #extension GL_ARB_uniform_buffer_object : enable
 	"
-	#if peoteview_instancedrawing
-	+ "
-			vec2 position = (aPosition * vec2(aPossize.z, aPossize.w)) + vec2(aPossize.x, aPossize.y);
-	"
-	#else
-	+ "
-			vec2 position = aPosition;
-	"
-	#end	
-	+ "
-			float zoom = 1.0;
-			float width = uResolution.x;
-			float height = uResolution.y;
-			float deltaX = 0.0;
-			float deltaY = 0.0;
+	::if isES3::#version 300 es::end::
+	
+	::if isUBO::
+	layout(std140) uniform UProgram
+	{
+		vec2 uResolution;
+	};
+	::else::
+	uniform vec2 uResolution;
+	::end::	
+	
+	::ATTRIBUTE:: vec2 aPosition;
+	
+	::if isINSTANCED::
+	::ATTRIBUTE:: vec4 aPossize;
+	::end::
+	
+	void main(void) {
+		::if isINSTANCED::
+		vec2 position = (aPosition * vec2(aPossize.z, aPossize.w)) + vec2(aPossize.x, aPossize.y);
+		::else::
+		vec2 position = aPosition;
+		::end::
+
+		float zoom = 1.0;
+		float width = uResolution.x;
+		float height = uResolution.y;
+		float deltaX = 0.0;
+		float deltaY = 0.0;
 			
-			float right = width-deltaX*zoom;
-			float left = -deltaX*zoom;
-			float bottom = height-deltaY*zoom;
-			float top = -deltaY * zoom;
+		float right = width-deltaX*zoom;
+		float left = -deltaX*zoom;
+		float bottom = height-deltaY*zoom;
+		float top = -deltaY * zoom;
 			
-			gl_Position = mat4 (
-				vec4(2.0 / (right - left)*zoom, 0.0, 0.0, 0.0),
-				vec4(0.0, 2.0 / (top - bottom)*zoom, 0.0, 0.0),
-				vec4(0.0, 0.0, -1.0, 0.0),
-				vec4(-(right + left) / (right - left), -(top + bottom) / (top - bottom), 0.0, 1.0)
-			)
-			* vec4 (position ,
-				0.0
-				, 1.0
-				);
-		}
+		gl_Position = mat4 (
+			vec4(2.0 / (right - left)*zoom, 0.0, 0.0, 0.0),
+			vec4(0.0, 2.0 / (top - bottom)*zoom, 0.0, 0.0),
+			vec4(0.0, 0.0, -1.0, 0.0),
+			vec4(-(right + left) / (right - left), -(top + bottom) / (top - bottom), 0.0, 1.0)
+		)
+		* vec4 (position ,
+			0.0
+			, 1.0
+			);
+	}
 	";
 	
-	@:allow(peote.view) static inline var fragmentShader:String =	
-	#if peoteview_uniformbuffers
-	"	#version 300 es
-        precision highp float;
-		
-		out vec4 color;
+	@:allow(peote.view) static inline function get_fragmentShader():String {
+		//trace("-------fragmentshader----------");
+		//trace("parseShader(fragmentShader));
+		return parseShader(fragmentShader);
+	}
+	
+	@:allow(peote.view) static var fragmentShader(get, null):String =	
+	"
+	::if isES3::#version 300 es::end::
+	
+    precision highp float;
+	
+	::if isES3::
+	out vec4 color;
+	::end::
 
-		void main(void)
-		{	
-			color = vec4 (1.0, 0.0, 0.0, 1.0);
-		}
+
+	void main(void)
+	{	
+		::if isES3::color::else::gl_FragColor::end:: = vec4 (1.0, 0.0, 0.0, 1.0);
+	}
 	";
-	#else
-	"	precision highp float;
-		
-		void main(void)
-		{	
-			gl_FragColor = vec4 (1.0, 0.0, 0.0, 1.0);
-		}
-	";
-	#end	
+
+
 }

@@ -12,6 +12,9 @@ class Display
 	public var z:Int = 0; // z order
 	public var width:Int = 0;  // width
 	public var height:Int = 0; // height
+	public var zoom:Float = 1.0;
+	public var xOffset:Int = 0;
+	public var yOffset:Int = 0;
 	
 	public var red:Float = 0.0;
 	public var green:Float = 1.0;

@@ -57,11 +57,11 @@ class $className implements BufferInterface
 	var _gl: peote.view.PeoteGL = null; // TODO: multiple rendercontexts
 	var _glBuffer: lime.graphics.opengl.GLBuffer;  // TODO: multiple rendercontexts
 
-	// local bytes-buffer
 	var _elements: haxe.ds.Vector<$elementType>;
 	// var elements:Int; TAKE CARE if same name as package! -> TODO!!
 	var _maxElements:Int = 0; // amount of added elements (pos of last element)
 	
+	// local bytes-buffer
 	var _bytes: haxe.io.Bytes;
 	
 	public function new(size:Int)
@@ -83,9 +83,7 @@ class $className implements BufferInterface
 		_gl.bufferData (_gl.ARRAY_BUFFER, _bytes.length, _bytes, _gl.STATIC_DRAW); // _gl.DYNAMIC_DRAW _gl.STREAM_DRAW
 		_gl.bindBuffer (_gl.ARRAY_BUFFER, null);
 		
-		#if peoteview_instancedrawing
 		$p{elemField}.createInstanceBuffer(_gl);
-		#end		
 	}
 	
 	// rewrite element-buffer to GL-buffer

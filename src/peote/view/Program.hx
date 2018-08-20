@@ -16,8 +16,6 @@ class Program
 	public function new(buffer:BufferInterface) 
 	{
 		this.buffer = buffer;
-		
-		trace("new Program");
 	}
 	
 	public function addTexture(texture:Texture) 
@@ -34,7 +32,6 @@ class Program
 	{
 		trace("compile shader");
 		//trace("EXTENSIONS:\n"+gl.getSupportedExtensions());
-
 		
 		var vertexShaderSrc = buffer.getVertexShader();
 		var fragmentShaderSrc =  buffer.getFragmentShader();
@@ -72,19 +69,17 @@ class Program
 			}
 			else
 			{
-				#if peoteview_uniformbuffers
+				#if (peoteview_es3 && peoteview_uniformbuffers)
 				// ------------- uniform block -------------
 				uProgramIndex = gl.getUniformBlockIndex(glProgram, 'UProgram');
 				gl.uniformBlockBinding(glProgram, uProgramIndex, 0);
 				
-				uProgramBuffer = gl.createBuffer();
-				
+				// TODO: split indo peoteView.uBuffer, display.uBuffer and program.uBuffer
 				uProgramBytes = Bytes.alloc(2 * 4);
-				
-				// TODO: function to set values
 				uProgramBytes.setFloat(0, 800);
 				uProgramBytes.setFloat(4, 600);
 				
+				uProgramBuffer = gl.createBuffer();
 				gl.bindBuffer(gl.UNIFORM_BUFFER, uProgramBuffer);
 				gl.bufferData(gl.UNIFORM_BUFFER, uProgramBytes.length, uProgramBytes, gl.STATIC_DRAW);
 				gl.bindBuffer(gl.UNIFORM_BUFFER, null);
@@ -98,7 +93,7 @@ class Program
 
 	}
 	
-	#if peoteview_uniformbuffers
+	#if (peoteview_es3 && peoteview_uniformbuffers)
 	var uProgramBytes:Bytes;
 	var uProgramIndex:Int;
 	var uProgramBuffer:GLBuffer;
@@ -111,13 +106,18 @@ class Program
 		//trace("    ---program.render---");
 		peoteView.gl.useProgram(glProgram); // ------ Shader Program
 		
-		#if peoteview_uniformbuffers
+		#if (peoteview_es3 && peoteview_uniformbuffers)
 		// ------------- uniform block -------------
 		//peoteView.gl.bindBufferRange(peoteView.gl.UNIFORM_BUFFER, 0, uProgramBuffer, 0, 8);
 		peoteView.gl.bindBufferBase(peoteView.gl.UNIFORM_BUFFER, 0, uProgramBuffer);
+		// TODO: from Display
+		// TODO: from Program
 		#else
 		// ------------- simple uniform -------------
+		// from peoteView
 		peoteView.gl.uniform2f (uRESOLUTION, peoteView.width, peoteView.height);
+		// TODO: from Display
+		// TODO: from Program
 		#end
 		
 		buffer.render(peoteView, display, this);
