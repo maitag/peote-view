@@ -13,37 +13,69 @@ class Display
 	public var width:Int = 0;  // width
 	public var height:Int = 0; // height
 	public var zoom:Float = 1.0;
+	
+	#if (peoteview_es3 && peoteview_uniformbuffers)
+	public var xOffset(default, set):Int = 0;
+	public function set_xOffset(offset:Int):Int {
+		uniformBuffer.updateXOffset(gl, offset + x);
+		return xOffset = offset;
+	}
+	public var yOffset(default, set):Int = 0;
+	public function set_yOffset(offset:Int):Int {
+		uniformBuffer.updateYOffset(gl, offset + y);
+		return yOffset = offset;
+	}
+	#else
 	public var xOffset:Int = 0;
 	public var yOffset:Int = 0;
+	#end
 	
 	public var red:Float = 0.0;
-	public var green:Float = 1.0;
+	public var green:Float = 0.0;
 	public var blue:Float = 0.0;
 	public var alpha:Float = 0.0;
 	
 	var gl:PeoteGL = null; // TODO: multiple rendercontexts
+	var peoteView:PeoteView = null; // TODO: multiple rendercontexts
 
 	var programList:RenderList<Program>;
 		
+	#if (peoteview_es3 && peoteview_uniformbuffers)
+	var uniformBuffer:UniformBufferDisplay;
+	#end
+
 	public function new() 
 	{
 		programList = new RenderList<Program>(new Map<Program,RenderListItem<Program>>());
+		#if (peoteview_es3 && peoteview_uniformbuffers)
+		uniformBuffer = new UniformBufferDisplay();
+		#end
+	}
+
+	public inline function createUniformBuffer() 
+	{
+		#if (peoteview_es3 && peoteview_uniformbuffers)
+		uniformBuffer.createGLBuffer(gl, xOffset + x, yOffset + y);
+		#end
 	}
 
 	
 	public function addProgram(program:Program, ?atProgram:Program, addBefore:Bool=false)
 	{
-		if (program.gl == null) // TODO: multiple rendercontexts
+		if (program.gl == null || program.gl == this.gl) // TODO: multiple rendercontexts
 		{
 			if (program.buffer._gl == null || program.buffer._gl == this.gl) // TODO: multiple rendercontexts
 			{
 				
 				// TODO: multiple rendercontexts
 				program.gl = this.gl;
+				program.peoteView = this.peoteView;
+				program.display = this;
 				program.buffer._gl = this.gl;
-				program.buffer.createGlBuffer();
+				program.buffer.createGLBuffer();
+				program.buffer.updateGLBuffer();
 
-				program.compile();
+				program.compile(); // todo: not compile twice (only if ubo or customshader did change)!
 				
 				programList.add(program, atProgram, addBefore);
 				
@@ -57,7 +89,7 @@ class Display
 	{
 		programList.remove(program);
 		// TODO: multiple rendercontexts
-		program.gl = null;
+		//program.gl = null;
 	}
 	
 

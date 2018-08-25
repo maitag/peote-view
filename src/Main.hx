@@ -9,6 +9,12 @@ import lime.ui.KeyCode;
 import lime.ui.KeyModifier;
 
 
+#if (sampleTest)
+typedef Sample = Test;
+#elseif (sampleMultidisplay)
+typedef Sample = Multidisplay;
+#end 
+
 class Main extends Application
 {
     public var mouse_x: Int = 0;
@@ -17,7 +23,7 @@ class Main extends Application
     public var yOffset: Int = 0;
     public var zoom: Int = 1;
 	
-	var test:Test;
+	var test:Sample;
 	var renderTest:Bool = false;
 
 	public function new() {
@@ -28,28 +34,28 @@ class Main extends Application
 	{
 		trace ("window.context.version:"+window.context.version);
 		trace ("window.context.type:" + window.context.type);
-
+		
 		switch (window.context.type) {
 
 		#if html5
 			case WEBGL:
 				#if peoteview_es3
 					if (window.context.webgl2 != null) trace("WEBGL2 available.");
-					test = new Test(window.context.webgl2, window.width, window.height);
+					test = new Sample(window.context.webgl2, window.width, window.height);
 				#elseif peoteview_es2
-					test = new Test(window.context.webgl , window.width, window.height);
+					test = new Sample(window.context.webgl , window.width, window.height);
 				#end
 				renderTest = true;
 		#else
 			case OPENGL, OPENGLES:
 				#if peoteview_es3
 					if (window.context.gles3 != null) trace("GLES3 available.");
-					test = new Test(window.context.gles3, window.width, window.height);
+					test = new Sample(window.context.gles3, window.width, window.height);
 				#elseif peoteview_es2
 					if (window.context.gles2 != null) trace("GLES2 available.");
-					test = new Test(window.context.gles2, window.width, window.height);
+					test = new Sample(window.context.gles2, window.width, window.height);
 				#else
-					test = new Test(window.context.gl   , window.width, window.height);
+					test = new Sample(window.context.gl   , window.width, window.height);
 				#end
 				renderTest = true;
 		#end

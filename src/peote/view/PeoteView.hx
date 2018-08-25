@@ -23,6 +23,10 @@ class PeoteView
 	
 	var background:Background;
 	
+	#if (peoteview_es3 && peoteview_uniformbuffers)
+	var uniformBuffer:UniformBufferView;
+	#end
+	
 	public function new(gl:PeoteGL, width:Int, height:Int)
 	{
 		this.gl = gl;
@@ -36,6 +40,10 @@ class PeoteView
 		
 		this.width = width;
 		this.height = height;
+		
+		#if (peoteview_es3 && peoteview_uniformbuffers)
+		uniformBuffer = new UniformBufferView(gl, width, height);
+		#end
 		
 		background = new Background(gl);
 		
@@ -56,8 +64,11 @@ class PeoteView
 			
 			if (display.width == 0) display.width = width;
 			if (display.height == 0) display.height = height;
-			displayList.add(display, atDisplay, addBefore);
 			display.gl  = this.gl;
+			display.peoteView = this;
+			display.createUniformBuffer();
+			
+			displayList.add(display, atDisplay, addBefore);
 		}
 		else throw ("Error: display is already added to this/other peoteView");
 
@@ -80,6 +91,10 @@ class PeoteView
 		this.width = width;
 		this.height = height;
 		// TODO: re-arange or resize all Displays
+		
+		#if (peoteview_es3 && peoteview_uniformbuffers)
+		uniformBuffer.update(gl, width, height);
+		#end
 	}
 
 	

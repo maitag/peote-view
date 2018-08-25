@@ -56,9 +56,9 @@ class $className implements BufferInterface
 {
 	var _gl: peote.view.PeoteGL = null; // TODO: multiple rendercontexts
 	var _glBuffer: lime.graphics.opengl.GLBuffer;  // TODO: multiple rendercontexts
+	var _glInstanceBuffer: lime.graphics.opengl.GLBuffer = null;
 
-	var _elements: haxe.ds.Vector<$elementType>;
-	// var elements:Int; TAKE CARE if same name as package! -> TODO!!
+	var _elements: haxe.ds.Vector<$elementType>; // var elements:Int; TAKE CARE if same name as package! -> TODO!!
 	var _maxElements:Int = 0; // amount of added elements (pos of last element)
 	
 	// local bytes-buffer
@@ -72,18 +72,26 @@ class $className implements BufferInterface
 		var buffSize:Int = Std.int(size * $p{elemField}.BUFF_SIZE);
 		_bytes = haxe.io.Bytes.alloc(buffSize);
 		_bytes.fill(0, buffSize, 0);
+		
+		$p{elemField}.createInstanceBytes();
 	}
 	
 	// creates new opengl buffer 
-	inline function createGlBuffer():Void
+	inline function createGLBuffer():Void
 	{
 		trace("createGlBuffer", _bytes.length);
 		_glBuffer = _gl.createBuffer();
+		_glInstanceBuffer = _gl.createBuffer();		
+	}
+	
+	inline function updateGLBuffer():Void
+	{
+		trace("updateGlBuffer", _bytes.length);
 		_gl.bindBuffer (_gl.ARRAY_BUFFER, _glBuffer);
 		_gl.bufferData (_gl.ARRAY_BUFFER, _bytes.length, _bytes, _gl.STATIC_DRAW); // _gl.DYNAMIC_DRAW _gl.STREAM_DRAW
 		_gl.bindBuffer (_gl.ARRAY_BUFFER, null);
 		
-		$p{elemField}.createInstanceBuffer(_gl);
+		$p{elemField}.updateInstanceGLBuffer(_gl, _glInstanceBuffer);		
 	}
 	
 	// rewrite element-buffer to GL-buffer
@@ -91,7 +99,7 @@ class $className implements BufferInterface
 	{	
 		trace("Buffer.updateElement", element.bytePos);
 		element.writeBytes(_bytes);
-		element.updateGlBuffer(_gl, _glBuffer);		
+		element.updateGLBuffer(_gl, _glBuffer);
 	}
 	
 	// adds an element to empty place inside buffer
@@ -142,7 +150,7 @@ class $className implements BufferInterface
 	private inline function render(peoteView:PeoteView, display:Display, program:Program)
 	{
 		//trace("        ---buffer.render---");
-		$p{elemField}.render(_maxElements, peoteView.gl, _glBuffer);
+		$p{elemField}.render(_maxElements, peoteView.gl, _glBuffer, _glInstanceBuffer);
 	}
 
 	

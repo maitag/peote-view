@@ -4,11 +4,18 @@ import peote.view.Element;
 
 class ElementSimple implements Element
 {
-	@:positionX public var x:Int=0;
-	@positionY  public var y:Int=0;
-	@width  public var w:Int=100;
+	@positionX @const public var x:Int=0; // signed 2 bytes integer
+	@positionY  public var y:Int=0; // signed 2 bytes integer
+	@positionZ  public var z:Int=0; // signed 2 bytes integer
+	@width @const public var w:Int=100;
 	@height public var h:Int=100;
+	@color  public var c:Int = 0x000000;  // unsigned 4 bytes integer
 	
+	/*
+	@positionX  public var x:Array<Int>=[0,0]; // signed 2 bytes integer
+	@positionY  public var y:Int=0; // signed 2 bytes integer
+	@timesteps  public var t:Array<Int>;
+	*/
 	
 	public function new()
 	{
@@ -20,30 +27,35 @@ class ElementSimple implements Element
 	@:allow(peote.view) var dataPointer: lime.utils.DataPointer;
 	
 	#if (peoteview_es3 && peoteview_instancedrawing)
-	static var glInstanceBuffer: lime.graphics.opengl.GLBuffer;
+	static var instanceBytes: haxe.io.Bytes;
 	#end
 	
-	@:allow(peote.view) static function createInstanceBuffer(gl: peote.view.PeoteGL):Void
+	@:allow(peote.view) static inline function createInstanceBytes():Void
 	{
 		#if (peoteview_es3 && peoteview_instancedrawing)
 		trace("create instance buffer");
-		var bytes = haxe.io.Bytes.alloc(VERTEX_COUNT * 4);
+		instanceBytes = haxe.io.Bytes.alloc(VERTEX_COUNT * 4);
 		var x = 0;
 		var y = 0;
 		var w = 1;
 		var h = 1;
 		var xw = x + w;
 		var yh = y + h;
-		bytes.setUInt16(0 , xw); bytes.setUInt16(2,  yh);
-		bytes.setUInt16(4 , xw); bytes.setUInt16(6,  yh);
-		bytes.setUInt16(8 , x ); bytes.setUInt16(10, yh);
-		bytes.setUInt16(12, xw); bytes.setUInt16(14, y );
-		bytes.setUInt16(16, x ); bytes.setUInt16(18, y );
-		bytes.setUInt16(20, x ); bytes.setUInt16(22, y );
-		
-		glInstanceBuffer = gl.createBuffer();
+		instanceBytes.setUInt16(4 , xw); instanceBytes.setUInt16(6,  yh);
+		instanceBytes.setUInt16(0 , xw); instanceBytes.setUInt16(2,  yh);
+		instanceBytes.setUInt16(8 , x ); instanceBytes.setUInt16(10, yh);
+		instanceBytes.setUInt16(12, xw); instanceBytes.setUInt16(14, y );
+		instanceBytes.setUInt16(16, x ); instanceBytes.setUInt16(18, y );
+		instanceBytes.setUInt16(20, x ); instanceBytes.setUInt16(22, y );
+		#end
+	}	
+	
+	@:allow(peote.view) static inline function updateInstanceGLBuffer(gl: peote.view.PeoteGL, glInstanceBuffer: lime.graphics.opengl.GLBuffer):Void
+	{
+		#if (peoteview_es3 && peoteview_instancedrawing)
+		trace("update instance GLbuffer");
 		gl.bindBuffer (gl.ARRAY_BUFFER, glInstanceBuffer);
-		gl.bufferData (gl.ARRAY_BUFFER, bytes.length, bytes, gl.STATIC_DRAW);
+		gl.bufferData (gl.ARRAY_BUFFER, instanceBytes.length, instanceBytes, gl.STATIC_DRAW);
 		gl.bindBuffer (gl.ARRAY_BUFFER, null);
 		#end
 	}	
@@ -66,7 +78,7 @@ class ElementSimple implements Element
 	}
 	
 	// ----------------------------------------------------------------------------------		
-	@:allow(peote.view) inline function updateGlBuffer(gl: peote.view.PeoteGL, glBuffer: lime.graphics.opengl.GLBuffer):Void
+	@:allow(peote.view) inline function updateGLBuffer(gl: peote.view.PeoteGL, glBuffer: lime.graphics.opengl.GLBuffer):Void
 	{
 		gl.bindBuffer (gl.ARRAY_BUFFER, glBuffer);
 		gl.bufferSubData(gl.ARRAY_BUFFER, bytePos, BUFF_SIZE, dataPointer );
@@ -96,7 +108,7 @@ class ElementSimple implements Element
 	@:allow(peote.view) static inline var BUFF_SIZE:Int = VERTEX_COUNT * 4;
 	#end
 	
-	@:allow(peote.view) static inline function render(maxElements:Int, gl: peote.view.PeoteGL, glBuffer: lime.graphics.opengl.GLBuffer):Void
+	@:allow(peote.view) static inline function render(maxElements:Int, gl: peote.view.PeoteGL, glBuffer: lime.graphics.opengl.GLBuffer, glInstanceBuffer: lime.graphics.opengl.GLBuffer):Void
 	{
 		#if (peoteview_es3 && peoteview_instancedrawing)
 		gl.bindBuffer(gl.ARRAY_BUFFER, glInstanceBuffer);
@@ -165,20 +177,29 @@ class ElementSimple implements Element
 	"
 	::if isES3::#version 300 es::end::
 	
+	// Uniforms -------------------------
 	::if isUBO::
-	layout(std140) uniform UProgram
+	layout(std140) uniform uboView
 	{
 		vec2 uResolution;
 	};
+	layout(std140) uniform uboDisplay
+	{
+		vec2 uOffset;
+	};
 	::else::
 	uniform vec2 uResolution;
-	::end::	
+	uniform vec2 uOffset;
+	::end::
 	
+	// Attributes -------------------------
 	::ATTRIBUTE:: vec2 aPosition;
 	
 	::if isINSTANCED::
 	::ATTRIBUTE:: vec4 aPossize;
 	::end::
+	
+	// custom Attributes ------------------
 	
 	void main(void) {
 		::if isINSTANCED::
@@ -190,8 +211,8 @@ class ElementSimple implements Element
 		float zoom = 1.0;
 		float width = uResolution.x;
 		float height = uResolution.y;
-		float deltaX = 0.0;
-		float deltaY = 0.0;
+		float deltaX = uOffset.x;
+		float deltaY = uOffset.y;
 			
 		float right = width-deltaX*zoom;
 		float left = -deltaX*zoom;

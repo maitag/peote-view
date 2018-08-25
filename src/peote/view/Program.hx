@@ -9,6 +9,9 @@ import lime.graphics.opengl.GLUniformLocation;
 class Program 
 {
 	var gl:PeoteGL = null; // TODO: multiple rendercontexts
+	var peoteView:PeoteView = null; // TODO: multiple rendercontexts
+	var display:Display = null; // TODO: multiple rendercontexts
+
 	var glProgram:GLProgram = null;
 	var buffer:BufferInterface;
 	//var uniforms:Vector<GLUniformLocation>;
@@ -70,22 +73,11 @@ class Program
 			else
 			{
 				#if (peoteview_es3 && peoteview_uniformbuffers)
-				// ------------- uniform block -------------
-				uProgramIndex = gl.getUniformBlockIndex(glProgram, 'UProgram');
-				gl.uniformBlockBinding(glProgram, uProgramIndex, 0);
-				
-				// TODO: split indo peoteView.uBuffer, display.uBuffer and program.uBuffer
-				uProgramBytes = Bytes.alloc(2 * 4);
-				uProgramBytes.setFloat(0, 800);
-				uProgramBytes.setFloat(4, 600);
-				
-				uProgramBuffer = gl.createBuffer();
-				gl.bindBuffer(gl.UNIFORM_BUFFER, uProgramBuffer);
-				gl.bufferData(gl.UNIFORM_BUFFER, uProgramBytes.length, uProgramBytes, gl.STATIC_DRAW);
-				gl.bindBuffer(gl.UNIFORM_BUFFER, null);
+				peoteView.uniformBuffer.bindToProgram(gl, glProgram, "uboView", 0);
+				display.uniformBuffer.bindToProgram(gl, glProgram, "uboDisplay", 1);
 				#else
-				// ------------- uniforms location ---------
 				uRESOLUTION = gl.getUniformLocation(glProgram, "uResolution");
+				uOFFSET = gl.getUniformLocation(glProgram, "uOffset");
 				#end
 				
 			}
@@ -93,12 +85,9 @@ class Program
 
 	}
 	
-	#if (peoteview_es3 && peoteview_uniformbuffers)
-	var uProgramBytes:Bytes;
-	var uProgramIndex:Int;
-	var uProgramBuffer:GLBuffer;
-	#else
+	#if !(peoteview_es3 && peoteview_uniformbuffers)
 	var uRESOLUTION:GLUniformLocation;
+	var uOFFSET:GLUniformLocation;
 	#end
 	
 	private inline function render(peoteView:PeoteView, display:Display)
@@ -109,14 +98,12 @@ class Program
 		#if (peoteview_es3 && peoteview_uniformbuffers)
 		// ------------- uniform block -------------
 		//peoteView.gl.bindBufferRange(peoteView.gl.UNIFORM_BUFFER, 0, uProgramBuffer, 0, 8);
-		peoteView.gl.bindBufferBase(peoteView.gl.UNIFORM_BUFFER, 0, uProgramBuffer);
-		// TODO: from Display
-		// TODO: from Program
+		peoteView.gl.bindBufferBase(peoteView.gl.UNIFORM_BUFFER, peoteView.uniformBuffer.block , peoteView.uniformBuffer.uniformBuffer);
+		peoteView.gl.bindBufferBase(peoteView.gl.UNIFORM_BUFFER, display.uniformBuffer.block , display.uniformBuffer.uniformBuffer);
 		#else
 		// ------------- simple uniform -------------
-		// from peoteView
 		peoteView.gl.uniform2f (uRESOLUTION, peoteView.width, peoteView.height);
-		// TODO: from Display
+		peoteView.gl.uniform2f (uOFFSET, display.xOffset+display.x, display.yOffset+display.y);
 		// TODO: from Program
 		#end
 		
