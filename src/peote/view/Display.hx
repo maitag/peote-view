@@ -30,13 +30,14 @@ class Display
 	public var yOffset:Int = 0;
 	#end
 	
+	// TODO: a 4 byte color uint
 	public var red:Float = 0.0;
 	public var green:Float = 0.0;
 	public var blue:Float = 0.0;
 	public var alpha:Float = 0.0;
 	
-	var gl:PeoteGL = null; // TODO: multiple rendercontexts
-	var peoteView:PeoteView = null; // TODO: multiple rendercontexts
+	var peoteView:PeoteView = null;
+	var gl:PeoteGL = null;
 
 	var programList:RenderList<Program>;
 		
@@ -44,52 +45,99 @@ class Display
 	var uniformBuffer:UniformBufferDisplay;
 	#end
 
-	public function new() 
+	public function new(x:Int, y:Int, width:Int, height:Int) 
 	{
+		this.x = x;
+		this.y = y;
+		this.width = width;
+		this.height = height;
+		
 		programList = new RenderList<Program>(new Map<Program,RenderListItem<Program>>());
 		#if (peoteview_es3 && peoteview_uniformbuffers)
 		uniformBuffer = new UniformBufferDisplay();
 		#end
 	}
 
-	public inline function createUniformBuffer() 
+	private inline function addToPeoteView(peoteView:PeoteView):Bool
 	{
+		
+		if (this.peoteView == peoteView) return false; // is already added
+		else
+		{
+			if (this.peoteView != null) {  // was added to another peoteView
+				this.peoteView.removeDisplay(this); // removing from the other one
+			}
+			
+			this.peoteView = peoteView;
+			
+			if (this.gl != peoteView.gl) // new or different GL-Context
+			{
+				if (this.gl != null) clearOldGLContext(); // different GL-Context
+				setNewGLContext(peoteView.gl);
+			} // if it's stay into same gl-context, no buffers had to recreate/fill
+			
+			return true;
+		}	
+
+	}
+	
+	private inline function removedFromPeoteView():Void
+	{
+		peoteView = null;
+	}
+		
+	
+	private inline function setNewGLContext(newGl:PeoteGL) 
+	{
+		gl = newGl;
 		#if (peoteview_es3 && peoteview_uniformbuffers)
 		uniformBuffer.createGLBuffer(gl, xOffset + x, yOffset + y);
 		#end
+		// for all programms in list
+		var listItem:RenderListItem<Program> = programList.first;
+		while (listItem != null)
+		{
+			listItem.value.setNewGLContext(gl);
+			listItem = listItem.next;
+		}
+	}
+
+	private inline function clearOldGLContext() 
+	{
+		#if (peoteview_es3 && peoteview_uniformbuffers)
+		uniformBuffer.deleteGLBuffer(gl);
+		#end
+		// for all programms in list
+		var listItem:RenderListItem<Program> = programList.first;
+		while (listItem != null)
+		{
+			listItem.value.clearOldGLContext();
+			listItem = listItem.next;
+		}
 	}
 
 	
+    /**
+        Adds an Program instance to the RenderList. If it's already added it can be used to 
+		change the order of rendering relative to another program in the List.
+
+        @param  program Program instance to add into the RenderList or to change it's order
+        @param  atProgram (optional) to add or move the program before or after another program in the Renderlist (at default it adds at start or end)
+        @param  addBefore (optional) set to `true` to add the program before another program or at start of the Renderlist (at default it adds after atProgram or at end of the list)
+    **/
 	public function addProgram(program:Program, ?atProgram:Program, addBefore:Bool=false)
 	{
-		if (program.gl == null || program.gl == this.gl) // TODO: multiple rendercontexts
-		{
-			if (program.buffer._gl == null || program.buffer._gl == this.gl) // TODO: multiple rendercontexts
-			{
-				
-				// TODO: multiple rendercontexts
-				program.gl = this.gl;
-				program.peoteView = this.peoteView;
-				program.display = this;
-				program.buffer._gl = this.gl;
-				program.buffer.createGLBuffer();
-				program.buffer.updateGLBuffer();
-
-				program.compile(); // todo: not compile twice (only if ubo or customshader did change)!
-				
-				programList.add(program, atProgram, addBefore);
-				
-			}
-			else throw ("Error: buffer is already in use by another peoteView");
-		}
-		else throw ("Error: program is already added to this or another peoteView");
+		if (program.addToDisplay(this)) programList.add(program, atProgram, addBefore);
+		else throw ("Error: program is already added to this display");
 	}
 	
+    /**
+        This function removes an Program instance from the RenderList.
+    **/
 	public function removeProgram(program:Program):Void
 	{
 		programList.remove(program);
-		// TODO: multiple rendercontexts
-		//program.gl = null;
+		program.removedFromDisplay();
 	}
 	
 
@@ -117,7 +165,7 @@ class Display
 	var renderListItem:RenderListItem<Program>;
 	var renderProgram:Program;
 	
-	private function render(peoteView:PeoteView):Void
+	private inline function render(peoteView:PeoteView):Void
 	{
 		//trace("  ---display.render---");
 		
@@ -130,7 +178,7 @@ class Display
 			renderProgram = renderListItem.value;
 			renderProgram.render(peoteView, this);
 			
-			renderListItem = renderListItem.next;// next displaylist in renderlist
+			renderListItem = renderListItem.next;// next program in renderlist
 		}
 		
 	}

@@ -1,16 +1,13 @@
 package peote.view;
 
-import haxe.io.Bytes;
-import lime.graphics.opengl.GLBuffer;
 import lime.graphics.opengl.GLProgram;
 import lime.graphics.opengl.GLUniformLocation;
 
 @:allow(peote.view)
 class Program 
 {
-	var gl:PeoteGL = null; // TODO: multiple rendercontexts
-	var peoteView:PeoteView = null; // TODO: multiple rendercontexts
-	var display:Display = null; // TODO: multiple rendercontexts
+	var display:Display = null;
+	var gl:PeoteGL = null;
 
 	var glProgram:GLProgram = null;
 	var buffer:BufferInterface;
@@ -21,17 +18,62 @@ class Program
 		this.buffer = buffer;
 	}
 	
-	public function addTexture(texture:Texture) 
+	private inline function addToDisplay(display:Display):Bool
 	{
 		
+		if (this.display == display) return false; // is already added
+		else
+		{
+			if (this.display != null) {  // was added to another display
+				this.display.removeProgram(this); // removing from the other one
+			}
+			
+			this.display = display;
+			
+			if (this.gl != display.gl) // new or different GL-Context
+			{
+				if (this.gl != null) clearOldGLContext(); // different GL-Context
+				setNewGLContext(display.gl);
+			} // if it's stay into same gl-context, no buffers had to recreate/fill
+			#if (peoteview_es3 && peoteview_uniformbuffers)
+			else display.uniformBuffer.bindToProgram(gl, glProgram, "uboDisplay", 1);
+			#end
+			return true;
+		}	
+	}
+
+	private inline function removedFromDisplay():Void
+	{
+		display = null;
+	}
+		
+	
+	private inline function setNewGLContext(newGl:PeoteGL)
+	{
+		gl = newGl;
+		buffer._gl = gl;
+		buffer.createGLBuffer();
+		buffer.updateGLBuffer();
+		compile();
+	}
+
+	private inline function clearOldGLContext() 
+	{
+		buffer.deleteGLBuffer();
+	}
+	
+	
+	public function addTexture(texture:Texture) 
+	{
+		// TODO
 	}
 	
 	public function removeTexture(texture:Texture) 
 	{
-		
+		// TODO
 	}
 	
-	function compile():Void
+	function compile():Void  // TODO: do not compile twice if same program is used inside multiple displays
 	{
 		trace("compile shader");
 		//trace("EXTENSIONS:\n"+gl.getSupportedExtensions());
@@ -73,7 +115,7 @@ class Program
 			else
 			{
 				#if (peoteview_es3 && peoteview_uniformbuffers)
-				peoteView.uniformBuffer.bindToProgram(gl, glProgram, "uboView", 0);
+				display.peoteView.uniformBuffer.bindToProgram(gl, glProgram, "uboView", 0);
 				display.uniformBuffer.bindToProgram(gl, glProgram, "uboDisplay", 1);
 				#else
 				uRESOLUTION = gl.getUniformLocation(glProgram, "uResolution");
@@ -90,6 +132,9 @@ class Program
 	var uOFFSET:GLUniformLocation;
 	#end
 	
+	// ------------------------------------------------------------------------------
+	// ----------------------------- Render -----------------------------------------
+	// ------------------------------------------------------------------------------
 	private inline function render(peoteView:PeoteView, display:Display)
 	{
 		//trace("    ---program.render---");

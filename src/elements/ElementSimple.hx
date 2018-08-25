@@ -17,9 +17,12 @@ class ElementSimple implements Element
 	@timesteps  public var t:Array<Int>;
 	*/
 	
-	public function new()
+	public function new(positionX:Int=0, positionY:Int=0, width:Int=100, height:Int=100 )
 	{
-		
+		this.x = positionX;
+		this.y = positionY;
+		this.w = width;
+		this.w = height;
 	}
 	
 	// ----------------------------------------------------------------------------------
@@ -27,33 +30,35 @@ class ElementSimple implements Element
 	@:allow(peote.view) var dataPointer: lime.utils.DataPointer;
 	
 	#if (peoteview_es3 && peoteview_instancedrawing)
-	static var instanceBytes: haxe.io.Bytes;
+	static var instanceBytes: haxe.io.Bytes = null;
 	#end
 	
 	@:allow(peote.view) static inline function createInstanceBytes():Void
 	{
 		#if (peoteview_es3 && peoteview_instancedrawing)
-		trace("create instance buffer");
-		instanceBytes = haxe.io.Bytes.alloc(VERTEX_COUNT * 4);
-		var x = 0;
-		var y = 0;
-		var w = 1;
-		var h = 1;
-		var xw = x + w;
-		var yh = y + h;
-		instanceBytes.setUInt16(4 , xw); instanceBytes.setUInt16(6,  yh);
-		instanceBytes.setUInt16(0 , xw); instanceBytes.setUInt16(2,  yh);
-		instanceBytes.setUInt16(8 , x ); instanceBytes.setUInt16(10, yh);
-		instanceBytes.setUInt16(12, xw); instanceBytes.setUInt16(14, y );
-		instanceBytes.setUInt16(16, x ); instanceBytes.setUInt16(18, y );
-		instanceBytes.setUInt16(20, x ); instanceBytes.setUInt16(22, y );
+		if (instanceBytes == null) {
+			trace("create bytes for instance GLbuffer");
+			instanceBytes = haxe.io.Bytes.alloc(VERTEX_COUNT * 4);
+			var x = 0;
+			var y = 0;
+			var w = 1;
+			var h = 1;
+			var xw = x + w;
+			var yh = y + h;
+			instanceBytes.setUInt16(4 , xw); instanceBytes.setUInt16(6,  yh);
+			instanceBytes.setUInt16(0 , xw); instanceBytes.setUInt16(2,  yh);
+			instanceBytes.setUInt16(8 , x ); instanceBytes.setUInt16(10, yh);
+			instanceBytes.setUInt16(12, xw); instanceBytes.setUInt16(14, y );
+			instanceBytes.setUInt16(16, x ); instanceBytes.setUInt16(18, y );
+			instanceBytes.setUInt16(20, x ); instanceBytes.setUInt16(22, y );
+		}
 		#end
 	}	
 	
 	@:allow(peote.view) static inline function updateInstanceGLBuffer(gl: peote.view.PeoteGL, glInstanceBuffer: lime.graphics.opengl.GLBuffer):Void
 	{
 		#if (peoteview_es3 && peoteview_instancedrawing)
-		trace("update instance GLbuffer");
+		trace("fill full instance GLbuffer");
 		gl.bindBuffer (gl.ARRAY_BUFFER, glInstanceBuffer);
 		gl.bufferData (gl.ARRAY_BUFFER, instanceBytes.length, instanceBytes, gl.STATIC_DRAW);
 		gl.bindBuffer (gl.ARRAY_BUFFER, null);

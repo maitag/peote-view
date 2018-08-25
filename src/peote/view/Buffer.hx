@@ -69,6 +69,7 @@ class $className implements BufferInterface
 		//var elements:Int; //TAKE CARE for vars with same name as package! -> TODO!!
 		_elements = new haxe.ds.Vector<$elementType>(size);
 		
+		trace("create bytes for GLbuffer");
 		var buffSize:Int = Std.int(size * $p{elemField}.BUFF_SIZE);
 		_bytes = haxe.io.Bytes.alloc(buffSize);
 		_bytes.fill(0, buffSize, 0);
@@ -76,17 +77,23 @@ class $className implements BufferInterface
 		$p{elemField}.createInstanceBytes();
 	}
 	
-	// creates new opengl buffer 
 	inline function createGLBuffer():Void
 	{
-		trace("createGlBuffer", _bytes.length);
-		_glBuffer = _gl.createBuffer();
+		trace("create new GlBuffer");
+		_glBuffer         = _gl.createBuffer();
 		_glInstanceBuffer = _gl.createBuffer();		
+	}
+	
+	inline function deleteGLBuffer():Void
+	{
+		trace("delete GlBuffer");
+		_gl.deleteBuffer(_glBuffer);
+		_gl.deleteBuffer(_glInstanceBuffer);
 	}
 	
 	inline function updateGLBuffer():Void
 	{
-		trace("updateGlBuffer", _bytes.length);
+		trace("fill full GlBuffer", _bytes.length);
 		_gl.bindBuffer (_gl.ARRAY_BUFFER, _glBuffer);
 		_gl.bufferData (_gl.ARRAY_BUFFER, _bytes.length, _bytes, _gl.STATIC_DRAW); // _gl.DYNAMIC_DRAW _gl.STREAM_DRAW
 		_gl.bindBuffer (_gl.ARRAY_BUFFER, null);
@@ -97,9 +104,9 @@ class $className implements BufferInterface
 	// rewrite element-buffer to GL-buffer
 	public inline function updateElement(element: $elementType):Void
 	{	
-		trace("Buffer.updateElement", element.bytePos);
+		trace("Buffer.updateElement at position" + element.bytePos);
 		element.writeBytes(_bytes);
-		element.updateGLBuffer(_gl, _glBuffer);
+		if (_gl != null) element.updateGLBuffer(_gl, _glBuffer);
 	}
 	
 	// adds an element to empty place inside buffer

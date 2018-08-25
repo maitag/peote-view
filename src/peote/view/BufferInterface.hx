@@ -6,6 +6,7 @@ interface BufferInterface
 {
 	@:allow(peote.view.Display) private var _gl: peote.view.PeoteGL;
 	@:allow(peote.view.Display) private function createGLBuffer():Void;
+	@:allow(peote.view.Display) private function deleteGLBuffer():Void;
 	@:allow(peote.view.Display) private function updateGLBuffer():Void;
 	
 	private function getVertexShader():String;

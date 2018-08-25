@@ -1,3 +1,4 @@
+import haxe.Timer;
 import peote.view.PeoteGL;
 import peote.view.PeoteView;
 import peote.view.Display;
@@ -15,31 +16,24 @@ class Test
 	{	
 
 		peoteView = new PeoteView(gl, width, height);
-		var display   = new Display();
+		var display   = new Display(10,10, width-20, height-20); display.green = 1.0;
 		var buffer    = new Buffer<ElementSimple>(100);
 		var program   = new Program(buffer);
 		
 		peoteView.addDisplay(display);  // display to peoteView
 		display.addProgram(program);    // programm to display
-		display.x = 10;
+	
 		
-		var element  = new elements.ElementSimple();
-		element.x = 10;
-		element.y = 20;
+		var element  = new elements.ElementSimple(10, 10);
 		buffer.addElement(element);     // element to buffer
 		
-		var element1  = new elements.ElementSimple();
-		element1.x = 10;
-		element1.y = 200;
+		var element1  = new elements.ElementSimple(10, 150);
 		buffer.addElement(element1);     // element to buffer
 		
-		/*
-		element.x = 100;
-		element1.x =100;
-		
-		buffer.updateElement(element);
-		buffer.updateElement(element1);
-		*/
+		Timer.delay( function() {
+			element.x += 100;
+			buffer.updateElement(element);
+		} , 1000);
 		
 		// ---------------------------------------------------------------
 		//peoteView.render();

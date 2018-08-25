@@ -38,12 +38,17 @@ class UniformBufferDisplay
 
 	public function createGLBuffer(gl:PeoteGL, xOffest:Int, yOffest:Int)
 	{
+		uniformBuffer = gl.createBuffer();
 		uniformBytes.setFloat(0, xOffest);
 		uniformBytes.setFloat(4, yOffest);
-		uniformBuffer = gl.createBuffer();
 		gl.bindBuffer(gl.UNIFORM_BUFFER, uniformBuffer);
 		gl.bufferData(gl.UNIFORM_BUFFER, uniformBytes.length, uniformBytes, gl.STATIC_DRAW);
 		gl.bindBuffer(gl.UNIFORM_BUFFER, null);
+	}
+	
+	public function deleteGLBuffer(gl:PeoteGL)
+	{
+		gl.deleteBuffer(uniformBuffer);
 	}
 	
 	public function bindToProgram(gl:PeoteGL, glProgram:lime.graphics.opengl.GLProgram, name:String, block:Int) {

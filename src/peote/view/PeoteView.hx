@@ -51,7 +51,7 @@ class PeoteView
 	}
 	
     /**
-        Adds an Display instance to the RenderList. If it's  already added it can be used to 
+        Adds an Display instance to the RenderList. If it's already added it can be used to 
 		change the order of rendering relative to another display in the List.
 
         @param  display Display instance to add into the RenderList or to change it's order
@@ -60,18 +60,8 @@ class PeoteView
     **/
 	public function addDisplay(display:Display, ?atDisplay:Display, addBefore:Bool=false)
 	{
-		if (display.gl == null) {  // TODO: multiple rendercontexts
-			
-			if (display.width == 0) display.width = width;
-			if (display.height == 0) display.height = height;
-			display.gl  = this.gl;
-			display.peoteView = this;
-			display.createUniformBuffer();
-			
-			displayList.add(display, atDisplay, addBefore);
-		}
-		else throw ("Error: display is already added to this/other peoteView");
-
+		if (display.addToPeoteView(this)) displayList.add(display, atDisplay, addBefore);
+		else throw ("Error: display is already added to this peoteView");
 	}
 	
     /**
@@ -80,7 +70,7 @@ class PeoteView
 	public function removeDisplay(display:Display):Void
 	{
 		displayList.remove(display);
-		display.gl  = null;  // TODO: multiple rendercontexts
+		display.removedFromPeoteView();
 	}
 
     /**

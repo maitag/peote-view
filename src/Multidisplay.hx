@@ -1,3 +1,4 @@
+import haxe.Timer;
 import peote.view.PeoteGL;
 import peote.view.PeoteView;
 import peote.view.Display;
@@ -15,18 +16,10 @@ class Multidisplay
 	{	
 
 		peoteView = new PeoteView(gl, width, height);
-		var displayLeft  = new Display();
-		displayLeft.x = 10;
-		displayLeft.y = 10;
-		displayLeft.width = 280;
-		displayLeft.height = 280;
+		var displayLeft  = new Display(10, 10, 280, 280);
 		displayLeft.blue = 1.0;
 		
-		var displayRight = new Display();
-		displayRight.x = 300;
-		displayRight.y = 10;
-		displayRight.width = 280;
-		displayRight.height = 280;
+		var displayRight = new Display(300, 10, 280, 280);
 		displayRight.green = 1.0;
 		
 		var buffer    = new Buffer<ElementSimple>(100);
@@ -36,28 +29,13 @@ class Multidisplay
 		peoteView.addDisplay(displayRight);
 		
 		displayLeft.addProgram(program);
-		displayRight.addProgram(program);
 		
-		var element  = new elements.ElementSimple();
-		element.x = 20;
-		element.y = 20;
-		buffer.addElement(element);     // element to buffer
-		/*
-		var element1  = new elements.ElementSimple();
-		element1.x = 10;
-		element1.y = 200;
-		buffer.addElement(element1);     // element to buffer
-		*/
-		/*
-		element.x = 100;
-		element1.x =100;
+		Timer.delay(function() { // switch the program to the other display
+			displayRight.addProgram(program);
+		}, 1000);
 		
-		buffer.updateElement(element);
-		buffer.updateElement(element1);
-		*/
-		
-		// ---------------------------------------------------------------
-		//peoteView.render();
+		var element  = new elements.ElementSimple(20, 20);
+		buffer.addElement(element);
 		
 	}
 
