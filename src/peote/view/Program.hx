@@ -37,7 +37,7 @@ class Program
 				setNewGLContext(display.gl);
 			} // if it's stay into same gl-context, no buffers had to recreate/fill
 			#if (peoteview_es3 && peoteview_uniformbuffers)
-			else display.uniformBuffer.bindToProgram(gl, glProgram, "uboDisplay", 1);
+			else if (gl!=null) display.uniformBuffer.bindToProgram(gl, glProgram, "uboDisplay", 1);
 			#end
 			return true;
 		}	

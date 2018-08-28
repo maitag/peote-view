@@ -23,7 +23,6 @@ class Test
 		peoteView.addDisplay(display);  // display to peoteView
 		display.addProgram(program);    // programm to display
 	
-		
 		var element  = new ElementSimple(10, 10);
 		buffer.addElement(element);     // element to buffer
 		

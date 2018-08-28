@@ -23,23 +23,22 @@ class Multibuffer
 		displayRight.green = 1.0;
 		
 		var bufferLeft = new Buffer<ElementSimple>(100);
-		var programLeft   = new Program(bufferLeft);
-		
 		var bufferRight = new Buffer<ElementSimple>(100);
+
+		var programLeft   = new Program(bufferLeft);
 		var programRight   = new Program(bufferRight);
 		
 		displayLeft.addProgram(programLeft);
 		displayRight.addProgram(programRight);
 		
 		peoteView.addDisplay(displayLeft);
-		peoteView.addDisplay(displayRight);
+		peoteView.addDisplay(displayRight);		
 		
 		var elementLeft  = new elements.ElementSimple(10, 10);
 		bufferLeft.addElement(elementLeft);
 
 		var elementRight  = new elements.ElementSimple(10, 10);
 		bufferRight.addElement(elementRight);
-
 			
 			
 		Timer.delay(function() { 

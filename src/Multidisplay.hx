@@ -23,6 +23,10 @@ class Multidisplay
 		displayRight.green = 1.0;
 		
 		var buffer    = new Buffer<ElementSimple>(100);
+
+		var element  = new elements.ElementSimple(20, 20);
+		buffer.addElement(element);
+
 		var program   = new Program(buffer);
 		
 		peoteView.addDisplay(displayLeft);
@@ -37,8 +41,6 @@ class Multidisplay
 			displayLeft.addProgram(program);
 		}, 2000);
 		
-		var element  = new elements.ElementSimple(20, 20);
-		buffer.addElement(element);
 		
 	}
 
