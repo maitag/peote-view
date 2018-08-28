@@ -155,7 +155,7 @@ class $className implements BufferInterface
 	}
 
 	private inline function render(peoteView:PeoteView, display:Display, program:Program)
-	{
+	{		
 		//trace("        ---buffer.render---");
 		$p{elemField}.render(_maxElements, peoteView.gl, _glBuffer, _glInstanceBuffer);
 	}

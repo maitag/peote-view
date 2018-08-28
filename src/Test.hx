@@ -24,10 +24,10 @@ class Test
 		display.addProgram(program);    // programm to display
 	
 		
-		var element  = new elements.ElementSimple(10, 10);
+		var element  = new ElementSimple(10, 10);
 		buffer.addElement(element);     // element to buffer
 		
-		var element1  = new elements.ElementSimple(10, 150);
+		var element1  = new ElementSimple(10, 150);
 		buffer.addElement(element1);     // element to buffer
 		
 		Timer.delay( function() {

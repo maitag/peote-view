@@ -25,6 +25,7 @@ class Program
 		else
 		{
 			if (this.display != null) {  // was added to another display
+				trace("removing from " + ((this.display.blue == 1.0)?"blue":"green"));
 				this.display.removeProgram(this); // removing from the other one
 			}
 			
@@ -50,6 +51,7 @@ class Program
 	
 	private inline function setNewGLContext(newGl:PeoteGL)
 	{
+		trace("Program setNewGLContext");
 		gl = newGl;
 		buffer._gl = gl;
 		buffer.createGLBuffer();
@@ -59,6 +61,8 @@ class Program
 
 	private inline function clearOldGLContext() 
 	{
+		trace("Program clearOldGLContext");
+		gl.deleteProgram(glProgram);
 		buffer.deleteGLBuffer();
 	}
 	
@@ -136,7 +140,7 @@ class Program
 	// ----------------------------- Render -----------------------------------------
 	// ------------------------------------------------------------------------------
 	private inline function render(peoteView:PeoteView, display:Display)
-	{
+	{	
 		//trace("    ---program.render---");
 		peoteView.gl.useProgram(glProgram); // ------ Shader Program
 		

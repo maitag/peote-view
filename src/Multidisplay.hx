@@ -33,6 +33,9 @@ class Multidisplay
 		Timer.delay(function() { // switch the program to the other display
 			displayRight.addProgram(program);
 		}, 1000);
+		Timer.delay(function() { // switch the program to the other display
+			displayLeft.addProgram(program);
+		}, 2000);
 		
 		var element  = new elements.ElementSimple(20, 20);
 		buffer.addElement(element);

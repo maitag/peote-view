@@ -22,7 +22,7 @@ class ElementSimple implements Element
 		this.x = positionX;
 		this.y = positionY;
 		this.w = width;
-		this.w = height;
+		this.h = height;
 	}
 	
 	// ----------------------------------------------------------------------------------

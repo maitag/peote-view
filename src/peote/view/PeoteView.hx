@@ -50,6 +50,37 @@ class PeoteView
 		displayList = new RenderList<Display>(new Map<Display,RenderListItem<Display>>());
 	}
 	
+	public function setNewGLContext(newGl:PeoteGL) 
+	{
+		trace("PeoteView setNewGLContext");
+		gl = newGl;
+		#if (peoteview_es3 && peoteview_uniformbuffers)
+		// TODO uniformBuffer.createGLBuffer(gl, width, height);
+		#end
+		// for all displays in list
+		var listItem:RenderListItem<Display> = displayList.first;
+		while (listItem != null)
+		{
+			listItem.value.setNewGLContext(gl);
+			listItem = listItem.next;
+		}
+	}
+
+	public function clearOldGLContext() 
+	{
+		trace("Display clearOldGLContext");
+		#if (peoteview_es3 && peoteview_uniformbuffers)
+		// TODO uniformBuffer.deleteGLBuffer(gl);
+		#end
+		// for all programms in list
+		var listItem:RenderListItem<Display> = displayList.first;
+		while (listItem != null)
+		{
+			listItem.value.clearOldGLContext();
+			listItem = listItem.next;
+		}
+	}
+
     /**
         Adds an Display instance to the RenderList. If it's already added it can be used to 
 		change the order of rendering relative to another display in the List.
@@ -145,7 +176,7 @@ class PeoteView
 	var renderDisplay:Display;
 	
 	public function render():Void
-	{
+	{	
 		//trace("===peoteView.render===");
 
 		initGLViewport(width, height);

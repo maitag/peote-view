@@ -5,12 +5,14 @@
 	
 	<android target-sdk-version="26" />
 	
-	<app main="Main" path="bin" file="Main" />
+	<!-- <app main="Main" path="bin" file="Main" /> -->
+	<app main="MultipleWindows" path="bin" file="MultipleWindows" />
 	
 	<!-- <window fps="60" width="800" height="600" vsync="true" antialiasing="4" resizable="true" hardware="true" allow-shaders="true" require-shaders="true" depth-buffer="true" stencil-buffer="false" /> -->
-	<window fps="60" width="800" height="600" vsync="true" resizable="true" hardware="true" allow-shaders="true" require-shaders="true" depth-buffer="true" stencil-buffer="false" />
+	<!--<window fps="60" width="800" height="600" vsync="true" resizable="true" hardware="true" allow-shaders="true" require-shaders="true" depth-buffer="true" stencil-buffer="false" />
 	<window if="html5||android" fps="60" width="0" height="0" />
-	
+	-->
+	<window width="800" height="600"/>
 	<source path="src" />
 	
 	<haxelib name="lime" />
@@ -19,7 +21,7 @@
 	<haxedef name="sampleMultidisplay" /> <!-- sampleTest, sampleMultidisplay, ... -->
 		
 	<haxedef name="peoteview_es3" if="html5" />
-	<haxedef name="peoteview_es2" unless="html5" />
+	<!--<haxedef name="peoteview_es2" unless="html5" />-->
 
 	<haxedef name="peoteview_uniformbuffers" />
 	<haxedef name="peoteview_instancedrawing" />

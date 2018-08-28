@@ -89,6 +89,7 @@ class Display
 	
 	private inline function setNewGLContext(newGl:PeoteGL) 
 	{
+		trace("Display setNewGLContext");
 		gl = newGl;
 		#if (peoteview_es3 && peoteview_uniformbuffers)
 		uniformBuffer.createGLBuffer(gl, xOffset + x, yOffset + y);
@@ -104,6 +105,7 @@ class Display
 
 	private inline function clearOldGLContext() 
 	{
+		trace("Display clearOldGLContext");
 		#if (peoteview_es3 && peoteview_uniformbuffers)
 		uniformBuffer.deleteGLBuffer(gl);
 		#end
@@ -167,6 +169,7 @@ class Display
 	
 	private inline function render(peoteView:PeoteView):Void
 	{
+		
 		//trace("  ---display.render---");
 		
 		render_scissor(peoteView);
