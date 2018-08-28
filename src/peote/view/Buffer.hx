@@ -64,8 +64,19 @@ class $className implements BufferInterface
 	// local bytes-buffer
 	var _bytes: haxe.io.Bytes;
 	
+	#if peoteview_queueGLbuffering
+	var updateGLBufferElementQueue:Array<$elementType>;
+	var queueCreateGLBuffer:Bool = false;
+	var queueDeleteGLBuffer:Bool = false;
+	var queueUpdateGLBuffer:Bool = false;
+	#end
+
 	public function new(size:Int)
 	{
+		#if peoteview_queueGLbuffering
+		updateGLBufferElementQueue = new Array<$elementType>();
+		#end
+		
 		//var elements:Int; //TAKE CARE for vars with same name as package! -> TODO!!
 		_elements = new haxe.ds.Vector<$elementType>(size);
 		
@@ -80,25 +91,36 @@ class $className implements BufferInterface
 	inline function createGLBuffer():Void
 	{
 		trace("create new GlBuffer");
+		#if peoteview_queueGLbuffering
+		queueCreateGLBuffer = true;
+		#else
 		_glBuffer         = _gl.createBuffer();
-		_glInstanceBuffer = _gl.createBuffer();		
+		_glInstanceBuffer = _gl.createBuffer();
+		#end
 	}
 	
 	inline function deleteGLBuffer():Void
 	{
 		trace("delete GlBuffer");
+		#if peoteview_queueGLbuffering
+		queueDeleteGLBuffer = true;
+		#else
 		_gl.deleteBuffer(_glBuffer);
 		_gl.deleteBuffer(_glInstanceBuffer);
+		#end
 	}
 	
 	inline function updateGLBuffer():Void
 	{
 		trace("fill full GlBuffer", _bytes.length);
+		#if peoteview_queueGLbuffering
+		queueUpdateGLBuffer = true;
+		#else
 		_gl.bindBuffer (_gl.ARRAY_BUFFER, _glBuffer);
 		_gl.bufferData (_gl.ARRAY_BUFFER, _bytes.length, _bytes, _gl.STATIC_DRAW); // _gl.DYNAMIC_DRAW _gl.STREAM_DRAW
-		_gl.bindBuffer (_gl.ARRAY_BUFFER, null);
-		
-		$p{elemField}.updateInstanceGLBuffer(_gl, _glInstanceBuffer);		
+		_gl.bindBuffer (_gl.ARRAY_BUFFER, null);		
+		$p{elemField}.updateInstanceGLBuffer(_gl, _glInstanceBuffer);
+		#end
 	}
 	
 	// rewrite element-buffer to GL-buffer
@@ -106,7 +128,11 @@ class $className implements BufferInterface
 	{	
 		trace("Buffer.updateElement at position" + element.bytePos);
 		element.writeBytes(_bytes);
+		#if peoteview_queueGLbuffering
+		updateGLBufferElementQueue.push(element);
+		#else
 		if (_gl != null) element.updateGLBuffer(_gl, _glBuffer);
+		#end
 	}
 	
 	// adds an element to empty place inside buffer
@@ -157,6 +183,24 @@ class $className implements BufferInterface
 	private inline function render(peoteView:PeoteView, display:Display, program:Program)
 	{		
 		//trace("        ---buffer.render---");
+		#if peoteview_queueGLbuffering
+		if (updateGLBufferElementQueue.length > 0) updateGLBufferElementQueue.shift().updateGLBuffer(_gl, _glBuffer);
+		if (queueCreateGLBuffer) { queueCreateGLBuffer = false;
+			_glBuffer         = _gl.createBuffer();
+			_glInstanceBuffer = _gl.createBuffer();
+		}
+		if (queueDeleteGLBuffer) { queueDeleteGLBuffer = false;
+			_gl.deleteBuffer(_glBuffer);
+			_gl.deleteBuffer(_glInstanceBuffer);
+		}
+		if (queueUpdateGLBuffer) { queueUpdateGLBuffer = false;
+			_gl.bindBuffer (_gl.ARRAY_BUFFER, _glBuffer);
+			_gl.bufferData (_gl.ARRAY_BUFFER, _bytes.length, _bytes, _gl.STATIC_DRAW); // _gl.DYNAMIC_DRAW _gl.STREAM_DRAW
+			_gl.bindBuffer (_gl.ARRAY_BUFFER, null);		
+			$p{elemField}.updateInstanceGLBuffer(_gl, _glInstanceBuffer);
+		}
+		#end
+		
 		$p{elemField}.render(_maxElements, peoteView.gl, _glBuffer, _glInstanceBuffer);
 	}
 

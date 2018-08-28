@@ -1,0 +1,65 @@
+import haxe.Timer;
+import peote.view.PeoteGL;
+import peote.view.PeoteView;
+import peote.view.Display;
+import peote.view.Buffer;
+import peote.view.Program;
+//import peote.view.Texture;
+
+import elements.ElementSimple;
+
+class Multibuffer
+{
+	var peoteView:PeoteView;
+
+	public function new(gl:PeoteGL, width:Int, height:Int)
+	{	
+
+		peoteView = new PeoteView(gl, width, height);
+		var displayLeft  = new Display(10, 10, 280, 280);
+		displayLeft.blue = 1.0;
+		
+		var displayRight = new Display(300, 10, 280, 280);
+		displayRight.green = 1.0;
+		
+		var bufferLeft = new Buffer<ElementSimple>(100);
+		var programLeft   = new Program(bufferLeft);
+		
+		var bufferRight = new Buffer<ElementSimple>(100);
+		var programRight   = new Program(bufferRight);
+		
+		displayLeft.addProgram(programLeft);
+		displayRight.addProgram(programRight);
+		
+		peoteView.addDisplay(displayLeft);
+		peoteView.addDisplay(displayRight);
+		
+		var elementLeft  = new elements.ElementSimple(10, 10);
+		bufferLeft.addElement(elementLeft);
+
+		var elementRight  = new elements.ElementSimple(10, 10);
+		bufferRight.addElement(elementRight);
+
+			
+			
+		Timer.delay(function() { 
+			bufferLeft.addElement(new elements.ElementSimple(10, 120));
+		}, 1000);
+		Timer.delay(function() { 
+			bufferRight.addElement(new elements.ElementSimple(10, 120));
+		}, 2000);
+		
+		
+	}
+
+	public function render()
+	{
+		peoteView.render();
+	}
+
+	public function resize(width:Int, height:Int)
+	{
+		peoteView.resize(width, height);
+	}
+
+}

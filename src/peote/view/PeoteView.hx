@@ -11,7 +11,7 @@ import lime.graphics.opengl.GLFramebuffer;
 @:allow(peote.view)
 class PeoteView 
 {
-	var gl:PeoteGL;
+	public var gl(default, null):PeoteGL;
 	
 	var width:Int;
 	var height:Int;

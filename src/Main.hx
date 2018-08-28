@@ -13,6 +13,8 @@ import lime.ui.KeyModifier;
 typedef Sample = Test;
 #elseif (sampleMultidisplay)
 typedef Sample = Multidisplay;
+#elseif (sampleMultibuffer)
+typedef Sample = Multibuffer;
 #end 
 
 class Main extends Application
