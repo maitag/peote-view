@@ -205,6 +205,8 @@ class ElementSimple implements Element
 	::end::
 	
 	// custom Attributes ------------------
+
+	// PICKING  ::if isES3:: flat out int instanceID; ::end::
 	
 	void main(void) {
 		::if isINSTANCED::
@@ -213,6 +215,8 @@ class ElementSimple implements Element
 		vec2 position = aPosition;
 		::end::
 
+		// PICKING instanceID = gl_InstanceID;
+		
 		float zoom = 1.0;
 		float width = uResolution.x;
 		float height = uResolution.y;
@@ -250,13 +254,16 @@ class ElementSimple implements Element
     precision highp float;
 	
 	::if isES3::
+	flat in int instanceID;
 	out vec4 color;
+	// PICKING out int color;
 	::end::
 
-
+	
 	void main(void)
 	{	
 		::if isES3::color::else::gl_FragColor::end:: = vec4 (1.0, 0.0, 0.0, 1.0);
+		// PICKING ::if isES3::color::else::gl_FragColor::end:: =  instanceID*50;
 	}
 	";
 

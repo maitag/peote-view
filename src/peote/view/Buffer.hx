@@ -54,8 +54,8 @@ class BufferMacro
 
 class $className implements BufferInterface
 {
-	var _gl: peote.view.PeoteGL = null; // TODO: multiple rendercontexts
-	var _glBuffer: lime.graphics.opengl.GLBuffer;  // TODO: multiple rendercontexts
+	var _gl: peote.view.PeoteGL = null;
+	var _glBuffer: lime.graphics.opengl.GLBuffer;
 	var _glInstanceBuffer: lime.graphics.opengl.GLBuffer = null;
 
 	var _elements: haxe.ds.Vector<$elementType>; // var elements:Int; TAKE CARE if same name as package! -> TODO!!
@@ -77,7 +77,6 @@ class $className implements BufferInterface
 		updateGLBufferElementQueue = new Array<$elementType>();
 		#end
 		
-		//var elements:Int; //TAKE CARE for vars with same name as package! -> TODO!!
 		_elements = new haxe.ds.Vector<$elementType>(size);
 		
 		trace("create bytes for GLbuffer");
@@ -123,7 +122,18 @@ class $className implements BufferInterface
 		#end
 	}
 	
-	// rewrite element-buffer to GL-buffer
+	/**
+        Updates all element-changes to the rendering process of this buffer.
+    **/
+	public function update():Void
+	{
+		updateGLBuffer();
+	}
+	
+	/**
+        Updates all changes of an element to the rendering process.
+        @param  element Element instance to update
+    **/
 	public inline function updateElement(element: $elementType):Void
 	{	
 		trace("Buffer.updateElement at position" + element.bytePos);
@@ -135,7 +145,10 @@ class $className implements BufferInterface
 		#end
 	}
 	
-	// adds an element to empty place inside buffer
+	/**
+        Adds an element to the buffer and renderers it.
+        @param  element Element instance to add
+    **/
 	public function addElement(element: $elementType):Void
 	{	
 		if (element.bytePos == -1) {
@@ -148,6 +161,10 @@ class $className implements BufferInterface
 		else throw("Error: Element is already inside Buffer");
 	}
 		
+	/**
+        Removes an element from the buffer so it did nor renderer anymore.
+        @param  element Element instance to remove
+    **/
 	public function removeElement(element: $elementType):Void
 	{
 		if (element.bytePos != -1) {
@@ -184,6 +201,7 @@ class $className implements BufferInterface
 	{		
 		//trace("        ---buffer.render---");
 		#if peoteview_queueGLbuffering
+		//TODO: a while loop but only a limited number at the same time
 		if (updateGLBufferElementQueue.length > 0) updateGLBufferElementQueue.shift().updateGLBuffer(_gl, _glBuffer);
 		if (queueCreateGLBuffer) { queueCreateGLBuffer = false;
 			_glBuffer         = _gl.createBuffer();

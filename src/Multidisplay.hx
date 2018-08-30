@@ -1,4 +1,5 @@
 import haxe.Timer;
+import lime.ui.MouseButton;
 import peote.view.PeoteGL;
 import peote.view.PeoteView;
 import peote.view.Display;
@@ -22,15 +23,15 @@ class Multidisplay
 		var displayRight = new Display(300, 10, 280, 280);
 		displayRight.green = 1.0;
 		
+		peoteView.addDisplay(displayLeft);
+		peoteView.addDisplay(displayRight);
+		
 		var buffer    = new Buffer<ElementSimple>(100);
 
 		var element  = new elements.ElementSimple(20, 20);
 		buffer.addElement(element);
 
 		var program   = new Program(buffer);
-		
-		peoteView.addDisplay(displayLeft);
-		peoteView.addDisplay(displayRight);
 		
 		displayLeft.addProgram(program);
 		
@@ -44,6 +45,10 @@ class Multidisplay
 		
 	}
 
+	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
+	{
+	}
+	
 	public function render()
 	{
 		peoteView.render();

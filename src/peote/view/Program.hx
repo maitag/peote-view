@@ -1,7 +1,10 @@
 package peote.view;
 
 import lime.graphics.opengl.GLProgram;
+import lime.graphics.opengl.GLShader;
 import lime.graphics.opengl.GLUniformLocation;
+
+import peote.view.utils.GLTool;
 
 @:allow(peote.view)
 class Program 
@@ -10,6 +13,9 @@ class Program
 	var gl:PeoteGL = null;
 
 	var glProgram:GLProgram = null;
+	var glVertexShader:GLShader = null;
+	var glFragmentShader:GLShader = null;
+	
 	var buffer:BufferInterface;
 	//var uniforms:Vector<GLUniformLocation>;
 	
@@ -18,6 +24,11 @@ class Program
 		this.buffer = buffer;
 	}
 	
+ 	private inline function isIn(display:Display):Bool
+	{
+		return (this.display == display);
+	}
+			
 	private inline function addToDisplay(display:Display):Bool
 	{
 		
@@ -53,16 +64,20 @@ class Program
 	{
 		trace("Program setNewGLContext");
 		gl = newGl;
-		buffer._gl = gl;
+		buffer._gl = gl;          // TODO: check here if buffer already inside another peoteView with different glContext (multiwindows)
 		buffer.createGLBuffer();
 		buffer.updateGLBuffer();
-		compile();
+		createProgram();
 	}
 
 	private inline function clearOldGLContext() 
 	{
 		trace("Program clearOldGLContext");
+		
+		gl.deleteShader(glVertexShader);
+		gl.deleteShader(glFragmentShader);
 		gl.deleteProgram(glProgram);
+		
 		buffer.deleteGLBuffer();
 	}
 	
@@ -77,58 +92,28 @@ class Program
 		// TODO
 	}
 	
-	function compile():Void  // TODO: do not compile twice if same program is used inside multiple displays
+	private function createProgram():Void  // TODO: do not compile twice if same program is used inside multiple displays
 	{
-		trace("compile shader");
-		//trace("EXTENSIONS:\n"+gl.getSupportedExtensions());
+		trace("create Program");
+		glVertexShader   = GLTool.compileGLShader(gl, gl.VERTEX_SHADER,   buffer.getVertexShader() );
+		glFragmentShader = GLTool.compileGLShader(gl, gl.FRAGMENT_SHADER, buffer.getFragmentShader() );
 		
-		var vertexShaderSrc = buffer.getVertexShader();
-		var fragmentShaderSrc =  buffer.getFragmentShader();
-		
-		var fs = gl.createShader(gl.FRAGMENT_SHADER);
-		gl.shaderSource(fs, fragmentShaderSrc);
-		gl.compileShader(fs);
-		
-		var vs = gl.createShader(gl.VERTEX_SHADER);
-		gl.shaderSource(vs, vertexShaderSrc);
-		gl.compileShader(vs);
-		
-		if      (gl.getShaderParameter(fs, gl.COMPILE_STATUS) == 0) trace("ERROR fragmentShader: " + gl.getShaderInfoLog(fs));
-		else if (gl.getShaderParameter(vs, gl.COMPILE_STATUS) == 0) trace("ERROR vertexShader: " + gl.getShaderInfoLog(vs));
-		else
-		{
-			glProgram = gl.createProgram();
+		glProgram = gl.createProgram();
 
-			gl.attachShader(glProgram, vs);
-			gl.attachShader(glProgram, fs);
-			
-			gl.deleteShader(vs);
-			gl.deleteShader(fs);
-			
-			buffer.bindAttribLocations(gl, glProgram);
+		gl.attachShader(glProgram, glVertexShader);
+		gl.attachShader(glProgram, glFragmentShader);
 		
-			gl.linkProgram(glProgram);
-
-			if (gl.getProgramParameter(glProgram, gl.LINK_STATUS) == 0) // glsl compile error
-			{
-				trace(gl.getProgramInfoLog(glProgram)
-					+ "VALIDATE_STATUS: " + gl.getProgramParameter(glProgram, gl.VALIDATE_STATUS)
-					+ "ERROR: " + gl.getError()
-				);
-			}
-			else
-			{
-				#if (peoteview_es3 && peoteview_uniformbuffers)
-				display.peoteView.uniformBuffer.bindToProgram(gl, glProgram, "uboView", 0);
-				display.uniformBuffer.bindToProgram(gl, glProgram, "uboDisplay", 1);
-				#else
-				uRESOLUTION = gl.getUniformLocation(glProgram, "uResolution");
-				uOFFSET = gl.getUniformLocation(glProgram, "uOffset");
-				#end
-				
-			}
-		}
-
+		buffer.bindAttribLocations(gl, glProgram);
+		
+		GLTool.linkGLProgram(gl, glProgram);
+		
+		#if (peoteview_es3 && peoteview_uniformbuffers)
+		display.peoteView.uniformBuffer.bindToProgram(gl, glProgram, "uboView", 0);
+		display.uniformBuffer.bindToProgram(gl, glProgram, "uboDisplay", 1);
+		#else
+		uRESOLUTION = gl.getUniformLocation(glProgram, "uResolution");
+		uOFFSET = gl.getUniformLocation(glProgram, "uOffset");
+		#end	
 	}
 	
 	#if !(peoteview_es3 && peoteview_uniformbuffers)

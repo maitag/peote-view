@@ -1,4 +1,5 @@
 import haxe.Timer;
+import lime.ui.MouseButton;
 import peote.view.PeoteGL;
 import peote.view.PeoteView;
 import peote.view.Display;
@@ -49,6 +50,10 @@ class Multibuffer
 		}, 2000);
 		
 		
+	}
+
+	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
+	{
 	}
 
 	public function render()

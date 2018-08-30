@@ -2,6 +2,7 @@ package peote.view.utils;
 
 import lime.graphics.opengl.GLBuffer;
 import lime.graphics.opengl.GLProgram;
+import lime.graphics.opengl.GLShader;
 import lime.graphics.opengl.GLUniformLocation;
 import lime.utils.BytePointer;
 
@@ -14,45 +15,19 @@ class Background
 	var gl:PeoteGL;
 
 	var buffer:GLBuffer;
-	var program:GLProgram;
-	var	aPosition:Int;
+	var glProgram:GLProgram;
+	
+	static inline var aPOSITION:Int = 0;
 	var uRGBA:GLUniformLocation;
 
 	public function new(gl:PeoteGL) {
 		this.gl = gl;
 		createBuffer();
+		createProgram();
 	}
 	
 	public function createBuffer():Void
 	{
-		program = GLProgram.fromSources ( gl,
-			// ---------------------------- VERTEX SHADER ---
-			"
-			attribute vec2 aPosition;
-			void main(void)
-			{
-				gl_Position = mat4 ( // TODO: mathstar-optimize this ;)=
-					vec4(2.0, 0.0, 0.0, 0.0),
-					vec4(0.0, -2.0, 0.0, 0.0),
-					vec4(0.0, 0.0, 0.0, 0.0),
-					vec4(-1.0, 1.0, 0.0, 1.0)
-				) * vec4 (aPosition, -65000.0 ,1.0); // 65000? -> zIndex (todo for <zero)
-			}
-			",
-			// -------------------------- FRAGMENT SHADER ---
-			"precision mediump float;" +
-			"
-			uniform vec4 uRGBA;
-			void main(void)
-			{
-				gl_FragColor = uRGBA;
-			}
-			"				
-		);
-		
-		aPosition = gl.getAttribLocation (program, "aPosition");
-		uRGBA = gl.getUniformLocation (program, "uRGBA");
-		
 		var bytes:Bytes = Bytes.alloc(8 * 4);
 
 		bytes.setFloat(0,  1);bytes.setFloat(4,  1);
@@ -67,18 +42,64 @@ class Background
 		gl.bindBuffer (gl.ARRAY_BUFFER, null);
 	}
 	
+	public function createProgram():Void
+	{
+		var glVertexShader:GLShader = GLTool.compileGLShader(gl, gl.VERTEX_SHADER,
+		"	
+			attribute vec2 aPosition;
+			void main(void)
+			{
+				gl_Position = mat4 (
+					vec4(2.0, 0.0, 0.0, 0.0),
+					vec4(0.0, -2.0, 0.0, 0.0),
+					vec4(0.0, 0.0, 0.0, 0.0),
+					vec4(-1.0, 1.0, 0.0, 1.0)
+				) * vec4 (aPosition, 1.175494351e-38 ,1.0);
+			}
+		"
+		);
+		
+		var glFragmentShader:GLShader = GLTool.compileGLShader(gl, gl.FRAGMENT_SHADER,
+		"
+			precision mediump float;
+			
+			uniform vec4 uRGBA;
+			void main(void)
+			{
+				gl_FragColor = uRGBA;
+			}
+		"			
+		);
+
+		glProgram = gl.createProgram();
+
+		gl.attachShader(glProgram, glVertexShader);
+		gl.attachShader(glProgram, glFragmentShader);
+		
+		gl.deleteShader(glVertexShader);
+		gl.deleteShader(glFragmentShader);
+		
+		gl.bindAttribLocation(glProgram, aPOSITION, "aPosition");
+
+		GLTool.linkGLProgram(gl, glProgram);
+		
+		uRGBA = gl.getUniformLocation (glProgram, "uRGBA");		
+	}
+	
 	public function render(r:Float, g:Float, b:Float, a:Float):Void
 	{
 		gl.bindBuffer (gl.ARRAY_BUFFER, buffer);
 		
-		gl.enableVertexAttribArray (aPosition);
-		gl.vertexAttribPointer (aPosition, 2, gl.FLOAT, false, 8, 0);
+		gl.enableVertexAttribArray (aPOSITION);
+		gl.vertexAttribPointer (aPOSITION, 2, gl.FLOAT, false, 8, 0);
 		
-		gl.useProgram (program);
+		gl.useProgram (glProgram);
 		gl.uniform4f ( uRGBA, r,g,b,a);
 		
 		gl.drawArrays (gl.TRIANGLE_STRIP, 0, 4);
-		gl.disableVertexAttribArray (aPosition);
+		gl.disableVertexAttribArray (aPOSITION);
+		
+		gl.bindBuffer (gl.ARRAY_BUFFER, null);
 	}
 	
 	

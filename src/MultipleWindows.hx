@@ -38,8 +38,12 @@ class MultipleWindows extends Application
 	public override function onWindowCreate():Void {
 		
 		window.context.attributes.background = 1;
-
-		peoteView_1 = new PeoteView(  window.context.gl,  window.width,  window.height);
+		#if html5
+		var gl = #if peoteview_es3 window.context.webgl2 #elseif peoteview_es2 window.context.webgl #end;
+		#else
+		var gl = #if peoteview_es3 window.context.gles3 #elseif peoteview_es2 window.context.gles2 #else window.context.gl #end;
+		#end
+		peoteView_1 = new PeoteView(gl, window.width, window.height);
 		display_1   = new Display(10, 10, window.width - 20, window.height - 20);
 		display_1.green = 1.0;
 		buffer_1    = new Buffer<ElementSimple>(100);
@@ -52,54 +56,68 @@ class MultipleWindows extends Application
 		window.onResize.add    (onResize_1.bind (window));
 		window.onKeyDown.add   (onKeyDown_.bind (window));
 		
+		
 		Timer.delay( function() {
 			createWindow_2();
 		}, 1000);
 		Timer.delay( function() {
-			createWindow_3();
+			createwindow();
 		}, 2000);
+		
 	}
 	
-	var window_2:Window;
 	private function createWindow_2():Void
 	{
+		#if desktop
 		var attributes = {	title: "Window_2", x:0, y:0, width: 600, height: 800, resizable:true,
 		                    context: { background: 2 }  };
-		window_2 = createWindow(attributes);
-		
-		peoteView_2 = new PeoteView(  window_2.context.gl,  window_2.width,  window_2.height);
-		display_2   = new Display(10, 10, window_2.width - 20, window_2.height - 20);
+		var window = createWindow(attributes);
+		#end
+		#if html5
+		var gl = #if peoteview_es3 window.context.webgl2 #elseif peoteview_es2 window.context.webgl #end;
+		#else
+		var gl = #if peoteview_es3 window.context.gles3 #elseif peoteview_es2 window.context.gles2 #else window.context.gl #end;
+		#end
+		peoteView_2 = new PeoteView(gl, window.width, window.height);
+		display_2   = new Display(10, 10, window.width - 20, window.height - 20);
 		display_2.blue = 1.0;
 		buffer_2    = new Buffer<ElementSimple>(100);
 		program_2   = new Program(buffer_2);
 		display_2.addProgram(program_2);
 		peoteView_2.addDisplay(display_2);
-		
-		window_2.onRender.add    (onRender_2.bind   (window_2));
-		window_2.onMouseDown.add (onMouseDown_2.bind(window_2));
-		window_2.onResize.add    (onResize_2.bind   (window_2));
-		window_2.onKeyDown.add   (onKeyDown_.bind   (window_2));
+		#if desktop
+		window.onRender.add    (onRender_2.bind   (window));
+		window.onMouseDown.add (onMouseDown_2.bind(window));
+		window.onResize.add    (onResize_2.bind   (window));
+		window.onKeyDown.add   (onKeyDown_.bind   (window));
+		#end
 	}
 	
-	var window_3:Window;
-	private function createWindow_3():Void
+	private function createwindow():Void
 	{
-		var attributes = {	title: "Window_3", x:0, y:0, width: 800, height: 580, resizable:true,
+		#if desktop
+		var attributes = {	title: "window", x:0, y:0, width: 800, height: 580, resizable:true,
 		                    context: { background: 3 }  };
-		window_3 = createWindow(attributes);
-		
-		peoteView_3 = new PeoteView(  window_3.context.gl,  window_3.width,  window_3.height);
-		display_3   = new Display(10, 10, window_3.width - 20, window_3.height - 20);
+		var window = createWindow(attributes);
+		#end
+		#if html5
+		var gl = #if peoteview_es3 window.context.webgl2 #elseif peoteview_es2 window.context.webgl #end;
+		#else
+		var gl = #if peoteview_es3 window.context.gles3 #elseif peoteview_es2 window.context.gles2 #else window.context.gl #end;
+		#end
+		peoteView_3 = new PeoteView(gl, window.width, window.height);
+		display_3   = new Display(10, 10, window.width - 20, window.height - 20);
 		display_3.green = 1.0;display_3.red = 1.0;
 		buffer_3    = new Buffer<ElementSimple>(100);
 		program_3   = new Program(buffer_3);
 		display_3.addProgram(program_3);
 		peoteView_3.addDisplay(display_3);
-		
-		window_3.onRender.add    (onRender_3.bind   (window_3));
-		window_3.onMouseDown.add (onMouseDown_3.bind(window_3));
-		window_3.onResize.add    (onResize_3.bind   (window_3));
-		window_3.onKeyDown.add   (onKeyDown_.bind   (window_3));		
+		#if desktop
+		window.onRender.add    (onRender_3.bind   (window));
+		window.onMouseDown.add (onMouseDown_3.bind(window));
+		window.onResize.add    (onResize_3.bind   (window));
+		window.onKeyDown.add   (onKeyDown_.bind   (window));
+		#end
 	}
 	
 	// ------------------------------------------------------------	
@@ -164,7 +182,6 @@ class MultipleWindows extends Application
 	}
 
 	
-	
 	// ------------------------------------------------------------	
 	// ----------- fullscreen keyboardhandler ---------------------
 	// ------------------------------------------------------------	
@@ -173,6 +190,22 @@ class MultipleWindows extends Application
 		switch (keyCode) {
 			case KeyCode.F:
 				window.fullscreen = !window.fullscreen;
+			case KeyCode.D:                                  // switching displays
+				if (peoteView_1.hasDisplay(display_1)) {
+					peoteView_1.addDisplay(display_2);
+					peoteView_2.addDisplay(display_1);
+				} else {
+					peoteView_1.addDisplay(display_1);
+					peoteView_2.addDisplay(display_2);
+				}
+			case KeyCode.P:                                  // switching programs
+				if (display_1.hasProgram(program_1)) {
+					display_2.addProgram(program_1);
+					display_1.addProgram(program_2);
+				} else {
+					display_1.addProgram(program_1);
+					display_2.addProgram(program_2);
+				}
 			case KeyCode.NUMBER_1:
 				Timer.delay( function() {
 					buffer_1.addElement(new ElementSimple(10 + 12 * elem_1++, 10, 10, 10));

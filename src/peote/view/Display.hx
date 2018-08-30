@@ -86,7 +86,6 @@ class Display
 		peoteView = null;
 	}
 		
-	
 	private inline function setNewGLContext(newGl:PeoteGL) 
 	{
 		trace("Display setNewGLContext");
@@ -119,7 +118,17 @@ class Display
 	}
 
 	
-    /**
+ 	private inline function isIn(peoteView:PeoteView):Bool
+	{
+		return (this.peoteView == peoteView);
+	}
+			
+ 	public inline function hasProgram(program:Program):Bool
+	{
+		return program.isIn(this);
+	}
+			
+   /**
         Adds an Program instance to the RenderList. If it's already added it can be used to 
 		change the order of rendering relative to another program in the List.
 

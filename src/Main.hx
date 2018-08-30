@@ -71,14 +71,7 @@ class Main extends Application
 	// ----------- Render Loop ------------------------------------
 	public override function render(context:RenderContext):Void
 	{	
-		switch (window.context.type) {
-			case OPENGL, OPENGLES, WEBGL:
-				
-				if (renderTest) test.render();
-								
-			default:
-				trace("only opengl supported");
-		}
+		if (renderTest) test.render();
 	}
 
 	// ------------------------------------------------------------
@@ -130,6 +123,7 @@ class Main extends Application
 		/*if ( button == 0) zoom++;
 		else if (button == 1 && zoom > 1) zoom--;
 		setOffsets();*/
+		if (renderTest) test.onMouseDown(x, y, button);
 	}
 	
 	public override function onMouseUp (x:Float, y:Float, button:MouseButton):Void

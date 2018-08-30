@@ -31,6 +31,7 @@ class PeoteView
 	{
 		this.gl = gl;
 		trace ("gl.version:" + gl.VERSION);
+		//trace("EXTENSIONS:\n"+gl.getSupportedExtensions());
 		/*
 		// only ES2:
 		trace("precision range low precision", gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.LOW_FLOAT).precision);
@@ -81,6 +82,11 @@ class PeoteView
 		}
 	}
 
+ 	public inline function hasDisplay(display:Display):Bool
+	{
+		return display.isIn(this);
+	}
+			
     /**
         Adds an Display instance to the RenderList. If it's already added it can be used to 
 		change the order of rendering relative to another display in the List.
