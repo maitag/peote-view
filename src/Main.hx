@@ -15,6 +15,8 @@ typedef Sample = Test;
 typedef Sample = Multidisplay;
 #elseif (sampleMultibuffer)
 typedef Sample = Multibuffer;
+#elseif (sampleGLPicking)
+typedef Sample = GLPicking;
 #end 
 
 class Main extends Application

@@ -9,12 +9,14 @@ import peote.view.Program;
 
 import elements.ElementSimple;
 
-class Multidisplay 
+class GLPicking 
 {
 	var peoteView:PeoteView;
 
 	var element:ElementSimple;
 	var buffer:Buffer<ElementSimple>;
+	var programLeft:Program;
+	var programRight:Program; 
 	
 	public function new(gl:PeoteGL, width:Int, height:Int)
 	{	
@@ -29,28 +31,32 @@ class Multidisplay
 		peoteView.addDisplay(displayLeft);
 		peoteView.addDisplay(displayRight);
 		
-		buffer    = new Buffer<ElementSimple>(100);
+		buffer   = new Buffer<ElementSimple>(100);
 
 		element  = new elements.ElementSimple(20, 20);
 		buffer.addElement(element);
 
-		var program   = new Program(buffer);
 		
-		displayLeft.addProgram(program);
+		programLeft  = new Program(buffer);
+		programRight = new Program(buffer);
 		
-		Timer.delay(function() { // switch the program to the other display
-			displayRight.addProgram(program);
-		}, 1000);
-		Timer.delay(function() { // switch the program to the other display
-			displayLeft.addProgram(program);
-		}, 2000);
+		displayLeft.addProgram(programLeft);
+		displayRight.addProgram(programRight);
+		
+		
+		
+		var timer = new Timer(60);
+		timer.run =  function() {
+			element.x++; buffer.updateElement(element);		
+		};
 		
 		
 	}
 
 	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
 	{
-		element.x+=10; buffer.updateElement(element);
+		var pickedElement = buffer.pickElementAt(Std.int(x), Std.int(y), programLeft);
+		if (pickedElement != null) pickedElement.y += 100;
 	}
 	
 	public function render()

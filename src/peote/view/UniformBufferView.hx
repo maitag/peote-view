@@ -1,5 +1,7 @@
 package peote.view;
 
+import peote.view.PeoteGL.GLProgram;
+
 class UniformBufferView 
 {
 
@@ -7,7 +9,7 @@ class UniformBufferView
 	//var height:Int;
 
 	public var block:Int;
-	public var uniformBuffer:lime.graphics.opengl.GLBuffer;
+	public var uniformBuffer:PeoteGL.GLBuffer;
 	
 	var uniformBytes:haxe.io.Bytes;
 	
@@ -29,7 +31,7 @@ class UniformBufferView
 		gl.bindBuffer(gl.UNIFORM_BUFFER, null);
 	}
 	
-	public function bindToProgram(gl:PeoteGL, glProgram:lime.graphics.opengl.GLProgram, name:String, block:Int) {
+	public function bindToProgram(gl:PeoteGL, glProgram:GLProgram, name:String, block:Int) {
 		this.block = block;
 		var index:Int = gl.getUniformBlockIndex(glProgram, name);
 		if (index != gl.INVALID_INDEX) {

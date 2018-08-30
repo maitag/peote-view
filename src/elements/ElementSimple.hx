@@ -17,6 +17,7 @@ class ElementSimple implements Element
 	@timesteps  public var t:Array<Int>;
 	*/
 	
+	
 	public function new(positionX:Int=0, positionY:Int=0, width:Int=100, height:Int=100 )
 	{
 		this.x = positionX;
@@ -27,7 +28,7 @@ class ElementSimple implements Element
 	
 	// ----------------------------------------------------------------------------------
 	@:allow(peote.view) var bytePos:Int = -1;
-	@:allow(peote.view) var dataPointer: lime.utils.DataPointer;
+	@:allow(peote.view) var dataPointer: peote.view.PeoteGL.DataPointer;
 	
 	#if (peoteview_es3 && peoteview_instancedrawing)
 	static var instanceBytes: haxe.io.Bytes = null;
@@ -55,7 +56,7 @@ class ElementSimple implements Element
 		#end
 	}	
 	
-	@:allow(peote.view) static inline function updateInstanceGLBuffer(gl: peote.view.PeoteGL, glInstanceBuffer: lime.graphics.opengl.GLBuffer):Void
+	@:allow(peote.view) static inline function updateInstanceGLBuffer(gl: peote.view.PeoteGL, glInstanceBuffer: peote.view.PeoteGL.GLBuffer):Void
 	{
 		#if (peoteview_es3 && peoteview_instancedrawing)
 		trace("fill full instance GLbuffer");
@@ -83,7 +84,7 @@ class ElementSimple implements Element
 	}
 	
 	// ----------------------------------------------------------------------------------		
-	@:allow(peote.view) inline function updateGLBuffer(gl: peote.view.PeoteGL, glBuffer: lime.graphics.opengl.GLBuffer):Void
+	@:allow(peote.view) inline function updateGLBuffer(gl: peote.view.PeoteGL, glBuffer: peote.view.PeoteGL.GLBuffer):Void
 	{
 		gl.bindBuffer (gl.ARRAY_BUFFER, glBuffer);
 		gl.bufferSubData(gl.ARRAY_BUFFER, bytePos, BUFF_SIZE, dataPointer );
@@ -97,7 +98,7 @@ class ElementSimple implements Element
 	public static inline var aPOSSIZE:Int  = 1;
 	#end
 	
-	@:allow(peote.view) static inline function bindAttribLocations(gl: peote.view.PeoteGL, glProgram: lime.graphics.opengl.GLProgram):Void
+	@:allow(peote.view) static inline function bindAttribLocations(gl: peote.view.PeoteGL, glProgram: peote.view.PeoteGL.GLProgram):Void
 	{
 		gl.bindAttribLocation(glProgram, aPOSITION, "aPosition");
 		#if (peoteview_es3 && peoteview_instancedrawing)
@@ -113,7 +114,7 @@ class ElementSimple implements Element
 	@:allow(peote.view) static inline var BUFF_SIZE:Int = VERTEX_COUNT * 4;
 	#end
 	
-	@:allow(peote.view) static inline function render(maxElements:Int, gl: peote.view.PeoteGL, glBuffer: lime.graphics.opengl.GLBuffer, glInstanceBuffer: lime.graphics.opengl.GLBuffer):Void
+	@:allow(peote.view) static inline function render(maxElements:Int, gl: peote.view.PeoteGL, glBuffer: peote.view.PeoteGL.GLBuffer, glInstanceBuffer: peote.view.PeoteGL.GLBuffer):Void
 	{
 		#if (peoteview_es3 && peoteview_instancedrawing)
 		gl.bindBuffer(gl.ARRAY_BUFFER, glInstanceBuffer);

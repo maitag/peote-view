@@ -5,8 +5,8 @@ import peote.view.utils.GLTool;
 import peote.view.utils.RenderList;
 import peote.view.utils.RenderListItem;
 
-import lime.graphics.opengl.GLTexture;
-import lime.graphics.opengl.GLFramebuffer;
+import peote.view.PeoteGL.GLTexture;
+import peote.view.PeoteGL.GLFramebuffer;
 
 @:allow(peote.view)
 class PeoteView 

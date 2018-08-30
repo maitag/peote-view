@@ -1,5 +1,7 @@
 package peote.view;
 
+import peote.view.PeoteGL.GLProgram;
+
 class UniformBufferDisplay
 {
 	var xOffestdataPointer: lime.utils.DataPointer;
@@ -51,7 +53,7 @@ class UniformBufferDisplay
 		gl.deleteBuffer(uniformBuffer);
 	}
 	
-	public function bindToProgram(gl:PeoteGL, glProgram:lime.graphics.opengl.GLProgram, name:String, block:Int) {
+	public function bindToProgram(gl:PeoteGL, glProgram:GLProgram, name:String, block:Int) {
 		this.block = block;
 		var index:Int = gl.getUniformBlockIndex(glProgram, name);
 		if (index != gl.INVALID_INDEX) {

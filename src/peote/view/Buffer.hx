@@ -55,8 +55,8 @@ class BufferMacro
 class $className implements BufferInterface
 {
 	var _gl: peote.view.PeoteGL = null;
-	var _glBuffer: lime.graphics.opengl.GLBuffer;
-	var _glInstanceBuffer: lime.graphics.opengl.GLBuffer = null;
+	var _glBuffer: peote.view.PeoteGL.GLBuffer;
+	var _glInstanceBuffer: peote.view.PeoteGL.GLBuffer = null;
 
 	var _elements: haxe.ds.Vector<$elementType>; // var elements:Int; TAKE CARE if same name as package! -> TODO!!
 	var _maxElements:Int = 0; // amount of added elements (pos of last element)
@@ -153,7 +153,7 @@ class $className implements BufferInterface
 	{	
 		if (element.bytePos == -1) {
 			element.bytePos = _maxElements * $p{elemField}.BUFF_SIZE;
-			element.dataPointer = new lime.utils.BytePointer(_bytes, element.bytePos);
+			element.dataPointer = new peote.view.PeoteGL.BytePointer(_bytes, element.bytePos);
 			trace("Buffer.addElement", _maxElements, element.bytePos);
 			_elements.set(_maxElements++, element);
 			updateElement(element);		
@@ -172,7 +172,7 @@ class $className implements BufferInterface
 				trace("Buffer.removeElement", element.bytePos);
 				var lastElement: $elementType = _elements.get(--_maxElements);
 				lastElement.bytePos = element.bytePos;
-				lastElement.dataPointer = new lime.utils.BytePointer(_bytes, element.bytePos);
+				lastElement.dataPointer = new peote.view.PeoteGL.BytePointer(_bytes, element.bytePos);
 				updateElement(lastElement);
 				_elements.set( Std.int(  element.bytePos / $p{elemField}.BUFF_SIZE ), lastElement);
 			}
@@ -192,9 +192,20 @@ class $className implements BufferInterface
 		return $p{elemField}.fragmentShader;
 	}
 
-	private inline function bindAttribLocations(gl: peote.view.PeoteGL, glProgram: lime.graphics.opengl.GLProgram):Void
+	private inline function bindAttribLocations(gl: peote.view.PeoteGL, glProgram: peote.view.PeoteGL.GLProgram):Void
 	{
 		$p{elemField}.bindAttribLocations(gl, glProgram);
+	}
+	
+	/**
+        Gets the element at screen position.
+        @param  program the program this buffer is bind to
+    **/
+	public function pickElementAt(x:Int, y:Int, program:peote.view.Program ): $elementType
+	{
+		//var elementNumber:Int = program.pickElementAt(x, y);
+		//trace("---------PICKED elementNumber:" + elementNumber);
+		return null;//TODO
 	}
 
 	private inline function render(peoteView:PeoteView, display:Display, program:Program)

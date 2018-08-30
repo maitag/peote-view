@@ -1,7 +1,20 @@
 package peote.view;
 
-import lime.graphics.opengl.GLProgram;
-import lime.graphics.opengl.GLShader;
+
+typedef GLTexture         = lime.graphics.opengl.GLTexture;
+typedef GLFramebuffer     = lime.graphics.opengl.GLFramebuffer;
+                         
+typedef GLProgram         = lime.graphics.opengl.GLProgram;
+typedef GLShader          = lime.graphics.opengl.GLShader;
+typedef GLUniformLocation = lime.graphics.opengl.GLUniformLocation;
+
+typedef GLBuffer          = lime.graphics.opengl.GLBuffer;
+
+
+typedef BytePointer = lime.utils.BytePointer;
+typedef DataPointer = lime.utils.DataPointer;
+
+
 
 #if html5
 	#if peoteview_es3
@@ -19,16 +32,17 @@ import lime.graphics.opengl.GLShader;
 	#end
 #end
 
+
 @:forward()
 abstract PeoteGL(LimeGLRenderContext) from LimeGLRenderContext to LimeGLRenderContext {
 #if html5
-	public inline function bufferData (target:Int, size:Int, srcData:lime.utils.DataPointer, usage:Int):Void {
+	public inline function bufferData (target:Int, size:Int, srcData:DataPointer, usage:Int):Void {
 		var a = srcData.toUInt8Array();
 		//trace("bufferData",srcData,a);
 		this.bufferData (target, a, usage);
 	}
 	
-	public inline function bufferSubData (target:Int, offset:Int, size:Int, srcData:lime.utils.DataPointer):Void {
+	public inline function bufferSubData (target:Int, offset:Int, size:Int, srcData:DataPointer):Void {
 		//var a = srcData.toBufferOrBufferView(size);
 		var a = srcData.toUInt8Array(size);
 		//trace("bufferSubData",srcData,a);

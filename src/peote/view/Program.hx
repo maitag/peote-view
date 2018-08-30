@@ -1,8 +1,8 @@
 package peote.view;
 
-import lime.graphics.opengl.GLProgram;
-import lime.graphics.opengl.GLShader;
-import lime.graphics.opengl.GLUniformLocation;
+import peote.view.PeoteGL.GLProgram;
+import peote.view.PeoteGL.GLShader;
+import peote.view.PeoteGL.GLUniformLocation;
 
 import peote.view.utils.GLTool;
 
