@@ -112,12 +112,14 @@ class Program
 		display.uniformBuffer.bindToProgram(gl, glProgram, "uboDisplay", 1);
 		#else
 		uRESOLUTION = gl.getUniformLocation(glProgram, "uResolution");
+		uZOOM = gl.getUniformLocation(glProgram, "uZoom");
 		uOFFSET = gl.getUniformLocation(glProgram, "uOffset");
 		#end	
 	}
 	
 	#if !(peoteview_es3 && peoteview_uniformbuffers)
 	var uRESOLUTION:GLUniformLocation;
+	var uZOOM:GLUniformLocation;
 	var uOFFSET:GLUniformLocation;
 	#end
 	
@@ -137,12 +139,24 @@ class Program
 		#else
 		// ------------- simple uniform -------------
 		peoteView.gl.uniform2f (uRESOLUTION, peoteView.width, peoteView.height);
-		peoteView.gl.uniform2f (uOFFSET, display.xOffset+display.x, display.yOffset+display.y);
+		peoteView.gl.uniform1f (uZOOM, peoteView.zoom * display.zoom);
+		peoteView.gl.uniform2f (uOFFSET, (display.x + display.xOffset + peoteView.xOffset) / display.zoom, 
+		                                 (display.y + display.yOffset + peoteView.yOffset) / display.zoom);
 		// TODO: from Program
 		#end
 		
 		buffer.render(peoteView, display, this);
 		peoteView.gl.useProgram (null);
+	}
+	// ------------------------------------------------------------------------------
+	// ------------------------ OPENGL PICKING -------------------------------------- 
+	// ------------------------------------------------------------------------------
+	private inline function pick( mouseX:Int, mouseY:Int, peoteView:PeoteView, display:Display):Void
+	{
+		// TODO
+		// peoteView.gl.useProgram(glProgramPick);
+		// TODO -> translate peoteview relative to zoom and mouseposition before rendreing
+		// no changes for the uniform-buffers for the picking-shader
 	}
 	
 }

@@ -15,9 +15,30 @@ class PeoteView
 	
 	var width:Int;
 	var height:Int;
-	var zoom:Float = 1.0;
-	var xOffset:Int = 0;
-	var yOffset:Int = 0;
+	
+	#if (peoteview_es3 && peoteview_uniformbuffers)
+	public var zoom(default, set):Float = 1.0;
+	public inline function set_zoom(z:Float):Float {
+		uniformBuffer.updateZoom(gl, z);
+		return zoom = z;
+	}
+	public var xOffset(default, set):Int = 0;
+	public inline function set_xOffset(offset:Int):Int {
+		uniformBuffer.updateXOffset(gl, offset);
+		return xOffset = offset;
+	}
+	public var yOffset(default, set):Int = 0;
+	public inline function set_yOffset(offset:Int):Int {
+		uniformBuffer.updateYOffset(gl, offset);
+		return yOffset = offset;
+	}
+	#else
+	public var zoom:Float = 1.0;
+	public var xOffset:Int = 0;
+	public var yOffset:Int = 0;
+	#end
+	
+		
 	
 	var displayList:RenderList<Display>;
 	
@@ -43,7 +64,8 @@ class PeoteView
 		this.height = height;
 		
 		#if (peoteview_es3 && peoteview_uniformbuffers)
-		uniformBuffer = new UniformBufferView(gl, width, height);
+		uniformBuffer = new UniformBufferView();
+		uniformBuffer.createGLBuffer(gl, width, height, xOffset, yOffset, zoom);
 		#end
 		
 		background = new Background(gl);
@@ -56,7 +78,7 @@ class PeoteView
 		trace("PeoteView setNewGLContext");
 		gl = newGl;
 		#if (peoteview_es3 && peoteview_uniformbuffers)
-		// TODO uniformBuffer.createGLBuffer(gl, width, height);
+		uniformBuffer.createGLBuffer(gl, width, height, xOffset, yOffset, zoom);
 		#end
 		// for all displays in list
 		var listItem:RenderListItem<Display> = displayList.first;
@@ -71,7 +93,7 @@ class PeoteView
 	{
 		trace("Display clearOldGLContext");
 		#if (peoteview_es3 && peoteview_uniformbuffers)
-		// TODO uniformBuffer.deleteGLBuffer(gl);
+		uniformBuffer.deleteGLBuffer(gl);
 		#end
 		// for all programms in list
 		var listItem:RenderListItem<Display> = displayList.first;
@@ -120,7 +142,7 @@ class PeoteView
 		// TODO: re-arange or resize all Displays
 		
 		#if (peoteview_es3 && peoteview_uniformbuffers)
-		uniformBuffer.update(gl, width, height);
+		uniformBuffer.updateResolution(gl, width, height);
 		#end
 	}
 
@@ -131,10 +153,9 @@ class PeoteView
 	// ------------------------------------------------------------------------------
 	var framebuffer:GLFramebuffer = null;
 	var fb_texture:GLTexture;
-	public inline function getElementIDAtPosition(mouseX:Int, mouseY:Int, display:Display=null, program:Program=null):Int
+	public inline function getElementAt(mouseX:Int, mouseY:Int, display:Display, program:Program):Int
 	{
-		// TODO: hier alle Displaylists durchgehen und nur wenn display.isPickable==true
-		// TODO: evtl. gleich den onClick Eventhandler des gepickten Elements aufrufen ?
+		// TODO: another Function to call onClick eventhandler of all pickable 
 		
 		fb_texture = Texture.createEmptyTexture(gl, 1, 1);
 		framebuffer = GLTool.createFramebuffer(gl);
@@ -147,7 +168,7 @@ class PeoteView
 
 		initGLViewport(1, 1);
 		
-		display.pick(this, mouseX, mouseY);
+		display.pick(mouseX, mouseY, this, program);
 		
 		// read picked pixel (element-number)
 		if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE) {

@@ -188,14 +188,18 @@ class ElementSimple implements Element
 	layout(std140) uniform uboView
 	{
 		vec2 uResolution;
+		vec2 uViewOffset;
+		float uViewZoom;
 	};
 	layout(std140) uniform uboDisplay
 	{
 		vec2 uOffset;
+		float uZoom;
 	};
 	::else::
 	uniform vec2 uResolution;
 	uniform vec2 uOffset;
+	uniform float uZoom;
 	::end::
 	
 	// Attributes -------------------------
@@ -218,12 +222,17 @@ class ElementSimple implements Element
 
 		// PICKING instanceID = gl_InstanceID;
 		
-		float zoom = 1.0;
+		float zoom = uZoom ::if isUBO:: * uViewZoom ::end::;
 		float width = uResolution.x;
 		float height = uResolution.y;
+		::if isUBO::
+		float deltaX = (uOffset.x  + uViewOffset.x) / uZoom;
+		float deltaY = (uOffset.y  + uViewOffset.y) / uZoom;
+		::else::
 		float deltaX = uOffset.x;
 		float deltaY = uOffset.y;
-			
+		::end::
+		
 		float right = width-deltaX*zoom;
 		float left = -deltaX*zoom;
 		float bottom = height-deltaY*zoom;

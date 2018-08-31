@@ -1,4 +1,6 @@
 import haxe.Timer;
+import lime.ui.KeyCode;
+import lime.ui.KeyModifier;
 import lime.ui.MouseButton;
 import peote.view.PeoteGL;
 import peote.view.PeoteView;
@@ -47,7 +49,15 @@ class Test
 		element.x += 100;
 		buffer.updateElement(element);		
 	}
-	
+
+	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
+	{
+		switch (keyCode) {
+			//case KeyCode.:
+			default:
+		}
+	}
+
 	public function render()
 	{
 		peoteView.render();

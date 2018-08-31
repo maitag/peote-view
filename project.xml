@@ -7,7 +7,7 @@
 	
 	
 	<app main="Main" path="bin" file="Main" />
-	<haxedef name="sampleGLPicking" /> <!-- sampleTest, sampleMultidisplay, sampleMultibuffer, sampleGLPicking... -->
+	<haxedef name="sampleMultidisplay" /> <!-- sampleTest, sampleMultidisplay, sampleMultibuffer, sampleGLPicking... -->
 	
 	<!-- multiple windows -->
 	<!-- <app main="MultipleWindows" path="bin" file="MultipleWindows" /> 

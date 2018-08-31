@@ -12,20 +12,27 @@ class Display
 	public var z:Int = 0; // z order
 	public var width:Int = 0;  // width
 	public var height:Int = 0; // height
-	public var zoom:Float = 1.0;
 	
 	#if (peoteview_es3 && peoteview_uniformbuffers)
+	public var zoom(default, set):Float = 1.0;
+	public inline function set_zoom(z:Float):Float {
+		uniformBuffer.updateZoom(gl, z);
+		return zoom = z;
+	}
+	
 	public var xOffset(default, set):Int = 0;
-	public function set_xOffset(offset:Int):Int {
-		uniformBuffer.updateXOffset(gl, offset + x);
+	public inline function set_xOffset(offset:Int):Int {
+		uniformBuffer.updateXOffset(gl, x + offset);
 		return xOffset = offset;
 	}
+	
 	public var yOffset(default, set):Int = 0;
-	public function set_yOffset(offset:Int):Int {
-		uniformBuffer.updateYOffset(gl, offset + y);
+	public inline function set_yOffset(offset:Int):Int {
+		uniformBuffer.updateYOffset(gl, y + offset);
 		return yOffset = offset;
 	}
 	#else
+	public var zoom:Float = 1.0;
 	public var xOffset:Int = 0;
 	public var yOffset:Int = 0;
 	#end
@@ -74,8 +81,8 @@ class Display
 			{
 				if (this.gl != null) clearOldGLContext(); // different GL-Context
 				setNewGLContext(peoteView.gl);
-			} // if it's stay into same gl-context, no buffers had to recreate/fill
-			
+			} 
+			// if it's stay into same gl-context, no buffers had to recreate/fill
 			return true;
 		}	
 
@@ -91,7 +98,7 @@ class Display
 		trace("Display setNewGLContext");
 		gl = newGl;
 		#if (peoteview_es3 && peoteview_uniformbuffers)
-		uniformBuffer.createGLBuffer(gl, xOffset + x, yOffset + y);
+		uniformBuffer.createGLBuffer(gl, x + xOffset, y + yOffset, zoom);
 		#end
 		// for all programms in list
 		var listItem:RenderListItem<Program> = programList.first;
@@ -155,22 +162,22 @@ class Display
 	// ------------------------------------------------------------------------------
 	// ----------------------------- Render -----------------------------------------
 	// ------------------------------------------------------------------------------
-	private inline function render_scissor(peoteView:PeoteView):Void
+	private inline function glScissor(gl:PeoteGL, width:Int, height:Int, zoom:Float, xOffset:Float, yOffset:Float):Void
 	{
-		var sx:Int = Math.floor((x + peoteView.xOffset) * peoteView.zoom);
-		var sy:Int = Math.floor((y + peoteView.yOffset) * peoteView.zoom);
-		var sw:Int = Math.floor((width != 0) ? width * peoteView.zoom: peoteView.width * peoteView.zoom);
-		var sh:Int = Math.floor((height != 0) ? height * peoteView.zoom: peoteView.height * peoteView.zoom);
+		var sx:Int = Math.floor((x + xOffset) * zoom);
+		var sy:Int = Math.floor((y + yOffset) * zoom);
+		var sw:Int = Math.floor(this.width  * zoom);
+		var sh:Int = Math.floor(this.height * zoom);
 		
 		if (sx < 0) sw += sx;
-		sx = Std.int( Math.max(0, Math.min(peoteView.width, sx)) );
-		sw = Std.int( Math.max(0, Math.min(peoteView.width-sx, sw)) );
+		sx = Std.int( Math.max(0, Math.min(width, sx)) );
+		sw = Std.int( Math.max(0, Math.min(width-sx, sw)) );
 		
 		if (sy < 0) sh += sy;
-		sy = Std.int( Math.max(0, Math.min(peoteView.height, sy)) );
-		sh = Std.int( Math.max(0, Math.min(peoteView.height-sy, sh)) );
+		sy = Std.int( Math.max(0, Math.min(height, sy)) );
+		sh = Std.int( Math.max(0, Math.min(height-sy, sh)) );
 
-		peoteView.gl.scissor(sx, peoteView.height - sh - sy, sw, sh);
+		gl.scissor(sx, height - sh - sy, sw, sh);
 	}
 	
 	var renderListItem:RenderListItem<Program>;
@@ -181,7 +188,7 @@ class Display
 		
 		//trace("  ---display.render---");
 		
-		render_scissor(peoteView);
+		glScissor(peoteView.gl, peoteView.width, peoteView.height, peoteView.zoom, peoteView.xOffset, peoteView.yOffset);
 		peoteView.background.render(red, green, blue, alpha);
 		
 		renderListItem = programList.first;
@@ -198,10 +205,12 @@ class Display
 	// ------------------------------------------------------------------------------
 	// ------------------------ OPENGL PICKING -------------------------------------- 
 	// ------------------------------------------------------------------------------
-	private function pick(peoteView:PeoteView, mouseX:Int, mouseY:Int):Void
+	private function pick( mouseX:Int, mouseY:Int, peoteView:PeoteView, program:Program):Void
 	{
-		// TODO: in buffer
-		// how to enable Element-access ???
+		glScissor(peoteView.gl, 1, 1, peoteView.zoom, peoteView.xOffset, peoteView.yOffset);
+		// TODO
+		
+		program.pick( mouseX, mouseY, peoteView, this);
 	}
 
 }

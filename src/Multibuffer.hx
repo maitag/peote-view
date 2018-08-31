@@ -1,4 +1,6 @@
 import haxe.Timer;
+import lime.ui.KeyCode;
+import lime.ui.KeyModifier;
 import lime.ui.MouseButton;
 import peote.view.PeoteGL;
 import peote.view.PeoteView;
@@ -54,6 +56,14 @@ class Multibuffer
 
 	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
 	{
+	}
+
+	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
+	{
+		switch (keyCode) {
+			//case KeyCode.:
+			default:
+		}
 	}
 
 	public function render()

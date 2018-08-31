@@ -177,7 +177,7 @@ class Main extends Application
 				#else
 				window.fullscreen = !window.fullscreen;
 				#end				
-			default:
+			default: if (renderTest) test.onKeyDown(keyCode, modifier);
 		}
 	}
 	
