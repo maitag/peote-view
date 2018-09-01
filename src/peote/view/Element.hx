@@ -10,10 +10,45 @@ interface Element {}
 class ElementImpl
 {
 #if macro
+	static var rComments:EReg = new EReg("//.*?$","gm");
+	static var rEmptylines:EReg = new EReg("([ \t]*\r?\n)+", "g");
+	static var rStartspaces:EReg = new EReg("^([ \t]*\r?\n)+", "g");
 
+	static inline function parseExpr(s:String):Expr {
+		return Context.parse(new haxe.Template(s).execute(conf), Context.currentPos());
+	}
+	static inline function parseShader(shader:String):String {		
+		var template = new haxe.Template(shader);			
+		return rStartspaces.replace(rEmptylines.replace(rComments.replace(template.execute(conf), ""), "\n"), "");
+	}
+	
 	static function hasMeta(f:Field, s:String):Bool {for (m in f.meta) { if (m.name == s || m.name == ':$s') return true; } return false; }
 	static var allowForBuffer = [{ name:":allow", params:[macro peote.view], pos:Context.currentPos()}];
 	
+	static var conf = {
+		#if peoteview_es3
+			#if peoteview_uniformbuffers
+			isUBO: true,
+			#else
+			isUBO: false,
+			#end
+			#if peoteview_instancedrawing
+			isINSTANCED: true,
+			#else
+			isINSTANCED: false,
+			#end
+		isES3: true,
+		IN: "in",
+		#else
+		isES3:false,
+		isINSTANCED: false,
+		isUBO: false,
+		IN:"attribute",
+		#end
+
+		isPICK:false,
+	};
+
 	public static function build()
 	{
 		var hasNoNew:Bool = true;
@@ -36,23 +71,6 @@ class ElementImpl
 // superClass => { params => [], t => elements.ElementSimple }, exclude => #function:0, statics => class fields, overrides => [] }
 
 		// TODO
-		var conf = {
-			isES3:false,
-			IN:"attribute",
-			isUBO:false,
-			isINSTANCED:false,
-			isPICK:false,
-		};
-		#if peoteview_es3
-		conf.isES3 = true;
-		conf.IN = "in";
-			#if peoteview_uniformbuffers
-			conf.isUBO = true;
-			#end
-			#if peoteview_instancedrawing
-			conf.isINSTANCED = true;
-			#end
-		#end
 
 		var fields = Context.getBuildFields();
 		for (f in fields)
@@ -187,6 +205,7 @@ class ElementImpl
 		});
 		
 		// ----------------------------- writeBytes -----------------------------------------
+		var i:Int = 0;
 		fields.push({
 			name: "writeBytes",
 			meta: allowForBuffer,
@@ -195,10 +214,19 @@ class ElementImpl
 			kind: FFun({
 				args:[ {name:"bytes", type:macro:haxe.io.Bytes} ],
 				expr: (conf.isINSTANCED) ? 
-				macro {
+				/*macro {
 					bytes.setUInt16(bytePos + 0 , x); bytes.setUInt16(bytePos + 2,  y);
 					bytes.setUInt16(bytePos + 4 , w); bytes.setUInt16(bytePos + 6,  h);
-				} :
+				}*/
+				/*macro $b{[
+					macro {bytes.setUInt16(bytePos + $v{i}    , x); bytes.setUInt16(bytePos + $v{i+=2},  y);},
+					macro {bytes.setUInt16(bytePos + $v{i+=2} , w); bytes.setUInt16(bytePos + $v{i+=2},  h);},
+				]}*/
+				parseExpr('{
+					bytes.setUInt16(bytePos + 0 , x); bytes.setUInt16(bytePos + 2,  y);
+					bytes.setUInt16(bytePos + 4 , w); bytes.setUInt16(bytePos + 6,  h);
+				}')
+				:
 				macro {
 					var xw = x + w;
 					var yh = y + h;
@@ -230,7 +258,7 @@ class ElementImpl
 			})
 		});
 		
-		// ----------------------------- writeBytes -----------------------------------------
+		// -------------------------- bind vertex attributes ---------------------------------
 		fields.push({
 			name: "bindAttribLocations",
 			meta: allowForBuffer,
@@ -295,7 +323,7 @@ class ElementImpl
 			name:  "vertexShader",
 			meta:  allowForBuffer,
 			access:  [Access.APrivate, Access.AStatic, Access.AInline],
-			kind: FieldType.FVar(macro:String, macro $v{parseShader(conf, Shader.vertexShader)}), 
+			kind: FieldType.FVar(macro:String, macro $v{parseShader(Shader.vertexShader)}), 
 			pos: Context.currentPos(),
 		});
 		
@@ -303,7 +331,7 @@ class ElementImpl
 			name:  "fragmentShader",
 			meta:  allowForBuffer,
 			access:  [Access.APrivate, Access.AStatic, Access.AInline],
-			kind: FieldType.FVar(macro:String, macro $v{parseShader(conf, Shader.fragmentShader)}),
+			kind: FieldType.FVar(macro:String, macro $v{parseShader(Shader.fragmentShader)}),
 			pos: Context.currentPos(),
 		});
 		
@@ -311,19 +339,6 @@ class ElementImpl
 		return fields; // <------ classgeneration complete !
 	}
 	
-	// ----------------------------------------------------------------------------------
-	// ---------------------------- shaderparsing ---------------------------------------
-	// ----------------------------------------------------------------------------------
-	
-	public static var rComments:EReg = new EReg("//.*?$","gm");
-	public static var rEmptylines:EReg = new EReg("([ \t]*\r?\n)+", "g");
-	public static var rStartspaces:EReg = new EReg("^([ \t]*\r?\n)+", "g");
-
-	static inline function parseShader(conf:Dynamic, shader:String):String
-	{		
-		var template = new haxe.Template(shader);			
-		return rStartspaces.replace(rEmptylines.replace(rComments.replace(template.execute(conf), ""), "\n"), "");
-	}
 	
 
 #end

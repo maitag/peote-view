@@ -25,10 +25,11 @@
 	<haxelib name="lime" />
 	<haxedef name="webgl" />
 	
-		
+	<!-- force compiling for higher opengl-es version -->
 	<haxedef name="peoteview_es3" if="html5" />
 	<haxedef name="peoteview_es2" unless="html5" />
-
+	
+	<!-- force special gl-features for optimization (if supported by opengl-es version) -->
 	<haxedef name="peoteview_uniformbuffers" />
 	<haxedef name="peoteview_instancedrawing" />
 
