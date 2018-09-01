@@ -18,7 +18,7 @@
 	<!--<window fps="60" width="800" height="600" vsync="true" resizable="true" hardware="true" allow-shaders="true" require-shaders="true" depth-buffer="true" stencil-buffer="false" /> -->
 	<window width="800" height="600" />
 	<window if="html5||android" fps="60" width="0" height="0" />
-	
+	<!--<set name="angle" if="windows" />-->
 	
 	<source path="src" />
 	

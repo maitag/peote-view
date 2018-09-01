@@ -40,7 +40,7 @@ class BufferMacro
 			var elemField = elementPack.concat([elementName]);
 			
 			
-			trace("ClassName:"+className); // Program_ElementSimple
+			trace("ClassName:"+className); // Buffer_ElementSimple
 			trace("classPackage:" + classPackage); // [peote,view]	
 			trace("ElementName:" + elementName);   // ElementSimple
 			trace("ElementPackage:" + elementPack);// [elements]
@@ -53,7 +53,7 @@ class BufferMacro
 // -------------------------------------------------------------------------------------------
 
 class $className implements BufferInterface
-{
+{	
 	var _gl: peote.view.PeoteGL = null;
 	var _glBuffer: peote.view.PeoteGL.GLBuffer;
 	var _glInstanceBuffer: peote.view.PeoteGL.GLBuffer = null;

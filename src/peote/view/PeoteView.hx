@@ -51,6 +51,9 @@ class PeoteView
 	public function new(gl:PeoteGL, width:Int, height:Int)
 	{
 		this.gl = gl;
+		this.width = width;
+		this.height = height;
+		
 		trace ("gl.version:" + gl.VERSION);
 		//trace("EXTENSIONS:\n"+gl.getSupportedExtensions());
 		/*
@@ -59,9 +62,6 @@ class PeoteView
 		trace("precision range low min", gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.LOW_FLOAT).rangeMin);
 		trace("precision range low max", gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.LOW_FLOAT).rangeMax);
 		*/
-		
-		this.width = width;
-		this.height = height;
 		
 		#if (peoteview_es3 && peoteview_uniformbuffers)
 		uniformBuffer = new UniformBufferView();
