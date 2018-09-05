@@ -16,6 +16,38 @@ class PeoteView
 	var width:Int;
 	var height:Int;
 	
+	#if peoteview_es3                     // can force to compile for UBOs only
+		#if peoteview_uniformbuffers
+			static inline var FORCE_UBO = true;
+		#else 
+			static inline var FORCE_UBO = false;
+		#end
+		#if peoteview_instancedrawing
+			static inline var FORCE_INSTANCED = true;
+		#else 
+			static inline var FORCE_INSTANCED = false;
+		#end
+		static inline var FORCE_NO_UBO = false;
+		static inline var FORCE_NO_INSTANCED = false;
+		
+	#elseif peoteview_es2                 // can force to compile only the code without UBOs
+		static inline var FORCE_UBO = false;
+		static inline var FORCE_NO_UBO = true;
+		static inline var FORCE_INSTANCED = false;
+		static inline var FORCE_NO_INSTANCED = true;
+		
+	#else                                 // check at runtime (depends on available es-version) 
+		static inline var FORCE_UBO = false;
+		static inline var FORCE_NO_UBO = false;
+		static inline var FORCE_INSTANCED = false;
+		static inline var FORCE_NO_INSTANCED = false;
+	#end
+	
+	// if checked at runtime (depending on es-version)
+	var isUBO(default, null) = false;
+	var isINSTANCED(default, null) = false;
+	
+	
 	#if (peoteview_es3 && peoteview_uniformbuffers)
 	public var zoom(default, set):Float = 1.0;
 	public inline function set_zoom(z:Float):Float {
@@ -48,12 +80,31 @@ class PeoteView
 	var uniformBuffer:UniformBufferView;
 	#end
 	
-	public function new(gl:PeoteGL, width:Int, height:Int)
+	public function new(gl:PeoteGL, width:Int, height:Int, uniformbuffers:Bool=false, instancedrawing:Bool=false)
 	{
 		this.gl = gl;
 		this.width = width;
 		this.height = height;
 		
+		#if peoteview_uniformbuffers
+		isUBO = uniformbuffers;
+		#end
+		#if peoteview_instancedrawing
+		isINSTANCED = instancedrawing;
+		#end
+		
+		if (!FORCE_NO_UBO && (FORCE_UBO || isUBO)) {
+            trace("OpenGL Uniform Buffer Objects enabled.");
+        }
+        else {
+            trace("OpenGL Uniform Buffer Objects disabled.");
+        }
+		if (!FORCE_NO_INSTANCED && (FORCE_INSTANCED || isINSTANCED)) {
+            trace("OpenGL InstanceDrawing enabled.");
+        }
+        else {
+            trace("OpenGL InstanceDrawing disabled.");
+        }
 		//trace("EXTENSIONS:\n"+gl.getSupportedExtensions());
 		/*
 		// only ES2:
@@ -61,6 +112,11 @@ class PeoteView
 		trace("precision range low min", gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.LOW_FLOAT).rangeMin);
 		trace("precision range low max", gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.LOW_FLOAT).rangeMax);
 		*/
+		
+		#if html5
+			
+		#else
+		#end
 		
 		#if (peoteview_es3 && peoteview_uniformbuffers)
 		uniformBuffer = new UniformBufferView();

@@ -25,13 +25,14 @@
 	<haxelib name="lime" />
 	<haxedef name="webgl" />
 	
-	<!-- force compiling for a special opengl-es version (only set one of them, no more check at runtime then) -->
+	<!-- force compiling for a special opengl-es version (only set one of them) -->
+	<!-- this optimizes the build and forces no-runtimecheck for the gl-features -->
 	<!--<haxedef name="peoteview_es3" if="html5||android" />-->
 	<!--<haxedef name="peoteview_es2" if="cpp||neko" />-->
 	
 	<!-- use special gl-features for optimization (if supported by opengl-es version) -->
-	<haxedef name="peoteview_uniformbuffers" unless="android" />
-	<haxedef name="peoteview_instancedrawing" unless="android" />
+	<haxedef name="peoteview_uniformbuffers" />
+	<haxedef name="peoteview_instancedrawing" />
 
 
 	<!-- -Dwebgl -debug -->

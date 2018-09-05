@@ -51,7 +51,7 @@ class Main extends Application
 				#else
 					if (window.context.webgl2 != null) {
 						trace("WEBGL2 available.");
-						test = new Sample(cast window.context.webgl2, window.width, window.height);
+						test = new Sample(cast window.context.webgl2, window.width, window.height, true, true);
 					}
 					else if (window.context.webgl != null) {
 						trace("WEBGL1 available.");
@@ -72,7 +72,7 @@ class Main extends Application
 				#else
 					if (window.context.gles3 != null) {
 						trace("OpenGL-ES3 available.");
-						test = new Sample(cast window.context.gles3, window.width, window.height);
+						test = new Sample(cast window.context.gles3, window.width, window.height, true, true);
 					}
 					else if (window.context.gles2 != null) {
 						trace("OpenGL-ES2 available.");
