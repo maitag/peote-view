@@ -38,12 +38,8 @@ class MultipleWindows extends Application
 	public override function onWindowCreate():Void {
 		
 		window.context.attributes.background = 1;
-		#if html5
-		var gl = #if peoteview_es3 window.context.webgl2 #elseif peoteview_es2 window.context.webgl #end;
-		#else
-		var gl = #if peoteview_es3 window.context.gles3 #elseif peoteview_es2 window.context.gles2 #else window.context.gl #end;
-		#end
-		peoteView_1 = new PeoteView(gl, window.width, window.height);
+		
+		peoteView_1 = new PeoteView(window.context, window.width, window.height);
 		display_1   = new Display(10, 10, window.width - 20, window.height - 20);
 		display_1.green = 1.0;
 		buffer_1    = new Buffer<ElementSimple>(100);
@@ -73,18 +69,15 @@ class MultipleWindows extends Application
 		                    context: { background: 2 }  };
 		var window = createWindow(attributes);
 		#end
-		#if html5
-		var gl = #if peoteview_es3 window.context.webgl2 #elseif peoteview_es2 window.context.webgl #end;
-		#else
-		var gl = #if peoteview_es3 window.context.gles3 #elseif peoteview_es2 window.context.gles2 #else window.context.gl #end;
-		#end
-		peoteView_2 = new PeoteView(gl, window.width, window.height);
+		
+		peoteView_2 = new PeoteView(window.context, window.width, window.height);
 		display_2   = new Display(10, 10, window.width - 20, window.height - 20);
 		display_2.blue = 1.0;
 		buffer_2    = new Buffer<ElementSimple>(100);
 		program_2   = new Program(buffer_2);
 		display_2.addProgram(program_2);
 		peoteView_2.addDisplay(display_2);
+		
 		#if desktop
 		window.onRender.add    (onRender_2.bind   (window));
 		window.onMouseDown.add (onMouseDown_2.bind(window));
@@ -100,18 +93,15 @@ class MultipleWindows extends Application
 		                    context: { background: 3 }  };
 		var window = createWindow(attributes);
 		#end
-		#if html5
-		var gl = #if peoteview_es3 window.context.webgl2 #elseif peoteview_es2 window.context.webgl #end;
-		#else
-		var gl = #if peoteview_es3 window.context.gles3 #elseif peoteview_es2 window.context.gles2 #else window.context.gl #end;
-		#end
-		peoteView_3 = new PeoteView(gl, window.width, window.height);
+		
+		peoteView_3 = new PeoteView(window.context, window.width, window.height);
 		display_3   = new Display(10, 10, window.width - 20, window.height - 20);
 		display_3.green = 1.0;display_3.red = 1.0;
 		buffer_3    = new Buffer<ElementSimple>(100);
 		program_3   = new Program(buffer_3);
 		display_3.addProgram(program_3);
 		peoteView_3.addDisplay(display_3);
+		
 		#if desktop
 		window.onRender.add    (onRender_3.bind   (window));
 		window.onMouseDown.add (onMouseDown_3.bind(window));

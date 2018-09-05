@@ -1,7 +1,12 @@
+package;
+
 import haxe.Timer;
+
+import lime.ui.Window;
 import lime.ui.KeyCode;
 import lime.ui.KeyModifier;
 import lime.ui.MouseButton;
+
 import peote.view.PeoteGL;
 import peote.view.PeoteView;
 import peote.view.Display;
@@ -17,12 +22,14 @@ class Test
 	var element:ElementSimple;
 	var buffer:Buffer<ElementSimple>;
 	
-	public function new(gl:PeoteGL, width:Int, height:Int)
+	public function new(window:Window)
 	{	
+
 		buffer = new Buffer<ElementSimple>(100);
 
-		peoteView = new PeoteView(gl, width, height);
-		var display   = new Display(10,10, width-20, height-20); display.green = 1.0;
+		peoteView = new PeoteView(window.context, window.width, window.height);
+
+		var display   = new Display(10,10, window.width-20, window.height-20); display.green = 1.0;
 		var program   = new Program(buffer);
 		
 		peoteView.addDisplay(display);  // display to peoteView

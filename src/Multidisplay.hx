@@ -1,7 +1,12 @@
+package;
+
 import haxe.Timer;
+
+import lime.ui.Window;
 import lime.ui.KeyCode;
 import lime.ui.KeyModifier;
 import lime.ui.MouseButton;
+
 import peote.view.PeoteGL;
 import peote.view.PeoteView;
 import peote.view.Display;
@@ -21,10 +26,10 @@ class Multidisplay
 	var displayRight:Display;
 	var program:Program;
 	
-	public function new(gl:PeoteGL, width:Int, height:Int)
+	public function new(window:Window)
 	{	
 
-		peoteView = new PeoteView(gl, width, height);
+		peoteView = new PeoteView(window.context, window.width, window.height);
 		displayLeft  = new Display(0, 0, 400, 400);
 		displayLeft.blue = 1.0;
 		

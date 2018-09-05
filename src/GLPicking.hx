@@ -1,7 +1,12 @@
+package;
+
 import haxe.Timer;
+
+import lime.ui.Window;
 import lime.ui.KeyCode;
 import lime.ui.KeyModifier;
 import lime.ui.MouseButton;
+
 import peote.view.PeoteGL;
 import peote.view.PeoteView;
 import peote.view.Display;
@@ -20,10 +25,10 @@ class GLPicking
 	var programLeft:Program;
 	var programRight:Program; 
 	
-	public function new(gl:PeoteGL, width:Int, height:Int)
+	public function new(window:Window)
 	{	
 
-		peoteView = new PeoteView(gl, width, height);
+		peoteView = new PeoteView(window.context, window.width, window.height);
 		var displayLeft  = new Display(10, 10, 280, 280);
 		displayLeft.blue = 1.0;
 		
@@ -57,6 +62,9 @@ class GLPicking
 
 	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
 	{
+		// TODO
+		// TODO
+		// TODO
 		var pickedElement = buffer.pickElementAt(Std.int(x), Std.int(y), programLeft);
 		if (pickedElement != null) pickedElement.y += 100;
 	}
