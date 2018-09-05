@@ -41,7 +41,7 @@ class Display
 	public var red:Float = 0.0;
 	public var green:Float = 0.0;
 	public var blue:Float = 0.0;
-	public var alpha:Float = 0.0;
+	public var alpha:Float = 1.0; // TODO
 	
 	var peoteView:PeoteView = null;
 	var gl:PeoteGL = null;

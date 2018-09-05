@@ -54,7 +54,6 @@ class PeoteView
 		this.width = width;
 		this.height = height;
 		
-		trace ("gl.version:" + gl.VERSION);
 		//trace("EXTENSIONS:\n"+gl.getSupportedExtensions());
 		/*
 		// only ES2:

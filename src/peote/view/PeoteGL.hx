@@ -1,6 +1,5 @@
 package peote.view;
 
-
 typedef GLTexture         = lime.graphics.opengl.GLTexture;
 typedef GLFramebuffer     = lime.graphics.opengl.GLFramebuffer;
                          
@@ -14,13 +13,13 @@ typedef GLBuffer          = lime.graphics.opengl.GLBuffer;
 typedef BytePointer = lime.utils.BytePointer;
 typedef DataPointer = lime.utils.DataPointer;
 
-
-
 #if html5
 	#if peoteview_es3
 		typedef LimeGLRenderContext = lime.graphics.WebGL2RenderContext;
 	#elseif peoteview_es2
 		typedef LimeGLRenderContext = lime.graphics.WebGLRenderContext;
+	#else
+		typedef LimeGLRenderContext = lime.graphics.OpenGLRenderContext; // Dynamic
 	#end
 #else
 	#if peoteview_es3
@@ -48,22 +47,18 @@ abstract PeoteGL(LimeGLRenderContext) from LimeGLRenderContext to LimeGLRenderCo
 		//trace("bufferSubData",srcData,a);
 		this.bufferSubData (target, offset, a);
 	}
-
 	
 #else
 
 	#if peoteview_es2
-	
-	public inline function getShaderParameter (shader:GLShader, pname:Int):Dynamic {
-		return this.getShaderi (shader, pname);
-	}
-	
-	public inline function getProgramParameter (program:GLProgram, pname:Int):Dynamic {
-		return this.getProgrami (program, pname);
-	}
-	
+		public inline function getShaderParameter (shader:GLShader, name:Int):Dynamic {
+			return this.getShaderi (shader, name);
+		}
+		
+		public inline function getProgramParameter (program:GLProgram, name:Int):Dynamic {
+			return this.getProgrami (program, name);
+		}
 	#end
-
+	
 #end
-
 }

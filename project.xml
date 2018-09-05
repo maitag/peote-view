@@ -25,18 +25,23 @@
 	<haxelib name="lime" />
 	<haxedef name="webgl" />
 	
-	<!-- force compiling for higher opengl-es version -->
-	<haxedef name="peoteview_es3" if="html5" />
-	<haxedef name="peoteview_es2" unless="html5" />
+	<!-- force compiling for a special opengl-es version (only set one of them, no more check at runtime then) -->
+	<!--<haxedef name="peoteview_es3" if="html5||android" />-->
+	<!--<haxedef name="peoteview_es2" if="cpp||neko" />-->
 	
-	<!-- force special gl-features for optimization (if supported by opengl-es version) -->
-	<haxedef name="peoteview_uniformbuffers" />
-	<haxedef name="peoteview_instancedrawing" />
+	<!-- use special gl-features for optimization (if supported by opengl-es version) -->
+	<haxedef name="peoteview_uniformbuffers" unless="android" />
+	<haxedef name="peoteview_instancedrawing" unless="android" />
 
 
 	<!-- -Dwebgl -debug -->
 	<!-- <haxedef name="source-map-content" /> -->
 	<haxeflag name="-dce" value="full" />
+	
+	<!-- <haxedef name="HXCPP_M32" if="cpp" /> --> <!-- on windows 64 is default -->
+	
+	<!-- <haxedef name="HXCPP_MSVC_VER=120" if="cpp" /> -->
+	<!-- <haxedef name="HXCPP_MSVC_VER=140" if="cpp" /> -->
 	
 	<assets path="assets" exclude="lime.svg" embed="false" />
 	

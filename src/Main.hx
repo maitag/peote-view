@@ -27,7 +27,7 @@ class Main extends Application
     public var yOffset: Int = 0;
     public var zoom: Int = 1;
 	
-	var test:Sample;
+	var test:Sample = null;
 	var renderTest:Bool = false;
 
 	public function new() {
@@ -36,37 +36,60 @@ class Main extends Application
 	
 	public override function onWindowCreate():Void
 	{
-		trace ("window.context.version:"+window.context.version);
-		trace ("window.context.type:" + window.context.type);
+		trace (window.context.type +"" + window.context.version);
 		
-		switch (window.context.type) {
-
+		switch (window.context.type)
+		{
 		#if html5
-			case WEBGL:
+			case WEBGL:				
 				#if peoteview_es3
-					if (window.context.webgl2 != null) trace("WEBGL2 available.");
+					if (window.context.webgl2 == null) js.Browser.alert("Sorry, only works on Webbrowsers that supports WEBGL2 (OpenGL-ES3).");
 					test = new Sample(window.context.webgl2, window.width, window.height);
 				#elseif peoteview_es2
+					if (window.context.webgl == null) js.Browser.alert("Sorry, only works on Webbrowsers that supports WEBGL1 (OpenGL-ES2).");
 					test = new Sample(window.context.webgl , window.width, window.height);
-				#end
-				renderTest = true;
+				#else
+					if (window.context.webgl2 != null) {
+						trace("WEBGL2 available.");
+						test = new Sample(cast window.context.webgl2, window.width, window.height);
+					}
+					else if (window.context.webgl != null) {
+						trace("WEBGL1 available.");
+						test = new Sample(cast window.context.webgl , window.width, window.height);
+					}
+					else js.Browser.alert("Error: missing webgl context");
+				#end				
+			default: js.Browser.alert("Sorry, only works on Webbrowsers that supports WEBGL");
+			
 		#else
 			case OPENGL, OPENGLES:
 				#if peoteview_es3
-					if (window.context.gles3 != null) trace("GLES3 available.");
+					if (window.context.gles3 == null) throw("Sorry, only works with OpenGL-ES3.");
 					test = new Sample(window.context.gles3, window.width, window.height);
 				#elseif peoteview_es2
-					if (window.context.gles2 != null) trace("GLES2 available.");
+					if (window.context.gles2 == null) throw("Sorry, only works with OpenGL-ES2.");
 					test = new Sample(window.context.gles2, window.width, window.height);
 				#else
-					test = new Sample(window.context.gl   , window.width, window.height);
+					if (window.context.gles3 != null) {
+						trace("OpenGL-ES3 available.");
+						test = new Sample(cast window.context.gles3, window.width, window.height);
+					}
+					else if (window.context.gles2 != null) {
+						trace("OpenGL-ES2 available.");
+						test = new Sample(cast window.context.gles2, window.width, window.height);
+					}
+					else if (window.context.gl != null) {
+						trace("OpenGL available.");
+						test = new Sample(cast window.context.gl, window.width, window.height);						
+					}
+					else throw("Error: missing OpenGL context");
 				#end
-				renderTest = true;
+			default: throw("Sorry, only works with OpenGL.");
+			
 		#end
-				
-			default:
-				trace("only opengl supported");
 		}
+		
+		if (test != null) renderTest = true;
 	}
 	
 	// ------------------------------------------------------------	
