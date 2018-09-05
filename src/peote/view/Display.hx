@@ -13,29 +13,23 @@ class Display
 	public var width:Int = 0;  // width
 	public var height:Int = 0; // height
 	
-	#if (peoteview_es3 && peoteview_uniformbuffers)
 	public var zoom(default, set):Float = 1.0;
 	public inline function set_zoom(z:Float):Float {
-		uniformBuffer.updateZoom(gl, z);
+		if (!PeoteView.FORCE_NO_UBO && (PeoteView.FORCE_UBO || PeoteView.isUBO)) uniformBuffer.updateZoom(gl, z);
 		return zoom = z;
 	}
 	
 	public var xOffset(default, set):Int = 0;
 	public inline function set_xOffset(offset:Int):Int {
-		uniformBuffer.updateXOffset(gl, x + offset);
+		if (!PeoteView.FORCE_NO_UBO && (PeoteView.FORCE_UBO || PeoteView.isUBO)) uniformBuffer.updateXOffset(gl, x + offset);
 		return xOffset = offset;
 	}
 	
 	public var yOffset(default, set):Int = 0;
 	public inline function set_yOffset(offset:Int):Int {
-		uniformBuffer.updateYOffset(gl, y + offset);
+		if (!PeoteView.FORCE_NO_UBO && (PeoteView.FORCE_UBO || PeoteView.isUBO)) uniformBuffer.updateYOffset(gl, y + offset);
 		return yOffset = offset;
 	}
-	#else
-	public var zoom:Float = 1.0;
-	public var xOffset:Int = 0;
-	public var yOffset:Int = 0;
-	#end
 	
 	// TODO: a 4 byte color uint
 	public var red:Float = 0.0;
@@ -48,9 +42,7 @@ class Display
 
 	var programList:RenderList<Program>;
 		
-	#if (peoteview_es3 && peoteview_uniformbuffers)
 	var uniformBuffer:UniformBufferDisplay;
-	#end
 
 	public function new(x:Int, y:Int, width:Int, height:Int) 
 	{
@@ -60,9 +52,10 @@ class Display
 		this.height = height;
 		
 		programList = new RenderList<Program>(new Map<Program,RenderListItem<Program>>());
-		#if (peoteview_es3 && peoteview_uniformbuffers)
-		uniformBuffer = new UniformBufferDisplay();
-		#end
+		
+		if (!PeoteView.FORCE_NO_UBO && (PeoteView.FORCE_UBO || PeoteView.isUBO)) {
+			uniformBuffer = new UniformBufferDisplay();
+		}
 	}
 
 	private inline function addToPeoteView(peoteView:PeoteView):Bool
@@ -97,9 +90,9 @@ class Display
 	{
 		trace("Display setNewGLContext");
 		gl = newGl;
-		#if (peoteview_es3 && peoteview_uniformbuffers)
-		uniformBuffer.createGLBuffer(gl, x + xOffset, y + yOffset, zoom);
-		#end
+		if (!PeoteView.FORCE_NO_UBO && (PeoteView.FORCE_UBO || PeoteView.isUBO)) {
+			uniformBuffer.createGLBuffer(gl, x + xOffset, y + yOffset, zoom);
+		}
 		// for all programms in list
 		var listItem:RenderListItem<Program> = programList.first;
 		while (listItem != null)
@@ -112,9 +105,9 @@ class Display
 	private inline function clearOldGLContext() 
 	{
 		trace("Display clearOldGLContext");
-		#if (peoteview_es3 && peoteview_uniformbuffers)
-		uniformBuffer.deleteGLBuffer(gl);
-		#end
+		if (!PeoteView.FORCE_NO_UBO && (PeoteView.FORCE_UBO || PeoteView.isUBO)) {
+			uniformBuffer.deleteGLBuffer(gl);
+		}
 		// for all programms in list
 		var listItem:RenderListItem<Program> = programList.first;
 		while (listItem != null)

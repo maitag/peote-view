@@ -21,10 +21,10 @@ class Multidisplay
 	var displayRight:Display;
 	var program:Program;
 	
-	public function new(gl:PeoteGL, width:Int, height:Int, uniformbuffers:Bool=false, instancedrawing:Bool=false)
+	public function new(gl:PeoteGL, width:Int, height:Int)
 	{	
 
-		peoteView = new PeoteView(gl, width, height, uniformbuffers, instancedrawing);
+		peoteView = new PeoteView(gl, width, height);
 		displayLeft  = new Display(0, 0, 400, 400);
 		displayLeft.blue = 1.0;
 		

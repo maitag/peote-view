@@ -8,6 +8,7 @@ import lime.ui.Touch;
 import lime.ui.KeyCode;
 import lime.ui.KeyModifier;
 
+import peote.view.PeoteView;
 
 #if (sampleTest)
 typedef Sample = Test;
@@ -44,17 +45,20 @@ class Main extends Application
 			case WEBGL:				
 				#if peoteview_es3
 					if (window.context.webgl2 == null) js.Browser.alert("Sorry, only works on Webbrowsers that supports WEBGL2 (OpenGL-ES3).");
-					test = new Sample(window.context.webgl2, window.width, window.height);
+					trace("Force WEBGL2.");
+					test = new Sample(cast window.context.webgl2, window.width, window.height);
 				#elseif peoteview_es2
 					if (window.context.webgl == null) js.Browser.alert("Sorry, only works on Webbrowsers that supports WEBGL1 (OpenGL-ES2).");
-					test = new Sample(window.context.webgl , window.width, window.height);
+					trace("Force WEBGL1.");
+					test = new Sample(cast window.context.webgl , window.width, window.height);
 				#else
 					if (window.context.webgl2 != null) {
-						trace("WEBGL2 available.");
-						test = new Sample(cast window.context.webgl2, window.width, window.height, true, true);
+						trace("WEBGL2 detected.");
+						PeoteView.isUBO = true; PeoteView.isINSTANCED = true;
+						test = new Sample(cast window.context.webgl2, window.width, window.height);
 					}
 					else if (window.context.webgl != null) {
-						trace("WEBGL1 available.");
+						trace("WEBGL1 detected.");
 						test = new Sample(cast window.context.webgl , window.width, window.height);
 					}
 					else js.Browser.alert("Error: missing webgl context");
@@ -65,21 +69,24 @@ class Main extends Application
 			case OPENGL, OPENGLES:
 				#if peoteview_es3
 					if (window.context.gles3 == null) throw("Sorry, only works with OpenGL-ES3.");
-					test = new Sample(window.context.gles3, window.width, window.height);
+					trace("Force OpenGL-ES3.");
+					test = new Sample(cast window.context.gles3, window.width, window.height);
 				#elseif peoteview_es2
 					if (window.context.gles2 == null) throw("Sorry, only works with OpenGL-ES2.");
-					test = new Sample(window.context.gles2, window.width, window.height);
+					trace("Force OpenGL-ES2.");
+					test = new Sample(cast window.context.gles2, window.width, window.height);
 				#else
 					if (window.context.gles3 != null) {
-						trace("OpenGL-ES3 available.");
-						test = new Sample(cast window.context.gles3, window.width, window.height, true, true);
+						trace("OpenGL-ES3 detected.");
+						PeoteView.isUBO = true; PeoteView.isINSTANCED = true;
+						test = new Sample(cast window.context.gles3, window.width, window.height);
 					}
 					else if (window.context.gles2 != null) {
-						trace("OpenGL-ES2 available.");
+						trace("OpenGL-ES2 detected.");
 						test = new Sample(cast window.context.gles2, window.width, window.height);
 					}
 					else if (window.context.gl != null) {
-						trace("OpenGL available.");
+						trace("OpenGL detected.");
 						test = new Sample(cast window.context.gl, window.width, window.height);						
 					}
 					else throw("Error: missing OpenGL context");

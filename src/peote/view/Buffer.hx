@@ -60,6 +60,7 @@ class $className implements BufferInterface
 
 	var _elements: haxe.ds.Vector<$elementType>; // var elements:Int; TAKE CARE if same name as package! -> TODO!!
 	var _maxElements:Int = 0; // amount of added elements (pos of last element)
+	var _elemBuffSize:Int;
 	
 	// local bytes-buffer
 	var _bytes: haxe.io.Bytes;
@@ -80,11 +81,15 @@ class $className implements BufferInterface
 		_elements = new haxe.ds.Vector<$elementType>(size);
 		
 		trace("create bytes for GLbuffer");
-		var buffSize:Int = Std.int(size * $p{elemField}.BUFF_SIZE);
-		_bytes = haxe.io.Bytes.alloc(buffSize);
-		_bytes.fill(0, buffSize, 0);
+		if (!peote.view.PeoteView.FORCE_NO_INSTANCED && (peote.view.PeoteView.FORCE_INSTANCED || peote.view.PeoteView.isINSTANCED))
+		{
+			$p{elemField}.createInstanceBytes();
+		    _elemBuffSize = $p{elemField}.BUFF_SIZE_INSTANCED;
+		}
+		else _elemBuffSize = $p{elemField}.BUFF_SIZE;
 		
-		$p{elemField}.createInstanceBytes();
+		_bytes = haxe.io.Bytes.alloc(_elemBuffSize * size);
+		_bytes.fill(0, _elemBuffSize * size, 0);		
 	}
 	
 	inline function createGLBuffer():Void
@@ -141,7 +146,7 @@ class $className implements BufferInterface
 		#if peoteview_queueGLbuffering
 		updateGLBufferElementQueue.push(element);
 		#else
-		if (_gl != null) element.updateGLBuffer(_gl, _glBuffer);
+		if (_gl != null) element.updateGLBuffer(_gl, _glBuffer, _elemBuffSize);
 		#end
 	}
 	
@@ -152,7 +157,7 @@ class $className implements BufferInterface
 	public function addElement(element: $elementType):Void
 	{	
 		if (element.bytePos == -1) {
-			element.bytePos = _maxElements * $p{elemField}.BUFF_SIZE;
+			element.bytePos = _maxElements * _elemBuffSize;
 			element.dataPointer = new peote.view.PeoteGL.BytePointer(_bytes, element.bytePos);
 			trace("Buffer.addElement", _maxElements, element.bytePos);
 			_elements.set(_maxElements++, element);
@@ -168,13 +173,13 @@ class $className implements BufferInterface
 	public function removeElement(element: $elementType):Void
 	{
 		if (element.bytePos != -1) {
-			if (_maxElements > 1 && element.bytePos < (_maxElements-1) * $p{elemField}.BUFF_SIZE ) {
+			if (_maxElements > 1 && element.bytePos < (_maxElements-1) * _elemBuffSize ) {
 				trace("Buffer.removeElement", element.bytePos);
 				var lastElement: $elementType = _elements.get(--_maxElements);
 				lastElement.bytePos = element.bytePos;
 				lastElement.dataPointer = new peote.view.PeoteGL.BytePointer(_bytes, element.bytePos);
 				updateElement(lastElement);
-				_elements.set( Std.int(  element.bytePos / $p{elemField}.BUFF_SIZE ), lastElement);
+				_elements.set( Std.int(  element.bytePos / _elemBuffSize ), lastElement);
 			}
 			else _maxElements--;
 			element.bytePos = -1;			
@@ -213,7 +218,7 @@ class $className implements BufferInterface
 		//trace("        ---buffer.render---");
 		#if peoteview_queueGLbuffering
 		//TODO: a while loop but only a limited number at the same time
-		if (updateGLBufferElementQueue.length > 0) updateGLBufferElementQueue.shift().updateGLBuffer(_gl, _glBuffer);
+		if (updateGLBufferElementQueue.length > 0) updateGLBufferElementQueue.shift().updateGLBuffer(_gl, _glBuffer, _elemBuffSize);
 		if (queueCreateGLBuffer) { queueCreateGLBuffer = false;
 			_glBuffer         = _gl.createBuffer();
 			_glInstanceBuffer = _gl.createBuffer();

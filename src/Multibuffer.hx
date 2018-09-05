@@ -15,10 +15,10 @@ class Multibuffer
 {
 	var peoteView:PeoteView;
 
-	public function new(gl:PeoteGL, width:Int, height:Int, uniformbuffers:Bool=false, instancedrawing:Bool=false)
+	public function new(gl:PeoteGL, width:Int, height:Int)
 	{	
 
-		peoteView = new PeoteView(gl, width, height, uniformbuffers, instancedrawing);
+		peoteView = new PeoteView(gl, width, height);
 		var displayLeft  = new Display(10, 10, 280, 280);
 		displayLeft.blue = 1.0;
 		

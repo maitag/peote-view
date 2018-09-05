@@ -17,35 +17,21 @@ class ElementImpl
 	static inline function parseExpr(s:String):Expr {
 		return Context.parse(new haxe.Template(s).execute(conf), Context.currentPos());
 	}
-	static inline function parseShader(shader:String):String {		
+	
+	@:access(haxe.Template.splitter)
+	static inline function parseShader(shader:String):String {
+		var origSplitter = haxe.Template.splitter;
+		haxe.Template.splitter =  ~/(##[A-Za-z0-9_ ()&|!+=\/><*."-]+##|\$\$([A-Za-z0-9_-]+)\()/;
 		var template = new haxe.Template(shader);			
-		return rStartspaces.replace(rEmptylines.replace(rComments.replace(template.execute(conf), ""), "\n"), "");
+		var s = rStartspaces.replace(rEmptylines.replace(rComments.replace(template.execute(conf), ""), "\n"), "");
+		haxe.Template.splitter = origSplitter;
+		return s;
 	}
 	
 	static function hasMeta(f:Field, s:String):Bool {for (m in f.meta) { if (m.name == s || m.name == ':$s') return true; } return false; }
 	static var allowForBuffer = [{ name:":allow", params:[macro peote.view], pos:Context.currentPos()}];
 	
 	static var conf = {
-		#if peoteview_es3
-			#if peoteview_uniformbuffers
-			isUBO: true,
-			#else
-			isUBO: false,
-			#end
-			#if peoteview_instancedrawing
-			isINSTANCED: true,
-			#else
-			isINSTANCED: false,
-			#end
-		isES3: true,
-		IN: "in",
-		#else
-		isES3:false,
-		isINSTANCED: false,
-		isUBO: false,
-		IN:"attribute",
-		#end
-
 		isPICK:false,
 	};
 
@@ -104,7 +90,8 @@ class ElementImpl
 		// -----------------------------------------------------------------------------------
 		
 		var vertex_count = 6;
-		var buff_size = (conf.isINSTANCED) ? 8 : vertex_count * 4;
+		var buff_size = vertex_count * 4;
+		var buff_size_instanced = 8;
 		
 		
 		// ---------------------- vertex count and bufsize -----------------------------------
@@ -122,6 +109,13 @@ class ElementImpl
 			kind: FieldType.FVar(macro:Int, macro $v{buff_size}), 
 			pos: Context.currentPos(),
 		});
+		fields.push({
+			name:  "BUFF_SIZE_INSTANCED",
+			meta:  allowForBuffer,
+			access:  [Access.APrivate, Access.AStatic, Access.AInline],
+			kind: FieldType.FVar(macro:Int, macro $v{buff_size_instanced}), 
+			pos: Context.currentPos(),
+		});
 		// ---------------------- vertex attribute bindings ----------------------------------
 		fields.push({
 			name:  "aPOSITION",
@@ -129,13 +123,12 @@ class ElementImpl
 			kind: FieldType.FVar(macro:Int, macro $v{0}), 
 			pos: Context.currentPos(),
 		});
-		if (conf.isINSTANCED)
-			fields.push({
-				name:  "aPOSSIZE",
-				access:  [Access.APrivate, Access.AStatic, Access.AInline],
-				kind: FieldType.FVar(macro:Int, macro $v{1}), 
-				pos: Context.currentPos(),
-			});
+		fields.push({
+			name:  "aPOSSIZE", // only for instanceDrawing
+			access:  [Access.APrivate, Access.AStatic, Access.AInline],
+			kind: FieldType.FVar(macro:Int, macro $v{1}), 
+			pos: Context.currentPos(),
+		});
 			
 		// TODO: COLOR...
 		
@@ -156,21 +149,20 @@ class ElementImpl
 		});
 
 		// -------------------------- instancedrawing --------------------------------------
-		if (conf.isINSTANCED)
-			fields.push({
-				name:  "instanceBytes",
-				access:  [Access.APrivate, Access.AStatic],
-				kind: FieldType.FVar(macro:haxe.io.Bytes, macro null), 
-				pos: Context.currentPos(),
-			});
 		fields.push({
-			name: "createInstanceBytes",
+			name:  "instanceBytes", // only for instanceDrawing
+			access:  [Access.APrivate, Access.AStatic],
+			kind: FieldType.FVar(macro:haxe.io.Bytes, macro null), 
+			pos: Context.currentPos(),
+		});
+		fields.push({
+			name: "createInstanceBytes", // only for instanceDrawing
 			meta:  allowForBuffer,
 			access: [Access.APrivate, Access.AStatic, Access.AInline],
 			pos: Context.currentPos(),
 			kind: FFun({
 				args: [],
-				expr: (!conf.isINSTANCED) ? macro {} :
+				expr:
 				macro {
 					if (instanceBytes == null) {
 						trace("create bytes for instance GLbuffer");
@@ -193,19 +185,21 @@ class ElementImpl
 			pos: Context.currentPos(),
 			kind: FFun({
 				args:[ {name:"gl", type:macro:peote.view.PeoteGL}, {name:"glInstanceBuffer", type:macro:peote.view.PeoteGL.GLBuffer} ],
-				expr: (!conf.isINSTANCED) ? macro {} :
+				expr:
 				macro {
-					trace("fill full instance GLbuffer");
-					gl.bindBuffer (gl.ARRAY_BUFFER, glInstanceBuffer);
-					gl.bufferData (gl.ARRAY_BUFFER, instanceBytes.length, instanceBytes, gl.STATIC_DRAW);
-					gl.bindBuffer (gl.ARRAY_BUFFER, null);
+					if (!peote.view.PeoteView.FORCE_NO_INSTANCED && (peote.view.PeoteView.FORCE_INSTANCED || peote.view.PeoteView.isINSTANCED))
+					{	trace("fill full instance GLbuffer");
+						gl.bindBuffer (gl.ARRAY_BUFFER, glInstanceBuffer);
+						gl.bufferData (gl.ARRAY_BUFFER, instanceBytes.length, instanceBytes, gl.STATIC_DRAW);
+						gl.bindBuffer (gl.ARRAY_BUFFER, null);
+					}
 				},
 				ret: null
 			})
 		});
 		
 		// ----------------------------- writeBytes -----------------------------------------
-		var i:Int = 0;
+		//var i:Int = 0;
 		fields.push({
 			name: "writeBytes",
 			meta: allowForBuffer,
@@ -213,29 +207,32 @@ class ElementImpl
 			pos: Context.currentPos(),
 			kind: FFun({
 				args:[ {name:"bytes", type:macro:haxe.io.Bytes} ],
-				expr: (conf.isINSTANCED) ? 
-				/*macro {
-					bytes.setUInt16(bytePos + 0 , x); bytes.setUInt16(bytePos + 2,  y);
-					bytes.setUInt16(bytePos + 4 , w); bytes.setUInt16(bytePos + 6,  h);
-				}*/
+				expr:
 				/*macro $b{[
 					macro {bytes.setUInt16(bytePos + $v{i}    , x); bytes.setUInt16(bytePos + $v{i+=2},  y);},
 					macro {bytes.setUInt16(bytePos + $v{i+=2} , w); bytes.setUInt16(bytePos + $v{i+=2},  h);},
 				]}*/
-				parseExpr('{
+				/*parseExpr('{
 					bytes.setUInt16(bytePos + 0 , x); bytes.setUInt16(bytePos + 2,  y);
 					bytes.setUInt16(bytePos + 4 , w); bytes.setUInt16(bytePos + 6,  h);
 				}')
-				:
+				:*/
 				macro {
-					var xw = x + w;
-					var yh = y + h;
-					bytes.setUInt16(bytePos + 0 , xw); bytes.setUInt16(bytePos + 2,  yh);
-					bytes.setUInt16(bytePos + 4 , xw); bytes.setUInt16(bytePos + 6,  yh);
-					bytes.setUInt16(bytePos + 8 , x ); bytes.setUInt16(bytePos + 10, yh);
-					bytes.setUInt16(bytePos + 12, xw); bytes.setUInt16(bytePos + 14, y );
-					bytes.setUInt16(bytePos + 16, x ); bytes.setUInt16(bytePos + 18, y );
-					bytes.setUInt16(bytePos + 20, x ); bytes.setUInt16(bytePos + 22, y );
+					if (!peote.view.PeoteView.FORCE_NO_INSTANCED && (peote.view.PeoteView.FORCE_INSTANCED || peote.view.PeoteView.isINSTANCED))
+					{
+						bytes.setUInt16(bytePos + 0 , x); bytes.setUInt16(bytePos + 2,  y);
+						bytes.setUInt16(bytePos + 4 , w); bytes.setUInt16(bytePos + 6,  h);
+					}
+					else 
+					{	var xw = x + w;
+						var yh = y + h;
+						bytes.setUInt16(bytePos + 0 , xw); bytes.setUInt16(bytePos + 2,  yh);
+						bytes.setUInt16(bytePos + 4 , xw); bytes.setUInt16(bytePos + 6,  yh);
+						bytes.setUInt16(bytePos + 8 , x ); bytes.setUInt16(bytePos + 10, yh);
+						bytes.setUInt16(bytePos + 12, xw); bytes.setUInt16(bytePos + 14, y );
+						bytes.setUInt16(bytePos + 16, x ); bytes.setUInt16(bytePos + 18, y );
+						bytes.setUInt16(bytePos + 20, x ); bytes.setUInt16(bytePos + 22, y );
+					}
 				},
 				ret: null
 			})
@@ -248,10 +245,10 @@ class ElementImpl
 			access: [Access.APrivate, Access.AInline],
 			pos: Context.currentPos(),
 			kind: FFun({
-				args:[ {name:"gl", type:macro:peote.view.PeoteGL}, {name:"glBuffer", type:macro:peote.view.PeoteGL.GLBuffer} ],
+				args:[ {name:"gl", type:macro:peote.view.PeoteGL}, {name:"glBuffer", type:macro:peote.view.PeoteGL.GLBuffer}, {name:"elemBuffSize", type:macro:Int} ],
 				expr: macro {
 					gl.bindBuffer (gl.ARRAY_BUFFER, glBuffer);
-					gl.bufferSubData(gl.ARRAY_BUFFER, bytePos, BUFF_SIZE, dataPointer );
+					gl.bufferSubData(gl.ARRAY_BUFFER, bytePos, elemBuffSize, dataPointer );
 					gl.bindBuffer (gl.ARRAY_BUFFER, null);
 				},
 				ret: null
@@ -266,13 +263,11 @@ class ElementImpl
 			pos: Context.currentPos(),
 			kind: FFun({
 				args:[ {name:"gl", type:macro:peote.view.PeoteGL}, {name:"glProgram", type:macro:peote.view.PeoteGL.GLProgram} ],
-				expr: (conf.isINSTANCED) ? 
+				expr:
 				macro {
-					gl.bindAttribLocation(glProgram, aPOSITION, "aPosition");
+					if (!peote.view.PeoteView.FORCE_NO_INSTANCED && (peote.view.PeoteView.FORCE_INSTANCED || peote.view.PeoteView.isINSTANCED))
+						gl.bindAttribLocation(glProgram, aPOSITION, "aPosition");
 					gl.bindAttribLocation(glProgram, aPOSSIZE, "aPossize");
-				} :
-				macro {
-					gl.bindAttribLocation(glProgram, aPOSITION, "aPosition");
 				},
 				ret: null
 			})
@@ -286,32 +281,34 @@ class ElementImpl
 			pos: Context.currentPos(),
 			kind: FFun({
 				args:[ {name:"maxElements", type:macro:Int}, {name:"gl", type:macro:peote.view.PeoteGL}, {name:"glBuffer", type:macro:peote.view.PeoteGL.GLBuffer}, {name:"glInstanceBuffer", type:macro:peote.view.PeoteGL.GLBuffer} ],
-				expr: (conf.isINSTANCED) ? 
+				expr:
 				macro {
-					gl.bindBuffer(gl.ARRAY_BUFFER, glInstanceBuffer);
-					gl.enableVertexAttribArray (aPOSITION);
-					gl.vertexAttribPointer(aPOSITION, 2, gl.SHORT, false, 4, 0 ); // vertexstride 0 should calc automatically
-					
-					gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer);
-					gl.enableVertexAttribArray (aPOSSIZE);
-					gl.vertexAttribPointer(aPOSSIZE, 4, gl.SHORT, false, 8, 0 ); // vertexstride 0 should calc automatically
-					gl.vertexAttribDivisor(aPOSSIZE, 1); // one per instance
-					
-					gl.drawArraysInstanced (gl.TRIANGLE_STRIP,  0, VERTEX_COUNT, maxElements);
-					
-					gl.disableVertexAttribArray (aPOSITION);
-					gl.disableVertexAttribArray (aPOSSIZE);
-					gl.bindBuffer (gl.ARRAY_BUFFER, null);
-				} :
-				macro {
-					gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer);
-					
-					gl.enableVertexAttribArray (aPOSITION);
-					gl.vertexAttribPointer(aPOSITION, 2, gl.SHORT, false, 4, 0 ); // vertexstride 0 should calc automatically
-					
-					gl.drawArrays (gl.TRIANGLE_STRIP,  0,  maxElements*VERTEX_COUNT);
-					
-					gl.disableVertexAttribArray (aPOSITION);
+					if (!peote.view.PeoteView.FORCE_NO_INSTANCED && (peote.view.PeoteView.FORCE_INSTANCED || peote.view.PeoteView.isINSTANCED))
+					{
+						gl.bindBuffer(gl.ARRAY_BUFFER, glInstanceBuffer);
+						gl.enableVertexAttribArray (aPOSITION);
+						gl.vertexAttribPointer(aPOSITION, 2, gl.SHORT, false, 4, 0 ); // vertexstride 0 should calc automatically
+						
+						gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer);
+						gl.enableVertexAttribArray (aPOSSIZE);
+						gl.vertexAttribPointer(aPOSSIZE, 4, gl.SHORT, false, 8, 0 ); // vertexstride 0 should calc automatically
+						gl.vertexAttribDivisor(aPOSSIZE, 1); // one per instance
+						
+						gl.drawArraysInstanced (gl.TRIANGLE_STRIP,  0, VERTEX_COUNT, maxElements);
+						
+						gl.disableVertexAttribArray (aPOSITION);
+						gl.disableVertexAttribArray (aPOSSIZE);
+					}
+					else
+					{	gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer);
+						
+						gl.enableVertexAttribArray (aPOSITION);
+						gl.vertexAttribPointer(aPOSITION, 2, gl.SHORT, false, 4, 0 ); // vertexstride 0 should calc automatically
+						
+						gl.drawArrays (gl.TRIANGLE_STRIP,  0,  maxElements*VERTEX_COUNT);
+						
+						gl.disableVertexAttribArray (aPOSITION);
+					}
 					gl.bindBuffer (gl.ARRAY_BUFFER, null);
 				},
 				ret: null
@@ -326,7 +323,7 @@ class ElementImpl
 			kind: FieldType.FVar(macro:String, macro $v{parseShader(Shader.vertexShader)}), 
 			pos: Context.currentPos(),
 		});
-		
+		//trace("ELEMENT ---------- \n"+parseShader(Shader.vertexShader));
 		fields.push({
 			name:  "fragmentShader",
 			meta:  allowForBuffer,

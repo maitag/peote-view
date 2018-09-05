@@ -1,10 +1,10 @@
 package peote.view.utils;
 
-import lime.graphics.opengl.GLBuffer;
-import lime.graphics.opengl.GLProgram;
-import lime.graphics.opengl.GLShader;
-import lime.graphics.opengl.GLUniformLocation;
-import lime.utils.BytePointer;
+import peote.view.PeoteGL.GLBuffer;
+import peote.view.PeoteGL.GLProgram;
+import peote.view.PeoteGL.GLShader;
+import peote.view.PeoteGL.GLUniformLocation;
+import peote.view.PeoteGL.BytePointer;
 
 import haxe.io.Bytes;
 

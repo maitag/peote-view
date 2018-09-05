@@ -1,4 +1,6 @@
 import haxe.Timer;
+import lime.ui.KeyCode;
+import lime.ui.KeyModifier;
 import lime.ui.MouseButton;
 import peote.view.PeoteGL;
 import peote.view.PeoteView;
@@ -57,6 +59,11 @@ class GLPicking
 	{
 		var pickedElement = buffer.pickElementAt(Std.int(x), Std.int(y), programLeft);
 		if (pickedElement != null) pickedElement.y += 100;
+	}
+	
+	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
+	{
+		
 	}
 	
 	public function render()

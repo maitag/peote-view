@@ -27,12 +27,12 @@
 	
 	<!-- force compiling for a special opengl-es version (only set one of them) -->
 	<!-- this optimizes the build and forces no-runtimecheck for the gl-features -->
-	<!--<haxedef name="peoteview_es3" if="html5||android" />-->
-	<!--<haxedef name="peoteview_es2" if="cpp||neko" />-->
+	<!-- <haxedef name="peoteview_es3" if="html5" /> -->
+	<haxedef name="peoteview_es2" if="android" /> <!-- android autodetect es3 but did not work, so force to es2 -->
 	
 	<!-- use special gl-features for optimization (if supported by opengl-es version) -->
-	<haxedef name="peoteview_uniformbuffers" />
-	<haxedef name="peoteview_instancedrawing" />
+	<!--<haxedef name="peoteview_uniformbuffers" />
+	<haxedef name="peoteview_instancedrawing" />-->
 
 
 	<!-- -Dwebgl -debug -->

@@ -17,11 +17,11 @@ class Test
 	var element:ElementSimple;
 	var buffer:Buffer<ElementSimple>;
 	
-	public function new(gl:PeoteGL, width:Int, height:Int, uniformbuffers:Bool=false, instancedrawing:Bool=false)
+	public function new(gl:PeoteGL, width:Int, height:Int)
 	{	
 		buffer = new Buffer<ElementSimple>(100);
 
-		peoteView = new PeoteView(gl, width, height, uniformbuffers, instancedrawing);
+		peoteView = new PeoteView(gl, width, height);
 		var display   = new Display(10,10, width-20, height-20); display.green = 1.0;
 		var program   = new Program(buffer);
 		

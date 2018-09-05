@@ -1,10 +1,10 @@
 package peote.view.utils;
 
 import haxe.io.Bytes;
-import lime.graphics.GLRenderContext;
-import lime.graphics.opengl.GLBuffer;
-import lime.graphics.opengl.GLProgram;
-import lime.utils.DataPointer;
+import peote.view.PeoteGL;
+import peote.view.PeoteGL.GLBuffer;
+import peote.view.PeoteGL.GLProgram;
+import peote.view.PeoteGL.DataPointer;
 
 
 class UniformBuffer 
@@ -16,7 +16,7 @@ class UniformBuffer
 	var uProgramIndex:Int;
 	var uProgramBuffer:GLBuffer;
 
-	public function new(gl:GLRenderContext, glProgram:GLProgram) 
+	public function new(gl:PeoteGL, glProgram:GLProgram) 
 	{
 		uProgramIndex = gl.getUniformBlockIndex(glProgram, 'UProgram');
 		gl.uniformBlockBinding(glProgram, uProgramIndex, 0);

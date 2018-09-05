@@ -19,6 +19,13 @@ class Program
 	var buffer:BufferInterface;
 	//var uniforms:Vector<GLUniformLocation>;
 	
+	public var glShaderConfig = {
+		isES3:false,
+		isINSTANCED: false,
+		isUBO: false,
+		IN:"attribute",
+	};
+	
 	public function new(buffer:BufferInterface) 
 	{
 		this.buffer = buffer;
@@ -46,10 +53,12 @@ class Program
 			{
 				if (this.gl != null) clearOldGLContext(); // different GL-Context
 				setNewGLContext(display.gl);
-			} // if it's stay into same gl-context, no buffers had to recreate/fill
-			#if (peoteview_es3 && peoteview_uniformbuffers)
-			else if (gl!=null) display.uniformBuffer.bindToProgram(gl, glProgram, "uboDisplay", 1);
-			#end
+			}
+			else if (!PeoteView.FORCE_NO_UBO && (PeoteView.FORCE_UBO || PeoteView.isUBO))
+			{	// if Display is changed but same gl-context -> bind to UBO of new Display
+				if (gl!=null) display.uniformBuffer.bindToProgram(gl, glProgram, "uboDisplay", 1);
+			}
+			
 			return true;
 		}	
 	}
@@ -67,6 +76,16 @@ class Program
 		buffer._gl = gl;          // TODO: check here if buffer already inside another peoteView with different glContext (multiwindows)
 		buffer.createGLBuffer();
 		buffer.updateGLBuffer();
+		if (!PeoteView.FORCE_NO_UBO && (PeoteView.FORCE_UBO || PeoteView.isUBO)) {
+			glShaderConfig.isES3 = true;
+			glShaderConfig.IN = "in";
+			glShaderConfig.isUBO = true;
+		}
+		if (!PeoteView.FORCE_NO_INSTANCED && (PeoteView.FORCE_INSTANCED || PeoteView.isINSTANCED)) {
+			glShaderConfig.isES3 = true; // TODO: es3 separate (shader needs no es3 for instancing)
+			glShaderConfig.IN = "in";
+			glShaderConfig.isINSTANCED = true;
+		}
 		createProgram();
 	}
 
@@ -95,8 +114,8 @@ class Program
 	private function createProgram():Void  // TODO: do not compile twice if same program is used inside multiple displays
 	{
 		trace("create Program");
-		glVertexShader   = GLTool.compileGLShader(gl, gl.VERTEX_SHADER,   buffer.getVertexShader() );
-		glFragmentShader = GLTool.compileGLShader(gl, gl.FRAGMENT_SHADER, buffer.getFragmentShader() );
+		glVertexShader   = GLTool.compileGLShader(gl, gl.VERTEX_SHADER,   GLTool.parseShader(buffer.getVertexShader(), glShaderConfig) );
+		glFragmentShader = GLTool.compileGLShader(gl, gl.FRAGMENT_SHADER, GLTool.parseShader(buffer.getFragmentShader(), glShaderConfig) );
 		
 		glProgram = gl.createProgram();
 
@@ -107,21 +126,22 @@ class Program
 		
 		GLTool.linkGLProgram(gl, glProgram);
 		
-		#if (peoteview_es3 && peoteview_uniformbuffers)
-		display.peoteView.uniformBuffer.bindToProgram(gl, glProgram, "uboView", 0);
-		display.uniformBuffer.bindToProgram(gl, glProgram, "uboDisplay", 1);
-		#else
-		uRESOLUTION = gl.getUniformLocation(glProgram, "uResolution");
-		uZOOM = gl.getUniformLocation(glProgram, "uZoom");
-		uOFFSET = gl.getUniformLocation(glProgram, "uOffset");
-		#end	
+		if (!PeoteView.FORCE_NO_UBO && (PeoteView.FORCE_UBO || PeoteView.isUBO))
+		{
+			display.peoteView.uniformBuffer.bindToProgram(gl, glProgram, "uboView", 0);
+			display.uniformBuffer.bindToProgram(gl, glProgram, "uboDisplay", 1);
+		}
+		else
+		{
+			uRESOLUTION = gl.getUniformLocation(glProgram, "uResolution");
+			uZOOM = gl.getUniformLocation(glProgram, "uZoom");
+			uOFFSET = gl.getUniformLocation(glProgram, "uOffset");
+		}
 	}
 	
-	#if !(peoteview_es3 && peoteview_uniformbuffers)
 	var uRESOLUTION:GLUniformLocation;
 	var uZOOM:GLUniformLocation;
 	var uOFFSET:GLUniformLocation;
-	#end
 	
 	// ------------------------------------------------------------------------------
 	// ----------------------------- Render -----------------------------------------
@@ -131,19 +151,22 @@ class Program
 		//trace("    ---program.render---");
 		peoteView.gl.useProgram(glProgram); // ------ Shader Program
 		
-		#if (peoteview_es3 && peoteview_uniformbuffers)
-		// ------------- uniform block -------------
-		//peoteView.gl.bindBufferRange(peoteView.gl.UNIFORM_BUFFER, 0, uProgramBuffer, 0, 8);
-		peoteView.gl.bindBufferBase(peoteView.gl.UNIFORM_BUFFER, peoteView.uniformBuffer.block , peoteView.uniformBuffer.uniformBuffer);
-		peoteView.gl.bindBufferBase(peoteView.gl.UNIFORM_BUFFER, display.uniformBuffer.block , display.uniformBuffer.uniformBuffer);
-		#else
-		// ------------- simple uniform -------------
-		peoteView.gl.uniform2f (uRESOLUTION, peoteView.width, peoteView.height);
-		peoteView.gl.uniform1f (uZOOM, peoteView.zoom * display.zoom);
-		peoteView.gl.uniform2f (uOFFSET, (display.x + display.xOffset + peoteView.xOffset) / display.zoom, 
-		                                 (display.y + display.yOffset + peoteView.yOffset) / display.zoom);
 		// TODO: from Program
-		#end
+		if (!PeoteView.FORCE_NO_UBO && (PeoteView.FORCE_UBO || PeoteView.isUBO))
+		{	
+			// ------------- uniform block -------------
+			//peoteView.gl.bindBufferRange(peoteView.gl.UNIFORM_BUFFER, 0, uProgramBuffer, 0, 8);
+			peoteView.gl.bindBufferBase(peoteView.gl.UNIFORM_BUFFER, peoteView.uniformBuffer.block , peoteView.uniformBuffer.uniformBuffer);
+			peoteView.gl.bindBufferBase(peoteView.gl.UNIFORM_BUFFER, display.uniformBuffer.block , display.uniformBuffer.uniformBuffer);
+		}
+		else
+		{
+			// ------------- simple uniform -------------
+			peoteView.gl.uniform2f (uRESOLUTION, peoteView.width, peoteView.height);
+			peoteView.gl.uniform1f (uZOOM, peoteView.zoom * display.zoom);
+			peoteView.gl.uniform2f (uOFFSET, (display.x + display.xOffset + peoteView.xOffset) / display.zoom, 
+											 (display.y + display.yOffset + peoteView.yOffset) / display.zoom);
+		}
 		
 		buffer.render(peoteView, display, this);
 		peoteView.gl.useProgram (null);

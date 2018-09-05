@@ -1,8 +1,8 @@
 package peote.view.utils;
 
-import lime.graphics.opengl.GLFramebuffer;
-import lime.graphics.opengl.GLProgram;
-import lime.graphics.opengl.GLShader;
+import peote.view.PeoteGL.GLFramebuffer;
+import peote.view.PeoteGL.GLProgram;
+import peote.view.PeoteGL.GLShader;
 
 class GLTool 
 {
@@ -15,6 +15,7 @@ class GLTool
 	static public inline function compileGLShader(gl:PeoteGL, type:Int, shaderSrc:String):GLShader
 	{
 		trace('compile ${(type==gl.VERTEX_SHADER) ? "vertex":"fragment"} shader');
+		trace(shaderSrc);
 		var glShader:GLShader = gl.createShader(type);
 		gl.shaderSource(glShader, shaderSrc);
 		gl.compileShader(glShader);
@@ -38,5 +39,14 @@ class GLTool
 		}
 		else return true;
 	}
-		
+
+	static var rComments:EReg = new EReg("//.*?$","gm");
+	static var rEmptylines:EReg = new EReg("([ \t]*\r?\n)+", "g");
+	static var rStartspaces:EReg = new EReg("^([ \t]*\r?\n)+", "g");
+
+	static public inline function parseShader(shader:String, conf:Dynamic):String {
+		var template = new haxe.Template(shader);			
+		return rStartspaces.replace(rEmptylines.replace(rComments.replace(template.execute(conf), ""), "\n"), "");
+	}
+
 }
