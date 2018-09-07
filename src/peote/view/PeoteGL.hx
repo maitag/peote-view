@@ -79,7 +79,7 @@ abstract PeoteGL(LimeGLRenderContext) from LimeGLRenderContext to LimeGLRenderCo
 			#else
 				if (context.webgl2 != null) {
 					trace("WEBGL2 detected.");
-					PeoteView.isUBO = true; PeoteView.isINSTANCED = true;
+					Version.isES3 = true;
 					return cast context.webgl2;
 				}
 				else if (context.webgl != null) {
@@ -104,7 +104,7 @@ abstract PeoteGL(LimeGLRenderContext) from LimeGLRenderContext to LimeGLRenderCo
 			#else
 				if (context.gles3 != null) {
 					trace("OpenGL-ES3 detected.");
-					PeoteView.isUBO = true; PeoteView.isINSTANCED = true;
+					Version.isES3 = true;
 					return cast context.gles3;
 				}
 				else if (context.gles2 != null) {
@@ -123,4 +123,53 @@ abstract PeoteGL(LimeGLRenderContext) from LimeGLRenderContext to LimeGLRenderCo
 
 
 
+}
+
+@:allow(peote.view)
+class Version {
+	#if peoteview_es3
+	
+		static inline var isES3 = true; // force compiling without runtimecheck for UBOs/InstanceDrawing
+
+		#if peoteview_uniformbuffers
+			static inline var isUBO = true;
+		#else 
+			static inline var isUBO = false;
+		#end
+		#if peoteview_instancedrawing
+			static inline var isINSTANCED = true;
+		#else 
+			static inline var isINSTANCED = false;
+		#end
+		
+	#elseif peoteview_es2  // force compiling without runtimecheck for UBOs/InstanceDrawing
+	
+		static inline var isES3 = false;
+		static inline var isUBO = false;
+		static inline var isINSTANCED = false;
+		
+	#else // check at runtime (depends on available es-version) 
+
+		static var isES3(default, set) = false;		// <---- set this true if detected gl-Version is es3
+		static inline function set_isES3(b:Bool):Bool {
+			#if peoteview_uniformbuffers
+				isUBO = b;
+			#end
+			#if peoteview_instancedrawing
+				isINSTANCED = b;
+			#end
+			return isES3 = b;
+		}
+		
+		#if peoteview_uniformbuffers
+			static var isUBO = false; // is set at runtime throught isES3
+		#else
+			static inline var isUBO = false; // force compiling without runtimecheck for UBOs
+		#end
+		#if peoteview_instancedrawing
+			static var isINSTANCED = false;  // is set at runtime throught isES3
+		#else
+			static inline var isINSTANCED = false; // force compiling without runtimecheck for InstanceDrawing
+		#end
+	#end	
 }

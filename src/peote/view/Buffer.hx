@@ -80,14 +80,14 @@ class $className implements BufferInterface
 		
 		_elements = new haxe.ds.Vector<$elementType>(size);
 		
-		trace("create bytes for GLbuffer");
-		if (!peote.view.PeoteView.FORCE_NO_INSTANCED && (peote.view.PeoteView.FORCE_INSTANCED || peote.view.PeoteView.isINSTANCED))
+		if (peote.view.PeoteGL.Version.isINSTANCED)
 		{
 			$p{elemField}.createInstanceBytes();
 		    _elemBuffSize = $p{elemField}.BUFF_SIZE_INSTANCED;
 		}
 		else _elemBuffSize = $p{elemField}.BUFF_SIZE;
 		
+		trace("create bytes for GLbuffer");
 		_bytes = haxe.io.Bytes.alloc(_elemBuffSize * size);
 		_bytes.fill(0, _elemBuffSize * size, 0);		
 	}

@@ -20,10 +20,10 @@ class Program
 	//var uniforms:Vector<GLUniformLocation>;
 	
 	public var glShaderConfig = {
-		isES3:false,
+		isES3: false,
 		isINSTANCED: false,
 		isUBO: false,
-		IN:"attribute",
+		IN: "attribute",
 	};
 	
 	public function new(buffer:BufferInterface) 
@@ -54,7 +54,7 @@ class Program
 				if (this.gl != null) clearOldGLContext(); // different GL-Context
 				setNewGLContext(display.gl);
 			}
-			else if (!PeoteView.FORCE_NO_UBO && (PeoteView.FORCE_UBO || PeoteView.isUBO))
+			else if (PeoteGL.Version.isUBO)
 			{	// if Display is changed but same gl-context -> bind to UBO of new Display
 				if (gl!=null) display.uniformBuffer.bindToProgram(gl, glProgram, "uboDisplay", 1);
 			}
@@ -76,16 +76,11 @@ class Program
 		buffer._gl = gl;          // TODO: check here if buffer already inside another peoteView with different glContext (multiwindows)
 		buffer.createGLBuffer();
 		buffer.updateGLBuffer();
-		if (!PeoteView.FORCE_NO_UBO && (PeoteView.FORCE_UBO || PeoteView.isUBO)) {
-			glShaderConfig.isES3 = true;
-			glShaderConfig.IN = "in";
-			glShaderConfig.isUBO = true;
-		}
-		if (!PeoteView.FORCE_NO_INSTANCED && (PeoteView.FORCE_INSTANCED || PeoteView.isINSTANCED)) {
-			glShaderConfig.isES3 = true; // TODO: es3 separate (shader needs no es3 for instancing)
-			glShaderConfig.IN = "in";
-			glShaderConfig.isINSTANCED = true;
-		}
+		
+		if (PeoteGL.Version.isES3)     { glShaderConfig.isES3 = true; glShaderConfig.IN = "in";	}
+		if (PeoteGL.Version.isUBO)       glShaderConfig.isUBO = true;
+		if (PeoteGL.Version.isINSTANCED) glShaderConfig.isINSTANCED = true;
+		
 		createProgram();
 	}
 
@@ -126,7 +121,7 @@ class Program
 		
 		GLTool.linkGLProgram(gl, glProgram);
 		
-		if (!PeoteView.FORCE_NO_UBO && (PeoteView.FORCE_UBO || PeoteView.isUBO))
+		if (PeoteGL.Version.isUBO)
 		{
 			display.peoteView.uniformBuffer.bindToProgram(gl, glProgram, "uboView", 0);
 			display.uniformBuffer.bindToProgram(gl, glProgram, "uboDisplay", 1);
@@ -152,7 +147,7 @@ class Program
 		peoteView.gl.useProgram(glProgram); // ------ Shader Program
 		
 		// TODO: from Program
-		if (!PeoteView.FORCE_NO_UBO && (PeoteView.FORCE_UBO || PeoteView.isUBO))
+		if (PeoteGL.Version.isUBO)
 		{	
 			// ------------- uniform block -------------
 			//peoteView.gl.bindBufferRange(peoteView.gl.UNIFORM_BUFFER, 0, uProgramBuffer, 0, 8);

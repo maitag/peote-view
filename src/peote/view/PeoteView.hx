@@ -14,63 +14,21 @@ class PeoteView
 	public var gl(default, null):PeoteGL;
 	
 	var width:Int;
-	var height:Int;
-	
-	#if peoteview_es3
-		#if peoteview_uniformbuffers
-			static inline var FORCE_UBO = true;        // force compiling the code with runtimecheck for UBOs
-			static inline var FORCE_NO_UBO = false;
-		#else 
-			static inline var FORCE_UBO = false;       // force compiling the code without runtimecheck for UBOs
-			static inline var FORCE_NO_UBO = true;
-		#end
-		#if peoteview_instancedrawing
-			static inline var FORCE_INSTANCED = true;  // force compiling the code with runtimecheck for InstanceDrawing
-			static inline var FORCE_NO_INSTANCED = false;
-		#else 
-			static inline var FORCE_INSTANCED = false; // force compiling the code without runtimecheck for InstanceDrawing
-			static inline var FORCE_NO_INSTANCED = true;
-		#end
-		
-	#elseif peoteview_es2                        // force compiling the code without runtimecheck for UBOs/InstanceDrawing
-		static inline var FORCE_UBO = false;
-		static inline var FORCE_INSTANCED = false;
-		static inline var FORCE_NO_UBO = true;
-		static inline var FORCE_NO_INSTANCED = true;
-		
-	#else                                        // check allways at runtime (depends on available es-version) 
-		static inline var FORCE_UBO = false;
-		static inline var FORCE_INSTANCED = false;
-		#if peoteview_uniformbuffers
-			static inline var FORCE_NO_UBO = false;
-		#else
-			static inline var FORCE_NO_UBO = true;
-		#end
-		#if peoteview_instancedrawing
-			static inline var FORCE_NO_INSTANCED = false;
-		#else
-			static inline var FORCE_NO_INSTANCED = true;
-		#end
-	#end
-	
-	// this is set after checking es-version at runtime (depending on es-version)
-	static public var isUBO(default, default) = false;
-	static public var isINSTANCED(default, default) = false;
-	
+	var height:Int;	
 	
 	public var zoom(default, set):Float = 1.0;
 	public inline function set_zoom(z:Float):Float {
-		if (!FORCE_NO_UBO && (FORCE_UBO || isUBO)) uniformBuffer.updateZoom(gl, z);
+		if (PeoteGL.Version.isUBO) uniformBuffer.updateZoom(gl, z);
 		return zoom = z;
 	}
 	public var xOffset(default, set):Int = 0;
 	public inline function set_xOffset(offset:Int):Int {
-		if (!FORCE_NO_UBO && (FORCE_UBO || isUBO)) uniformBuffer.updateXOffset(gl, offset);
+		if (PeoteGL.Version.isUBO) uniformBuffer.updateXOffset(gl, offset);
 		return xOffset = offset;
 	}
 	public var yOffset(default, set):Int = 0;
 	public inline function set_yOffset(offset:Int):Int {
-		if (!FORCE_NO_UBO && (FORCE_UBO || isUBO)) uniformBuffer.updateYOffset(gl, offset);
+		if (PeoteGL.Version.isUBO) uniformBuffer.updateYOffset(gl, offset);
 		return yOffset = offset;
 	}
 	
@@ -86,8 +44,7 @@ class PeoteView
 		this.width = width;
 		this.height = height;
 		
-		trace("use UniformBufferObjects: "+isUBO, "FORCE_UBO: "+FORCE_UBO, "FORCE_NO_UBO: "+FORCE_NO_UBO);
-		if (!FORCE_NO_UBO && (FORCE_UBO || isUBO)) {
+		if (PeoteGL.Version.isUBO) {
             trace("OpenGL Uniform Buffer Objects enabled.");
 			uniformBuffer = new UniformBufferView();
 			uniformBuffer.createGLBuffer(gl, width, height, xOffset, yOffset, zoom);
@@ -96,8 +53,7 @@ class PeoteView
             trace("OpenGL Uniform Buffer Objects disabled.");
         }
 		
-		trace("use InstanceDrawing: "+isINSTANCED, "FORCE_INSTANCED: "+FORCE_INSTANCED, "FORCE_NO_INSTANCED: "+FORCE_NO_INSTANCED);
-		if (!FORCE_NO_INSTANCED && (FORCE_INSTANCED || isINSTANCED)) {
+		if (PeoteGL.Version.isINSTANCED) {
             trace("OpenGL InstanceDrawing enabled.");
         }
         else {
@@ -121,9 +77,8 @@ class PeoteView
 	{
 		trace("PeoteView setNewGLContext");
 		gl = newGl;
-		if (!FORCE_NO_UBO && (FORCE_UBO || isUBO)) {
-			uniformBuffer.createGLBuffer(gl, width, height, xOffset, yOffset, zoom);
-		}
+		if (PeoteGL.Version.isUBO) uniformBuffer.createGLBuffer(gl, width, height, xOffset, yOffset, zoom);
+		
 		// for all displays in list
 		var listItem:RenderListItem<Display> = displayList.first;
 		while (listItem != null)
@@ -136,9 +91,8 @@ class PeoteView
 	public function clearOldGLContext() 
 	{
 		trace("Display clearOldGLContext");
-		if (!FORCE_NO_UBO && (FORCE_UBO || isUBO)) {
-			uniformBuffer.deleteGLBuffer(gl);
-		}
+		if (PeoteGL.Version.isUBO) uniformBuffer.deleteGLBuffer(gl);
+		
 		// for all programms in list
 		var listItem:RenderListItem<Display> = displayList.first;
 		while (listItem != null)
@@ -185,9 +139,7 @@ class PeoteView
 		this.height = height;
 		// TODO: re-arange or resize all Displays
 		
-		if (!FORCE_NO_UBO && (FORCE_UBO || isUBO)) {
-			uniformBuffer.updateResolution(gl, width, height);
-		}
+		if (PeoteGL.Version.isUBO) uniformBuffer.updateResolution(gl, width, height);
 	}
 
 	

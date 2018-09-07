@@ -15,19 +15,19 @@ class Display
 	
 	public var zoom(default, set):Float = 1.0;
 	public inline function set_zoom(z:Float):Float {
-		if (!PeoteView.FORCE_NO_UBO && (PeoteView.FORCE_UBO || PeoteView.isUBO)) uniformBuffer.updateZoom(gl, z);
+		if (PeoteGL.Version.isUBO) uniformBuffer.updateZoom(gl, z);
 		return zoom = z;
 	}
 	
 	public var xOffset(default, set):Int = 0;
 	public inline function set_xOffset(offset:Int):Int {
-		if (!PeoteView.FORCE_NO_UBO && (PeoteView.FORCE_UBO || PeoteView.isUBO)) uniformBuffer.updateXOffset(gl, x + offset);
+		if (PeoteGL.Version.isUBO) uniformBuffer.updateXOffset(gl, x + offset);
 		return xOffset = offset;
 	}
 	
 	public var yOffset(default, set):Int = 0;
 	public inline function set_yOffset(offset:Int):Int {
-		if (!PeoteView.FORCE_NO_UBO && (PeoteView.FORCE_UBO || PeoteView.isUBO)) uniformBuffer.updateYOffset(gl, y + offset);
+		if (PeoteGL.Version.isUBO) uniformBuffer.updateYOffset(gl, y + offset);
 		return yOffset = offset;
 	}
 	
@@ -53,7 +53,7 @@ class Display
 		
 		programList = new RenderList<Program>(new Map<Program,RenderListItem<Program>>());
 		
-		if (!PeoteView.FORCE_NO_UBO && (PeoteView.FORCE_UBO || PeoteView.isUBO)) {
+		if (PeoteGL.Version.isUBO) {
 			uniformBuffer = new UniformBufferDisplay();
 		}
 	}
@@ -90,7 +90,7 @@ class Display
 	{
 		trace("Display setNewGLContext");
 		gl = newGl;
-		if (!PeoteView.FORCE_NO_UBO && (PeoteView.FORCE_UBO || PeoteView.isUBO)) {
+		if (PeoteGL.Version.isUBO) {
 			uniformBuffer.createGLBuffer(gl, x + xOffset, y + yOffset, zoom);
 		}
 		// for all programms in list
@@ -105,7 +105,7 @@ class Display
 	private inline function clearOldGLContext() 
 	{
 		trace("Display clearOldGLContext");
-		if (!PeoteView.FORCE_NO_UBO && (PeoteView.FORCE_UBO || PeoteView.isUBO)) {
+		if (PeoteGL.Version.isUBO) {
 			uniformBuffer.deleteGLBuffer(gl);
 		}
 		// for all programms in list
