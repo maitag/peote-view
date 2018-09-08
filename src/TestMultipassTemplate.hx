@@ -14,9 +14,9 @@ class TestMultipassTemplate extends lime.app.Application
 	};
 
 	public var context2 = {
-		flag1: true,
 		a:5,
 		b:2,
+		flag1: true,
 		msg2: "world",
 		flag3: true,
 		pi:3.14,
@@ -25,17 +25,18 @@ class TestMultipassTemplate extends lime.app.Application
 
 	public function new() {
 		super();
+		try {
+			var firstPass = new MultipassTemplate(tmpl).execute(context1);
+			trace("first Pass:\n" + firstPass);
+			var secondPass = new MultipassTemplate(firstPass).execute(context2);
+			trace("second Pass:\n" + secondPass);		
+		} catch (err:Dynamic) {trace(err);}
 		
-		var firstPass = new MultipassTemplate(tmpl).execute(context1);
-		trace("first Pass:\n" + firstPass);
-		
-		var secondPass = new MultipassTemplate(firstPass).execute(context2);
-		trace("second Pass:\n" + secondPass);		
 	}
 	
 	public var tmpl =
 	'
-	::(a + b)::
+	::(a + b )::
 	
 	::if flag1::
 		The  Message is ::msg1:: ::msg2::

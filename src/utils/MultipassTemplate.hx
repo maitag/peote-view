@@ -125,9 +125,8 @@ class MultipassTemplate {
 			if( value != null || Reflect.hasField(ctx,v) )
 				return value;
 		}
-		var g = Reflect.field(globals,v);
-		if (g==null) throw(v);
-		return g;
+		if (!Reflect.hasField(globals,v)) throw(v);
+		return Reflect.field(globals,v);
 	}
 
 	function parseTokens( data : String ) {
@@ -157,7 +156,7 @@ class MultipassTemplate {
 				} else if( c == 41 ) {
 					npar--;
 					if (npar <= 0) break;
-				} else if( c == null ){
+				} else if( c == null ) {
 					throw "Unclosed macro parenthesis";
 				}
 				if ( c == 44 && npar == 1) {
@@ -266,7 +265,7 @@ class MultipassTemplate {
 			if( !l.isEmpty() )
 				throw l.first().p;
 		} catch ( s : String ) {
-			throw "Unexpected '"+s+"' in "+expr;
+			throw "Unexpected '" + s + "' in " + expr;
 		}
 		return function() {
 			try {
@@ -365,35 +364,32 @@ class MultipassTemplate {
 		switch( e ) {
 		case OpVar(v):
 			try {
-				var r = resolve(v);
 				buf.add(Std.string(resolve(v)));
 			}
-			catch (err:Dynamic) buf.add("::"+v+"::");
+			catch (notYet:Dynamic) {
+				buf.add("::" + v + "::");
+			}
 		case OpExpr(e):
-			var v : Dynamic = null;
 			try {
-				v = e();
 				buf.add(Std.string(e()));
-			} catch ( err : Dynamic ) {
-				buf.add("::("+err.expr+")::");
+			} catch ( notYet : Dynamic ) {
+				buf.add("::(" + notYet.expr + ")::");
 			}
 
 		case OpIf(name, e, eif, eelse):
-			var v : Dynamic = null;
 			try {
-				v = e();
-			} catch ( err : Dynamic ) {
-				v = null;
-			}
-			if( v != null) {
-				if( v == false ) {
+				var v : Dynamic = e();
+				if( v == null || v == false ) {
 					if( eelse != null ) run(eelse);
 				} else
 					run(eif);
-			} else {
-				buf.add("::if " + name+"::");
+			} catch ( notYet : Dynamic ) {
+				buf.add("::if " + notYet.expr + "::");
 				run(eif);
-				if( eelse != null ) {buf.add("::else::"); run(eelse);}
+				if ( eelse != null ) {
+					buf.add("::else::");
+					run(eelse);
+				}
 				buf.add("::end::");
 			}
 		case OpStr(str):
@@ -421,8 +417,8 @@ class MultipassTemplate {
 				}
 				context = stack.pop();
 	
-			} catch ( e : Dynamic ) {
-				buf.add("::foreach " + name+"::");
+			} catch (notYet : Dynamic ) {
+				buf.add("::foreach " + notYet.v + "::");
 				run(loop);
 				buf.add("::end::");
 			}
