@@ -20,11 +20,8 @@ class ElementImpl
 	
 	@:access(haxe.Template.splitter)
 	static inline function parseShader(shader:String):String {
-		var origSplitter = haxe.Template.splitter;
-		haxe.Template.splitter =  ~/(##[A-Za-z0-9_ ()&|!+=\/><*."-]+##|\$\$([A-Za-z0-9_-]+)\()/;
-		var template = new haxe.Template(shader);			
+		var template = new utils.MultipassTemplate(shader);
 		var s = rStartspaces.replace(rEmptylines.replace(rComments.replace(template.execute(conf), ""), "\n"), "");
-		haxe.Template.splitter = origSplitter;
 		return s;
 	}
 	

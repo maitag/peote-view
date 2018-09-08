@@ -3,6 +3,7 @@ package peote.view.utils;
 import peote.view.PeoteGL.GLFramebuffer;
 import peote.view.PeoteGL.GLProgram;
 import peote.view.PeoteGL.GLShader;
+import utils.MultipassTemplate;
 
 class GLTool 
 {
@@ -15,7 +16,7 @@ class GLTool
 	static public inline function compileGLShader(gl:PeoteGL, type:Int, shaderSrc:String):GLShader
 	{
 		trace('compile ${(type==gl.VERTEX_SHADER) ? "vertex":"fragment"} shader');
-		trace(shaderSrc);
+		trace("\n"+shaderSrc);
 		var glShader:GLShader = gl.createShader(type);
 		gl.shaderSource(glShader, shaderSrc);
 		gl.compileShader(glShader);
@@ -45,7 +46,7 @@ class GLTool
 	static var rStartspaces:EReg = new EReg("^([ \t]*\r?\n)+", "g");
 
 	static public inline function parseShader(shader:String, conf:Dynamic):String {
-		var template = new haxe.Template(shader);			
+		var template = new MultipassTemplate(shader);
 		return rStartspaces.replace(rEmptylines.replace(rComments.replace(template.execute(conf), ""), "\n"), "");
 	}
 

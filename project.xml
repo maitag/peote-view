@@ -13,7 +13,9 @@
 	<!-- <app main="MultipleWindows" path="bin" file="MultipleWindows" /> 
 	<haxedef name="peoteview_queueGLbuffering" /> -->  <!-- needs this to not write into wrong glBuffer -->
 	
-
+	<!-- testing MultipassTemplate.hx (modified haxe.Template.hx) -->
+	<!-- <app main="TestMultipassTemplate" path="bin" file="TestMultipassTemplate" /> -->
+	
 	<!-- <window fps="60" width="800" height="600" vsync="true" antialiasing="4" resizable="true" hardware="true" allow-shaders="true" require-shaders="true" depth-buffer="true" stencil-buffer="false" /> -->
 	<!--<window fps="60" width="800" height="600" vsync="true" resizable="true" hardware="true" allow-shaders="true" require-shaders="true" depth-buffer="true" stencil-buffer="false" /> -->
 	<window width="800" height="600" />

@@ -29,7 +29,7 @@ class TestMultipassTemplate extends lime.app.Application
 			var firstPass = new MultipassTemplate(tmpl).execute(context1);
 			trace("first Pass:\n" + firstPass);
 			var secondPass = new MultipassTemplate(firstPass).execute(context2);
-			trace("second Pass:\n" + secondPass);		
+			trace("second Pass:\n" + secondPass);
 		} catch (err:Dynamic) {trace(err);}
 		
 	}
