@@ -24,10 +24,10 @@ package utils;
 private enum TemplateExpr {
 	OpVar( v : String );
 	OpExpr( expr :  Void -> Dynamic );
-	OpIf( name : String,  expr : Void -> Dynamic,  eif : TemplateExpr, eelse : TemplateExpr );
+	OpIf( expr : Void -> Dynamic,  eif : TemplateExpr, eelse : TemplateExpr );
 	OpStr( str : String );
 	OpBlock( l : List<TemplateExpr> );
-	OpForeach( name : String,  expr : Void -> Dynamic, loop : TemplateExpr );
+	OpForeach( expr : Void -> Dynamic, loop : TemplateExpr );
 	OpMacro( name : String, params : List<TemplateExpr> );
 }
 
@@ -156,7 +156,7 @@ class MultipassTemplate {
 				} else if( c == 41 ) {
 					npar--;
 					if (npar <= 0) break;
-				} else if( c == null ) {
+				} else if( c == null ){
 					throw "Unclosed macro parenthesis";
 				}
 				if ( c == 44 && npar == 1) {
@@ -229,7 +229,7 @@ class MultipassTemplate {
 				t.p = t.p.substr(4,t.p.length - 4);
 				eelse = parse(tokens);
 			}
-			return OpIf(p,e,eif,eelse);
+			return OpIf(e,eif,eelse);
 		}
 		if( p.substr(0,8) == "foreach " ) {
 			p = p.substr(8,p.length - 8);
@@ -238,7 +238,7 @@ class MultipassTemplate {
 			var t = tokens.pop();
 			if( t == null || t.p != "end" )
 				throw "Unclosed 'foreach'";
-			return OpForeach(p,e,efor);
+			return OpForeach(e,efor);
 		}
 		if( expr_splitter.match(p) )
 			return OpExpr(parseExpr(p));
@@ -264,15 +264,15 @@ class MultipassTemplate {
 			e = makeExpr(l);
 			if( !l.isEmpty() )
 				throw l.first().p;
-		} catch ( s : String ) {
-			throw "Unexpected '" + s + "' in " + expr;
+		} catch( s : String ) {
+			throw "Unexpected '"+s+"' in "+expr;
 		}
 		return function() {
 			try {
 				return e();
-			} catch ( v : Dynamic ) {
-				//trace ("Not yet known : " + Std.string(v) + " in " + expr);
-				throw({v:v,expr:expr});
+			} catch( v : Dynamic ) {
+				//trace ("Error : "+Std.string(exc)+" in "+expr;);
+				throw({v:v, expr:expr});
 			}
 		}
 	}
@@ -306,7 +306,7 @@ class MultipassTemplate {
 			throw field.p;
 		var f = field.p;
 		expr_trim.match(f);
-		f = expr_trim.matched(1); 
+		f = expr_trim.matched(1);
 		return makePath(function() { return Reflect.field(e(),f); },l);
 	}
 
@@ -376,7 +376,7 @@ class MultipassTemplate {
 				buf.add("::(" + notYet.expr + ")::");
 			}
 
-		case OpIf(name, e, eif, eelse):
+		case OpIf(e, eif, eelse):
 			try {
 				var v : Dynamic = e();
 				if( v == null || v == false ) {
@@ -397,7 +397,7 @@ class MultipassTemplate {
 		case OpBlock(l):
 			for( e in l )
 				run(e);
-		case OpForeach(name,e,loop):
+		case OpForeach(e,loop):
 			try {
 				var v : Dynamic = e();
 				try {
