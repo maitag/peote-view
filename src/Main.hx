@@ -8,8 +8,6 @@ import lime.ui.Touch;
 import lime.ui.KeyCode;
 import lime.ui.KeyModifier;
 
-import peote.view.PeoteView;
-
 #if (sampleTest)
 typedef Sample = Test;
 #elseif (sampleMultidisplay)

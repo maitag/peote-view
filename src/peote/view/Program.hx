@@ -17,7 +17,6 @@ class Program
 	var glFragmentShader:GLShader = null;
 	
 	var buffer:BufferInterface;
-	//var uniforms:Vector<GLUniformLocation>;
 	
 	public var glShaderConfig = {
 		isES3: false,

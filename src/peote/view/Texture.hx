@@ -1,7 +1,6 @@
 package peote.view;
 
-import lime.graphics.opengl.GLTexture;
-import lime.utils.UInt8Array;
+import peote.view.PeoteGL.GLTexture;
 
 class Texture 
 {

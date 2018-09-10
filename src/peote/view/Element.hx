@@ -43,7 +43,7 @@ class ElementImpl
 		trace("--------------- " + classname + " -------------------");
 		
 		// trace(Context.getLocalClass().get().superClass); 
-		trace("TODO: autogenerate shaders and buffering");
+		trace("autogenerate shaders and buffers");
 
 		// TODO: childclasses!
 		
@@ -54,6 +54,7 @@ class ElementImpl
 // superClass => { params => [], t => elements.ElementSimple }, exclude => #function:0, statics => class fields, overrides => [] }
 
 		// TODO
+		trace("TODO: custom attributes");
 
 		var fields = Context.getBuildFields();
 		for (f in fields)
@@ -72,9 +73,9 @@ class ElementImpl
 					else if ( hasMeta(f, "positionY") ) {
 						trace(f.name);
 					}
-					else if ( hasMeta(f, "positionZ") ) {
+					/*else if ( hasMeta(f, "positionZ") ) {
 						trace(f.name);
-					}
+					}*/
 					
 					// TODO
 					// TODO
@@ -184,12 +185,10 @@ class ElementImpl
 				       {name:"glInstanceBuffer", type:macro:peote.view.PeoteGL.GLBuffer}
 				],
 				expr: macro {
-					if (peote.view.PeoteGL.Version.isINSTANCED)
-					{	trace("fill full instance GLbuffer");
-						gl.bindBuffer (gl.ARRAY_BUFFER, glInstanceBuffer);
-						gl.bufferData (gl.ARRAY_BUFFER, instanceBytes.length, instanceBytes, gl.STATIC_DRAW);
-						gl.bindBuffer (gl.ARRAY_BUFFER, null);
-					}
+					trace("fill full instance GLbuffer");
+					gl.bindBuffer (gl.ARRAY_BUFFER, glInstanceBuffer);
+					gl.bufferData (gl.ARRAY_BUFFER, instanceBytes.length, instanceBytes, gl.STATIC_DRAW);
+					gl.bindBuffer (gl.ARRAY_BUFFER, null);
 				},
 				ret: null
 			})
@@ -254,7 +253,7 @@ class ElementImpl
 			})
 		});
 		
-		// -------------------------- bind vertex attributes ---------------------------------
+		// ------------------ bind vertex attributes tp program ----------------------------------
 		fields.push({
 			name: "bindAttribLocations",
 			meta: allowForBuffer,
@@ -273,50 +272,71 @@ class ElementImpl
 			})
 		});
 				
-		// ----------------------------- render --------------------------------------------
+		// ------------------------ enable/disable vertex attributes ------------------------------
 		fields.push({
-			name: "render",
+			name: "enableVertexAttribInstanced",
 			meta: allowForBuffer,
 			access: [Access.APrivate, Access.AStatic, Access.AInline],
 			pos: Context.currentPos(),
 			kind: FFun({
-				args:[ {name:"maxElements", type:macro:Int},
-				       {name:"gl", type:macro:peote.view.PeoteGL},
+				args:[ {name:"gl", type:macro:peote.view.PeoteGL},
 				       {name:"glBuffer", type:macro:peote.view.PeoteGL.GLBuffer},
 				       {name:"glInstanceBuffer", type:macro:peote.view.PeoteGL.GLBuffer}
 				],
 				expr: macro {
-					if (peote.view.PeoteGL.Version.isINSTANCED)
-					{
-						gl.bindBuffer(gl.ARRAY_BUFFER, glInstanceBuffer);
-						gl.enableVertexAttribArray (aPOSITION);
-						gl.vertexAttribPointer(aPOSITION, 2, gl.SHORT, false, 4, 0 ); // vertexstride 0 should calc automatically
-						
-						gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer);
-						gl.enableVertexAttribArray (aPOSSIZE);
-						gl.vertexAttribPointer(aPOSSIZE, 4, gl.SHORT, false, 8, 0 ); // vertexstride 0 should calc automatically
-						gl.vertexAttribDivisor(aPOSSIZE, 1); // one per instance
-						
-						gl.drawArraysInstanced (gl.TRIANGLE_STRIP,  0, VERTEX_COUNT, maxElements);
-						
-						gl.disableVertexAttribArray (aPOSITION);
-						gl.disableVertexAttribArray (aPOSSIZE);
-					}
-					else
-					{	gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer);
-						
-						gl.enableVertexAttribArray (aPOSITION);
-						gl.vertexAttribPointer(aPOSITION, 2, gl.SHORT, false, 4, 0 ); // vertexstride 0 should calc automatically
-						
-						gl.drawArrays (gl.TRIANGLE_STRIP,  0,  maxElements*VERTEX_COUNT);
-						
-						gl.disableVertexAttribArray (aPOSITION);
-					}
-					gl.bindBuffer (gl.ARRAY_BUFFER, null);
+					gl.bindBuffer(gl.ARRAY_BUFFER, glInstanceBuffer);
+					gl.enableVertexAttribArray (aPOSITION);
+					gl.vertexAttribPointer(aPOSITION, 2, gl.SHORT, false, 4, 0 ); // vertexstride 0 should calc automatically					
+					gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer);
+					gl.enableVertexAttribArray (aPOSSIZE);
+					gl.vertexAttribPointer(aPOSSIZE, 4, gl.SHORT, false, 8, 0 ); // vertexstride 0 should calc automatically
+					gl.vertexAttribDivisor(aPOSSIZE, 1); // one per instance
+					
+					// TODO.. rest of attributes
 				},
 				ret: null
 			})
 		});
+		// -------------------------
+		fields.push({
+			name: "enableVertexAttrib",
+			meta: allowForBuffer,
+			access: [Access.APrivate, Access.AStatic, Access.AInline],
+			pos: Context.currentPos(),
+			kind: FFun({
+				args:[ {name:"gl", type:macro:peote.view.PeoteGL},
+				       {name:"glBuffer", type:macro:peote.view.PeoteGL.GLBuffer}
+				],
+				expr: macro {
+					gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer);						
+					gl.enableVertexAttribArray (aPOSITION);
+					gl.vertexAttribPointer(aPOSITION, 2, gl.SHORT, false, 4, 0 ); // vertexstride 0 should calc automatically
+				
+					// TODO.. rest of attributes
+				},
+				ret: null
+			})
+		});
+		// -------------------------
+		fields.push({
+			name: "disableVertexAttrib",
+			meta: allowForBuffer,
+			access: [Access.APrivate, Access.AStatic, Access.AInline],
+			pos: Context.currentPos(),
+			kind: FFun({
+				args:[ {name:"gl", type:macro:peote.view.PeoteGL}
+				],
+				expr: macro {
+					gl.disableVertexAttribArray (aPOSITION);
+					if (peote.view.PeoteGL.Version.isINSTANCED) 
+						gl.disableVertexAttribArray (aPOSSIZE);
+					
+					// TODO.. rest of attributes
+				},
+				ret: null
+			})
+		});
+
 				
 		// ----------------------- shader generation ------------------------
 		fields.push({

@@ -1,11 +1,12 @@
 package peote.view;
 
-typedef GLTexture         = lime.graphics.opengl.GLTexture;
-typedef GLFramebuffer     = lime.graphics.opengl.GLFramebuffer;                    
-typedef GLProgram         = lime.graphics.opengl.GLProgram;
-typedef GLShader          = lime.graphics.opengl.GLShader;
-typedef GLUniformLocation = lime.graphics.opengl.GLUniformLocation;
-typedef GLBuffer          = lime.graphics.opengl.GLBuffer;
+typedef GLTexture           = lime.graphics.opengl.GLTexture;
+typedef GLFramebuffer       = lime.graphics.opengl.GLFramebuffer;                    
+typedef GLProgram           = lime.graphics.opengl.GLProgram;
+typedef GLShader            = lime.graphics.opengl.GLShader;
+typedef GLUniformLocation   = lime.graphics.opengl.GLUniformLocation;
+typedef GLBuffer            = lime.graphics.opengl.GLBuffer;
+typedef GLVertexArrayObject = lime.graphics.opengl.GLVertexArrayObject;
 
 typedef BytePointer = lime.utils.BytePointer;
 typedef DataPointer = lime.utils.DataPointer;

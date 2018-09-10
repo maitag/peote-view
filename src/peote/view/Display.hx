@@ -53,9 +53,8 @@ class Display
 		
 		programList = new RenderList<Program>(new Map<Program,RenderListItem<Program>>());
 		
-		if (PeoteGL.Version.isUBO) {
-			uniformBuffer = new UniformBufferDisplay();
-		}
+		if (PeoteGL.Version.isUBO) uniformBuffer = new UniformBufferDisplay();
+
 	}
 
 	private inline function addToPeoteView(peoteView:PeoteView):Bool

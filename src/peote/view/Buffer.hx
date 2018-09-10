@@ -20,7 +20,7 @@ class BufferMacro
 			case TInst(_, [t]):
 				switch (t) {
 					case TInst(n, []):
-						//trace("interfaces:"+n.get().interfaces);   // TODO: check that super-class implements Element!
+						//trace("interfaces:"+n.get().interfaces); // TODO: put out ERROR if super-class not implements Element!
 						return buildClass("Buffer", n.get().name, n.get().pack, TypeTools.toComplexType(t) );
 					case t: Context.error("Class expected", Context.currentPos());
 				}
@@ -38,8 +38,7 @@ class BufferMacro
 		{
 			cache[className] = true;
 			var elemField = elementPack.concat([elementName]);
-			
-			
+					
 			trace("ClassName:"+className); // Buffer_ElementSimple
 			trace("classPackage:" + classPackage); // [peote,view]	
 			trace("ElementName:" + elementName);   // ElementSimple
@@ -57,6 +56,7 @@ class $className implements BufferInterface
 	var _gl: peote.view.PeoteGL = null;
 	var _glBuffer: peote.view.PeoteGL.GLBuffer;
 	var _glInstanceBuffer: peote.view.PeoteGL.GLBuffer = null;
+	var _glVAO: peote.view.PeoteGL.GLVertexArrayObject = null;
 
 	var _elements: haxe.ds.Vector<$elementType>; // var elements:Int; TAKE CARE if same name as package! -> TODO!!
 	var _maxElements:Int = 0; // amount of added elements (pos of last element)
@@ -94,37 +94,65 @@ class $className implements BufferInterface
 	
 	inline function createGLBuffer():Void
 	{
-		trace("create new GlBuffer");
 		#if peoteview_queueGLbuffering
 		queueCreateGLBuffer = true;
 		#else
-		_glBuffer         = _gl.createBuffer();
-		_glInstanceBuffer = _gl.createBuffer();
+		_createGLBuffer();
 		#end
+	}	
+	inline function _createGLBuffer():Void
+	{
+		trace("create new GlBuffer");
+		_glBuffer = _gl.createBuffer();
+		if (peote.view.PeoteGL.Version.isINSTANCED) {
+			_glInstanceBuffer = _gl.createBuffer();
+			_glVAO = _gl.createVertexArray();
+		}
 	}
 	
 	inline function deleteGLBuffer():Void
 	{
-		trace("delete GlBuffer");
 		#if peoteview_queueGLbuffering
 		queueDeleteGLBuffer = true;
 		#else
-		_gl.deleteBuffer(_glBuffer);
-		_gl.deleteBuffer(_glInstanceBuffer);
+		_deleteGLBuffer();
 		#end
+	}
+	
+	inline function _deleteGLBuffer():Void
+	{
+		trace("delete GlBuffer");
+		_gl.deleteBuffer(_glBuffer);
+		if (peote.view.PeoteGL.Version.isINSTANCED) {
+			_gl.deleteBuffer(_glInstanceBuffer);
+			_gl.deleteVertexArray(_glVAO);
+		}
 	}
 	
 	inline function updateGLBuffer():Void
 	{
-		trace("fill full GlBuffer", _bytes.length);
 		#if peoteview_queueGLbuffering
 		queueUpdateGLBuffer = true;
 		#else
+		_updateGLBuffer();
+		#end
+	}
+	
+	inline function _updateGLBuffer():Void
+	{
+		trace("fill full GlBuffer", _bytes.length);
 		_gl.bindBuffer (_gl.ARRAY_BUFFER, _glBuffer);
 		_gl.bufferData (_gl.ARRAY_BUFFER, _bytes.length, _bytes, _gl.STATIC_DRAW); // _gl.DYNAMIC_DRAW _gl.STREAM_DRAW
-		_gl.bindBuffer (_gl.ARRAY_BUFFER, null);		
-		$p{elemField}.updateInstanceGLBuffer(_gl, _glInstanceBuffer);
-		#end
+		_gl.bindBuffer (_gl.ARRAY_BUFFER, null);
+		
+		if (peote.view.PeoteGL.Version.isINSTANCED) {
+			// instance buffer
+			$p{elemField}.updateInstanceGLBuffer(_gl, _glInstanceBuffer);
+			// init VAO 
+			_gl.bindVertexArray(_glVAO);
+			$p{elemField}.enableVertexAttribInstanced(_gl, _glBuffer, _glInstanceBuffer);
+			_gl.bindVertexArray(null);
+		}
 	}
 	
 	/**
@@ -141,13 +169,18 @@ class $className implements BufferInterface
     **/
 	public inline function updateElement(element: $elementType):Void
 	{	
-		trace("Buffer.updateElement at position" + element.bytePos);
 		element.writeBytes(_bytes);
 		#if peoteview_queueGLbuffering
 		updateGLBufferElementQueue.push(element);
 		#else
-		if (_gl != null) element.updateGLBuffer(_gl, _glBuffer, _elemBuffSize);
+		_updateElement(element);
 		#end
+	}
+	
+	public inline function _updateElement(element: $elementType):Void
+	{	
+		trace("Buffer.updateElement at position" + element.bytePos);
+		if (_gl != null) element.updateGLBuffer(_gl, _glBuffer, _elemBuffSize);
 	}
 	
 	/**
@@ -217,25 +250,34 @@ class $className implements BufferInterface
 	{		
 		//trace("        ---buffer.render---");
 		#if peoteview_queueGLbuffering
-		//TODO: a while loop but only a limited number at the same time
-		if (updateGLBufferElementQueue.length > 0) updateGLBufferElementQueue.shift().updateGLBuffer(_gl, _glBuffer, _elemBuffSize);
-		if (queueCreateGLBuffer) { queueCreateGLBuffer = false;
-			_glBuffer         = _gl.createBuffer();
-			_glInstanceBuffer = _gl.createBuffer();
+		//TODO: put all in one glCommandQueue (+ loop)
+		if (updateGLBufferElementQueue.length > 0) _updateElement(updateGLBufferElementQueue.shift());
+		if (queueCreateGLBuffer) {
+			queueCreateGLBuffer = false;
+			_createGLBuffer();
 		}
-		if (queueDeleteGLBuffer) { queueDeleteGLBuffer = false;
-			_gl.deleteBuffer(_glBuffer);
-			_gl.deleteBuffer(_glInstanceBuffer);
+		if (queueDeleteGLBuffer) {
+			queueDeleteGLBuffer = false;
+			_deleteGLBuffer();
 		}
-		if (queueUpdateGLBuffer) { queueUpdateGLBuffer = false;
-			_gl.bindBuffer (_gl.ARRAY_BUFFER, _glBuffer);
-			_gl.bufferData (_gl.ARRAY_BUFFER, _bytes.length, _bytes, _gl.STATIC_DRAW); // _gl.DYNAMIC_DRAW _gl.STREAM_DRAW
-			_gl.bindBuffer (_gl.ARRAY_BUFFER, null);		
-			$p{elemField}.updateInstanceGLBuffer(_gl, _glInstanceBuffer);
+		if (queueUpdateGLBuffer) {
+			queueUpdateGLBuffer = false;
+			_updateGLBuffer();
 		}
 		#end
 		
-		$p{elemField}.render(_maxElements, peoteView.gl, _glBuffer, _glInstanceBuffer);
+		if (peote.view.PeoteGL.Version.isINSTANCED) {
+			// $p{elemField}.enableVertexAttribInstanced(_gl, _glBuffer, _glInstanceBuffer);
+			_gl.bindVertexArray(_glVAO); // use VAO
+			_gl.drawArraysInstanced (_gl.TRIANGLE_STRIP,  0, $p{elemField}.VERTEX_COUNT, _maxElements);
+			_gl.bindVertexArray(null);
+			// $p{elemField}.disableVertexAttrib(_gl); _gl.bindBuffer (_gl.ARRAY_BUFFER, null);
+		} else {
+			$p{elemField}.enableVertexAttrib(_gl, _glBuffer);
+			_gl.drawArrays (_gl.TRIANGLE_STRIP,  0, _maxElements * $p{elemField}.VERTEX_COUNT);
+			$p{elemField}.disableVertexAttrib(_gl);
+			_gl.bindBuffer (_gl.ARRAY_BUFFER, null);
+		}
 	}
 
 	
