@@ -80,7 +80,7 @@ class $className implements BufferInterface
 		
 		_elements = new haxe.ds.Vector<$elementType>(size);
 		
-		if (peote.view.PeoteGL.Version.isINSTANCED)
+		if (peote.view.PeoteGL.Version.isINSTANCED) // TODO can be missing if buffer created before peoteView
 		{
 			$p{elemField}.createInstanceBytes();
 		    _elemBuffSize = $p{elemField}.BUFF_SIZE_INSTANCED;
@@ -168,8 +168,12 @@ class $className implements BufferInterface
         @param  element Element instance to update
     **/
 	public inline function updateElement(element: $elementType):Void
-	{	
-		element.writeBytes(_bytes);
+	{
+		if (peote.view.PeoteGL.Version.isINSTANCED)
+			element.writeBytesInstanced(_bytes);
+		else 
+			element.writeBytes(_bytes);
+			
 		#if peoteview_queueGLbuffering
 		updateGLBufferElementQueue.push(element);
 		#else

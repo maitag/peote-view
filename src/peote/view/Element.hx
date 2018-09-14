@@ -1,8 +1,10 @@
 package peote.view;
 
+#if macro
 import haxe.macro.Expr;
 import haxe.macro.Context;
-import haxe.macro.ExprTools;
+//import haxe.macro.ExprTools;
+#end
 
 @:remove @:autoBuild(peote.view.ElementImpl.build())
 interface Element {}
@@ -13,12 +15,7 @@ class ElementImpl
 	static var rComments:EReg = new EReg("//.*?$","gm");
 	static var rEmptylines:EReg = new EReg("([ \t]*\r?\n)+", "g");
 	static var rStartspaces:EReg = new EReg("^([ \t]*\r?\n)+", "g");
-
-	static inline function parseExpr(s:String):Expr {
-		return Context.parse(new haxe.Template(s).execute(conf), Context.currentPos());
-	}
 	
-	@:access(haxe.Template.splitter)
 	static inline function parseShader(shader:String):String {
 		var template = new utils.MultipassTemplate(shader);
 		var s = rStartspaces.replace(rEmptylines.replace(rComments.replace(template.execute(conf), ""), "\n"), "");
@@ -30,6 +27,24 @@ class ElementImpl
 	
 	static var conf = {
 		isPICK:false,
+		isPosition:true,     // false if both are constant
+		positionType:"vec2", // float if only one
+		positionX: {
+			name: "x",
+			value: 0,
+			isConst: false,
+			isArray: false,
+			functionOf: "time",
+			formula: 0, // interpolation method
+		},
+		positionY: {
+			name: "y",
+			value: 0,
+			isConst: false,
+			isArray: false,
+			functionOf: "time",
+			formula: 0, // interpolation method
+		},
 	};
 
 	public static function build()
@@ -38,7 +53,7 @@ class ElementImpl
 		
 		
 		var classname = Context.getLocalClass().get().name;
-		var classpackage = Context.getLocalClass().get().pack;
+		//var classpackage = Context.getLocalClass().get().pack;
 		
 		trace("--------------- " + classname + " -------------------");
 		
@@ -88,7 +103,7 @@ class ElementImpl
 		// -----------------------------------------------------------------------------------
 		
 		var vertex_count = 6;
-		var buff_size = vertex_count * 4;
+		var buff_size = vertex_count * (2+8);
 		var buff_size_instanced = 8;
 		
 		
@@ -122,9 +137,21 @@ class ElementImpl
 			pos: Context.currentPos(),
 		});
 		fields.push({
-			name:  "aPOSSIZE", // only for instanceDrawing
+			name:  "aPOS",
 			access:  [Access.APrivate, Access.AStatic, Access.AInline],
 			kind: FieldType.FVar(macro:Int, macro $v{1}), 
+			pos: Context.currentPos(),
+		});
+		fields.push({
+			name:  "aSIZE",
+			access:  [Access.APrivate, Access.AStatic, Access.AInline],
+			kind: FieldType.FVar(macro:Int, macro $v{2}), 
+			pos: Context.currentPos(),
+		});
+		fields.push({
+			name:  "aCOLOR",
+			access:  [Access.APrivate, Access.AStatic, Access.AInline],
+			kind: FieldType.FVar(macro:Int, macro $v{3}), 
 			pos: Context.currentPos(),
 		});
 			
@@ -163,13 +190,13 @@ class ElementImpl
 				expr: macro {
 					if (instanceBytes == null) {
 						trace("create bytes for instance GLbuffer");
-						instanceBytes = haxe.io.Bytes.alloc(VERTEX_COUNT * 4);
-						instanceBytes.setUInt16(0 , 1); instanceBytes.setUInt16(2,  1);
-						instanceBytes.setUInt16(4 , 1); instanceBytes.setUInt16(6,  1);
-						instanceBytes.setUInt16(8 , 0); instanceBytes.setUInt16(10, 1);
-						instanceBytes.setUInt16(12, 1); instanceBytes.setUInt16(14, 0);
-						instanceBytes.setUInt16(16, 0); instanceBytes.setUInt16(18, 0);
-						instanceBytes.setUInt16(20, 0); instanceBytes.setUInt16(22, 0);
+						instanceBytes = haxe.io.Bytes.alloc(VERTEX_COUNT * 2);
+						instanceBytes.set(0 , 1); instanceBytes.set(1,  1);
+						instanceBytes.set(2 , 1); instanceBytes.set(3,  1);
+						instanceBytes.set(4 , 0); instanceBytes.set(5,  1);
+						instanceBytes.set(6 , 1); instanceBytes.set(7,  0);
+						instanceBytes.set(8 , 0); instanceBytes.set(9,  0);
+						instanceBytes.set(10, 0); instanceBytes.set(11, 0);
 					}
 				},
 				ret: null
@@ -196,6 +223,27 @@ class ElementImpl
 		
 		// ----------------------------- writeBytes -----------------------------------------
 		//var i:Int = 0;
+		/*macro $b{[
+			macro {bytes.setUInt16(bytePos + $v{i}    , x); bytes.setUInt16(bytePos + $v{i+=2},  y);},
+			macro {bytes.setUInt16(bytePos + $v{i+=2} , w); bytes.setUInt16(bytePos + $v{i+=2},  h);},
+		]}*/
+
+		fields.push({
+			name: "writeBytesInstanced",
+			meta: allowForBuffer,
+			access: [Access.APrivate, Access.AInline],
+			pos: Context.currentPos(),
+			kind: FFun({
+				args:[ {name:"bytes", type:macro:haxe.io.Bytes}
+				],
+				expr: macro {
+					bytes.setUInt16(bytePos + 0 , x); bytes.setUInt16(bytePos + 2,  y);
+					bytes.setUInt16(bytePos + 4 , w); bytes.setUInt16(bytePos + 6,  h);
+				},
+				ret: null
+			})
+		});
+		// -------------------------		
 		fields.push({
 			name: "writeBytes",
 			meta: allowForBuffer,
@@ -205,30 +253,30 @@ class ElementImpl
 				args:[ {name:"bytes", type:macro:haxe.io.Bytes}
 				],
 				expr: macro {
-					if (peote.view.PeoteGL.Version.isINSTANCED)
-					{
-						bytes.setUInt16(bytePos + 0 , x); bytes.setUInt16(bytePos + 2,  y);
-						bytes.setUInt16(bytePos + 4 , w); bytes.setUInt16(bytePos + 6,  h);
-					}
-					else 
-					{	var xw = x + w;
-						var yh = y + h;
-						bytes.setUInt16(bytePos + 0 , xw); bytes.setUInt16(bytePos + 2,  yh);
-						bytes.setUInt16(bytePos + 4 , xw); bytes.setUInt16(bytePos + 6,  yh);
-						bytes.setUInt16(bytePos + 8 , x ); bytes.setUInt16(bytePos + 10, yh);
-						bytes.setUInt16(bytePos + 12, xw); bytes.setUInt16(bytePos + 14, y );
-						bytes.setUInt16(bytePos + 16, x ); bytes.setUInt16(bytePos + 18, y );
-						bytes.setUInt16(bytePos + 20, x ); bytes.setUInt16(bytePos + 22, y );
-					}
+					bytes.set(bytePos + 0, 1); bytes.set(bytePos + 1, 1);
+					bytes.setUInt16(bytePos + 2, x); bytes.setUInt16(bytePos + 4, y);
+					bytes.setUInt16(bytePos + 6, w); bytes.setUInt16(bytePos + 8, h);
+					
+					bytes.set(bytePos + 10, 1); bytes.set(bytePos + 11, 1);
+					bytes.setUInt16(bytePos + 12, x); bytes.setUInt16(bytePos + 14, y);
+					bytes.setUInt16(bytePos + 16, w); bytes.setUInt16(bytePos + 18, h);
+					
+					bytes.set(bytePos + 20, 0); bytes.set(bytePos + 21, 1);
+					bytes.setUInt16(bytePos + 22, x); bytes.setUInt16(bytePos + 24, y);
+					bytes.setUInt16(bytePos + 26, w); bytes.setUInt16(bytePos + 28, h);
+					
+					bytes.set(bytePos + 30, 1); bytes.set(bytePos + 31, 0);
+					bytes.setUInt16(bytePos + 32, x); bytes.setUInt16(bytePos + 34, y);
+					bytes.setUInt16(bytePos + 36, w); bytes.setUInt16(bytePos + 38, h);
+					
+					bytes.set(bytePos + 40, 0); bytes.set(bytePos + 41, 0);
+					bytes.setUInt16(bytePos + 42, x); bytes.setUInt16(bytePos + 44, y);
+					bytes.setUInt16(bytePos + 46, w); bytes.setUInt16(bytePos + 48, h);
+					
+					bytes.set(bytePos + 50, 0); bytes.set(bytePos + 51, 0);
+					bytes.setUInt16(bytePos + 52, x); bytes.setUInt16(bytePos + 54, y);
+					bytes.setUInt16(bytePos + 56, w); bytes.setUInt16(bytePos + 58, h);
 				},
-				/*macro $b{[
-					macro {bytes.setUInt16(bytePos + $v{i}    , x); bytes.setUInt16(bytePos + $v{i+=2},  y);},
-					macro {bytes.setUInt16(bytePos + $v{i+=2} , w); bytes.setUInt16(bytePos + $v{i+=2},  h);},
-				]}*/
-				/*parseExpr('{
-					bytes.setUInt16(bytePos + 0 , x); bytes.setUInt16(bytePos + 2,  y);
-					bytes.setUInt16(bytePos + 4 , w); bytes.setUInt16(bytePos + 6,  h);
-				}')*/
 				ret: null
 			})
 		});
@@ -264,9 +312,9 @@ class ElementImpl
 				       {name:"glProgram", type:macro:peote.view.PeoteGL.GLProgram}
 				],
 				expr: macro {
-					if (peote.view.PeoteGL.Version.isINSTANCED)
-						gl.bindAttribLocation(glProgram, aPOSITION, "aPosition");
-					gl.bindAttribLocation(glProgram, aPOSSIZE, "aPossize");
+					gl.bindAttribLocation(glProgram, aPOSITION, "aPosition");
+					gl.bindAttribLocation(glProgram, aPOS,  "aPos");
+					gl.bindAttribLocation(glProgram, aSIZE, "aSize");
 				},
 				ret: null
 			})
@@ -286,11 +334,15 @@ class ElementImpl
 				expr: macro {
 					gl.bindBuffer(gl.ARRAY_BUFFER, glInstanceBuffer);
 					gl.enableVertexAttribArray (aPOSITION);
-					gl.vertexAttribPointer(aPOSITION, 2, gl.SHORT, false, 4, 0 ); // vertexstride 0 should calc automatically					
+					gl.vertexAttribPointer(aPOSITION, 2, gl.UNSIGNED_BYTE, false, 2, 0 );
 					gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer);
-					gl.enableVertexAttribArray (aPOSSIZE);
-					gl.vertexAttribPointer(aPOSSIZE, 4, gl.SHORT, false, 8, 0 ); // vertexstride 0 should calc automatically
-					gl.vertexAttribDivisor(aPOSSIZE, 1); // one per instance
+					
+					gl.enableVertexAttribArray (aPOS);
+					gl.vertexAttribPointer(aPOS, 2, gl.SHORT, false, 8, 0 );
+					gl.vertexAttribDivisor(aPOS, 1); // one per instance
+					gl.enableVertexAttribArray (aSIZE);
+					gl.vertexAttribPointer(aSIZE, 2, gl.SHORT, false, 8, 4 );
+					gl.vertexAttribDivisor(aSIZE, 1); // one per instance
 					
 					// TODO.. rest of attributes
 				},
@@ -310,8 +362,12 @@ class ElementImpl
 				expr: macro {
 					gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer);						
 					gl.enableVertexAttribArray (aPOSITION);
-					gl.vertexAttribPointer(aPOSITION, 2, gl.SHORT, false, 4, 0 ); // vertexstride 0 should calc automatically
+					gl.vertexAttribPointer(aPOSITION, 2, gl.UNSIGNED_BYTE, false, 10, 0 ); // vertexstride 0 should calc automatically
 				
+					gl.enableVertexAttribArray (aPOS);
+					gl.vertexAttribPointer(aPOS, 2, gl.SHORT, false, 10, 2 );
+					gl.enableVertexAttribArray (aSIZE);
+					gl.vertexAttribPointer(aSIZE, 2, gl.SHORT, false, 10, 6 );
 					// TODO.. rest of attributes
 				},
 				ret: null
@@ -328,8 +384,8 @@ class ElementImpl
 				],
 				expr: macro {
 					gl.disableVertexAttribArray (aPOSITION);
-					if (peote.view.PeoteGL.Version.isINSTANCED) 
-						gl.disableVertexAttribArray (aPOSSIZE);
+					gl.disableVertexAttribArray (aPOS);
+					gl.disableVertexAttribArray (aSIZE);
 					
 					// TODO.. rest of attributes
 				},

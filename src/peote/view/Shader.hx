@@ -30,21 +30,25 @@ class Shader
 	
 	// Attributes -------------------------
 	::IN:: vec2 aPosition;
+	::IN:: vec2 aPos;
+	::IN:: vec2 aSize;
+	//aElement
+	//aTexCoord
+	//aTile
+	//aZindex
+	//aRotation (+pivot)
+	//aColor
+	//aTime
 	
-	::if isINSTANCED::
-	::IN:: vec4 aPossize;
-	::end::
+	//aCustom0
+	
 	
 	// custom Attributes ------------------
 
 	// PICKING  ::if isES3:: flat out int instanceID; ::end::
 	
 	void main(void) {
-		::if isINSTANCED::
-		vec2 position = (aPosition * vec2(aPossize.z, aPossize.w)) + vec2(aPossize.x, aPossize.y);
-		::else::
-		vec2 position = aPosition;
-		::end::
+		vec2 position = aPos + (aPosition * aSize);
 
 		// PICKING instanceID = gl_InstanceID;
 		

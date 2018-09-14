@@ -25,9 +25,10 @@ class Test
 	public function new(window:Window)
 	{	
 
-		buffer = new Buffer<ElementSimple>(100);
 
 		peoteView = new PeoteView(window.context, window.width, window.height);
+		
+		buffer = new Buffer<ElementSimple>(100);
 
 		var display   = new Display(10,10, window.width-20, window.height-20); display.green = 1.0;
 		var program   = new Program(buffer);
