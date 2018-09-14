@@ -27,8 +27,11 @@ class ElementImpl
 	
 	static var conf = {
 		isPICK:false,
-		isPosition:true,     // false if both are constant
-		positionType:"vec2", // float if only one
+		
+		POS_TYPE:"vec2", // float if there is only one
+		
+		POS_CONST_X:"0.0",
+		isPOS_X:true,
 		positionX: {
 			name: "x",
 			value: 0,
@@ -37,9 +40,34 @@ class ElementImpl
 			functionOf: "time",
 			formula: 0, // interpolation method
 		},
+		isPOS_Y:true,
+		POS_CONST_Y:"0.0",
 		positionY: {
 			name: "y",
 			value: 0,
+			isConst: false,
+			isArray: false,
+			functionOf: "time",
+			formula: 0, // interpolation method
+		},
+		
+		SIZE_TYPE:"vec2", // float if there is only one
+		
+		SIZE_CONST_X:"100.0",
+		isSIZE_X:true,
+		sizeX: {
+			name: "w",
+			value: 100,
+			isConst: false,
+			isArray: false,
+			functionOf: "time",
+			formula: 0, // interpolation method
+		},
+		SIZE_CONST_Y:"100.0",
+		isSIZE_Y:true,
+		sizeY: {
+			name: "h",
+			value: 100,
 			isConst: false,
 			isArray: false,
 			functionOf: "time",
@@ -362,7 +390,7 @@ class ElementImpl
 				expr: macro {
 					gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer);						
 					gl.enableVertexAttribArray (aPOSITION);
-					gl.vertexAttribPointer(aPOSITION, 2, gl.UNSIGNED_BYTE, false, 10, 0 ); // vertexstride 0 should calc automatically
+					gl.vertexAttribPointer(aPOSITION, 2, gl.UNSIGNED_BYTE, false, 10, 0 );
 				
 					gl.enableVertexAttribArray (aPOS);
 					gl.vertexAttribPointer(aPOS, 2, gl.SHORT, false, 10, 2 );

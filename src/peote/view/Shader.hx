@@ -30,14 +30,22 @@ class Shader
 	
 	// Attributes -------------------------
 	::IN:: vec2 aPosition;
-	::IN:: vec2 aPos;
-	::IN:: vec2 aSize;
+	
+	::if (isSIZE_X || isSIZE_Y)::
+		::IN:: ::SIZE_TYPE:: aSize;
+	::end::
+	
+	::if (isPOS_X || isPOS_Y)::
+		::IN:: ::POS_TYPE:: aPos;
+	::end::
+	
+	//aPivot
+	//aRotation
+	//aColor
 	//aElement
 	//aTexCoord
 	//aTile
 	//aZindex
-	//aRotation (+pivot)
-	//aColor
 	//aTime
 	
 	//aCustom0
@@ -48,8 +56,30 @@ class Shader
 	// PICKING  ::if isES3:: flat out int instanceID; ::end::
 	
 	void main(void) {
-		vec2 position = aPos + (aPosition * aSize);
 
+		::if (isSIZE_X && isSIZE_Y):: vec2 size = aPosition * aSize;
+		::elseif (isSIZE_X)::         vec2 size = aPosition * vec2(aSize, ::SIZE_CONST_Y::);
+		::elseif (isSIZE_Y)::         vec2 size = aPosition * vec2(::SIZE_CONST_X::, aSize);
+		::else::                      vec2 size = aPosition * vec2(::SIZE_CONST_X::, SIZE_CONST_Y::);
+		::end::
+		/*
+		::if (isSIZE_ANIM)::
+			::if (isSIZE_1_X && isSIZE_1_Y):: vec2 size1 = aPosition * aSize1;
+			::elseif (isSIZE_1_X)::           vec2 size1 = aPosition * vec2(aSize1, ::SIZE_1_CONST_Y::);
+			::elseif (isSIZE_1_Y)::           vec2 size1 = aPosition * vec2(::SIZE_1_CONST_X::, aSize1);
+			::else::                          vec2 size1 = aPosition * vec2(::SIZE_1_CONST_X::, SIZE_1_CONST_Y::);
+			::end::
+						
+			float timeStep = max( 0.0, min( (uTime-aTime.x) / (aTime.y - aTime.x), 1.0)); // todo: use clamp !
+			size = size + (size1 - size) * timeStep;
+		::end::
+		*/		
+		::if (isPOS_X && isPOS_Y):: vec2 pos = size + aPos;
+		::elseif (isPOS_X)::        vec2 pos = size + vec2(aPos, ::POS_CONST_Y::);
+		::elseif (isPOS_Y)::        vec2 pos = size + vec2(::POS_CONST_X::, aPos);
+		::else::                    vec2 pos = size + vec2(::POS_CONST_X::, ::POS_CONST_Y::);
+		::end::
+		
 		// PICKING instanceID = gl_InstanceID;
 		
 		float zoom = uZoom ::if isUBO:: * uViewZoom ::end::;
@@ -74,7 +104,7 @@ class Shader
 			vec4(0.0, 0.0, -1.0, 0.0),
 			vec4(-(right + left) / (right - left), -(top + bottom) / (top - bottom), 0.0, 1.0)
 		)
-		* vec4 (position ,
+		* vec4 (pos ,
 			0.0
 			, 1.0
 			);
