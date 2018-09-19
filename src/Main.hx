@@ -14,6 +14,8 @@ typedef Sample = Test;
 typedef Sample = Multidisplay;
 #elseif (sampleMultibuffer)
 typedef Sample = Multibuffer;
+#elseif (sampleAnimation)
+typedef Sample = Animation;
 #elseif (sampleGLPicking)
 typedef Sample = GLPicking;
 #end 

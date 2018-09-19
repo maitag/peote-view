@@ -31,13 +31,9 @@ class Shader
 	// Attributes -------------------------
 	::IN:: vec2 aPosition;
 	
-	::if (isSIZE_X || isSIZE_Y)::
-		::IN:: ::SIZE_TYPE:: aSize;
-	::end::
-	
-	::if (isPOS_X || isPOS_Y)::
-		::IN:: ::POS_TYPE:: aPos;
-	::end::
+	::ATTRIB_TIME::
+	::ATTRIB_SIZE::
+	::ATTRIB_POS::
 	
 	//aPivot
 	//aRotation
@@ -46,7 +42,6 @@ class Shader
 	//aTexCoord
 	//aTile
 	//aZindex
-	//aTime
 	
 	//aCustom0
 	
@@ -56,30 +51,12 @@ class Shader
 	// PICKING  ::if isES3:: flat out int instanceID; ::end::
 	
 	void main(void) {
-
-		::if (isSIZE_X && isSIZE_Y):: vec2 size = aPosition * aSize;
-		::elseif (isSIZE_X)::         vec2 size = aPosition * vec2(aSize, ::SIZE_CONST_Y::);
-		::elseif (isSIZE_Y)::         vec2 size = aPosition * vec2(::SIZE_CONST_X::, aSize);
-		::else::                      vec2 size = aPosition * vec2(::SIZE_CONST_X::, SIZE_CONST_Y::);
-		::end::
-		/*
-		::if (isSIZE_ANIM)::
-			::if (isSIZE_1_X && isSIZE_1_Y):: vec2 size1 = aPosition * aSize1;
-			::elseif (isSIZE_1_X)::           vec2 size1 = aPosition * vec2(aSize1, ::SIZE_1_CONST_Y::);
-			::elseif (isSIZE_1_Y)::           vec2 size1 = aPosition * vec2(::SIZE_1_CONST_X::, aSize1);
-			::else::                          vec2 size1 = aPosition * vec2(::SIZE_1_CONST_X::, SIZE_1_CONST_Y::);
-			::end::
-						
-			float timeStep = max( 0.0, min( (uTime-aTime.x) / (aTime.y - aTime.x), 1.0)); // todo: use clamp !
-			size = size + (size1 - size) * timeStep;
-		::end::
-		*/		
-		::if (isPOS_X && isPOS_Y):: vec2 pos = size + aPos;
-		::elseif (isPOS_X)::        vec2 pos = size + vec2(aPos, ::POS_CONST_Y::);
-		::elseif (isPOS_Y)::        vec2 pos = size + vec2(::POS_CONST_X::, aPos);
-		::else::                    vec2 pos = size + vec2(::POS_CONST_X::, ::POS_CONST_Y::);
-		::end::
+		//float timeStep = max( 0.0, min( (uTime-aTime.x) / (aDuration.x), 1.0)); // todo: use clamp !
+		::CALC_TIME::
 		
+		::CALC_SIZE::
+		::CALC_POS::
+
 		// PICKING instanceID = gl_InstanceID;
 		
 		float zoom = uZoom ::if isUBO:: * uViewZoom ::end::;

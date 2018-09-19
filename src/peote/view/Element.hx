@@ -28,51 +28,58 @@ class ElementImpl
 	static var conf = {
 		isPICK:false,
 		
-		POS_TYPE:"vec2", // float if there is only one
+		ATTRIB_TIME:"",
+		ATTRIB_SIZE:"",
+		ATTRIB_POS:"",
 		
-		POS_CONST_X:"0.0",
-		isPOS_X:true,
-		positionX: {
-			name: "x",
-			value: 0,
-			isConst: false,
-			isArray: false,
-			functionOf: "time",
-			formula: 0, // interpolation method
-		},
-		isPOS_Y:true,
-		POS_CONST_Y:"0.0",
-		positionY: {
-			name: "y",
-			value: 0,
-			isConst: false,
-			isArray: false,
-			functionOf: "time",
-			formula: 0, // interpolation method
-		},
+		CALC_TIME:"",		
+		CALC_SIZE:"",
+		CALC_POS:"",
 		
-		SIZE_TYPE:"vec2", // float if there is only one
-		
-		SIZE_CONST_X:"100.0",
-		isSIZE_X:true,
+		sizeN:2, // 0
+		sizeType:"",
+			
+		posN:2, // 0
+		posType:"",
+			
+		isSizeX:true,
 		sizeX: {
 			name: "w",
 			value: 100,
 			isConst: false,
-			isArray: false,
-			functionOf: "time",
-			formula: 0, // interpolation method
+			isAnim: false,
+			anim: "", //"Size",
+			time: "", //"Size",
 		},
-		SIZE_CONST_Y:"100.0",
-		isSIZE_Y:true,
+		isSizeY:true,
 		sizeY: {
 			name: "h",
 			value: 100,
 			isConst: false,
-			isArray: false,
-			functionOf: "time",
-			formula: 0, // interpolation method
+			isAnim: false,
+			anim: "", //"Size",
+			time: "", //"Size",
 		},
+		isPosX:true,
+		posX: {
+			name: "x",
+			value: 0,
+			isConst: false,
+			isAnim: false,
+			anim: "", //"Position",
+			time: "", //"Position",
+		},
+		isPosY:true,
+		posY: {
+			name: "y",
+			value: 0,
+			isConst: false,
+			isAnim: false,
+			anim: "", //"Position",
+			time: "", //"Position",
+		},
+		
+		
 	};
 
 	public static function build()
@@ -90,11 +97,6 @@ class ElementImpl
 
 		// TODO: childclasses!
 		
-// { module => elements.ElementSimpleChild, init => null, kind => KNormal,
-// meta => { ??? => #function:1, add => #function:3, get => #function:0, has => #function:1, remove => #function:1 }, 
-// name => ElementSimpleChild, pack => [elements], interfaces => [], params => [], __t => #abstract, doc => null,
-// fields => class fields, isPrivate => false, constructor => null, isInterface => false, isExtern => false,
-// superClass => { params => [], t => elements.ElementSimple }, exclude => #function:0, statics => class fields, overrides => [] }
 
 		// TODO
 		trace("TODO: custom attributes");
@@ -110,15 +112,22 @@ class ElementImpl
 			switch (f.kind)
 			{
 				case FVar(t): //trace("attribute:",f.name ); // t: TPath({ name => Int, pack => [], params => [] })
-					if ( hasMeta(f, "positionX") ) {
-						trace(f.name);
+					if ( hasMeta(f, "posX") ) {
+						trace(f.name, f.meta[1].params[1]);
+						//conf.posN++;
 					}
-					else if ( hasMeta(f, "positionY") ) {
+					else if ( hasMeta(f, "posY") ) {
 						trace(f.name);
+						//conf.posN++;
 					}
-					/*else if ( hasMeta(f, "positionZ") ) {
+					else if ( hasMeta(f, "sizeX") ) {
 						trace(f.name);
-					}*/
+						//conf.sizeN++;
+					}
+					else if ( hasMeta(f, "sizeY") ) {
+						trace(f.name);
+						//conf.sizeN++;
+					}
 					
 					// TODO
 					// TODO
@@ -128,6 +137,43 @@ class ElementImpl
 			}
 
 		}
+		// -----------------------------------------------------------------------------------
+		if (conf.sizeN > 0) {
+			if (conf.sizeN == 1) conf.sizeType = "float";
+			else conf.sizeType = "vec"+conf.sizeN;
+		}
+		if (conf.posN > 0) {
+			if (conf.posN == 1) conf.posType = "float";
+			else conf.posType = "vec"+conf.posN;
+		}
+
+		//float timeStep = max( 0.0, min( (uTime-aTime.x) / (aDuration.x), 1.0)); // todo: use clamp !
+
+		conf.ATTRIB_TIME = '';
+		
+		if (conf.sizeType != "") conf.ATTRIB_SIZE = '::IN:: ${conf.sizeType} aSize;';
+		if (conf.posType  != "") conf.ATTRIB_POS  = '::IN:: ${conf.posType} aPos;';
+		
+		conf.ATTRIB_POS  = '::IN:: vec2 aPos;';
+		
+		conf.CALC_TIME = '';
+		
+		//size = size + (size1 - size) * timeStep;
+		
+		var size = "aSize"; // .xy etc
+		if (conf.isSizeX && !conf.isSizeY) size = 'vec2( $size, ${conf.sizeY.value}.0 )';
+		else
+		if (!conf.isSizeX && conf.isSizeY) size = 'vec2( ${conf.sizeX.value}.0, $size )';
+		else 
+		if (!conf.isSizeX && !conf.isSizeY) size= 'vec2( ${conf.sizeX.value}.0, ${conf.sizeY.value}.0 )';
+				
+		conf.CALC_SIZE = 'vec2 size = aPosition * $size;'; // + (size1 - size) * timeStep;
+		
+		
+		conf.CALC_POS = 'vec2 pos = size + aPos;'; // + (pos1 - pos) * timeStep;
+		
+
+		
 		// -----------------------------------------------------------------------------------
 		
 		var vertex_count = 6;
