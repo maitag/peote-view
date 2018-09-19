@@ -154,8 +154,6 @@ class ElementImpl
 		if (conf.sizeType != "") conf.ATTRIB_SIZE = '::IN:: ${conf.sizeType} aSize;';
 		if (conf.posType  != "") conf.ATTRIB_POS  = '::IN:: ${conf.posType} aPos;';
 		
-		conf.ATTRIB_POS  = '::IN:: vec2 aPos;';
-		
 		conf.CALC_TIME = '';
 		
 		//size = size + (size1 - size) * timeStep;
@@ -170,15 +168,22 @@ class ElementImpl
 		conf.CALC_SIZE = 'vec2 size = aPosition * $size;'; // + (size1 - size) * timeStep;
 		
 		
-		conf.CALC_POS = 'vec2 pos = size + aPos;'; // + (pos1 - pos) * timeStep;
+		var pos = "aPos"; // .xy etc
+		if (conf.isPosX && !conf.isPosY) size = 'vec2( $pos, ${conf.posY.value}.0 )';
+		else
+		if (!conf.isPosX && conf.isPosY) size = 'vec2( ${conf.posX.value}.0, $pos )';
+		else 
+		if (!conf.isPosX && !conf.isPosY) size= 'vec2( ${conf.posX.value}.0, ${conf.posY.value}.0 )';
+				
+		conf.CALC_POS = 'vec2 pos = size + $pos;'; // + (pos1 - pos) * timeStep;
 		
 
 		
 		// -----------------------------------------------------------------------------------
 		
 		var vertex_count = 6;
-		var buff_size = vertex_count * (2+8);
-		var buff_size_instanced = 8;
+		var buff_size_instanced = conf.posN * 2 + conf.sizeN * 2; // 8
+		var buff_size = vertex_count * (2+buff_size_instanced);
 		
 		
 		// ---------------------- vertex count and bufsize -----------------------------------
@@ -210,26 +215,28 @@ class ElementImpl
 			kind: FieldType.FVar(macro:Int, macro $v{0}), 
 			pos: Context.currentPos(),
 		});
-		fields.push({
-			name:  "aPOS",
-			access:  [Access.APrivate, Access.AStatic, Access.AInline],
-			kind: FieldType.FVar(macro:Int, macro $v{1}), 
-			pos: Context.currentPos(),
-		});
-		fields.push({
-			name:  "aSIZE",
-			access:  [Access.APrivate, Access.AStatic, Access.AInline],
-			kind: FieldType.FVar(macro:Int, macro $v{2}), 
-			pos: Context.currentPos(),
-		});
-		fields.push({
+		if (conf.sizeN > 0)
+			fields.push({
+				name:  "aSIZE",
+				access:  [Access.APrivate, Access.AStatic, Access.AInline],
+				kind: FieldType.FVar(macro:Int, macro $v{2}), 
+				pos: Context.currentPos(),
+			});
+		if (conf.posN > 0) 
+			fields.push({
+				name:  "aPOS",
+				access:  [Access.APrivate, Access.AStatic, Access.AInline],
+				kind: FieldType.FVar(macro:Int, macro $v{1}), 
+				pos: Context.currentPos(),
+			});
+		// TODO: COLOR...
+		/*fields.push({
 			name:  "aCOLOR",
 			access:  [Access.APrivate, Access.AStatic, Access.AInline],
 			kind: FieldType.FVar(macro:Int, macro $v{3}), 
 			pos: Context.currentPos(),
-		});
+		});*/
 			
-		// TODO: COLOR...
 		
 		// ---------------------- bytePos and  dataPointer ----------------------------------
 		fields.push({
@@ -296,11 +303,23 @@ class ElementImpl
 		});
 		
 		// ----------------------------- writeBytes -----------------------------------------
-		//var i:Int = 0;
-		/*macro $b{[
-			macro {bytes.setUInt16(bytePos + $v{i}    , x); bytes.setUInt16(bytePos + $v{i+=2},  y);},
-			macro {bytes.setUInt16(bytePos + $v{i+=2} , w); bytes.setUInt16(bytePos + $v{i+=2},  h);},
-		]}*/
+		function writeBytesExpr(verts:Array<Array<Int>>=null):Array<Expr> {
+			var i:Int = 0;
+			var exprBlock = new Array<Expr>();
+			var len = 1;
+			if (verts != null) len = verts.length;			
+			for (j in 0...len) {
+				if (verts != null) {
+					exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $v{verts[j][0]}) ); i++;
+					exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $v{verts[j][1]}) ); i++;
+				}
+				if (conf.isPosX ) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.posX.name }) ); i+=2; }
+				if (conf.isPosY ) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.posY.name }) ); i+=2; }
+				if (conf.isSizeX) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.sizeX.name}) ); i+=2; }
+				if (conf.isSizeY) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.sizeY.name}) ); i+=2; }
+			}
+			return exprBlock;
+		}
 
 		fields.push({
 			name: "writeBytesInstanced",
@@ -310,14 +329,11 @@ class ElementImpl
 			kind: FFun({
 				args:[ {name:"bytes", type:macro:haxe.io.Bytes}
 				],
-				expr: macro {
-					bytes.setUInt16(bytePos + 0 , x); bytes.setUInt16(bytePos + 2,  y);
-					bytes.setUInt16(bytePos + 4 , w); bytes.setUInt16(bytePos + 6,  h);
-				},
+				expr: macro $b{ writeBytesExpr() },
 				ret: null
 			})
 		});
-		// -------------------------		
+		// -------------------------	
 		fields.push({
 			name: "writeBytes",
 			meta: allowForBuffer,
@@ -326,31 +342,7 @@ class ElementImpl
 			kind: FFun({
 				args:[ {name:"bytes", type:macro:haxe.io.Bytes}
 				],
-				expr: macro {
-					bytes.set(bytePos + 0, 1); bytes.set(bytePos + 1, 1);
-					bytes.setUInt16(bytePos + 2, x); bytes.setUInt16(bytePos + 4, y);
-					bytes.setUInt16(bytePos + 6, w); bytes.setUInt16(bytePos + 8, h);
-					
-					bytes.set(bytePos + 10, 1); bytes.set(bytePos + 11, 1);
-					bytes.setUInt16(bytePos + 12, x); bytes.setUInt16(bytePos + 14, y);
-					bytes.setUInt16(bytePos + 16, w); bytes.setUInt16(bytePos + 18, h);
-					
-					bytes.set(bytePos + 20, 0); bytes.set(bytePos + 21, 1);
-					bytes.setUInt16(bytePos + 22, x); bytes.setUInt16(bytePos + 24, y);
-					bytes.setUInt16(bytePos + 26, w); bytes.setUInt16(bytePos + 28, h);
-					
-					bytes.set(bytePos + 30, 1); bytes.set(bytePos + 31, 0);
-					bytes.setUInt16(bytePos + 32, x); bytes.setUInt16(bytePos + 34, y);
-					bytes.setUInt16(bytePos + 36, w); bytes.setUInt16(bytePos + 38, h);
-					
-					bytes.set(bytePos + 40, 0); bytes.set(bytePos + 41, 0);
-					bytes.setUInt16(bytePos + 42, x); bytes.setUInt16(bytePos + 44, y);
-					bytes.setUInt16(bytePos + 46, w); bytes.setUInt16(bytePos + 48, h);
-					
-					bytes.set(bytePos + 50, 0); bytes.set(bytePos + 51, 0);
-					bytes.setUInt16(bytePos + 52, x); bytes.setUInt16(bytePos + 54, y);
-					bytes.setUInt16(bytePos + 56, w); bytes.setUInt16(bytePos + 58, h);
-				},
+				expr: macro $b{ writeBytesExpr([[1,1],[1,1],[0,1],[1,0],[0,0],[0,0]]) },
 				ret: null
 			})
 		});
@@ -376,6 +368,10 @@ class ElementImpl
 		});
 		
 		// ------------------ bind vertex attributes tp program ----------------------------------
+		var exprBlock = [ macro gl.bindAttribLocation(glProgram, aPOSITION, "aPosition") ];
+		if (conf.posN  > 0 ) exprBlock.push( macro gl.bindAttribLocation(glProgram, aPOS,  "aPos" ) );
+		if (conf.sizeN > 0 ) exprBlock.push( macro gl.bindAttribLocation(glProgram, aSIZE, "aSize") );
+				
 		fields.push({
 			name: "bindAttribLocations",
 			meta: allowForBuffer,
@@ -385,16 +381,40 @@ class ElementImpl
 				args:[ {name:"gl", type:macro:peote.view.PeoteGL},
 				       {name:"glProgram", type:macro:peote.view.PeoteGL.GLProgram}
 				],
-				expr: macro {
-					gl.bindAttribLocation(glProgram, aPOSITION, "aPosition");
-					gl.bindAttribLocation(glProgram, aPOS,  "aPos");
-					gl.bindAttribLocation(glProgram, aSIZE, "aSize");
-				},
+				expr: macro $b{exprBlock},
 				ret: null
 			})
 		});
 				
 		// ------------------------ enable/disable vertex attributes ------------------------------
+		function enableVertexAttribExpr(isInstanced:Bool=false):Array<Expr> {
+			var i:Int = 0;
+			var exprBlock = new Array<Expr>();
+			var stride = buff_size_instanced;
+			if (isInstanced) {
+				exprBlock.push( macro gl.bindBuffer(gl.ARRAY_BUFFER, glInstanceBuffer) );
+				exprBlock.push( macro gl.enableVertexAttribArray (aPOSITION) );
+				exprBlock.push( macro gl.vertexAttribPointer(aPOSITION, 2, gl.UNSIGNED_BYTE, false, 2, 0 ) );
+				exprBlock.push( macro gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer) );
+			} else {
+				stride += 2; // 10
+				exprBlock.push( macro gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer) );
+				exprBlock.push( macro gl.enableVertexAttribArray (aPOSITION) );
+				exprBlock.push( macro gl.vertexAttribPointer(aPOSITION, 2, gl.UNSIGNED_BYTE, false, $v{stride}, 0 )); i+=2;
+			}
+			
+			if (conf.posN  > 0 ) {
+				exprBlock.push( macro gl.enableVertexAttribArray (aPOS) );
+				exprBlock.push( macro gl.vertexAttribPointer(aPOS, $v{conf.posN}, gl.SHORT, false, $v{stride}, $v{i} ) ); i += conf.posN * 2;
+				if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor(aPOS, 1) );			
+			}
+			if (conf.sizeN > 0 ) {
+				exprBlock.push( macro gl.enableVertexAttribArray (aSIZE) );
+				exprBlock.push( macro gl.vertexAttribPointer(aSIZE, $v{conf.sizeN}, gl.SHORT, false, $v{stride}, $v{i} ) ); i += conf.sizeN * 2;
+				if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor(aSIZE, 1) );			
+			}
+			return exprBlock;
+		}
 		fields.push({
 			name: "enableVertexAttribInstanced",
 			meta: allowForBuffer,
@@ -405,21 +425,7 @@ class ElementImpl
 				       {name:"glBuffer", type:macro:peote.view.PeoteGL.GLBuffer},
 				       {name:"glInstanceBuffer", type:macro:peote.view.PeoteGL.GLBuffer}
 				],
-				expr: macro {
-					gl.bindBuffer(gl.ARRAY_BUFFER, glInstanceBuffer);
-					gl.enableVertexAttribArray (aPOSITION);
-					gl.vertexAttribPointer(aPOSITION, 2, gl.UNSIGNED_BYTE, false, 2, 0 );
-					gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer);
-					
-					gl.enableVertexAttribArray (aPOS);
-					gl.vertexAttribPointer(aPOS, 2, gl.SHORT, false, 8, 0 );
-					gl.vertexAttribDivisor(aPOS, 1); // one per instance
-					gl.enableVertexAttribArray (aSIZE);
-					gl.vertexAttribPointer(aSIZE, 2, gl.SHORT, false, 8, 4 );
-					gl.vertexAttribDivisor(aSIZE, 1); // one per instance
-					
-					// TODO.. rest of attributes
-				},
+				expr: macro $b{ enableVertexAttribExpr(true) },
 				ret: null
 			})
 		});
@@ -433,21 +439,15 @@ class ElementImpl
 				args:[ {name:"gl", type:macro:peote.view.PeoteGL},
 				       {name:"glBuffer", type:macro:peote.view.PeoteGL.GLBuffer}
 				],
-				expr: macro {
-					gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer);						
-					gl.enableVertexAttribArray (aPOSITION);
-					gl.vertexAttribPointer(aPOSITION, 2, gl.UNSIGNED_BYTE, false, 10, 0 );
-				
-					gl.enableVertexAttribArray (aPOS);
-					gl.vertexAttribPointer(aPOS, 2, gl.SHORT, false, 10, 2 );
-					gl.enableVertexAttribArray (aSIZE);
-					gl.vertexAttribPointer(aSIZE, 2, gl.SHORT, false, 10, 6 );
-					// TODO.. rest of attributes
-				},
+				expr: macro $b{ enableVertexAttribExpr() },
 				ret: null
 			})
 		});
 		// -------------------------
+		exprBlock = [ macro gl.disableVertexAttribArray (aPOSITION) ];
+		if (conf.posN  >0 ) exprBlock.push( macro gl.disableVertexAttribArray (aPOS ) );
+		if (conf.sizeN >0 ) exprBlock.push( macro gl.disableVertexAttribArray (aSIZE) );
+		
 		fields.push({
 			name: "disableVertexAttrib",
 			meta: allowForBuffer,
@@ -456,13 +456,7 @@ class ElementImpl
 			kind: FFun({
 				args:[ {name:"gl", type:macro:peote.view.PeoteGL}
 				],
-				expr: macro {
-					gl.disableVertexAttribArray (aPOSITION);
-					gl.disableVertexAttribArray (aPOS);
-					gl.disableVertexAttribArray (aSIZE);
-					
-					// TODO.. rest of attributes
-				},
+				expr: macro $b{exprBlock},
 				ret: null
 			})
 		});
