@@ -37,10 +37,14 @@ class Animation
 	
 		element  = new ElementAnim(10, 10);
 		buffer.addElement(element);     // element to buffer
-		
+		/*
 		element.animPosition(10,10,100,100);
 		element.timePosition(2, 3);
-
+		*/
+		element.x = 100;
+		element.y = 100;
+		element.w = 20;
+		element.h = 20;
 		buffer.updateElement(element);
 		
 		// ---------------------------------------------------------------
