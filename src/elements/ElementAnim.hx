@@ -12,15 +12,6 @@ class ElementAnim implements Element
 	@sizeX @set("animWidth")  @time("Size") public var w:Int=100; //@constStart(300) @constEnd(400) 
 	@sizeY @set("animHeight") @time("Size") public var h:Int=100; //@constEnd(200)
 	
-	public var wStart:Int = 100;
-	public var wEnd:Int   = 100;
-	
-	public var hStart:Int = 100;
-	public var hEnd:Int   = 100;
-	
-	public var timeSizeStart      = 1.0;
-	public var timeSizeDuration   = 1.0;
-	
 	public function new(positionX:Int=0, positionY:Int=0, width:Int=100, height:Int=100 )
 	{
 		this.x = positionX;

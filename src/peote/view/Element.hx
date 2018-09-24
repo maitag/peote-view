@@ -97,6 +97,28 @@ class ElementImpl
 		trace(f.name,sizeX);
 	}
 	
+	public static function genVarInt(fields:Array<Field>, name:String, value:Int) {
+		// TODO: check that not already exist
+		fields.push({
+			name:  name,
+			//meta:  allowForBuffer,
+			access:  [Access.APublic],
+			kind: FieldType.FVar( macro:Int, macro $v{value} ), 
+			pos: Context.currentPos(),
+		});
+	}
+	
+	public static function genVarFloat(fields:Array<Field>, name:String, value:Float) {
+		// TODO: check that not already exist
+		fields.push({
+			name:  name,
+			//meta:  allowForBuffer,
+			access:  [Access.APublic],
+			kind: FieldType.FVar( macro:Float, macro $v{value} ), 
+			pos: Context.currentPos(),
+		});
+	}
+	
 	public static function build()
 	{
 		var hasNoNew:Bool = true;
@@ -133,7 +155,8 @@ class ElementImpl
 			}
 
 		}
-		// -----------------------------------------------------------------------------------
+		
+		// --------------------- generate shader-template vars -------------------------------
 
 		for (i in 0...Std.int((conf.time.length + 1) / 2)) {
 			if ((i == Std.int(conf.time.length / 2)) && (conf.time.length % 2 != 0))
@@ -144,7 +167,7 @@ class ElementImpl
 		if (conf.size.n > 0) glConf.ATTRIB_SIZE = '::IN:: ${ (conf.size.n==1) ? "float" : "vec"+conf.size.n} aSize;';
 		if (conf.pos.n  > 0) glConf.ATTRIB_POS  = '::IN:: ${ (conf.pos.n ==1) ? "float" : "vec"+conf.pos.n } aPos;';
 		
-		// CALC TIME-MUTLIPLICATOR:
+		// CALC TIME-MUTLIPLICATORS:
 		for (i in 0...conf.time.length) {
 			var t:String = "" + Std.int(i / 2);
 			var d:String = "" + Std.int(i/2);
@@ -188,16 +211,40 @@ class ElementImpl
 		
 		glConf.CALC_SIZE = "vec2 size = aPosition * " + prepare("aSize", conf.size, conf.sizeX, conf.sizeY, conf.time) +";";
 		glConf.CALC_POS  = "vec2 pos  = size + "      + prepare("aPos" , conf.pos,  conf.posX,  conf.posY,  conf.time) +";";
+		// TODO: color
 		
+		
+		
+		// ---------------------- generate helper vars -----------------------------------
+		for (t in conf.time) {
+			genVarFloat(fields, "time" + t + "Start",    0.0);
+			genVarFloat(fields, "time" + t + "Duration", 1.0);
+		}
 
+		if (conf.pos.isAnim) {
+			if (conf.posX.isStart) genVarInt(fields, conf.posX.name+"Start", conf.posX.vStart);
+			if (conf.posY.isStart) genVarInt(fields, conf.posY.name+"Start", conf.posY.vStart);
+			if (conf.posX.isEnd)   genVarInt(fields, conf.posX.name+"End",   conf.posX.vEnd);
+			if (conf.posY.isEnd)   genVarInt(fields, conf.posY.name+"End",   conf.posY.vEnd);
+		}
 		
-		// -----------------------------------------------------------------------------------
+		if (conf.size.isAnim) {
+			if (conf.sizeX.isStart) genVarInt(fields, conf.sizeX.name+"Start", conf.sizeX.vStart);
+			if (conf.sizeY.isStart) genVarInt(fields, conf.sizeY.name+"Start", conf.sizeY.vStart);
+			if (conf.sizeX.isEnd)   genVarInt(fields, conf.sizeX.name+"End",   conf.sizeX.vEnd);
+			if (conf.sizeY.isEnd)   genVarInt(fields, conf.sizeY.name+"End",   conf.sizeY.vEnd);
+		}
+				
+		// ---------------------- generate helper functions ----------------------------------
+		
+		// ------------------------- calc buffer size ----------------------------------------
 		
 		var vertex_count = 6;
 		
-		var buff_size_instanced = conf.pos.n*2 + conf.size.n*2 + conf.time.length*8;
-		var buff_size = vertex_count * (2+buff_size_instanced ); //+2
-		// TODO: fix stride webgl1(IE)-Problem
+		var buff_size_instanced = conf.pos.n * 2 + conf.size.n * 2 + conf.time.length * 8;	
+		var fillStride = (buff_size_instanced + 2) % 4; // fix stride webgl1(IE)-Problem
+		var buff_size = vertex_count * ( buff_size_instanced + 2 + fillStride);
+		
 		
 		// ---------------------- vertex count and bufsize -----------------------------------
 		fields.push({
@@ -333,6 +380,11 @@ class ElementImpl
 			if (verts != null) len = verts.length;			
 			for (j in 0...len)
 			{
+				for (t in conf.time) {
+					exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{"time"+t+"Start"}) ); i+=4;
+					exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{"time"+t+"Duration"}) ); i+=4;
+				}
+
 				if (verts != null) {
 					exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $v{verts[j][0]}) ); i++;
 					exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $v{verts[j][1]}) ); i++;
@@ -357,11 +409,8 @@ class ElementImpl
 					if (conf.sizeX.isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.sizeX.name}) ); i+=2; }
 					if (conf.sizeY.isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.sizeY.name}) ); i+=2; }
 				}
-				// TODO: fix stride webgl1(IE)-Problem
-				for (t in conf.time) {
-					exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{"time"+t+"Start"}) ); i+=4;
-					exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{"time"+t+"Duration"}) ); i+=4;
-				}
+				
+				if (verts != null) i += fillStride;
 			}
 			return exprBlock;
 		}
@@ -442,12 +491,20 @@ class ElementImpl
 				exprBlock.push( macro gl.bindBuffer(gl.ARRAY_BUFFER, glInstanceBuffer) );
 				exprBlock.push( macro gl.enableVertexAttribArray (aPOSITION) );
 				exprBlock.push( macro gl.vertexAttribPointer(aPOSITION, 2, gl.UNSIGNED_BYTE, false, 2, 0 ) );
-				exprBlock.push( macro gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer) );
-			} else {
-				stride += 2; //+2;
-				exprBlock.push( macro gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer) );
+			} else stride += 2 + fillStride;
+
+			exprBlock.push( macro gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer) );
+			
+			for (j in 0...Std.int((conf.time.length+1) / 2) ) {
+				exprBlock.push( macro gl.enableVertexAttribArray ($i{"aTIME" + j}) );
+				var n = ((j==Std.int(conf.time.length / 2)) && (conf.time.length % 2 != 0)) ? 2 : 4;
+				exprBlock.push( macro gl.vertexAttribPointer($i{"aTIME"+j}, $v{n}, gl.FLOAT, false, $v{stride}, $v{i} ) ); i += n * 4;
+				if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{"aTIME"+j}, 1) );			
+			}
+			
+			if (!isInstanced) {
 				exprBlock.push( macro gl.enableVertexAttribArray (aPOSITION) );
-				exprBlock.push( macro gl.vertexAttribPointer(aPOSITION, 2, gl.UNSIGNED_BYTE, false, $v{stride}, 0 )); i+=2;
+				exprBlock.push( macro gl.vertexAttribPointer(aPOSITION, 2, gl.UNSIGNED_BYTE, false, $v{stride}, $v{i} )); i+=2;
 			}
 			
 			if (conf.pos.n  > 0 ) {
@@ -459,13 +516,6 @@ class ElementImpl
 				exprBlock.push( macro gl.enableVertexAttribArray (aSIZE) );
 				exprBlock.push( macro gl.vertexAttribPointer(aSIZE, $v{conf.size.n}, gl.SHORT, false, $v{stride}, $v{i} ) ); i += conf.size.n * 2;
 				if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor(aSIZE, 1) );			
-			}
-			// TODO: fix stride webgl1(IE)-Problem
-			for (j in 0...Std.int((conf.time.length+1) / 2) ) {
-				exprBlock.push( macro gl.enableVertexAttribArray ($i{"aTIME" + j}) );
-				var n = ((j==Std.int(conf.time.length / 2)) && (conf.time.length % 2 != 0)) ? 2 : 4;
-				exprBlock.push( macro gl.vertexAttribPointer($i{"aTIME"+j}, $v{n}, gl.FLOAT, false, $v{stride}, $v{i} ) ); i += n * 4;
-				if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{"aTIME"+j}, 1) );			
 			}
 			//for (e in exprBlock) trace(ExprTools.toString( e));
 			return exprBlock;
