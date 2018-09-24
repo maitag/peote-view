@@ -131,11 +131,13 @@ class Program
 			uZOOM = gl.getUniformLocation(glProgram, "uZoom");
 			uOFFSET = gl.getUniformLocation(glProgram, "uOffset");
 		}
+		uTIME = gl.getUniformLocation(glProgram, "uTime");
 	}
 	
 	var uRESOLUTION:GLUniformLocation;
 	var uZOOM:GLUniformLocation;
 	var uOFFSET:GLUniformLocation;
+	var uTIME:GLUniformLocation;
 	
 	// ------------------------------------------------------------------------------
 	// ----------------------------- Render -----------------------------------------
@@ -161,6 +163,8 @@ class Program
 			peoteView.gl.uniform2f (uOFFSET, (display.x + display.xOffset + peoteView.xOffset) / display.zoom, 
 											 (display.y + display.yOffset + peoteView.yOffset) / display.zoom);
 		}
+		
+		peoteView.gl.uniform1f (uTIME, peoteView.time);
 		
 		buffer.render(peoteView, display, this);
 		peoteView.gl.useProgram (null);

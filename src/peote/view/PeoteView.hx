@@ -1,5 +1,7 @@
 package peote.view;
 
+import haxe.Timer;
+
 import peote.view.utils.Background;
 import peote.view.utils.GLTool;
 import peote.view.utils.RenderList;
@@ -38,6 +40,31 @@ class PeoteView
 	
 	var uniformBuffer:UniformBufferView;
 	
+	var isRun:Bool = false;
+	var startTime:Float = 0;
+	var stopTime:Float = 0;
+	var speed:Float = 1.0;
+	public var time(get,set):Float;
+	public inline function get_time():Float
+	{
+		return ((isRun) ? Timer.stamp() - startTime : stopTime)*speed;
+	}
+	public inline function set_time(t:Float):Float
+	{
+		startTime = stopTime = Timer.stamp() - t;
+		return t;
+	}
+	public function start():Void
+	{
+		time = stopTime;
+		isRun = true;
+	}
+	public function stop():Void
+	{
+		stopTime = time;
+		isRun = false;
+	}
+
 	public function new(gl:PeoteGL, width:Int, height:Int)
 	{
 		this.gl = gl;

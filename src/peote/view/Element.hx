@@ -3,7 +3,7 @@ package peote.view;
 #if macro
 import haxe.macro.Expr;
 import haxe.macro.Context;
-//import haxe.macro.ExprTools;
+import haxe.macro.ExprTools;
 #end
 
 @:remove @:autoBuild(peote.view.ElementImpl.build())
@@ -28,6 +28,7 @@ class ElementImpl
 	static var conf = {
 		isPICK:false,
 		
+		UNIFORM_TIME:"",
 		ATTRIB_TIME:"",
 		ATTRIB_SIZE:"",
 		ATTRIB_POS:"",
@@ -38,30 +39,30 @@ class ElementImpl
 		
 		// TODO: SPLIT conf HERE -------------
 		
-		time: [	"", "Size" ],
+		time: [ "Size" ],
 		
-		isSizeAnim:false, // if isSizeXEnd and isSizeYEnd is false, this can be true (for constant anim)
-		sizeN:2, // 0
+		isSizeAnim:true, // if isSizeXEnd and isSizeYEnd is false, this can be true (for constant anim)
+		sizeN:4, // 0
 		sizeType:"",			
 		
 		isSizeX:true,
-		isSizeXEnd:false,
+		isSizeXEnd:true,
 		sizeX: {
 			name: "w",
 			value: 100,
-			valueEnd: 0,
-			anim: "", //"Size",
-			time: "", //"Size",
+			valueEnd: 100,
+			anim: "Size", 
+			time: "Size",
 		},
 		
 		isSizeY:true,
-		isSizeYEnd:false,
+		isSizeYEnd:true,
 		sizeY: {
 			name: "h",
 			value: 100,
-			valueEnd: 0,
-			anim: "", //"Size",
-			time: "Size", //"Size",
+			valueEnd: 100,
+			anim: "Size",
+			time: "Size",
 		},
 		
 		isPosAnim:false, // if isPosXEnd and isPosYEnd is false, this can be true (for constant anim)
@@ -74,8 +75,8 @@ class ElementImpl
 			name: "x",
 			value: 0,
 			valueEnd: 0,
-			anim: "", //"Position",
-			time: "", //"Position",
+			anim: "",
+			time: "",
 		},
 		
 		isPosY:true,
@@ -84,8 +85,8 @@ class ElementImpl
 			name: "y",
 			value: 0,
 			valueEnd: 0,
-			anim: "", //"Position",
-			time: "", //"Position",
+			anim: "Position",
+			time: "Position",
 		},
 		
 		
@@ -156,17 +157,25 @@ class ElementImpl
 			else conf.posType = "vec"+conf.posN;
 		}
 
-		for (i in 0...Std.int(conf.time.length / 2)) conf.ATTRIB_TIME += '::IN:: vec4 time$i;';
-		if (conf.time.length % 2 != 0) conf.ATTRIB_TIME += "::IN:: vec2 time" + (Std.int(conf.time.length / 2)) + ";";
+		for (i in 0...Std.int((conf.time.length + 1) / 2)) {
+			if ((i == Std.int(conf.time.length / 2)) && (conf.time.length % 2 != 0))
+			     conf.ATTRIB_TIME += '::IN:: vec2 aTime$i;';
+			else conf.ATTRIB_TIME += '::IN:: vec4 aTime$i;';
+		}
 		
 		if (conf.sizeType != "") conf.ATTRIB_SIZE = '::IN:: ${conf.sizeType} aSize;';
 		if (conf.posType  != "") conf.ATTRIB_POS  = '::IN:: ${conf.posType} aPos;';
 		
-		// TODO:
-		//float timeStep = max( 0.0, min( (uTime-aTime.x) / (aDuration.x), 1.0)); // todo: use clamp !
-		conf.CALC_TIME = '';
+		// CALC TIME-MUTLIPLICATOR:
+		for (i in 0...conf.time.length) {
+			var t:String = "" + Std.int(i / 2);
+			var d:String = "" + Std.int(i/2);
+			if (i % 2 == 0) { t += ".x"; d += ".y"; } else { t += ".z"; d += ".w"; } 
+			conf.CALC_TIME += 'float time$i = clamp( (uTime - aTime$t) / aTime$d, 0.0, 1.0);';
+		}
+		if (conf.time.length > 0) conf.UNIFORM_TIME = "uniform float uTime;";
 		
-		
+		// PREPARE -----------------------------------------------------------                             <- SIZE
 		var size = "aSize";
 		var sizeEnd = size;
 		if (conf.isSizeX && !conf.isSizeY) {
@@ -182,31 +191,23 @@ class ElementImpl
 
 		// ANIM
 		if (conf.isSizeAnim) {
-			if (conf.isSizeXEnd && !conf.isSizeYEnd)       sizeEnd = 'vec2( $sizeEnd, ${conf.sizeY.value}.0 )';
+			if (conf.isSizeXEnd && !conf.isSizeYEnd)       sizeEnd = 'vec2( $sizeEnd, ${conf.sizeY.valueEnd}.0 )';
 			else if (!conf.isSizeXEnd && conf.isSizeYEnd)  sizeEnd = 'vec2( ${conf.sizeX.valueEnd}.0, $sizeEnd )';
 			else if (!conf.isSizeXEnd && !conf.isSizeYEnd) sizeEnd = 'vec2( ${conf.sizeX.valueEnd}.0, ${conf.sizeY.valueEnd}.0 )';
-			else {
-				if (sizeEnd == "aSize.y") sizeEnd += "z";
-				else if (sizeEnd == "aSize.z") sizeEnd += "w";
-			}
+			else { if (sizeEnd == "aSize.y") sizeEnd += "z"; else if (sizeEnd == "aSize.z") sizeEnd += "w";	}
 			var iX = conf.time.indexOf(conf.sizeX.time);
-			var pX = (iX % 2 != 0) ? "zw" : ( (iX == conf.time.length) ? "" : "xy" );
 			var iY = conf.time.indexOf(conf.sizeY.time);
-			var pY = (iY % 2 != 0) ? "zw" : ( (iY == conf.time.length) ? "" : "xy" );
-			var timeX = "time" + Std.int(iX / 2);
-			var timeY = "time" + Std.int(iY / 2);
 			if (iX == -1)
-				conf.CALC_SIZE = 'vec2 size = aPosition * ($sizeEnd - $size) * vec2( 1.0, timeY.$pY );';
+				conf.CALC_SIZE = 'vec2 size = aPosition * ( $size + ($sizeEnd - $size) * vec2( 0.0, time$iY ) );';
 			else if (iY == -1)
-				conf.CALC_SIZE = 'vec2 size = aPosition * ($sizeEnd - $size) * vec2( timeX.$pX, 1.0 );';
-			else if (iX == iY)
-				conf.CALC_SIZE = 'vec2 size = aPosition * ($sizeEnd - $size) * $timeX.$pX;';
+				conf.CALC_SIZE = 'vec2 size = aPosition * ( $size + ($sizeEnd - $size) * vec2( time$iX, 0.0 ) );';
 			else
-				conf.CALC_SIZE = 'vec2 size = aPosition * ($sizeEnd - $size) * vec2( timeX.$pX, timeY.$pY );';
+				conf.CALC_SIZE = 'vec2 size = aPosition * ( $size + ($sizeEnd - $size) * vec2( time$iX, time$iY ) );';
 		}
 		else conf.CALC_SIZE = 'vec2 size = aPosition * $size;';
 		
 		
+		// PREPARE -----------------------------------------------------------                             <- POS
 			
 		// TODO
 		var pos = "aPos"; // .xy etc
@@ -223,8 +224,8 @@ class ElementImpl
 		// -----------------------------------------------------------------------------------
 		
 		var vertex_count = 6;
-		// TODO: time
-		var buff_size_instanced = conf.posN * 2 + conf.sizeN * 2; // 8
+		
+		var buff_size_instanced = conf.posN*2 + conf.sizeN*2 + conf.time.length*8;
 		var buff_size = vertex_count * (2+buff_size_instanced);
 		
 		
@@ -272,7 +273,7 @@ class ElementImpl
 				kind: FieldType.FVar(macro:Int, macro $v{attrNumber++}), 
 				pos: Context.currentPos(),
 			});
-		for (i in 0...Std.int(conf.time.length / 2)+1) {
+		for (i in 0...Std.int((conf.time.length+1) / 2)) {
 			fields.push({
 				name:  "aTIME"+i,
 				access:  [Access.APrivate, Access.AStatic, Access.AInline],
@@ -360,17 +361,29 @@ class ElementImpl
 			var exprBlock = new Array<Expr>();
 			var len = 1;
 			if (verts != null) len = verts.length;			
-			for (j in 0...len) {
+			for (j in 0...len)
+			{
 				if (verts != null) {
 					exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $v{verts[j][0]}) ); i++;
 					exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $v{verts[j][1]}) ); i++;
 				}
 				if (conf.isPosX ) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.posX.name }) ); i+=2; }
 				if (conf.isPosY ) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.posY.name }) ); i+=2; }
-				if (conf.isSizeX) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.sizeX.name}) ); i+=2; }
-				if (conf.isSizeY) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.sizeY.name}) ); i+=2; }
 				
-				// TODO: time
+				if (conf.isSizeAnim) {
+					if (conf.isSizeX) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.sizeX.name+"Start"}) ); i+=2; }
+					if (conf.isSizeY) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.sizeY.name+"Start"}) ); i+=2; }
+					if (conf.isSizeXEnd) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.sizeX.name+"End"}) ); i+=2; }
+					if (conf.isSizeYEnd) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.sizeY.name+"End"}) ); i+=2; }
+				} else {
+					if (conf.isSizeX) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.sizeX.name}) ); i+=2; }
+					if (conf.isSizeY) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.sizeY.name}) ); i+=2; }
+				}
+				
+				for (t in conf.time) {
+					exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{"time"+t+"Start"}) ); i+=4;
+					exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{"time"+t+"Duration"}) ); i+=4;
+				}
 			}
 			return exprBlock;
 		}
@@ -421,10 +434,12 @@ class ElementImpl
 			})
 		});
 		
-		// ------------------ bind vertex attributes tp program ----------------------------------
+		// ------------------ bind vertex attributes to program ----------------------------------
 		var exprBlock = [ macro gl.bindAttribLocation(glProgram, aPOSITION, "aPosition") ];
 		if (conf.posN  > 0 ) exprBlock.push( macro gl.bindAttribLocation(glProgram, aPOS,  "aPos" ) );
 		if (conf.sizeN > 0 ) exprBlock.push( macro gl.bindAttribLocation(glProgram, aSIZE, "aSize") );
+		for (j in 0...Std.int((conf.time.length+1) / 2) )
+			exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTIME" + j}, $v{"aTime"+j} ) );
 				
 		fields.push({
 			name: "bindAttribLocations",
@@ -451,7 +466,7 @@ class ElementImpl
 				exprBlock.push( macro gl.vertexAttribPointer(aPOSITION, 2, gl.UNSIGNED_BYTE, false, 2, 0 ) );
 				exprBlock.push( macro gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer) );
 			} else {
-				stride += 2; // 10
+				stride += 2;
 				exprBlock.push( macro gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer) );
 				exprBlock.push( macro gl.enableVertexAttribArray (aPOSITION) );
 				exprBlock.push( macro gl.vertexAttribPointer(aPOSITION, 2, gl.UNSIGNED_BYTE, false, $v{stride}, 0 )); i+=2;
@@ -467,13 +482,14 @@ class ElementImpl
 				exprBlock.push( macro gl.vertexAttribPointer(aSIZE, $v{conf.sizeN}, gl.SHORT, false, $v{stride}, $v{i} ) ); i += conf.sizeN * 2;
 				if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor(aSIZE, 1) );			
 			}
-			/*
-			for (j in 0...Std.int(conf.time.length / 2) + 1) {
+			
+			for (j in 0...Std.int((conf.time.length+1) / 2) ) {
 				exprBlock.push( macro gl.enableVertexAttribArray ($i{"aTIME" + j}) );
 				var n = ((j==Std.int(conf.time.length / 2)) && (conf.time.length % 2 != 0)) ? 2 : 4;
-				exprBlock.push( macro gl.vertexAttribPointer($i{"aTIME"+j}, $v{n}, gl.FLOAT, false, $v{stride}, $v{i} ) ); i += n * 2;
+				exprBlock.push( macro gl.vertexAttribPointer($i{"aTIME"+j}, $v{n}, gl.FLOAT, false, $v{stride}, $v{i} ) ); i += n * 4;
 				if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{"aTIME"+j}, 1) );			
-			}*/
+			}
+			//for (e in exprBlock) trace(ExprTools.toString( e));
 			return exprBlock;
 		}
 		fields.push({
@@ -508,7 +524,7 @@ class ElementImpl
 		exprBlock = [ macro gl.disableVertexAttribArray (aPOSITION) ];
 		if (conf.posN  >0 ) exprBlock.push( macro gl.disableVertexAttribArray (aPOS ) );
 		if (conf.sizeN >0 ) exprBlock.push( macro gl.disableVertexAttribArray (aSIZE) );
-		for (i in 0...Std.int(conf.time.length / 2)+1) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTIME"+i}) );
+		for (i in 0...Std.int((conf.time.length+1) / 2)) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTIME"+i}) );
 		
 		fields.push({
 			name: "disableVertexAttrib",

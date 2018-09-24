@@ -37,14 +37,18 @@ class Animation
 	
 		element  = new ElementAnim(10, 10);
 		buffer.addElement(element);     // element to buffer
+		
+		peoteView.start();
+		
+		//element.animPosition(10,10,100,100);
+		//element.timePosition(0, 3);
+		element.animWidth(10,100);
+		element.timeSize(1, 1);
 		/*
-		element.animPosition(10,10,100,100);
-		element.timePosition(2, 3);
-		*/
 		element.x = 100;
 		element.y = 100;
 		element.w = 20;
-		element.h = 20;
+		element.h = 20;*/
 		buffer.updateElement(element);
 		
 		// ---------------------------------------------------------------

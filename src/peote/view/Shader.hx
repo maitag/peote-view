@@ -28,12 +28,14 @@ class Shader
 	uniform float uZoom;
 	::end::
 	
+	::UNIFORM_TIME::
+	
 	// Attributes -------------------------
 	::IN:: vec2 aPosition;
 	
-	::ATTRIB_TIME::
-	::ATTRIB_SIZE::
 	::ATTRIB_POS::
+	::ATTRIB_SIZE::
+	::ATTRIB_TIME::
 	
 	//aPivot
 	//aRotation
@@ -51,9 +53,7 @@ class Shader
 	// PICKING  ::if isES3:: flat out int instanceID; ::end::
 	
 	void main(void) {
-		//float timeStep = max( 0.0, min( (uTime-aTime.x) / (aDuration.x), 1.0)); // todo: use clamp !
-		::CALC_TIME::
-		
+		::CALC_TIME::		
 		::CALC_SIZE::
 		::CALC_POS::
 

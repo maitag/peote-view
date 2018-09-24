@@ -4,8 +4,8 @@ import peote.view.Element;
 
 class ElementAnim implements Element
 {
-	@posX @anim("Position") @time("Position") @const public var x:Int=0;//:Array=[0,1];
-	@posY @anim("Position") @time("Position") public var y:Int=0;
+	@posX @anim("Position") @time("Position") @constStart(10) @constEnd(100) public var x:Int=0;
+	@posY @set("Position") public var y:Int=0;
 	
 	public var xStart:Int = 0;
 	public var xEnd:Int   = 0;
@@ -24,8 +24,8 @@ class ElementAnim implements Element
 	public var hStart:Int = 100;
 	public var hEnd:Int   = 100;
 	
-	public var timeSizeStart      = 0.0;
-	public var timeSizeDuration   = 0.0;
+	public var timeSizeStart      = 1.0;
+	public var timeSizeDuration   = 1.0;
 	
 	public function new(positionX:Int=0, positionY:Int=0, width:Int=100, height:Int=100 )
 	{
