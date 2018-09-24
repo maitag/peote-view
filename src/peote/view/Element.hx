@@ -23,6 +23,20 @@ class ElementImpl
 	}
 	
 	static function hasMeta(f:Field, s:String):Bool {for (m in f.meta) { if (m.name == s || m.name == ':$s') return true; } return false; }
+	static function getMetaParam(f:Field, s:String):String {
+		var p = null;
+		var found = false;
+		for (m in f.meta) if (m.name == s || m.name == ':$s') { p = m.params[0]; found = true; break; }
+		if (found) {
+			if (p != null) {
+				switch (p.expr) {
+					case EConst(CString(value)): return value;
+					case EConst(CInt(value)): return value;
+					default: return "";
+				}
+			} else return "";
+		} else return null;
+	}
 	static var allowForBuffer = [{ name:":allow", params:[macro peote.view], pos:Context.currentPos()}];
 	
 	static var conf = {
@@ -41,28 +55,28 @@ class ElementImpl
 		
 		time: [ "Size" ],
 		
-		isSizeAnim:true, // if isSizeXEnd and isSizeYEnd is false, this can be true (for constant anim)
-		sizeN:4, // 0
-		sizeType:"",			
+		isSizeAnim:false, // if isSizeXEnd and isSizeYEnd is false, this can be true (for constant anim)
+		sizeN:0,
+		sizeType:"",		
 		
-		isSizeX:true,
-		isSizeXEnd:true,
+		isSizeX:false,
+		isSizeXEnd:false,
 		sizeX: {
-			name: "w",
+			name: "",
 			value: 100,
 			valueEnd: 100,
-			anim: "Size", 
-			time: "Size",
+			set: "", 
+			time: "",
 		},
 		
-		isSizeY:true,
-		isSizeYEnd:true,
+		isSizeY:false,
+		isSizeYEnd:false,
 		sizeY: {
-			name: "h",
+			name: "",
 			value: 100,
 			valueEnd: 100,
-			anim: "Size",
-			time: "Size",
+			set: "",
+			time: "",
 		},
 		
 		isPosAnim:false, // if isPosXEnd and isPosYEnd is false, this can be true (for constant anim)
@@ -75,7 +89,7 @@ class ElementImpl
 			name: "x",
 			value: 0,
 			valueEnd: 0,
-			anim: "",
+			set: "",
 			time: "",
 		},
 		
@@ -85,8 +99,8 @@ class ElementImpl
 			name: "y",
 			value: 0,
 			valueEnd: 0,
-			anim: "Position",
-			time: "Position",
+			set: "",
+			time: "",
 		},
 		
 		
@@ -114,7 +128,7 @@ class ElementImpl
 		var fields = Context.getBuildFields();
 		for (f in fields)
 		{
-			
+			var param:String;
 			if (f.name == "new") {
 				hasNoNew = false;
 			}
@@ -123,7 +137,7 @@ class ElementImpl
 			{
 				case FVar(t): //trace("attribute:",f.name ); // t: TPath({ name => Int, pack => [], params => [] })
 					if ( hasMeta(f, "posX") ) {
-						trace(f.name, f.meta[1].params[1]);
+						trace(f.name);
 						//conf.posN++;
 					}
 					else if ( hasMeta(f, "posY") ) {
@@ -131,12 +145,74 @@ class ElementImpl
 						//conf.posN++;
 					}
 					else if ( hasMeta(f, "sizeX") ) {
-						trace(f.name);
-						//conf.sizeN++;
+						conf.sizeX.name = f.name;
+						param = getMetaParam(f, "set");	if (param != null) conf.sizeX.set = param;
+						param = getMetaParam(f, "time");
+						if (param != null) {
+							conf.sizeX.time = param;
+							conf.isSizeAnim = true;
+							param = getMetaParam(f, "constStart");
+							if (param != null) {
+								if (param == "") throw Context.error('Error: @constStart needs a value', f.pos);
+								conf.sizeX.value = Std.parseInt(param);
+							} else {
+								conf.isSizeX = true;
+								conf.sizeN++;
+							}
+							param = getMetaParam(f, "constEnd");
+							if (param != null) {
+								if (param == "") throw Context.error('Error: @constEnd needs a value', f.pos);
+								conf.sizeX.valueEnd = Std.parseInt(param);
+							} else {
+								conf.isSizeXEnd = true;
+								conf.sizeN++;
+							}
+						} else {
+							param = getMetaParam(f, "const");
+							if (param != null) {
+								if (param == "") throw Context.error('Error: @const needs a value', f.pos);
+								conf.sizeX.value = Std.parseInt(param);
+							} else {
+								conf.isSizeX = true;
+								conf.sizeN++;
+							}							
+						}
+						trace("sizeX:",conf.sizeX);
 					}
 					else if ( hasMeta(f, "sizeY") ) {
-						trace(f.name);
-						//conf.sizeN++;
+						conf.sizeY.name = f.name;
+						param = getMetaParam(f, "set");	if (param != null) conf.sizeY.set = param;
+						param = getMetaParam(f, "time");
+						if (param != null) {
+							conf.sizeY.time = param;
+							conf.isSizeAnim = true;
+							param = getMetaParam(f, "constStart");
+							if (param != null) {
+								if (param == "") throw Context.error('Error: @constStart needs a value', f.pos);
+								conf.sizeY.value = Std.parseInt(param);
+							} else {
+								conf.isSizeY = true;
+								conf.sizeN++;
+							}
+							param = getMetaParam(f, "constEnd");
+							if (param != null) {
+								if (param == "") throw Context.error('Error: @constEnd needs a value', f.pos);
+								conf.sizeY.valueEnd = Std.parseInt(param);
+							} else {
+								conf.isSizeYEnd = true;
+								conf.sizeN++;
+							}
+						} else {
+							param = getMetaParam(f, "const");
+							if (param != null) {
+								if (param == "") throw Context.error('Error: @const needs a value', f.pos);
+								conf.sizeY.value = Std.parseInt(param);
+							} else {
+								conf.isSizeY = true;
+								conf.sizeN++;
+							}							
+						}
+						trace("sizeY:",conf.sizeY);
 					}
 					
 					// TODO

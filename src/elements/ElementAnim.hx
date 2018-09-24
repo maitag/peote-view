@@ -4,19 +4,13 @@ import peote.view.Element;
 
 class ElementAnim implements Element
 {
-	@posX @anim("Position") @time("Position") @constStart(10) @constEnd(100) public var x:Int=0;
-	@posY @set("Position") public var y:Int=0;
+	@posX @set("Position") @const(10)//@anim("Position") @time("Position") @constStart(10) @constEnd(100)
+	public var x:Int=0;
+	@posY @set("Position") //@anim("Position") @time("Position") @constStart(10) @constEnd(100)
+	public var y:Int=0;
 	
-	public var xStart:Int = 0;
-	public var xEnd:Int   = 0;
-	public var yStart:Int = 0;
-	public var yEnd:Int   = 0;
-	
-	public var timePositionStart    = 0.0;
-	public var timePositionDuration = 0.0;
-	
-	@width  @anim("Width")  @time("Size") public var w:Int=100;
-	@height @anim("Height") @time("Size") public var h:Int=100;
+	@sizeX @set("animWidth")  @time("Size") public var w:Int=100; //@constStart(300) @constEnd(400) 
+	@sizeY @set("animHeight") @time("Size") public var h:Int=100; //@constEnd(200)
 	
 	public var wStart:Int = 100;
 	public var wEnd:Int   = 100;
@@ -35,20 +29,6 @@ class ElementAnim implements Element
 		this.h = height;
 	}
 
-
-	public function animPosition(xStart:Int, yStart:Int, xEnd:Int, yEnd:Int):Void
-	{
-		this.xStart = xStart;
-		this.yStart = yStart;
-		this.xEnd   = xEnd;
-		this.yEnd   = yEnd;
-	}
-	public function timePosition(startTime:Float, duration:Float):Void
-	{
-		timePositionStart    = startTime;
-		timePositionDuration = duration;		
-	}
-	
 	public function animWidth(wStart:Int, wEnd:Int):Void
 	{
 		this.wStart = wStart;
