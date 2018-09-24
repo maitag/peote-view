@@ -4,7 +4,7 @@ import peote.view.Element;
 
 class ElementAnim implements Element
 {
-	@posX @set("Position") @const(10)//@anim("Position") @time("Position") @constStart(10) @constEnd(100)
+	@posX @set("Position") //@anim("Position") @time("Position") @constStart(10) @constEnd(100)
 	public var x:Int=0;
 	@posY @set("Position") //@anim("Position") @time("Position") @constStart(10) @constEnd(100)
 	public var y:Int=0;
