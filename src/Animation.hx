@@ -47,7 +47,7 @@ class Animation
 		//element.y = 10;
 		//element.yStart =110;
 		//element.yEnd = 10;
-		element.animPosition(10,100);
+		element.animPosition(10, 100);
 		
 		//element.timePositionStart = 0;
 		//element.timePositionDuration = 3;
@@ -58,10 +58,13 @@ class Animation
 		
 		Timer.delay(function() {
 			element.animSize(10,10,100,100);
-			element.timeSize(2 , 1);
-		
+			element.timeSize(2 , 1);		
 			buffer.updateElement(element);
 		}, 1000);
+		Timer.delay(function() {
+			element.setPosSize(300, 100, 100, 100);	
+			buffer.updateElement(element);
+		}, 7000);
 		
 	}
 	
