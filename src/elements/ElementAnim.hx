@@ -4,36 +4,17 @@ import peote.view.Element;
 
 class ElementAnim implements Element
 {
-	@posX @set("Position") //@anim("Position") @time("Position") @constStart(10) @constEnd(100)
+	@posX //@time("Position") @constStart(100) //@set("PosSize") //@anim("Position") @time("Position") //@constStart(10) @constEnd(100)
 	public var x:Int=0;
-	@posY @set("Position") //@anim("Position") @time("Position") @constStart(10) @constEnd(100)
+	@posY @time("Position") //@constEnd(100) // @constStart(10) @constEnd(100)
 	public var y:Int=0;
-	
-	@sizeX @set("animWidth")  @time("Size") public var w:Int=100; //@constStart(300) @constEnd(400) 
-	@sizeY @set("animHeight") @time("Size") public var h:Int=100; //@constEnd(200)
-	
-	public function new(positionX:Int=0, positionY:Int=0, width:Int=100, height:Int=100 )
+	/*
+	@sizeX @anim("Size") @time("Size") public var w:Int; //@constStart(300) @constEnd(400) 
+	@sizeY @anim("Size") @time("Size") public var h:Int; //@constEnd(200)
+	*/
+	// TODO: generate by macro if not exist
+	public function new()
 	{
-		this.x = positionX;
-		this.y = positionY;
-		this.w = width;
-		this.h = height;
 	}
 
-	public function animWidth(wStart:Int, wEnd:Int):Void
-	{
-		this.wStart = wStart;
-		this.wEnd   = wEnd;
-	}
-	public function animHeight(hStart:Int, hEnd:Int):Void
-	{
-		this.hStart = hStart;
-		this.hEnd   = hEnd;
-	}
-	public function timeSize(startTime:Float, duration:Float):Void
-	{
-		timeSizeStart    = startTime;
-		timeSizeDuration = duration;
-	}
-	
 }

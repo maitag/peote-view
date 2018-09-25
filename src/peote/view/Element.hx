@@ -4,6 +4,7 @@ package peote.view;
 import haxe.macro.Expr;
 import haxe.macro.Context;
 import haxe.macro.ExprTools;
+import haxe.ds.StringMap;
 #end
 
 @:remove @:autoBuild(peote.view.ElementImpl.build())
@@ -48,25 +49,68 @@ class ElementImpl
 	
 	static var conf = {
 		time: [],
-
 		size: { n:0, isAnim:false },
-		sizeX: { name:"", isStart:false, isEnd:false, vStart:100, vEnd:100, set: "", time: "" },
-		sizeY: { name:"", isStart:false, isEnd:false, vStart:100, vEnd:100, set: "", time: "" },
+		sizeX: { name:"", isStart:false, isEnd:false, vStart:100, vEnd:100, time: "" },
+		sizeY: { name:"", isStart:false, isEnd:false, vStart:100, vEnd:100, time: "" },
 		
 		pos: { n:0, isAnim:false },
-		posX: { name: "", isStart:false, isEnd:false, vStart:0, vEnd:0, set: "", time: "" },
-		posY: { name: "", isStart:false, isEnd:false, vStart:0, vEnd:0, set: "", time: "" },		
+		posX: { name: "", isStart:false, isEnd:false, vStart:0, vEnd:0, time: "" },
+		posY: { name: "", isStart:false, isEnd:false, vStart:0, vEnd:0, time: "" },		
 		
 	};
-
-	public static function checkMetas(f:Field, size:Dynamic, sizeX:Dynamic, time:Array<String>)
+	static function camelCase(a:String, b:String):String {
+		return a + b.substr(0,1).toUpperCase() + b.substr(1);
+	}
+	
+	static var setFun :StringMap<Dynamic> = new StringMap<Dynamic>();
+	static function checkSet(f:Field, isAnim:Bool = false, isAnimStart:Bool = false, isAnimEnd:Bool = false )
+	{
+		var param:String = getMetaParam(f, "set");
+		if (param != null) {
+			param = camelCase("set", param);
+			var v = setFun.get(param);
+			if (v == null) {
+				v = {args:[], expr:[]};
+				setFun.set( param, v);
+			}
+			v.args.push( {name:f.name, type:macro:Int} ); // todo: default param
+			if (!isAnim) v.expr.push( Context.parse('this.${f.name} = ${f.name}', Context.currentPos())  );
+			else {
+				if (isAnimStart) v.expr.push( Context.parse('this.${f.name}Start = ${f.name}', Context.currentPos())  );
+				if (isAnimEnd)   v.expr.push( Context.parse('this.${f.name}End   = ${f.name}', Context.currentPos())  );
+			}
+		}		
+	}
+	
+	static var animFun:StringMap<Dynamic> = new StringMap<Dynamic>();
+	static function checkAnim(f:Field, isAnimStart:Bool = false, isAnimEnd:Bool = false)
+	{
+		var param:String = getMetaParam(f, "anim");
+		if (param != null) {
+			param = camelCase("anim", param); // TODO upFirstLetter
+			var v = animFun.get(param);
+			if (v == null) {
+				v = {argsStart:[], argsEnd:[], exprStart:[], exprEnd:[]};
+				animFun.set( param, v);
+			}			
+			if (isAnimStart) {
+				v.argsStart.push( {name:f.name+"Start", type:macro:Int} ); // todo: default param
+				v.exprStart.push( Context.parse('this.${f.name}Start = ${f.name}Start', Context.currentPos())  );
+			}
+			if (isAnimEnd) {
+				v.argsEnd.push( {name:f.name+"End", type:macro:Int} ); // todo: default param
+				v.exprEnd.push( Context.parse('this.${f.name}End   = ${f.name}End', Context.currentPos())  );
+			}
+		}		
+	}
+	
+	static function checkMetas(f:Field, size:Dynamic, sizeX:Dynamic, toRemove:Array<Field>)
 	{
 		sizeX.name = f.name;
-		var param:String = getMetaParam(f, "set");	if (param != null) sizeX.set = param;
-		param = getMetaParam(f, "time");
+		var param = getMetaParam(f, "time");
 		if (param != null) {
 			size.isAnim = true;
-			if (time.indexOf(param) == -1) time.push(param);
+			if (conf.time.indexOf(param) == -1) conf.time.push( param );
 			sizeX.time = param;
 			param = getMetaParam(f, "constStart");
 			if (param != null) {
@@ -84,39 +128,50 @@ class ElementImpl
 				sizeX.isEnd = true;
 				size.n++;
 			}
+			if (sizeX.isStart || sizeX.isEnd) {
+				checkSet(f, true, sizeX.isStart, sizeX.isEnd);
+				checkAnim(f, sizeX.isStart, sizeX.isEnd);
+			}
+			toRemove.push(f);// remove field
+			
 		} else {
 			param = getMetaParam(f, "const");
 			if (param != null) {
 				if (param == "") throw Context.error('Error: @const needs a value', f.pos);
 				sizeX.vStart = Std.parseInt(param);
+				if (f.access.indexOf(Access.AStatic) == -1) f.access.push(Access.AStatic);
+				if (f.access.indexOf(Access.AInline) == -1) f.access.push(Access.AInline);
 			} else {
 				sizeX.isStart = true;
+				checkSet(f);
 				size.n++;
 			}							
 		}
 		trace(f.name,sizeX);
 	}
 	
-	public static function genVarInt(fields:Array<Field>, name:String, value:Int) {
-		// TODO: check that not already exist
-		fields.push({
-			name:  name,
-			//meta:  allowForBuffer,
-			access:  [Access.APublic],
-			kind: FieldType.FVar( macro:Int, macro $v{value} ), 
-			pos: Context.currentPos(),
-		});
+	static var fieldnames = new Array<String>();
+	
+	static function genVarInt(fields:Array<Field>, name:String, value:Int) {
+		if (fieldnames.indexOf(name) == -1)
+			fields.push({
+				name:  name,
+				//meta:  allowForBuffer,
+				access:  [Access.APublic],
+				kind: FieldType.FVar( macro:Int, macro $v{value} ), 
+				pos: Context.currentPos(),
+			});
 	}
 	
-	public static function genVarFloat(fields:Array<Field>, name:String, value:Float) {
-		// TODO: check that not already exist
-		fields.push({
-			name:  name,
-			//meta:  allowForBuffer,
-			access:  [Access.APublic],
-			kind: FieldType.FVar( macro:Float, macro $v{value} ), 
-			pos: Context.currentPos(),
-		});
+	static function genVarFloat(fields:Array<Field>, name:String, value:Float) {
+		if (fieldnames.indexOf(name) == -1)
+			fields.push({
+				name:  name,
+				//meta:  allowForBuffer,
+				access:  [Access.APublic],
+				kind: FieldType.FVar( macro:Float, macro $v{value} ), 
+				pos: Context.currentPos(),
+			});
 	}
 	
 	public static function build()
@@ -133,28 +188,29 @@ class ElementImpl
 		trace("autogenerate shaders and buffers");
 
 		// TODO: childclasses!
-
+		
+		var toRemove = new Array<Field>();
+		
 		var fields = Context.getBuildFields();
 		for (f in fields)
-		{
-			var param:String;
-			if (f.name == "new") {
-				hasNoNew = false;
-			}
-			else
-			switch (f.kind)
+		{	
+			fieldnames.push(f.name);
+			if (f.name == "new") hasNoNew = false;
+			else switch (f.kind)
 			{
 				case FVar(t): //trace("attribute:",f.name ); // t: TPath({ name => Int, pack => [], params => [] })
-					if      ( hasMeta(f, "posX") ) checkMetas(f, conf.pos, conf.posX, conf.time);
-					else if ( hasMeta(f, "posY") ) checkMetas(f, conf.pos, conf.posY, conf.time);
-					else if ( hasMeta(f, "sizeX") ) checkMetas(f, conf.size, conf.sizeX, conf.time);
-					else if ( hasMeta(f, "sizeY") ) checkMetas(f, conf.size, conf.sizeY, conf.time);
+					if      ( hasMeta(f, "posX")  ) checkMetas(f, conf.pos,  conf.posX,  toRemove);
+					else if ( hasMeta(f, "posY") )  checkMetas(f, conf.pos,  conf.posY,  toRemove);
+					else if ( hasMeta(f, "sizeX") ) checkMetas(f, conf.size, conf.sizeX, toRemove);
+					else if ( hasMeta(f, "sizeY") ) checkMetas(f, conf.size, conf.sizeY, toRemove);
 					// TODO
 					
 				default: //throw Context.error('Error: attribute has to be an variable.', f.pos);
 			}
 
 		}
+		// remove anim-fields
+		for (f in toRemove) fields.remove(f);
 		
 		// --------------------- generate shader-template vars -------------------------------
 
@@ -215,12 +271,57 @@ class ElementImpl
 		
 		
 		
-		// ---------------------- generate helper vars -----------------------------------
+		// ---------------------- generate helper vars and functions ---------------------------
 		for (t in conf.time) {
 			genVarFloat(fields, "time" + t + "Start",    0.0);
 			genVarFloat(fields, "time" + t + "Duration", 1.0);
+			
+			var name = camelCase("time", t);
+			if (fieldnames.indexOf(name) == -1)
+				fields.push({
+					name: name,
+					//meta:  allowForBuffer,
+					access: [Access.APublic], //, Access.AInline
+					pos: Context.currentPos(),
+					kind: FFun({
+						args:[ {name:"startTime", type:macro:Float},{name:"duration", type:macro:Float} ],
+						expr:  macro {
+							$i{"time" + t + "Start"} = startTime;
+							$i{"time" + t + "Duration"} = duration;
+						},
+						ret: null
+					})
+				});
 		}
-
+		// @set
+		for (name in setFun.keys()) {
+			if (fieldnames.indexOf(name) == -1)
+				fields.push({
+					name: name,
+					access: [Access.APublic], //, Access.AInline
+					pos: Context.currentPos(),
+					kind: FFun({
+						args: setFun.get(name).args,
+						expr:  macro $b{setFun.get(name).expr},
+						ret: null
+					})
+				});
+		}
+		// @anim
+		for (name in animFun.keys()) {
+			if (fieldnames.indexOf(name) == -1)
+				fields.push({
+					name: name,
+					access: [Access.APublic], //, Access.AInline
+					pos: Context.currentPos(),
+					kind: FFun({
+						args: animFun.get(name).argsStart.concat(animFun.get(name).argsEnd),
+						expr: macro $b{animFun.get(name).exprStart.concat(animFun.get(name).exprEnd)},
+						ret: null
+					})
+				});
+		}
+		// anim start/end vars
 		if (conf.pos.isAnim) {
 			if (conf.posX.isStart) genVarInt(fields, conf.posX.name+"Start", conf.posX.vStart);
 			if (conf.posY.isStart) genVarInt(fields, conf.posY.name+"Start", conf.posY.vStart);
@@ -235,14 +336,14 @@ class ElementImpl
 			if (conf.sizeY.isEnd)   genVarInt(fields, conf.sizeY.name+"End",   conf.sizeY.vEnd);
 		}
 				
-		// ---------------------- generate helper functions ----------------------------------
 		
 		// ------------------------- calc buffer size ----------------------------------------
 		
 		var vertex_count = 6;
 		
-		var buff_size_instanced = conf.pos.n * 2 + conf.size.n * 2 + conf.time.length * 8;	
-		var fillStride = (buff_size_instanced + 2) % 4; // fix stride webgl1(IE)-Problem
+		var buff_size_instanced = conf.pos.n * 2 + conf.size.n * 2 + conf.time.length * 8;
+		var fillStride_instanced = buff_size_instanced % 4; // this fix the stride offset-Problem
+		var fillStride = (buff_size_instanced + 2) % 4;
 		var buff_size = vertex_count * ( buff_size_instanced + 2 + fillStride);
 		
 		
@@ -410,7 +511,7 @@ class ElementImpl
 					if (conf.sizeY.isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.sizeY.name}) ); i+=2; }
 				}
 				
-				if (verts != null) i += fillStride;
+				if (verts != null) i += fillStride else i += fillStride_instanced;
 			}
 			return exprBlock;
 		}
@@ -491,6 +592,7 @@ class ElementImpl
 				exprBlock.push( macro gl.bindBuffer(gl.ARRAY_BUFFER, glInstanceBuffer) );
 				exprBlock.push( macro gl.enableVertexAttribArray (aPOSITION) );
 				exprBlock.push( macro gl.vertexAttribPointer(aPOSITION, 2, gl.UNSIGNED_BYTE, false, 2, 0 ) );
+				stride += fillStride_instanced;
 			} else stride += 2 + fillStride;
 
 			exprBlock.push( macro gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer) );

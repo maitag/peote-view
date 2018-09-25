@@ -23,8 +23,6 @@ class Animation
 	
 	public function new(window:Window)
 	{	
-
-
 		peoteView = new PeoteView(window.context, window.width, window.height);
 		
 		buffer = new Buffer<ElementAnim>(100);
@@ -35,26 +33,30 @@ class Animation
 		peoteView.addDisplay(display);  // display to peoteView
 		display.addProgram(program);    // programm to display
 	
-		element  = new ElementAnim(10, 10);
+		element  = new ElementAnim();
 		buffer.addElement(element);     // element to buffer
 		
 		peoteView.start();
 		
-		//element.animPosition(10,10,100,100);
-		//element.timePosition(0, 3);
-		element.animWidth(10,100);
-		element.timeSize(1, 1);
-		/*
-		element.x = 100;
-		element.y = 100;
-		element.w = 20;
-		element.h = 20;*/
+		//element.setPosSize(200, 200);
+		//element.xStart = 0;
+		element.xStart = 200;
+		element.yStart = 0;
+		element.yEnd = 200;
+		//element.y = 200;
 		buffer.updateElement(element);
 		
-		// ---------------------------------------------------------------
-		//peoteView.render();
-		
+		/*
+		Timer.delay(function() {
+			element.animSize(10, 10, 100, 100);
+			element.timeSize(1, 1);
+			buffer.updateElement(element);
+		}, 1000);
+		*/
 	}
+	
+	// ---------------------------------------------------------------
+	
 	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
 	{
 	}
