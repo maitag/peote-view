@@ -11,13 +11,15 @@ class Shader
 	
 	// Uniforms -------------------------
 	::if isUBO::
-	layout(std140) uniform uboView
+	//layout(std140) uniform uboView
+	uniform uboView
 	{
 		vec2 uResolution;
 		vec2 uViewOffset;
 		float uViewZoom;
 	};
-	layout(std140) uniform uboDisplay
+	//layout(std140) uniform uboDisplay
+	uniform uboDisplay
 	{
 		vec2 uOffset;
 		float uZoom;

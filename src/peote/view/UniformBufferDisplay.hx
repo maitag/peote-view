@@ -21,7 +21,8 @@ class UniformBufferDisplay
 
 	public function new() 
 	{
-		uniformBytes = Bytes.alloc(3 * 4);
+		//uniformBytes = Bytes.alloc(3 * 4);
+		uniformBytes = Bytes.alloc(2 * 4*4);  // alignment to vec4 (2 values)
 		xOffestDataPointer    = new BytePointer(uniformBytes, 0);
 		yOffestDataPointer    = new BytePointer(uniformBytes, 4);
 		zoomDataPointer = new BytePointer(uniformBytes, 8);

@@ -22,7 +22,8 @@ class UniformBufferView
 	
 	public function new() 
 	{
-		uniformBytes = Bytes.alloc(5 * 4);
+		//uniformBytes = Bytes.alloc(5 * 4);
+		uniformBytes = Bytes.alloc(3 * 4*4); // alignment to vec4 (3 values)
 		resolutionDataPointer = new BytePointer(uniformBytes, 0);
 		xOffestDataPointer = new BytePointer(uniformBytes, 8);
 		yOffestDataPointer = new BytePointer(uniformBytes, 12);
