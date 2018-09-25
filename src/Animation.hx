@@ -38,28 +38,31 @@ class Animation
 		
 		peoteView.start();
 		
-		//element.setPosSize(200, 200);
+		element.setPosSize(20, 10, 50, 50);
 		
 		//element.x = 10;
-		element.xStart = 0;
-		element.xEnd = 110;
+		//element.xStart = 0;
+		//element.xEnd = 110;
 		
 		//element.y = 10;
-		element.yStart =110;
-		element.yEnd = 10;
+		//element.yStart =110;
+		//element.yEnd = 10;
+		element.animPosition(10,100);
 		
-		element.timePositionStart = 0;
-		element.timePositionDuration = 3;
-		//element.y = 200;
+		//element.timePositionStart = 0;
+		//element.timePositionDuration = 3;
+		element.timePosition(2.0, 5.0);
+		
 		buffer.updateElement(element);
 		
-		/*
+		
 		Timer.delay(function() {
-			element.animSize(10, 10, 100, 100);
-			element.timeSize(1, 1);
+			element.animSize(10,10,100,100);
+			element.timeSize(2 , 1);
+		
 			buffer.updateElement(element);
 		}, 1000);
-		*/
+		
 	}
 	
 	// ---------------------------------------------------------------

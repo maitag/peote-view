@@ -87,7 +87,7 @@ class ElementImpl
 	{
 		var param:String = getMetaParam(f, "anim");
 		if (param != null) {
-			param = camelCase("anim", param); // TODO upFirstLetter
+			param = camelCase("anim", param);
 			var v = animFun.get(param);
 			if (v == null) {
 				v = {argsStart:[], argsEnd:[], exprStart:[], exprEnd:[]};
