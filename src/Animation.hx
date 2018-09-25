@@ -39,10 +39,17 @@ class Animation
 		peoteView.start();
 		
 		//element.setPosSize(200, 200);
-		//element.xStart = 0;
-		element.xStart = 200;
-		element.yStart = 0;
-		element.yEnd = 200;
+		
+		//element.x = 10;
+		element.xStart = 0;
+		element.xEnd = 110;
+		
+		//element.y = 10;
+		element.yStart =110;
+		element.yEnd = 10;
+		
+		element.timePositionStart = 0;
+		element.timePositionDuration = 3;
 		//element.y = 200;
 		buffer.updateElement(element);
 		

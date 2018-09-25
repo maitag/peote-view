@@ -49,13 +49,13 @@ class ElementImpl
 	
 	static var conf = {
 		time: [],
-		size: { n:0, isAnim:false },
-		sizeX: { name:"", isStart:false, isEnd:false, vStart:100, vEnd:100, time: "" },
-		sizeY: { name:"", isStart:false, isEnd:false, vStart:100, vEnd:100, time: "" },
+		size: { n:0 },
+		sizeX: { isAnim:false, name:"", isStart:false, isEnd:false, vStart:100, vEnd:100, time: "" },
+		sizeY: { isAnim:false, name:"", isStart:false, isEnd:false, vStart:100, vEnd:100, time: "" },
 		
-		pos: { n:0, isAnim:false },
-		posX: { name: "", isStart:false, isEnd:false, vStart:0, vEnd:0, time: "" },
-		posY: { name: "", isStart:false, isEnd:false, vStart:0, vEnd:0, time: "" },		
+		pos: { n:0 },
+		posX: { isAnim:false, name: "", isStart:false, isEnd:false, vStart:0, vEnd:0, time: "" },
+		posY: { isAnim:false, name: "", isStart:false, isEnd:false, vStart:0, vEnd:0, time: "" },		
 		
 	};
 	static function camelCase(a:String, b:String):String {
@@ -109,7 +109,7 @@ class ElementImpl
 		sizeX.name = f.name;
 		var param = getMetaParam(f, "time");
 		if (param != null) {
-			size.isAnim = true;
+			sizeX.isAnim = true;
 			if (conf.time.indexOf(param) == -1) conf.time.push( param );
 			sizeX.time = param;
 			param = getMetaParam(f, "constStart");
@@ -249,13 +249,13 @@ class ElementImpl
 				start += ".xy"; end += ".z";
 			}
 			// ANIM
-			if (size.isAnim) {
+			if (sizeX.isAnim || sizeY.isAnim) {
 				if (sizeX.isEnd && !sizeY.isEnd)       end = 'vec2( $end, ${sizeY.vEnd}.0 )';
 				else if (!sizeX.isEnd && sizeY.isEnd)  end = 'vec2( ${sizeX.vEnd}.0, $end )';
 				else if (!sizeX.isEnd && !sizeY.isEnd) end = 'vec2( ${sizeX.vEnd}.0, ${sizeY.vEnd}.0 )';
 				else {
-					if      (end == "aSize.y") end += "z";
-					else if (end == "aSize.z") end += "w";
+					if      (end == name+".y") end += "z";
+					else if (end == name+".z") end += "w";
 				}
 				var iX = time.indexOf(sizeX.time);
 				var iY = time.indexOf(sizeY.time);
@@ -322,17 +322,21 @@ class ElementImpl
 				});
 		}
 		// anim start/end vars
-		if (conf.pos.isAnim) {
+		if (conf.posX.isAnim) {
 			if (conf.posX.isStart) genVarInt(fields, conf.posX.name+"Start", conf.posX.vStart);
-			if (conf.posY.isStart) genVarInt(fields, conf.posY.name+"Start", conf.posY.vStart);
 			if (conf.posX.isEnd)   genVarInt(fields, conf.posX.name+"End",   conf.posX.vEnd);
+		}
+		if (conf.posY.isAnim) {
+			if (conf.posY.isStart) genVarInt(fields, conf.posY.name+"Start", conf.posY.vStart);
 			if (conf.posY.isEnd)   genVarInt(fields, conf.posY.name+"End",   conf.posY.vEnd);
 		}
 		
-		if (conf.size.isAnim) {
+		if (conf.sizeX.isAnim) {
 			if (conf.sizeX.isStart) genVarInt(fields, conf.sizeX.name+"Start", conf.sizeX.vStart);
-			if (conf.sizeY.isStart) genVarInt(fields, conf.sizeY.name+"Start", conf.sizeY.vStart);
 			if (conf.sizeX.isEnd)   genVarInt(fields, conf.sizeX.name+"End",   conf.sizeX.vEnd);
+		}
+		if (conf.sizeY.isAnim) {
+			if (conf.sizeY.isStart) genVarInt(fields, conf.sizeY.name+"Start", conf.sizeY.vStart);
 			if (conf.sizeY.isEnd)   genVarInt(fields, conf.sizeY.name+"End",   conf.sizeY.vEnd);
 		}
 				
@@ -491,25 +495,19 @@ class ElementImpl
 					exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $v{verts[j][1]}) ); i++;
 				}
 				
-				if (conf.pos.isAnim) {
-					if (conf.posX.isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.posX.name+"Start"}) ); i+=2; }
-					if (conf.posY.isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.posY.name+"Start"}) ); i+=2; }
-					if (conf.posX.isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.posX.name+"End"}) ); i+=2; }
-					if (conf.posY.isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.posY.name+"End"}) ); i+=2; }
-				} else {
-					if (conf.posX.isStart ) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.posX.name }) ); i+=2; }
-					if (conf.posY.isStart ) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.posY.name }) ); i+=2; }
-				}
+				if (conf.posX.isAnim && conf.posX.isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.posX.name+"Start"}) ); i+=2; }
+				if (!conf.posX.isAnim && conf.posX.isStart ) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.posX.name }) ); i+=2; }
+				if (conf.posY.isAnim && conf.posY.isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.posY.name+"Start"}) ); i+=2; }
+				if (!conf.posY.isAnim && conf.posY.isStart ) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.posY.name }) ); i+=2; }
+				if (conf.posX.isAnim && conf.posX.isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.posX.name+"End"}) ); i+=2; }
+				if (conf.posY.isAnim && conf.posY.isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.posY.name+"End"}) ); i+=2; }
 				
-				if (conf.size.isAnim) {
-					if (conf.sizeX.isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.sizeX.name+"Start"}) ); i+=2; }
-					if (conf.sizeY.isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.sizeY.name+"Start"}) ); i+=2; }
-					if (conf.sizeX.isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.sizeX.name+"End"}) ); i+=2; }
-					if (conf.sizeY.isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.sizeY.name+"End"}) ); i+=2; }
-				} else {
-					if (conf.sizeX.isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.sizeX.name}) ); i+=2; }
-					if (conf.sizeY.isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.sizeY.name}) ); i+=2; }
-				}
+				if (conf.sizeX.isAnim && conf.sizeX.isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.sizeX.name+"Start"}) ); i+=2; }
+				if (!conf.sizeX.isAnim && conf.sizeX.isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.sizeX.name}) ); i+=2; }
+				if (conf.sizeY.isAnim && conf.sizeY.isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.sizeY.name+"Start"}) ); i+=2; }
+				if (!conf.sizeY.isAnim && conf.sizeY.isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.sizeY.name}) ); i+=2; }
+				if (conf.sizeX.isAnim && conf.sizeX.isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.sizeX.name+"End"}) ); i+=2; }
+				if (conf.sizeY.isAnim && conf.sizeY.isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.sizeY.name+"End"}) ); i+=2; }
 				
 				if (verts != null) i += fillStride else i += fillStride_instanced;
 			}
