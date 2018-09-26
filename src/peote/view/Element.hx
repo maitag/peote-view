@@ -72,11 +72,14 @@ class ElementImpl
 				v = {args:[], expr:[]};
 				setFun.set( param, v);
 			}
-			v.args.push( {name:f.name, type:macro:Int} ); // todo: default param
-			if (!isAnim) v.expr.push( Context.parse('this.${f.name} = ${f.name}', Context.currentPos())  );
+			var name:String = f.name;
+			var nameStart:String = name + "Start";
+			var nameEnd:String = name + "End";
+			v.args.push( {name:name, type:macro:Int} ); // todo: default param
+			if (!isAnim) v.expr.push( macro this.$name = $i{name} );
 			else {
-				if (isAnimStart) v.expr.push( Context.parse('this.${f.name}Start = ${f.name}', Context.currentPos())  );
-				if (isAnimEnd)   v.expr.push( Context.parse('this.${f.name}End   = ${f.name}', Context.currentPos())  );
+				if (isAnimStart) v.expr.push( macro this.$nameStart = $i{name} );
+				if (isAnimEnd)   v.expr.push( macro this.$nameEnd   = $i{name} );
 			}
 		}		
 	}
@@ -92,13 +95,15 @@ class ElementImpl
 				v = {argsStart:[], argsEnd:[], exprStart:[], exprEnd:[]};
 				animFun.set( param, v);
 			}			
+			var nameStart:String = f.name + "Start";
+			var nameEnd:String   = f.name + "End";
 			if (isAnimStart) {
-				v.argsStart.push( {name:f.name+"Start", type:macro:Int} ); // todo: default param
-				v.exprStart.push( Context.parse('this.${f.name}Start = ${f.name}Start', Context.currentPos())  );
+				v.argsStart.push( {name:nameStart, type:macro:Int} ); // todo: default param
+				v.exprStart.push( macro this.$nameStart   = $i{nameStart} );
 			}
 			if (isAnimEnd) {
-				v.argsEnd.push( {name:f.name+"End", type:macro:Int} ); // todo: default param
-				v.exprEnd.push( Context.parse('this.${f.name}End   = ${f.name}End', Context.currentPos())  );
+				v.argsEnd.push( {name:nameEnd, type:macro:Int} ); // todo: default param
+				v.exprEnd.push( macro this.$nameEnd   = $i{nameEnd} );
 			}
 		}		
 	}

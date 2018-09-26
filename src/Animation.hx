@@ -47,24 +47,25 @@ class Animation
 		//element.y = 10;
 		//element.yStart =110;
 		//element.yEnd = 10;
-		element.animPosition(10, 100);
+		element.animPosition(10, 400);
 		
 		//element.timePositionStart = 0;
 		//element.timePositionDuration = 3;
-		element.timePosition(2.0, 5.0);
+		element.timePosition(2.0, 8.0);
 		
 		buffer.updateElement(element);
 		
 		
 		Timer.delay(function() {
-			element.animSize(10,10,100,100);
-			element.timeSize(2 , 1);		
+			element.animSize(50,50,100,100);
+			element.timeSize(3 , 1);		
 			buffer.updateElement(element);
 		}, 1000);
 		Timer.delay(function() {
-			element.setPosSize(300, 100, 100, 100);	
+			//element.setPosSize(300, 100, 100, 100);	
+			element.x = 300;
 			buffer.updateElement(element);
-		}, 7000);
+		}, 5000);
 		
 	}
 	
