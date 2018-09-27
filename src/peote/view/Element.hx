@@ -1,10 +1,11 @@
 package peote.view;
 
 #if macro
+import haxe.ds.StringMap;
 import haxe.macro.Expr;
 import haxe.macro.Context;
 import haxe.macro.ExprTools;
-import haxe.ds.StringMap;
+import haxe.macro.Printer;
 #end
 
 @:remove @:autoBuild(peote.view.ElementImpl.build())
@@ -23,6 +24,8 @@ class ElementImpl
 		return s;
 	}
 	
+	static function camelCase(a:String, b:String):String return a + b.substr(0,1).toUpperCase() + b.substr(1);
+
 	static function hasMeta(f:Field, s:String):Bool {for (m in f.meta) { if (m.name == s || m.name == ':$s') return true; } return false; }
 	static function getMetaParam(f:Field, s:String):String {
 		var p = null;
@@ -50,16 +53,12 @@ class ElementImpl
 	static var timers:Array<String> = [];
 	
 	static var conf = {
-		sizeX: { n:0, isAnim:false, name:"", isStart:false, isEnd:false, vStart:100, vEnd:100, time: "" },
-		sizeY: { n:0, isAnim:false, name:"", isStart:false, isEnd:false, vStart:100, vEnd:100, time: "" },
+		posX  :{ vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },
+		posY  :{ vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },		
+		sizeX :{ vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },
+		sizeY :{ vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },
 		
-		posX: { n:0, isAnim:false, name: "", isStart:false, isEnd:false, vStart:0, vEnd:0, time: "" },
-		posY: { n:0, isAnim:false, name: "", isStart:false, isEnd:false, vStart:0, vEnd:0, time: "" },		
-		
-	};
-	static function camelCase(a:String, b:String):String {
-		return a + b.substr(0,1).toUpperCase() + b.substr(1);
-	}
+	};	
 	
 	static var setFun :StringMap<Dynamic> = new StringMap<Dynamic>();
 	static function checkSet(f:Field, isAnim:Bool = false, isAnimStart:Bool = false, isAnimEnd:Bool = false )
@@ -108,33 +107,46 @@ class ElementImpl
 		}		
 	}
 	
-	static function checkMetas(f:Field, sizeX:Dynamic, toRemove:Array<Field>)
+	static function checkMetas(f:Field, type:Dynamic, val:Dynamic, confItem:Dynamic, toRemove:Array<Field>)
 	{
-		sizeX.name = f.name;
+		confItem.name = f.name;
+
+		var t:String;
+		var defaultVal:String;
+		if (val != null) {
+			switch (val.expr) {
+				case (EConst(CInt(v))):   t = "Int"; defaultVal = v;
+				case (EConst(CFloat(v))): t = "Float"; defaultVal = v;
+				default:
+			}
+		}
+		//TODO: use ExprTools.getValue(val.expr) instead
+		//TODO: set default value if not exist
+		
 		var param = getMetaParam(f, "time");
 		if (param != null) {
-			sizeX.isAnim = true;
+			confItem.isAnim = true;
 			if (timers.indexOf(param) == -1) timers.push( param );
-			sizeX.time = param;
+			confItem.time = param;
 			param = getMetaParam(f, "constStart");
 			if (param != null) {
 				if (param == "") throw Context.error('Error: @constStart needs a value', f.pos);
-				sizeX.vStart = Std.parseInt(param);
+				confItem.vStart = Std.parseInt(param);
 			} else {
-				sizeX.isStart = true;
-				sizeX.n++;
+				confItem.isStart = true;
+				confItem.n++;
 			}
 			param = getMetaParam(f, "constEnd");
 			if (param != null) {
 				if (param == "") throw Context.error('Error: @constEnd needs a value', f.pos);
-				sizeX.vEnd = Std.parseInt(param);
+				confItem.vEnd = Std.parseInt(param);
 			} else {
-				sizeX.isEnd = true;
-				sizeX.n++;
+				confItem.isEnd = true;
+				confItem.n++;
 			}
-			if (sizeX.isStart || sizeX.isEnd) {
-				checkSet(f, true, sizeX.isStart, sizeX.isEnd);
-				checkAnim(f, sizeX.isStart, sizeX.isEnd);
+			if (confItem.isStart || confItem.isEnd) {
+				checkSet(f, true, confItem.isStart, confItem.isEnd);
+				checkAnim(f, confItem.isStart, confItem.isEnd);
 			}
 			toRemove.push(f);// remove field
 			
@@ -142,16 +154,16 @@ class ElementImpl
 			param = getMetaParam(f, "const");
 			if (param != null) {
 				if (param == "") throw Context.error('Error: @const needs a value', f.pos);
-				sizeX.vStart = Std.parseInt(param);
+				confItem.vStart = Std.parseInt(param);
 				if (f.access.indexOf(Access.AStatic) == -1) f.access.push(Access.AStatic);
 				if (f.access.indexOf(Access.AInline) == -1) f.access.push(Access.AInline);
 			} else {
-				sizeX.isStart = true;
+				confItem.isStart = true;
 				checkSet(f);
-				sizeX.n++;
+				confItem.n++;
 			}							
 		}
-		//trace(f.name,sizeX);
+		//trace(confItem);
 	}
 	
 	static var fieldnames = new Array<String>();
@@ -178,6 +190,9 @@ class ElementImpl
 			});
 	}
 	
+	// ----------------------------------------------------------------------------------------------
+	// -------------------------------------- BUILD -------------------------------------------------
+	// ----------------------------------------------------------------------------------------------
 	public static function build()
 	{
 		var hasNoNew:Bool = true;
@@ -202,11 +217,11 @@ class ElementImpl
 			if (f.name == "new") hasNoNew = false;
 			else switch (f.kind)
 			{
-				case FVar(t): //trace("attribute:",f.name ); // t: TPath({ name => Int, pack => [], params => [] })
-					if      ( hasMeta(f, "posX")  ) checkMetas(f, conf.posX,  toRemove);
-					else if ( hasMeta(f, "posY")  ) checkMetas(f, conf.posY,  toRemove);
-					else if ( hasMeta(f, "sizeX") ) checkMetas(f, conf.sizeX, toRemove);
-					else if ( hasMeta(f, "sizeY") ) checkMetas(f, conf.sizeY, toRemove);
+				case FVar(TPath(type), val): trace(type.name);
+					if      ( hasMeta(f, "posX")  ) checkMetas(f, type, val, conf.posX,  toRemove);
+					else if ( hasMeta(f, "posY")  ) checkMetas(f, type, val, conf.posY,  toRemove);
+					else if ( hasMeta(f, "sizeX") ) checkMetas(f, type, val, conf.sizeX, toRemove);
+					else if ( hasMeta(f, "sizeY") ) checkMetas(f, type, val, conf.sizeY, toRemove);
 					// TODO
 					
 				default: //throw Context.error('Error: attribute has to be an variable.', f.pos);
@@ -253,36 +268,36 @@ class ElementImpl
 		if (timers.length > 0) glConf.UNIFORM_TIME = "uniform float uTime;";
 		
 		// PREPARE -----------------------------------------------------------                             <- SIZE, POS
-		function prepare(name:String, sizeX:Dynamic, sizeY:Dynamic):String {
+		function prepare(name:String, x:Dynamic, y:Dynamic):String {
 			var start = name; var end = name;
-			var n:Int = sizeX.n + sizeY.n;
-			if (sizeX.isStart && !sizeY.isStart) {
+			var n:Int = x.n + y.n;
+			if (x.isStart && !y.isStart) {
 				if (n > 1) { start += ".x"; end += ".y"; }
-				start = 'vec2( $start, ${sizeY.vStart}.0 )';
+				start = 'vec2( $start, ${y.vStart}.0 )';
 			}
-			else if (!sizeX.isStart && sizeY.isStart) {
+			else if (!x.isStart && y.isStart) {
 				if (n > 1) { start += ".x"; end += ".y"; }
-				start = 'vec2( ${sizeX.vStart}.0, $start )';
+				start = 'vec2( ${x.vStart}.0, $start )';
 			}
-			else if (!sizeX.isStart && !sizeY.isStart)
-				start= 'vec2( ${sizeX.vStart}.0, ${sizeY.vStart}.0 )';
+			else if (!x.isStart && !y.isStart)
+				start= 'vec2( ${x.vStart}.0, ${y.vStart}.0 )';
 			else if (n > 2) {
 				start += ".xy"; end += ".z";
 			}
 			// ANIM
-			if (sizeX.isAnim || sizeY.isAnim) {
-				if (sizeX.isEnd && !sizeY.isEnd)       end = 'vec2( $end, ${sizeY.vEnd}.0 )';
-				else if (!sizeX.isEnd && sizeY.isEnd)  end = 'vec2( ${sizeX.vEnd}.0, $end )';
-				else if (!sizeX.isEnd && !sizeY.isEnd) end = 'vec2( ${sizeX.vEnd}.0, ${sizeY.vEnd}.0 )';
+			if (x.isAnim || y.isAnim) {
+				if (x.isEnd && !y.isEnd)       end = 'vec2( $end, ${y.vEnd}.0 )';
+				else if (!x.isEnd && y.isEnd)  end = 'vec2( ${x.vEnd}.0, $end )';
+				else if (!x.isEnd && !y.isEnd) end = 'vec2( ${x.vEnd}.0, ${y.vEnd}.0 )';
 				else {
 					if      (end == name+".y") end += "z";
 					else if (end == name+".z") end += "w";
 				}
-				var iX = timers.indexOf(sizeX.time);
-				var iY = timers.indexOf(sizeY.time);
-				if (iX == -1)      return '( $start + ($end - $start) * vec2( 0.0, time$iY ) )';
-				else if (iY == -1) return '( $start + ($end - $start) * vec2( time$iX, 0.0 ) )';
-				else               return '( $start + ($end - $start) * vec2( time$iX, time$iY ) )';
+				var tx = timers.indexOf(x.time);
+				var ty = timers.indexOf(y.time);
+				if (tx == -1)      return '( $start + ($end - $start) * vec2( 0.0, time$ty ) )';
+				else if (ty == -1) return '( $start + ($end - $start) * vec2( time$tx, 0.0 ) )';
+				else               return '( $start + ($end - $start) * vec2( time$tx, time$ty ) )';
 			} else return start;
 		}
 		
@@ -534,7 +549,6 @@ class ElementImpl
 				if (conf.sizeY.isAnim && conf.sizeY.isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.sizeY.name+"End"}) ); i+=2; }
 				
 				if (verts != null) i += fillStride else i += fillStride_instanced;
-				//if (j == 1) for (e in exprBlock) trace(ExprTools.toString( e)); //debug
 			}
 			return exprBlock;
 		}
@@ -551,6 +565,7 @@ class ElementImpl
 				ret: null
 			})
 		});
+		// trace(new Printer().printField(fields[fields.length-1])); //debug
 		// -------------------------	
 		fields.push({
 			name: "writeBytes",
@@ -564,7 +579,7 @@ class ElementImpl
 				ret: null
 			})
 		});
-				
+		// trace(new Printer().printField(fields[fields.length-1])); //debug
 		// ----------------------------- updateGLBuffer -------------------------------------
 		fields.push({
 			name: "updateGLBuffer",
@@ -646,7 +661,6 @@ class ElementImpl
 				exprBlock.push( macro gl.vertexAttribPointer(aSIZE, $v{n}, gl.SHORT, false, $v{stride}, $v{i} ) ); i += n * 2;
 				if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor(aSIZE, 1) );			
 			}
-			//for (e in exprBlock) trace(ExprTools.toString( e)); //debug
 			return exprBlock;
 		}
 		fields.push({
@@ -663,6 +677,7 @@ class ElementImpl
 				ret: null
 			})
 		});
+		// trace(new Printer().printField(fields[fields.length-1])); //debug
 		// -------------------------
 		fields.push({
 			name: "enableVertexAttrib",
@@ -677,6 +692,7 @@ class ElementImpl
 				ret: null
 			})
 		});
+		// trace(new Printer().printField(fields[fields.length-1])); //debug
 		// -------------------------
 		exprBlock = [ macro gl.disableVertexAttribArray (aPOSITION) ];
 		if (conf.posX.n  + conf.posY.n  > 0 ) exprBlock.push( macro gl.disableVertexAttribArray (aPOS ) );
