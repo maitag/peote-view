@@ -51,14 +51,16 @@ class Animation
 		
 		//element.timePositionStart = 0;
 		//element.timePositionDuration = 3;
-		element.timePosition(2.0, 8.0);
+		element.timePosition(0.0, 8.0);
+		
+		element.animColor(0xF2441100);
 		
 		buffer.updateElement(element);
-		
-		
+				
 		Timer.delay(function() {
 			element.animSize(50,50,100,100);
-			element.timeSize(3 , 1);		
+			element.timeSize(3 , 1);
+			//element.c = 0xFF000000;
 			buffer.updateElement(element);
 		}, 1000);
 		Timer.delay(function() {

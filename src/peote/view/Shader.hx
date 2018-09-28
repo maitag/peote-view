@@ -3,9 +3,7 @@ package peote.view;
 class Shader 
 {
 	// -------------------------- VERTEX SHADER TEMPLATE --------------------------------	
-	@:allow(peote.view) static var vertexShader(default, null):String =
-	
-	
+	@:allow(peote.view) static var vertexShader(default, null):String =		
 	"
 	::if isES3::#version 300 es::end::
 	
@@ -38,6 +36,8 @@ class Shader
 	::ATTRIB_POS::
 	::ATTRIB_SIZE::
 	::ATTRIB_TIME::
+	::ATTRIB_COLOR::
+	
 	
 	//aPivot
 	//aRotation
@@ -47,10 +47,12 @@ class Shader
 	//aTile
 	//aZindex
 	
+	// custom Attributes --
 	//aCustom0
 	
+	// Varyings ---------------------------
+	::OUT_COLOR::
 	
-	// custom Attributes ------------------
 
 	// PICKING  ::if isES3:: flat out int instanceID; ::end::
 	
@@ -58,7 +60,9 @@ class Shader
 		::CALC_TIME::		
 		::CALC_SIZE::
 		::CALC_POS::
-
+		
+		::CALC_COLOR::
+		
 		// PICKING instanceID = gl_InstanceID;
 		
 		float zoom = uZoom ::if isUBO:: * uViewZoom ::end::;
@@ -94,23 +98,23 @@ class Shader
 	
 	// ------------------------ FRAGMENT SHADER TEMPLATE --------------------------------	
 	@:allow(peote.view) static var fragmentShader(default, null):String =	
-
-	
 	"
 	::if isES3::#version 300 es::end::
 	
     precision highp float;
 	
+	::IN_COLOR::
+	
 	::if isES3::
-	flat in int instanceID;
-	out vec4 color;
+	//flat in int instanceID;
+	out vec4 Color;
 	// PICKING out int color;
 	::end::
 
 	
 	void main(void)
 	{	
-		::if isES3::color::else::gl_FragColor::end:: = vec4 (1.0, 0.0, 0.0, 1.0);
+		::if !isES3::gl_Frag::end::Color = ::FRAGMENT_CALC_COLOR::;
 		// PICKING ::if isES3::color::else::gl_FragColor::end:: =  instanceID*50;
 	}
 	";

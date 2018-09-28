@@ -23,6 +23,8 @@ class Program
 		isINSTANCED: false,
 		isUBO: false,
 		IN: "attribute",
+		VARIN: "varying",
+		VAROUT: "varying",
 	};
 	
 	public function new(buffer:BufferInterface) 
@@ -76,7 +78,12 @@ class Program
 		buffer.createGLBuffer();
 		buffer.updateGLBuffer();
 		
-		if (PeoteGL.Version.isES3)     { glShaderConfig.isES3 = true; glShaderConfig.IN = "in";	}
+		if (PeoteGL.Version.isES3) {
+			glShaderConfig.isES3 = true;
+			glShaderConfig.IN = "in";
+			glShaderConfig.VARIN = "in";
+			glShaderConfig.VAROUT = "out";
+		}
 		if (PeoteGL.Version.isUBO)       glShaderConfig.isUBO = true;
 		if (PeoteGL.Version.isINSTANCED) glShaderConfig.isINSTANCED = true;
 		
