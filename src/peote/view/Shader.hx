@@ -114,7 +114,11 @@ class Shader
 	
 	void main(void)
 	{	
-		::if !isES3::gl_Frag::end::Color = ::FRAGMENT_CALC_COLOR::;
+		::if !isES3::gl_Frag::end::Color = ::FRAGMENT_CALC_COLOR::; 
+		
+		// TODO: problem on old FF if alpha goes zero
+		::if !isES3::gl_Frag::end::Color.w = clamp(::if !isES3::gl_Frag::end::Color.w, 0.003, 1.0); // FIX
+		
 		// PICKING ::if isES3::color::else::gl_FragColor::end:: =  instanceID*50;
 	}
 	";
