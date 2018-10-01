@@ -50,8 +50,44 @@ class ElementImpl
 	}
 	static var allowForBuffer = [{ name:":allow", params:[macro peote.view], pos:Context.currentPos()}];
 	
-	static var timers:Array<String> = [];
+	static function genVarInt(fields:Array<Field>, name:String, value:Int) {
+		if (fieldnames.indexOf(name) == -1)
+			fields.push({
+				name:  name,
+				access:  [Access.APublic],
+				kind: FieldType.FVar( macro:Int, macro $v{value} ), 
+				pos: Context.currentPos(),
+			});
+	}
 	
+	static function genVarFloat(fields:Array<Field>, name:String, value:Float) {
+		if (fieldnames.indexOf(name) == -1)
+			fields.push({
+				name:  name,
+				access:  [Access.APublic],
+				kind: FieldType.FVar( macro:Float, macro $v{value} ), 
+				pos: Context.currentPos(),
+			});
+	}
+	
+	static var glConf = {
+		isPICK:false,
+		UNIFORM_TIME:"",
+		ATTRIB_TIME:"", ATTRIB_SIZE:"", ATTRIB_POS:"", ATTRIB_COLOR:"",
+		OUT_COLOR:"", IN_COLOR:"",
+		FRAGMENT_CALC_COLOR:"",
+		CALC_TIME:"", CALC_SIZE:"", CALC_POS:"", CALC_COLOR:""
+	};
+	
+	static var conf = {
+		posX  :{ vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },
+		posY  :{ vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },		
+		sizeX :{ vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },
+		sizeY :{ vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },
+		color :{ vStart:0xFF000000, vEnd:0xFF000000, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },
+		
+	};
+		
 	static var setFun :StringMap<Dynamic> = new StringMap<Dynamic>();
 	static function checkSet(f:Field, isAnim:Bool = false, isAnimStart:Bool = false, isAnimEnd:Bool = false )
 	{
@@ -99,47 +135,16 @@ class ElementImpl
 		}		
 	}
 	
-	static var fieldnames = new Array<String>();
-	
-	static function genVarInt(fields:Array<Field>, name:String, value:Int) {
-		if (fieldnames.indexOf(name) == -1)
-			fields.push({
-				name:  name,
-				access:  [Access.APublic],
-				kind: FieldType.FVar( macro:Int, macro $v{value} ), 
-				pos: Context.currentPos(),
-			});
+	// TODO
+	static var getterFun:Array<Dynamic> = new Array<Dynamic>();
+	static function addGetter(f:Field, isStart:Bool = false, isEnd:Bool = false)
+	{// TODO
+		var v = {args:[], expr:[]};
 	}
 	
-	static function genVarFloat(fields:Array<Field>, name:String, value:Float) {
-		if (fieldnames.indexOf(name) == -1)
-			fields.push({
-				name:  name,
-				access:  [Access.APublic],
-				kind: FieldType.FVar( macro:Float, macro $v{value} ), 
-				pos: Context.currentPos(),
-			});
-	}
+	static var timers:Array<String> = [];
 	
-	static var glConf = {
-		isPICK:false,
-		UNIFORM_TIME:"",
-		ATTRIB_TIME:"", ATTRIB_SIZE:"", ATTRIB_POS:"", ATTRIB_COLOR:"",
-		OUT_COLOR:"", IN_COLOR:"",
-		FRAGMENT_CALC_COLOR:"",
-		CALC_TIME:"", CALC_SIZE:"", CALC_POS:"", CALC_COLOR:""
-	};
-	
-	static var conf = {
-		posX  :{ vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },
-		posY  :{ vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },		
-		sizeX :{ vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },
-		sizeY :{ vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },
-		color :{ vStart:0xFF000000, vEnd:0xFF000000, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },
-		
-	};
-		
-	static function checkMetas(f:Field, expectedType:String, type:ComplexType, val:Expr, confItem:Dynamic, toRemove:Array<Field>)
+	static function checkMetas(f:Field, expectedType:String, type:ComplexType, val:Expr, confItem:Dynamic)
 	{
 		if (confItem.name == "") confItem.name = f.name;
 		else throw Context.error('Error: attribute already defined for ${confItem.name}', f.pos);
@@ -185,14 +190,17 @@ class ElementImpl
 				checkSet(f, true, confItem.isStart, confItem.isEnd);
 				checkAnim(f, confItem.isStart, confItem.isEnd);
 			}
-			// todo: generate getter/setter instead
-			toRemove.push(f);// remove field
+			
+			// todo: generate (get, set) for !confItem.isStart, !confItem.isEnd and for setter do same as in generated anim functions
+			
+			toRemove.push(f);//TODO: nothing to remove if there is getter/setter
 			
 		} else {
 			param = getMetaParam(f, "const");
 			if (param != null) {
 				if (param == "") throw Context.error('Error: @const needs a value', f.pos);
 				confItem.vStart = Std.parseInt(param);
+				// todo: generate (get, never) instead https://try.haxe.org/#5a3Cf
 				if (f.access.indexOf(Access.AStatic) == -1) f.access.push(Access.AStatic);
 				if (f.access.indexOf(Access.AInline) == -1) f.access.push(Access.AInline);
 			} else {
@@ -206,18 +214,19 @@ class ElementImpl
 	
 	public static function configure(f:Field, type:ComplexType, val:Expr, getter:String=null, setter:String=null)
 	{
-		//trace(type, val, getter, setter);
-		if      ( hasMeta(f, "posX")  ) checkMetas(f, "Int", type, val, conf.posX,  toRemove);
-		else if ( hasMeta(f, "posY")  ) checkMetas(f, "Int", type, val, conf.posY,  toRemove);
-		else if ( hasMeta(f, "sizeX") ) checkMetas(f, "Int", type, val, conf.sizeX, toRemove);
-		else if ( hasMeta(f, "sizeY") ) checkMetas(f, "Int", type, val, conf.sizeY, toRemove);
-		else if ( hasMeta(f, "color") ) checkMetas(f, "Int", type, val, conf.color, toRemove);
+		// trace(type, val, getter, setter);
+		if      ( hasMeta(f, "posX")  ) checkMetas(f, "Int", type, val, conf.posX);
+		else if ( hasMeta(f, "posY")  ) checkMetas(f, "Int", type, val, conf.posY);
+		else if ( hasMeta(f, "sizeX") ) checkMetas(f, "Int", type, val, conf.sizeX);
+		else if ( hasMeta(f, "sizeY") ) checkMetas(f, "Int", type, val, conf.sizeY);
+		else if ( hasMeta(f, "color") ) checkMetas(f, "Int", type, val, conf.color);
 		// TODO
 		// rotation, pivot
 	}
 	
 	// -------------------------------------- BUILD -------------------------------------------------
 
+	static var fieldnames = new Array<String>();	
 	static var toRemove = new Array<Field>();//TODO: nothing to remove if there is getter/setter
 	public static function build()
 	{
@@ -392,6 +401,7 @@ class ElementImpl
 		
 		// start/end vars for animation attributes
 		if (conf.posX.isAnim) {
+			// todo: generate all but with (get, never) instead https://try.haxe.org/#5a3Cf
 			if (conf.posX.isStart) genVarInt(fields, conf.posX.name+"Start", conf.posX.vStart);
 			if (conf.posX.isEnd)   genVarInt(fields, conf.posX.name+"End",   conf.posX.vEnd);
 		}
