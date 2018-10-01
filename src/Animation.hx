@@ -53,6 +53,7 @@ class Animation
 		//element.timePositionDuration = 3;
 		element.timePosition(0.0, 8.0);
 		
+		//element.cEnd = 0xF2441100;
 		element.animColor(0xF2441100);
 		
 		buffer.updateElement(element);

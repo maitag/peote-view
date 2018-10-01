@@ -1,19 +1,19 @@
 package peote.view;
 
-#if macro
+#if !macro
+@:remove @:autoBuild(peote.view.ElementImpl.build())
+interface Element {}
+class ElementImpl {}
+#else
+
 import haxe.ds.StringMap;
 import haxe.macro.Expr;
 import haxe.macro.Context;
 import haxe.macro.ExprTools;
 import haxe.macro.Printer;
-#end
-
-@:remove @:autoBuild(peote.view.ElementImpl.build())
-interface Element {}
 
 class ElementImpl
 {
-#if macro
 	static var rComments:EReg = new EReg("//.*?$","gm");
 	static var rEmptylines:EReg = new EReg("([ \t]*\r?\n)+", "g");
 	static var rStartspaces:EReg = new EReg("^([ \t]*\r?\n)+", "g");
@@ -99,66 +99,6 @@ class ElementImpl
 		}		
 	}
 	
-	static function checkMetas(f:Field, type:Dynamic, val:Dynamic, confItem:Dynamic, toRemove:Array<Field>)
-	{
-		// TODO: check here that no param is set twice
-		confItem.name = f.name;
-
-		var t:String;
-		var defaultVal:String;
-		if (val != null) {
-			switch (val.expr) {
-				case (EConst(CInt(v))):   t = "Int"; defaultVal = v;
-				case (EConst(CFloat(v))): t = "Float"; defaultVal = v;
-				default:
-			}
-		}
-		//TODO: use ExprTools.getValue(val.expr) instead
-		//TODO: set default value if not exist
-		
-		var param = getMetaParam(f, "time");
-		if (param != null) {
-			confItem.isAnim = true;
-			if (timers.indexOf(param) == -1) timers.push( param );
-			confItem.time = param;
-			param = getMetaParam(f, "constStart");
-			if (param != null) {
-				if (param == "") throw Context.error('Error: @constStart needs a value', f.pos);
-				confItem.vStart = Std.parseInt(param);
-			} else {
-				confItem.isStart = true;
-				confItem.n++;
-			}
-			param = getMetaParam(f, "constEnd");
-			if (param != null) {
-				if (param == "") throw Context.error('Error: @constEnd needs a value', f.pos);
-				confItem.vEnd = Std.parseInt(param);
-			} else {
-				confItem.isEnd = true;
-				confItem.n++;
-			}
-			if (confItem.isStart || confItem.isEnd) {
-				checkSet(f, true, confItem.isStart, confItem.isEnd);
-				checkAnim(f, confItem.isStart, confItem.isEnd);
-			}
-			toRemove.push(f);// remove field
-			
-		} else {
-			param = getMetaParam(f, "const");
-			if (param != null) {
-				if (param == "") throw Context.error('Error: @const needs a value', f.pos);
-				confItem.vStart = Std.parseInt(param);
-				if (f.access.indexOf(Access.AStatic) == -1) f.access.push(Access.AStatic);
-				if (f.access.indexOf(Access.AInline) == -1) f.access.push(Access.AInline);
-			} else {
-				confItem.isStart = true;
-				checkSet(f);
-				confItem.n++;
-			}							
-		}
-		//trace(confItem);
-	}
-	
 	static var fieldnames = new Array<String>();
 	
 	static function genVarInt(fields:Array<Field>, name:String, value:Int) {
@@ -195,21 +135,95 @@ class ElementImpl
 		posY  :{ vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },		
 		sizeX :{ vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },
 		sizeY :{ vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },
-		color :{ vStart:0xFF000000, vEnd:0x0000FF00, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },
+		color :{ vStart:0xFF000000, vEnd:0xFF000000, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },
 		
 	};
+		
+	static function checkMetas(f:Field, expectedType:String, type:ComplexType, val:Expr, confItem:Dynamic, toRemove:Array<Field>)
+	{
+		if (confItem.name == "") confItem.name = f.name;
+		else throw Context.error('Error: attribute already defined for ${confItem.name}', f.pos);
+		
+		// TODO: check that type is equal to expected type
+		
+		var defaultVal:Dynamic;
+		if (val != null) {
+			defaultVal = ExprTools.getValue(val);
+			/*switch (val.expr) {
+				case (EConst(CInt(v))):   t = "Int"; defaultVal = v;
+				case (EConst(CFloat(v))): t = "Float"; defaultVal = v;
+				default:
+			}*/
+		} else {
+			defaultVal = confItem.vStart;
+			f.kind = FieldType.FVar( macro: $type, macro $v{defaultVal} );
+		}
+		
+		var param = getMetaParam(f, "time");
+		if (param != null) {
+			confItem.isAnim = true;
+			if (timers.indexOf(param) == -1) timers.push( param );
+			confItem.time = param;
+			param = getMetaParam(f, "constStart");
+			if (param != null) {
+				if (param == "") confItem.vStart = defaultVal;
+				else confItem.vStart = Std.parseInt(param);
+			} else {
+				confItem.isStart = true;
+				confItem.n++;
+			}
+			param = getMetaParam(f, "constEnd");
+			if (param != null) {
+				if (param == "") confItem.vEnd = defaultVal;
+				else confItem.vEnd = Std.parseInt(param);
+				if (confItem.vStart == confItem.vEnd) throw Context.error('Error: it is senseless to animate if @constStart == @constEnd', f.pos);
+			} else {
+				confItem.isEnd = true;
+				confItem.n++;
+			}
+			if (confItem.isStart || confItem.isEnd) {
+				checkSet(f, true, confItem.isStart, confItem.isEnd);
+				checkAnim(f, confItem.isStart, confItem.isEnd);
+			}
+			// todo: generate getter/setter instead
+			toRemove.push(f);// remove field
+			
+		} else {
+			param = getMetaParam(f, "const");
+			if (param != null) {
+				if (param == "") throw Context.error('Error: @const needs a value', f.pos);
+				confItem.vStart = Std.parseInt(param);
+				if (f.access.indexOf(Access.AStatic) == -1) f.access.push(Access.AStatic);
+				if (f.access.indexOf(Access.AInline) == -1) f.access.push(Access.AInline);
+			} else {
+				confItem.isStart = true;
+				checkSet(f);
+				confItem.n++;
+			}							
+		}
+		//trace(confItem);
+	}
 	
-	// ----------------------------------------------------------------------------------------------
+	public static function configure(f:Field, type:ComplexType, val:Expr, getter:String=null, setter:String=null)
+	{
+		//trace(type, val, getter, setter);
+		if      ( hasMeta(f, "posX")  ) checkMetas(f, "Int", type, val, conf.posX,  toRemove);
+		else if ( hasMeta(f, "posY")  ) checkMetas(f, "Int", type, val, conf.posY,  toRemove);
+		else if ( hasMeta(f, "sizeX") ) checkMetas(f, "Int", type, val, conf.sizeX, toRemove);
+		else if ( hasMeta(f, "sizeY") ) checkMetas(f, "Int", type, val, conf.sizeY, toRemove);
+		else if ( hasMeta(f, "color") ) checkMetas(f, "Int", type, val, conf.color, toRemove);
+		// TODO
+		// rotation, pivot
+	}
+	
 	// -------------------------------------- BUILD -------------------------------------------------
-	// ----------------------------------------------------------------------------------------------
+
+	static var toRemove = new Array<Field>();//TODO: nothing to remove if there is getter/setter
 	public static function build()
 	{
-		var hasNoNew:Bool = true;
-		
-		
-		var classname = Context.getLocalClass().get().name;
+		var hasNoNew:Bool = true;		
+		var classname:String = Context.getLocalClass().get().name;
 		//var classpackage = Context.getLocalClass().get().pack;
-		
 		trace("--------------- " + classname + " -------------------");
 		
 		// trace(Context.getLocalClass().get().superClass); 
@@ -217,30 +231,21 @@ class ElementImpl
 
 		// TODO: childclasses!
 		
-		var toRemove = new Array<Field>();
-		
-		var fields = Context.getBuildFields();
+		var fields:Array<Field> = Context.getBuildFields();
 		for (f in fields)
 		{	
 			fieldnames.push(f.name);
 			if (f.name == "new") hasNoNew = false;
 			else switch (f.kind)
-			{
-				case FVar(TPath(type), val): trace(type.name);
-					if      ( hasMeta(f, "posX")  ) checkMetas(f, type, val, conf.posX,  toRemove);
-					else if ( hasMeta(f, "posY")  ) checkMetas(f, type, val, conf.posY,  toRemove);
-					else if ( hasMeta(f, "sizeX") ) checkMetas(f, type, val, conf.sizeX, toRemove);
-					else if ( hasMeta(f, "sizeY") ) checkMetas(f, type, val, conf.sizeY, toRemove);
-					else if ( hasMeta(f, "color") ) checkMetas(f, type, val, conf.color, toRemove);
-					// TODO
-					
-					
-				default: //throw Context.error('Error: attribute has to be an variable.', f.pos);
+			{	
+				case FVar(type, val)                 : configure(f, type, val);
+				case FProp(getter, setter, type, val): configure(f, type, val, getter, setter);
+				default: //trace(f.kind);
 			}
 
 		}
 		// remove anim-fields
-		for (f in toRemove) fields.remove(f);
+		for (f in toRemove) fields.remove(f);//TODO
 		
 		// add constructor ("new") if it is not there
 		if (hasNoNew) fields.push({
@@ -321,6 +326,7 @@ class ElementImpl
 		
 		glConf.CALC_SIZE = "vec2 size = aPosition * " + pack2in1("aSize", conf.sizeX, conf.sizeY) + ";";
 		glConf.CALC_POS  = "vec2 pos  = size + "      + pack2in1("aPos" , conf.posX,  conf.posY ) + ";";
+		
 		
 		// TODO: put in a function
 		if (conf.color.name != "") {
@@ -799,8 +805,7 @@ class ElementImpl
 		
 		return fields; // <------ classgeneration complete !
 	}
-	
-	
+
+}
 
 #end
-}
