@@ -19,8 +19,8 @@ class ElementAnim implements Element
 	public var h:Int=100;
 	
 	// Color (RGBA)
-	@color @anim("Color") @time("Position") @constStart(0x1133FF00) // @constEnd(0xFF142300) 
-	public var c:Int = 0xFFFF0000; // TODO: different coloring methods and gradients
+	@color @anim("Color") @time("Position") // @constStart(0xFF000000) // @constEnd(0xFF142300) 
+	public var c:Int; // TODO: different coloring methods and gradients
 	
 	// TODO
 	/*

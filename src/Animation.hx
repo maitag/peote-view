@@ -53,10 +53,7 @@ class Animation
 		//element.timePositionDuration = 3;
 		element.timePosition(0.0, 8.0);
 		
-		//element.cEnd = 0xF2441100;
-		element.animColor(0xF2441100);
-		trace(element.cStart);
-		trace(element.cEnd);
+		element.animColor(0xFF000000, 0x0000FF00);
 		
 		buffer.updateElement(element);
 				
@@ -69,6 +66,7 @@ class Animation
 		Timer.delay(function() {
 			//element.setPosSize(300, 100, 100, 100);	
 			element.x = 300;
+			element.c = 0xFFFFFF00;
 			buffer.updateElement(element);
 		}, 5000);
 		

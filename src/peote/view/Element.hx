@@ -50,7 +50,7 @@ class ElementImpl
 	}
 	static var allowForBuffer = [{ name:":allow", params:[macro peote.view], pos:Context.currentPos()}];
 	
-	static function genVar(type:ComplexType, fields:Array<Field>, name:String, value:Dynamic, isConstant:Bool = false) {
+	static function genVar(type:ComplexType, name:String, value:Dynamic, isConstant:Bool = false) {
 		if (fieldnames.indexOf(name) == -1) {
 			fields.push({
 				name:  name,
@@ -58,22 +58,36 @@ class ElementImpl
 				kind: (isConstant) ? FieldType.FProp("get", "never", type) : FieldType.FVar( type, macro $v{value} ), 
 				pos: Context.currentPos(),
 			});
-			if (isConstant) genConstGetter(type, fields, name, value);
+			if (isConstant) genConstGetter(type, name, value);
 		}
 	}
 	
-	static function genConstGetter(type:ComplexType, fields:Array<Field>, name:String, value:Dynamic) {
-		trace("GEN GETTER");
-		if (fieldnames.indexOf(name) == -1)
+	static function genConstGetter(type:ComplexType, name:String, value:Dynamic) {
+		if (fieldnames.indexOf("get_"+name) == -1)
 			fields.push({
 				name: "get_"+name,
-				access: [APublic, AInline],
+				access: [Access.APrivate, Access.AInline],
 				pos: Context.currentPos(),
 				kind: FFun({
 					args: [],
 					expr: macro return $v{value},
 					params: [],
 					ret: type
+				})
+			});
+	}
+	
+	static function genSetter(v:Dynamic) {trace("GEN SETTER:", v);
+		if (fieldnames.indexOf("set_"+v.name) == -1)
+			fields.push({
+				name: "set_"+v.name,
+				access: [Access.APrivate, Access.AInline],
+				pos: Context.currentPos(),
+				kind: FFun({
+					args: [{name:"value", type:v.type}],
+					expr: macro $b{v.expr},
+					params: [],
+					ret: v.type
 				})
 			});
 	}
@@ -142,12 +156,23 @@ class ElementImpl
 			}
 		}		
 	}
-	
-	// TODO
-	static var getterFun:Array<Dynamic> = new Array<Dynamic>();
-	static function addGetter(f:Field, isStart:Bool = false, isEnd:Bool = false)
-	{// TODO
-		var v = {args:[], expr:[]};
+
+	static var constGetterFun:Array<Dynamic> = new Array<Dynamic>();
+	static function addConstGetter(type:ComplexType, name:String, value:Dynamic)
+	{
+		constGetterFun.push({type:type, name:name, value:value});
+	}
+
+	static var setterFun:Array<Dynamic> = new Array<Dynamic>();
+	static function addSetter(type:ComplexType, name:String, isStart:Bool = false, isEnd:Bool = false)
+	{
+		var v = {type:type, name:name, expr:[]};
+		var nameEnd:String   = name + "End";
+		var nameStart:String = name + "Start";
+		if (isStart) v.expr.push( macro this.$nameStart = value );
+		if (isEnd)   v.expr.push( macro this.$nameEnd   = value );
+		v.expr.push( macro return value );
+		setterFun.push(v);
 	}
 	
 	static var timers:Array<String> = [];
@@ -158,6 +183,7 @@ class ElementImpl
 		else throw Context.error('Error: attribute already defined for ${confItem.name}', f.pos);
 		
 		// TODO: check that type is equal to expected type
+		// TODO: check that type is NOT Access.AStatic
 		
 		var defaultVal:Dynamic;
 		if (val != null) {
@@ -172,7 +198,7 @@ class ElementImpl
 			f.kind = FieldType.FVar( macro: $type, macro $v{defaultVal} );
 		}
 		
-		var param = getMetaParam(f, "time");
+		var param = getMetaParam(f, "time"); // TODO: if only @anim is set use this identifier instead
 		if (param != null) {
 			confItem.isAnim = true;
 			if (timers.indexOf(param) == -1) timers.push( param );
@@ -180,7 +206,7 @@ class ElementImpl
 			param = getMetaParam(f, "constStart");
 			if (param != null) {
 				if (param == "") confItem.vStart = defaultVal;
-				else confItem.vStart = Std.parseInt(param);
+				else confItem.vStart = Std.parseInt(param); // TODO: other types
 			} else {
 				confItem.isStart = true;
 				confItem.n++;
@@ -188,7 +214,7 @@ class ElementImpl
 			param = getMetaParam(f, "constEnd");
 			if (param != null) {
 				if (param == "") confItem.vEnd = defaultVal;
-				else confItem.vEnd = Std.parseInt(param);
+				else confItem.vEnd = Std.parseInt(param); // TODO: other types
 				if (confItem.vStart == confItem.vEnd) throw Context.error('Error: it is senseless to animate if @constStart == @constEnd', f.pos);
 			} else {
 				confItem.isEnd = true;
@@ -198,19 +224,16 @@ class ElementImpl
 				checkSet(f, true, confItem.isStart, confItem.isEnd);
 				checkAnim(f, confItem.isStart, confItem.isEnd);
 			}
-			
-			// todo: generate (get, set) for !confItem.isStart, !confItem.isEnd and for setter do same as in generated anim functions
-			
-			toRemove.push(f);//TODO: nothing to remove if there is getter/setter
-			
-		} else {
+			f.kind = FieldType.FProp("never", "set", type);
+			addSetter(type, f.name, confItem.isStart, confItem.isEnd);			
+		} 
+		else {
 			param = getMetaParam(f, "const");
 			if (param != null) {
-				if (param == "") throw Context.error('Error: @const needs a value', f.pos);
-				confItem.vStart = Std.parseInt(param);
-				// todo: generate (get, never) instead https://try.haxe.org/#5a3Cf
-				if (f.access.indexOf(Access.AStatic) == -1) f.access.push(Access.AStatic);
-				if (f.access.indexOf(Access.AInline) == -1) f.access.push(Access.AInline);
+				if (param == "") confItem.vStart = defaultVal;
+				else confItem.vStart = Std.parseInt(param); // TODO: other types				
+				f.kind = FieldType.FProp("get", "never", type);
+				addConstGetter(type, f.name, confItem.vStart);
 			} else {
 				confItem.isStart = true;
 				checkSet(f);
@@ -235,7 +258,7 @@ class ElementImpl
 	// -------------------------------------- BUILD -------------------------------------------------
 
 	static var fieldnames = new Array<String>();	
-	static var toRemove = new Array<Field>();//TODO: nothing to remove if there is getter/setter
+	static var fields = new Array<Field>();
 	public static function build()
 	{
 		var hasNoNew:Bool = true;		
@@ -248,7 +271,7 @@ class ElementImpl
 
 		// TODO: childclasses!
 		
-		var fields:Array<Field> = Context.getBuildFields();
+		fields = Context.getBuildFields();
 		for (f in fields)
 		{	
 			fieldnames.push(f.name);
@@ -261,13 +284,11 @@ class ElementImpl
 			}
 
 		}
-		// remove anim-fields
-		for (f in toRemove) fields.remove(f);//TODO
 		
 		// add constructor ("new") if it is not there
 		if (hasNoNew) fields.push({
 			name: "new",
-			access: [APublic],
+			access: [Access.APublic],
 			pos: Context.currentPos(),
 			kind: FFun({
 				args: [],
@@ -358,8 +379,8 @@ class ElementImpl
 		
 		// ---------------------- generate helper vars and functions ---------------------------
 		for (t in timers) {
-			genVar(macro: Float, fields, "time" + t + "Start",    0.0);
-			genVar(macro: Float, fields, "time" + t + "Duration", 1.0);
+			genVar(macro: Float, "time" + t + "Start",    0.0);
+			genVar(macro: Float, "time" + t + "Duration", 1.0);
 			
 			var name = camelCase("time", t);
 			if (fieldnames.indexOf(name) == -1)
@@ -407,28 +428,34 @@ class ElementImpl
 				});
 		}
 		
-		// start/end vars for animation attributes
+		// getters for constant values (non anim)
+		for (v in constGetterFun) genConstGetter(v.type, v.name, v.value);
+		
+		// setters for anim
+		for (v in setterFun) genSetter(v);
+		
+		// start/end vars for animation attributes - TODO: do in loop also for optimizing macro
 		if (conf.posX.isAnim) {
-			genVar(macro:Int, fields, conf.posX.name+"Start", conf.posX.vStart, !conf.posX.isStart);
-			genVar(macro:Int, fields, conf.posX.name+"End",   conf.posX.vEnd,   !conf.posX.isEnd);
+			genVar(macro:Int, conf.posX.name+"Start", conf.posX.vStart, !conf.posX.isStart);
+			genVar(macro:Int, conf.posX.name+"End",   conf.posX.vEnd,   !conf.posX.isEnd);
 		}
 		if (conf.posY.isAnim) {
-			genVar(macro:Int, fields, conf.posY.name+"Start", conf.posY.vStart, !conf.posY.isStart);
-			genVar(macro:Int, fields, conf.posY.name+"End",   conf.posY.vEnd,   !conf.posY.isEnd);
+			genVar(macro:Int, conf.posY.name+"Start", conf.posY.vStart, !conf.posY.isStart);
+			genVar(macro:Int, conf.posY.name+"End",   conf.posY.vEnd,   !conf.posY.isEnd);
 		}
 		
 		if (conf.sizeX.isAnim) {
-			genVar(macro:Int, fields, conf.sizeX.name+"Start", conf.sizeX.vStart, !conf.sizeX.isStart);
-			genVar(macro:Int, fields, conf.sizeX.name+"End",   conf.sizeX.vEnd,   !conf.sizeX.isEnd);
+			genVar(macro:Int, conf.sizeX.name+"Start", conf.sizeX.vStart, !conf.sizeX.isStart);
+			genVar(macro:Int, conf.sizeX.name+"End",   conf.sizeX.vEnd,   !conf.sizeX.isEnd);
 		}
 		if (conf.sizeY.isAnim) {
-			genVar(macro:Int, fields, conf.sizeY.name+"Start", conf.sizeY.vStart, !conf.sizeY.isStart);
-			genVar(macro:Int, fields, conf.sizeY.name+"End",   conf.sizeY.vEnd,   !conf.sizeY.isEnd);
+			genVar(macro:Int, conf.sizeY.name+"Start", conf.sizeY.vStart, !conf.sizeY.isStart);
+			genVar(macro:Int, conf.sizeY.name+"End",   conf.sizeY.vEnd,   !conf.sizeY.isEnd);
 		}
 		
 		if (conf.color.isAnim) {		
-			genVar(macro:Int, fields, conf.color.name+"Start", conf.color.vStart, !conf.color.isStart); // TODO: uint?
-			genVar(macro:Int, fields, conf.color.name+"End",   conf.color.vEnd,   !conf.color.isEnd);
+			genVar(macro:Int, conf.color.name+"Start", conf.color.vStart, !conf.color.isStart); // TODO: uint?
+			genVar(macro:Int, conf.color.name+"End",   conf.color.vEnd,   !conf.color.isEnd);
 		}
 		
 		// ------------------------- calc buffer size ----------------------------------------
