@@ -12,29 +12,65 @@ import haxe.macro.Context;
 import haxe.macro.ExprTools;
 import haxe.macro.Printer;
 
+typedef ConfParam =
+{
+	posX :ConfSubParam,
+	posY :ConfSubParam,
+	sizeX:ConfSubParam,
+	sizeY:ConfSubParam,
+	color:ConfSubParam,
+}
+typedef ConfSubParam =
+{
+	vStart:Int, vEnd:Int, n:Int, isAnim:Bool, name:String, isStart:Bool, isEnd:Bool, time:String,
+}
+
+typedef GLConfParam =
+{			isPICK:Bool,
+			UNIFORM_TIME:String,
+			ATTRIB_TIME:String, ATTRIB_SIZE:String, ATTRIB_POS:String, ATTRIB_COLOR:String,
+			OUT_COLOR:String, IN_COLOR:String,
+			FRAGMENT_CALC_COLOR:String,
+			CALC_TIME:String, CALC_SIZE:String, CALC_POS:String, CALC_COLOR:String,
+};
+
 class ElementImpl
 {
+	/*
 	static var rComments:EReg = new EReg("//.*?$","gm");
 	static var rEmptylines:EReg = new EReg("([ \t]*\r?\n)+", "g");
 	static var rStartspaces:EReg = new EReg("^([ \t]*\r?\n)+", "g");
-	
-	static function parseShader(shader:String):String {
+	*/
+	static inline function parseShader(shader:String):String {
 		var template = new utils.MultipassTemplate(shader);
-		var s = rStartspaces.replace(rEmptylines.replace(rComments.replace(template.execute(glConf), ""), "\n"), "");
+		//var s = rStartspaces.replace(rEmptylines.replace(rComments.replace(template.execute(glConf), ""), "\n"), "");
+		var s = template.execute(glConf);
 		return s;
 	}
 	
-	static function camelCase(a:String, b:String):String return a + b.substr(0,1).toUpperCase() + b.substr(1);
-	static function floatToString(value:Float):String {
+	static inline function camelCase(a:String, b:String):String return a + b.substr(0, 1).toUpperCase() + b.substr(1);
+	
+	static inline function floatToString(value:Float):String {
 		var s:String = Std.string(value);
 		return (s.indexOf('.') != -1) ? s : s + ".0";
 	}
-	static function color2vec4(c:UInt):String {
+	
+	static inline function color2vec4(c:UInt):String {
 		return 'vec4(${floatToString(((c & 0xFF000000)>>24)/255)}, ${floatToString(((c & 0x00FF0000)>>16)/255)},' + 
 		            ' ${floatToString(((c & 0x0000FF00)>>8)/255)}, ${floatToString((c & 0x000000FF)/255)})';
 	}
-	static function hasMeta(f:Field, s:String):Bool {for (m in f.meta) { if (m.name == s || m.name == ':$s') return true; } return false; }
-	static function getMetaParam(f:Field, s:String):String {
+	
+	static inline function hasMeta(f:Field, s:String):Bool {
+		var itHas:Bool = false;
+		for (m in f.meta) {
+			if (m.name == s || m.name == ':$s') {
+				itHas = true; break; 
+			}
+		}
+		return itHas;
+	}
+	
+	static inline function getMetaParam(f:Field, s:String):String {
 		var p = null;
 		var found = false;
 		for (m in f.meta) if (m.name == s || m.name == ':$s') { p = m.params[0]; found = true; break; }
@@ -45,12 +81,15 @@ class ElementImpl
 					case EConst(CInt(value)): return value;
 					default: return "";
 				}
-			} else return "";
-		} else return null;
+			}
+			else return "";
+		}
+		else return null;
 	}
-	static var allowForBuffer = [{ name:":allow", params:[macro peote.view], pos:Context.currentPos()}];
 	
-	static function genVar(type:ComplexType, name:String, value:Dynamic, isConstant:Bool = false) {
+	static var allowForBuffer = [{name:":allow", params:[macro peote.view], pos:Context.currentPos()}];
+	
+	static inline function genVar(type:ComplexType, name:String, value:Dynamic, isConstant:Bool = false) {
 		if (fieldnames.indexOf(name) == -1) {
 			fields.push({
 				name:  name,
@@ -62,7 +101,7 @@ class ElementImpl
 		}
 	}
 	
-	static function genConstGetter(type:ComplexType, name:String, value:Dynamic) {
+	static inline function genConstGetter(type:ComplexType, name:String, value:Dynamic) {
 		if (fieldnames.indexOf("get_"+name) == -1)
 			fields.push({
 				name: "get_"+name,
@@ -77,7 +116,7 @@ class ElementImpl
 			});
 	}
 	
-	static function genSetter(v:Dynamic) {trace("GEN SETTER:", v);
+	static inline function genSetter(v:Dynamic) {
 		if (fieldnames.indexOf("set_"+v.name) == -1)
 			fields.push({
 				name: "set_"+v.name,
@@ -92,26 +131,7 @@ class ElementImpl
 			});
 	}
 	
-	static var glConf = {
-		isPICK:false,
-		UNIFORM_TIME:"",
-		ATTRIB_TIME:"", ATTRIB_SIZE:"", ATTRIB_POS:"", ATTRIB_COLOR:"",
-		OUT_COLOR:"", IN_COLOR:"",
-		FRAGMENT_CALC_COLOR:"",
-		CALC_TIME:"", CALC_SIZE:"", CALC_POS:"", CALC_COLOR:""
-	};
-	
-	static var conf = {
-		posX  :{ vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },
-		posY  :{ vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },		
-		sizeX :{ vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },
-		sizeY :{ vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },
-		color :{ vStart:0xFF000000, vEnd:0xFF000000, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },
-		
-	};
-		
-	static var setFun :StringMap<Dynamic> = new StringMap<Dynamic>();
-	static function checkSet(f:Field, isAnim:Bool = false, isAnimStart:Bool = false, isAnimEnd:Bool = false )
+	static inline function checkSet(f:Field, isAnim:Bool = false, isAnimStart:Bool = false, isAnimEnd:Bool = false )
 	{
 		var param:String = getMetaParam(f, "set");
 		if (param != null) {
@@ -122,19 +142,18 @@ class ElementImpl
 				setFun.set( param, v);
 			}
 			var name:String = f.name;
-			var nameStart:String = name + "Start";
-			var nameEnd:String = name + "End";
 			v.args.push( {name:name, type:macro:Int} ); // todo: default param
 			if (!isAnim) v.expr.push( macro this.$name = $i{name} );
 			else {
+				var nameStart:String = name + "Start";
+				var nameEnd:String = name + "End";
 				if (isAnimStart) v.expr.push( macro this.$nameStart = $i{name} );
 				if (isAnimEnd)   v.expr.push( macro this.$nameEnd   = $i{name} );
 			}
 		}		
 	}
 	
-	static var animFun:StringMap<Dynamic> = new StringMap<Dynamic>();
-	static function checkAnim(f:Field, isAnimStart:Bool = false, isAnimEnd:Bool = false)
+	static inline function checkAnim(f:Field, isAnimStart:Bool, isAnimEnd:Bool)
 	{
 		var param:String = getMetaParam(f, "anim");
 		if (param != null) {
@@ -144,27 +163,25 @@ class ElementImpl
 				v = {argsStart:[], argsEnd:[], exprStart:[], exprEnd:[]};
 				animFun.set( param, v);
 			}			
-			var nameStart:String = f.name + "Start";
-			var nameEnd:String   = f.name + "End";
 			if (isAnimStart) {
+				var nameStart:String = f.name + "Start";
 				v.argsStart.push( {name:nameStart, type:macro:Int} ); // todo: default param
 				v.exprStart.push( macro this.$nameStart   = $i{nameStart} );
 			}
 			if (isAnimEnd) {
+				var nameEnd:String   = f.name + "End";
 				v.argsEnd.push( {name:nameEnd, type:macro:Int} ); // todo: default param
 				v.exprEnd.push( macro this.$nameEnd   = $i{nameEnd} );
 			}
 		}		
 	}
 
-	static var constGetterFun:Array<Dynamic> = new Array<Dynamic>();
-	static function addConstGetter(type:ComplexType, name:String, value:Dynamic)
+	static inline function addConstGetter(type:ComplexType, name:String, value:Dynamic)
 	{
-		constGetterFun.push({type:type, name:name, value:value});
+		getterFun.push({type:type, name:name, value:value});
 	}
 
-	static var setterFun:Array<Dynamic> = new Array<Dynamic>();
-	static function addSetter(type:ComplexType, name:String, isStart:Bool = false, isEnd:Bool = false)
+	static inline function addSetter(type:ComplexType, name:String, isStart:Bool, isEnd:Bool)
 	{
 		var v = {type:type, name:name, expr:[]};
 		var nameEnd:String   = name + "End";
@@ -175,9 +192,8 @@ class ElementImpl
 		setterFun.push(v);
 	}
 	
-	static var timers:Array<String> = [];
 	
-	static function checkMetas(f:Field, expectedType:String, type:ComplexType, val:Expr, confItem:Dynamic)
+	static inline function checkMetas(f:Field, expectedType:String, type:ComplexType, val:Expr, confItem:ConfSubParam)
 	{
 		if (confItem.name == "") confItem.name = f.name;
 		else throw Context.error('Error: attribute already defined for ${confItem.name}', f.pos);
@@ -223,9 +239,9 @@ class ElementImpl
 			if (confItem.isStart || confItem.isEnd) {
 				checkSet(f, true, confItem.isStart, confItem.isEnd);
 				checkAnim(f, confItem.isStart, confItem.isEnd);
-			}
-			f.kind = FieldType.FProp("never", "set", type);
-			addSetter(type, f.name, confItem.isStart, confItem.isEnd);			
+				f.kind = FieldType.FProp("never", "set", type);
+				addSetter(type, f.name, confItem.isStart, confItem.isEnd);			
+			} else f.kind = FieldType.FProp("never", "never", type);
 		} 
 		else {
 			param = getMetaParam(f, "const");
@@ -243,7 +259,7 @@ class ElementImpl
 		//trace(confItem);
 	}
 	
-	public static function configure(f:Field, type:ComplexType, val:Expr, getter:String=null, setter:String=null)
+	static inline function configure(f:Field, type:ComplexType, val:Expr, getter:String=null, setter:String=null)
 	{
 		// trace(type, val, getter, setter);
 		if      ( hasMeta(f, "posX")  ) checkMetas(f, "Int", type, val, conf.posX);
@@ -257,17 +273,52 @@ class ElementImpl
 	
 	// -------------------------------------- BUILD -------------------------------------------------
 
-	static var fieldnames = new Array<String>();	
-	static var fields = new Array<Field>();
+	static var setFun :StringMap<Dynamic>;
+	static var animFun:StringMap<Dynamic>;
+	
+	static var getterFun:Array<Dynamic>;
+	static var setterFun:Array<Dynamic>;
+	
+	static var timers:Array<String>;
+	
+	static var fieldnames:Array<String>;	
+	static var fields:Array<Field>;
+	
+	static var conf:ConfParam;
+	static var glConf:GLConfParam;	
+		
 	public static function build()
 	{
+		conf = {
+			posX :{ vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },
+			posY :{ vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },		
+			sizeX:{ vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },
+			sizeY:{ vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },
+			color:{ vStart:0xFF000000, vEnd:0xFF000000, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },			
+		};
+		glConf = {
+			isPICK:false,
+			UNIFORM_TIME:"",
+			ATTRIB_TIME:"", ATTRIB_SIZE:"", ATTRIB_POS:"", ATTRIB_COLOR:"",
+			OUT_COLOR:"", IN_COLOR:"",
+			FRAGMENT_CALC_COLOR:"",
+			CALC_TIME:"", CALC_SIZE:"", CALC_POS:"", CALC_COLOR:""
+		};		
+		setFun  = new StringMap<Dynamic>();
+		animFun = new StringMap<Dynamic>();
+		getterFun = new Array<Dynamic>();
+		setterFun = new Array<Dynamic>();
+		timers = new Array<String>();
+		fieldnames = new Array<String>();	
+		fields = new Array<Field>();
+		
 		var hasNoNew:Bool = true;		
 		var classname:String = Context.getLocalClass().get().name;
 		//var classpackage = Context.getLocalClass().get().pack;
-		trace("--------------- " + classname + " -------------------");
+		//trace("--------------- " + classname + " -------------------");
 		
 		// trace(Context.getLocalClass().get().superClass); 
-		trace("autogenerate shaders and attributes");
+		trace("generating Class: "+classname);
 
 		// TODO: childclasses!
 		
@@ -329,7 +380,7 @@ class ElementImpl
 		if (timers.length > 0) glConf.UNIFORM_TIME = "uniform float uTime;";
 		
 		// pack -----------------------------------------------------------------------
-		function pack2in1(name:String, x:Dynamic, y:Dynamic):String {
+		function pack2in1(name:String, x:ConfSubParam, y:ConfSubParam):String {
 			var start = name; var end = name;
 			var n:Int = x.n + y.n;
 			if (x.isStart && !y.isStart) {
@@ -379,14 +430,13 @@ class ElementImpl
 		
 		// ---------------------- generate helper vars and functions ---------------------------
 		for (t in timers) {
-			genVar(macro: Float, "time" + t + "Start",    0.0);
-			genVar(macro: Float, "time" + t + "Duration", 1.0);
-			
 			var name = camelCase("time", t);
+			genVar(macro:Float, name + "Start",    0.0);
+			genVar(macro:Float, name + "Duration", 1.0);
+			
 			if (fieldnames.indexOf(name) == -1)
 				fields.push({
 					name: name,
-					//meta:  allowForBuffer,
 					access: [Access.APublic], //, Access.AInline
 					pos: Context.currentPos(),
 					kind: FFun({
@@ -429,7 +479,7 @@ class ElementImpl
 		}
 		
 		// getters for constant values (non anim)
-		for (v in constGetterFun) genConstGetter(v.type, v.name, v.value);
+		for (v in getterFun) genConstGetter(v.type, v.name, v.value);
 		
 		// setters for anim
 		for (v in setterFun) genSetter(v);
@@ -460,16 +510,16 @@ class ElementImpl
 		
 		// ------------------------- calc buffer size ----------------------------------------
 		
-		var vertex_count = 6;
+		var vertex_count:Int = 6;
 		
-		var buff_size_instanced = timers.length * 8
+		var buff_size_instanced:Int = Std.int(timers.length * 8
 			+ 2 * (conf.posX.n  + conf.posY.n)
 			+ 2 * (conf.sizeX.n + conf.sizeY.n)
 			+ 4 *  conf.color.n
-		;
-		var fillStride_instanced = buff_size_instanced % 4; // this fix the stride offset-Problem
-		var fillStride = (buff_size_instanced + 2) % 4;
-		var buff_size = vertex_count * ( buff_size_instanced + 2 + fillStride);
+		);
+		var fillStride_instanced:Int = buff_size_instanced % 4; // this fix the stride offset-Problem
+		var fillStride:Int = (buff_size_instanced + 2) % 4;
+		var buff_size:Int = vertex_count * ( buff_size_instanced + 2 + fillStride);
 		
 		
 		// ---------------------- vertex count and bufsize -----------------------------------

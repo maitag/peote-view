@@ -15,18 +15,17 @@
   </output>
   <!-- Other classes to be compiled into your SWF -->
   <classpaths>
-    <class path="C:\HaxeToolkit\haxe\lib\lime\7,0,0\src" />
     <class path="src" />
     <class path="bin\html5\haxe" />
   </classpaths>
   <!-- Build options -->
   <build>
-    <option directives="lime=7.0.0&#xA;tools=7.0.0&#xA;lime-canvas&#xA;howlerjs&#xA;no-compilation&#xA;peoteview_instancedrawing&#xA;lime-webgl&#xA;webgl&#xA;peote_frag_medium_precision&#xA;lime-dom&#xA;lime-howlerjs&#xA;lime-html5&#xA;source-map-content&#xA;peote_vert_medium_precision&#xA;html5&#xA;web&#xA;html5&#xA;html&#xA;display" />
+    <option directives="lime=7.1.0&#xA;tools=7.1.0&#xA;sampleAnimation&#xA;lime-canvas&#xA;howlerjs&#xA;no-compilation&#xA;peoteview_instancedrawing&#xA;lime-webgl&#xA;webgl&#xA;lime-dom&#xA;lime-howlerjs&#xA;lime-html5&#xA;peoteview_uniformbuffers&#xA;html5&#xA;web&#xA;html5&#xA;html" />
     <option flashStrict="False" />
     <option noInlineOnDebug="False" />
     <option mainClass="ApplicationMain" />
     <option enabledebug="False" />
-    <option additional="--macro lime._internal.macros.DefineMacro.run()" />
+    <option additional="--macro lime._internal.macros.DefineMacro.run()&#xA;-dce full" />
   </build>
   <!-- haxelib libraries -->
   <haxelib>

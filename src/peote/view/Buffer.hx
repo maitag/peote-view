@@ -38,14 +38,14 @@ class BufferMacro
 		{
 			cache[className] = true;
 			var elemField = elementPack.concat([elementName]);
-					
+			/*		
 			trace("ClassName:"+className); // Buffer_ElementSimple
 			trace("classPackage:" + classPackage); // [peote,view]	
 			trace("ElementName:" + elementName);   // ElementSimple
 			trace("ElementPackage:" + elementPack);// [elements]
 			trace("ElementType:" + elementType); // TPath({ name => ElementSimple, pack => [elements], params => [] })
-			
-			trace('generating class: '+classPackage.concat([className]).join('.'));	
+			*/
+			trace('generating Class: '+classPackage.concat([className]).join('.'));	
 
 			var c = macro		
 // -------------------------------------------------------------------------------------------
