@@ -50,23 +50,31 @@ class ElementImpl
 	}
 	static var allowForBuffer = [{ name:":allow", params:[macro peote.view], pos:Context.currentPos()}];
 	
-	static function genVarInt(fields:Array<Field>, name:String, value:Int) {
-		if (fieldnames.indexOf(name) == -1)
+	static function genVar(type:ComplexType, fields:Array<Field>, name:String, value:Dynamic, isConstant:Bool = false) {
+		if (fieldnames.indexOf(name) == -1) {
 			fields.push({
 				name:  name,
 				access:  [Access.APublic],
-				kind: FieldType.FVar( macro:Int, macro $v{value} ), 
+				kind: (isConstant) ? FieldType.FProp("get", "never", type) : FieldType.FVar( type, macro $v{value} ), 
 				pos: Context.currentPos(),
 			});
+			if (isConstant) genConstGetter(type, fields, name, value);
+		}
 	}
 	
-	static function genVarFloat(fields:Array<Field>, name:String, value:Float) {
+	static function genConstGetter(type:ComplexType, fields:Array<Field>, name:String, value:Dynamic) {
+		trace("GEN GETTER");
 		if (fieldnames.indexOf(name) == -1)
 			fields.push({
-				name:  name,
-				access:  [Access.APublic],
-				kind: FieldType.FVar( macro:Float, macro $v{value} ), 
+				name: "get_"+name,
+				access: [APublic, AInline],
 				pos: Context.currentPos(),
+				kind: FFun({
+					args: [],
+					expr: macro return $v{value},
+					params: [],
+					ret: type
+				})
 			});
 	}
 	
@@ -350,8 +358,8 @@ class ElementImpl
 		
 		// ---------------------- generate helper vars and functions ---------------------------
 		for (t in timers) {
-			genVarFloat(fields, "time" + t + "Start",    0.0);
-			genVarFloat(fields, "time" + t + "Duration", 1.0);
+			genVar(macro: Float, fields, "time" + t + "Start",    0.0);
+			genVar(macro: Float, fields, "time" + t + "Duration", 1.0);
 			
 			var name = camelCase("time", t);
 			if (fieldnames.indexOf(name) == -1)
@@ -401,27 +409,26 @@ class ElementImpl
 		
 		// start/end vars for animation attributes
 		if (conf.posX.isAnim) {
-			// todo: generate all but with (get, never) instead https://try.haxe.org/#5a3Cf
-			if (conf.posX.isStart) genVarInt(fields, conf.posX.name+"Start", conf.posX.vStart);
-			if (conf.posX.isEnd)   genVarInt(fields, conf.posX.name+"End",   conf.posX.vEnd);
+			genVar(macro:Int, fields, conf.posX.name+"Start", conf.posX.vStart, !conf.posX.isStart);
+			genVar(macro:Int, fields, conf.posX.name+"End",   conf.posX.vEnd,   !conf.posX.isEnd);
 		}
 		if (conf.posY.isAnim) {
-			if (conf.posY.isStart) genVarInt(fields, conf.posY.name+"Start", conf.posY.vStart);
-			if (conf.posY.isEnd)   genVarInt(fields, conf.posY.name+"End",   conf.posY.vEnd);
+			genVar(macro:Int, fields, conf.posY.name+"Start", conf.posY.vStart, !conf.posY.isStart);
+			genVar(macro:Int, fields, conf.posY.name+"End",   conf.posY.vEnd,   !conf.posY.isEnd);
 		}
 		
 		if (conf.sizeX.isAnim) {
-			if (conf.sizeX.isStart) genVarInt(fields, conf.sizeX.name+"Start", conf.sizeX.vStart);
-			if (conf.sizeX.isEnd)   genVarInt(fields, conf.sizeX.name+"End",   conf.sizeX.vEnd);
+			genVar(macro:Int, fields, conf.sizeX.name+"Start", conf.sizeX.vStart, !conf.sizeX.isStart);
+			genVar(macro:Int, fields, conf.sizeX.name+"End",   conf.sizeX.vEnd,   !conf.sizeX.isEnd);
 		}
 		if (conf.sizeY.isAnim) {
-			if (conf.sizeY.isStart) genVarInt(fields, conf.sizeY.name+"Start", conf.sizeY.vStart);
-			if (conf.sizeY.isEnd)   genVarInt(fields, conf.sizeY.name+"End",   conf.sizeY.vEnd);
+			genVar(macro:Int, fields, conf.sizeY.name+"Start", conf.sizeY.vStart, !conf.sizeY.isStart);
+			genVar(macro:Int, fields, conf.sizeY.name+"End",   conf.sizeY.vEnd,   !conf.sizeY.isEnd);
 		}
 		
 		if (conf.color.isAnim) {		
-			if (conf.color.isStart) genVarInt(fields, conf.color.name+"Start", conf.color.vStart); // TODO: uint?
-			if (conf.color.isEnd)   genVarInt(fields, conf.color.name+"End",   conf.color.vEnd);
+			genVar(macro:Int, fields, conf.color.name+"Start", conf.color.vStart, !conf.color.isStart); // TODO: uint?
+			genVar(macro:Int, fields, conf.color.name+"End",   conf.color.vEnd,   !conf.color.isEnd);
 		}
 		
 		// ------------------------- calc buffer size ----------------------------------------

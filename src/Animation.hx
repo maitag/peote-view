@@ -55,6 +55,8 @@ class Animation
 		
 		//element.cEnd = 0xF2441100;
 		element.animColor(0xF2441100);
+		trace(element.cStart);
+		trace(element.cEnd);
 		
 		buffer.updateElement(element);
 				
