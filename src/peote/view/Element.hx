@@ -301,6 +301,7 @@ class ElementImpl
 	static inline function configure(f:Field, type:ComplexType, val:Expr, getter:String=null, setter:String=null)
 	{
 		//trace(f.name, type, val, getter, setter);
+		// TODO: debug like "posX -> x" or "posX -> x, xStart -> setPos, setAnim...
 		if      ( hasMeta(f, "posX")  ) checkMetas(f, macro:Int, type, val, conf.posX, getter, setter);
 		else if ( hasMeta(f, "posY")  ) checkMetas(f, macro:Int, type, val, conf.posY, getter, setter);
 		else if ( hasMeta(f, "sizeX") ) checkMetas(f, macro:Int, type, val, conf.sizeX, getter, setter);
@@ -323,8 +324,9 @@ class ElementImpl
 	static var fields:Array<Field>;
 	
 	static var conf:ConfParam;
-	static var glConf:GLConfParam;	
-		
+	static var glConf:GLConfParam;
+	
+	//static var isChild:Bool = false;
 	// -------------------------------------- BUILD -------------------------------------------------
 	public static function build()
 	{
@@ -349,18 +351,17 @@ class ElementImpl
 		setterFun = new Array<Dynamic>();
 		timers = new Array<String>();
 		fieldnames = new Array<String>();	
-		fields = new Array<Field>();
+		fields = Context.getBuildFields();
 		
 		var hasNoNew:Bool = true;		
 		var classname:String = Context.getLocalClass().get().name;
 		//var classpackage = Context.getLocalClass().get().pack;
 		
-		// trace(Context.getLocalClass().get().superClass); 
-		debug('----- generating Class: $classname -----');
-
-		// TODO: childclasses!
+		// TODO: Errormsg; "defines had to be in superclass" if found some metas in fields
+		if (Context.getLocalClass().get().superClass != null) return fields;//isChild = true;
 		
-		fields = Context.getBuildFields();
+		debug('----- generating Class: $classname -----');
+		
 		for (f in fields)
 		{	
 			fieldnames.push(f.name);
@@ -458,18 +459,20 @@ class ElementImpl
 		debug("-- generate:");
 		
 		// add constructor ("new") if it is not there
-		if (hasNoNew) fields.push({
-			name: "new",
-			access: [Access.APublic],
-			pos: Context.currentPos(),
-			kind: FFun({
-				args: [],
-				expr: macro {},
-				params: [],
-				ret: null
-			})
-		});
-		debugLastField(fields);
+		if (hasNoNew) {
+			fields.push({
+				name: "new",
+				access: [Access.APublic],
+				pos: Context.currentPos(),
+				kind: FFun({
+					args: [],
+					expr: macro {},
+					params: [],
+					ret: null
+				})
+			});
+			debugLastField(fields);
+		}
 		
 		for (t in timers) {
 			var name = camelCase("time", t);

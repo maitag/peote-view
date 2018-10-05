@@ -1,5 +1,6 @@
 package;
 
+import ElementInherit;
 import lime.app.Application;
 import lime.graphics.RenderContext;
 import lime.ui.MouseButton;
@@ -16,6 +17,8 @@ typedef Sample = Multidisplay;
 typedef Sample = Multibuffer;
 #elseif (sampleAnimation)
 typedef Sample = Animation;
+#elseif (sampleElementInherit)
+typedef Sample = ElementInherit;
 #elseif (sampleGLPicking)
 typedef Sample = GLPicking;
 #end 
