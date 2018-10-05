@@ -60,14 +60,14 @@ class ElementImpl
 	
 	static inline function camelCase(a:String, b:String):String return a + b.substr(0, 1).toUpperCase() + b.substr(1);
 	
-	static inline function floatToString(value:Float):String {
+	static inline function toFloatString(value:Dynamic):String {
 		var s:String = Std.string(value);
 		return (s.indexOf('.') != -1) ? s : s + ".0";
 	}
 	
 	static inline function color2vec4(c:UInt):String {
-		return 'vec4(${floatToString(((c & 0xFF000000)>>24)/255)}, ${floatToString(((c & 0x00FF0000)>>16)/255)},' + 
-		            ' ${floatToString(((c & 0x0000FF00)>>8)/255)}, ${floatToString((c & 0x000000FF)/255)})';
+		return 'vec4(${toFloatString(((c & 0xFF000000)>>24)/255)}, ${toFloatString(((c & 0x00FF0000)>>16)/255)},' + 
+		            ' ${toFloatString(((c & 0x0000FF00)>>8)/255)}, ${toFloatString((c & 0x000000FF)/255)})';
 	}
 	
 	static inline function hasMeta(f:Field, s:String):Bool {
@@ -409,22 +409,22 @@ class ElementImpl
 			var n:Int = x.n + y.n;
 			if (x.isStart && !y.isStart) {
 				if (n > 1) { start += ".x"; end += ".y"; }
-				start = 'vec2( $start, ${y.vStart}.0 )';
+				start = 'vec2( $start, ${toFloatString(y.vStart)} )';
 			}
 			else if (!x.isStart && y.isStart) {
 				if (n > 1) { start += ".x"; end += ".y"; }
-				start = 'vec2( ${x.vStart}.0, $start )';
+				start = 'vec2( ${toFloatString(x.vStart)}, $start )';
 			}
 			else if (!x.isStart && !y.isStart)
-				start= 'vec2( ${x.vStart}.0, ${y.vStart}.0 )';
+				start= 'vec2( ${toFloatString(x.vStart)}, ${toFloatString(y.vStart)} )';
 			else if (n > 2) {
 				start += ".xy"; end += ".z";
 			}
 			// ANIM
 			if (x.isAnim || y.isAnim) {
-				if (x.isEnd && !y.isEnd)       end = 'vec2( $end, ${y.vEnd}.0 )';
-				else if (!x.isEnd && y.isEnd)  end = 'vec2( ${x.vEnd}.0, $end )';
-				else if (!x.isEnd && !y.isEnd) end = 'vec2( ${x.vEnd}.0, ${y.vEnd}.0 )';
+				if (x.isEnd && !y.isEnd)       end = 'vec2( $end, ${toFloatString(y.vEnd)} )';
+				else if (!x.isEnd && y.isEnd)  end = 'vec2( ${toFloatString(x.vEnd)}, $end )';
+				else if (!x.isEnd && !y.isEnd) end = 'vec2( ${toFloatString(x.vEnd)}, ${toFloatString(y.vEnd)} )';
 				else {
 					if      (end == name+".y") end += "z";
 					else if (end == name+".z") end += "w";
@@ -437,11 +437,11 @@ class ElementImpl
 			} else return start;
 		}
 		
+		// size
 		glConf.CALC_SIZE = "vec2 size = aPosition * " + pack2in1("aSize", conf.sizeX, conf.sizeY) + ";";
+		// pos
 		glConf.CALC_POS  = "vec2 pos  = size + "      + pack2in1("aPos" , conf.posX,  conf.posY ) + ";";
-		
-		
-		// TODO: put in a function
+		// color
 		if (conf.color.name != "") {
 			var start = (conf.color.isStart) ? "aColorStart.wzyx" : color2vec4(conf.color.vStart);
 			if (conf.color.isAnim) {
@@ -451,6 +451,8 @@ class ElementImpl
 			glConf.CALC_COLOR = 'vColor = $start;';
 			glConf.FRAGMENT_CALC_COLOR = "vColor"; // TODO: methods for texel-recoloring
 		} else glConf.FRAGMENT_CALC_COLOR = color2vec4(conf.color.vStart);
+		
+		// rotation
 		
 		// ---------------------- generate helper vars and functions ---------------------------
 		debug("-- generate:");
