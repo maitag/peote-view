@@ -7,13 +7,15 @@ import lime.ui.KeyCode;
 import lime.ui.KeyModifier;
 import lime.ui.MouseButton;
 
+import elements.ElementAnim;
+
+
 import peote.view.PeoteView;
 import peote.view.Display;
 import peote.view.Buffer;
 import peote.view.Program;
 //import peote.view.Texture;
 
-import elements.ElementAnim;
 
 class Animation 
 {
@@ -60,20 +62,16 @@ class Animation
 			element.animSize(50,50,100,100);
 			element.timeSize(3 , 1);
 			buffer.updateElement(element);
-		}, 1000);
-		Timer.delay(function() {
-			//element.setPosSize(300, 100, 100, 100);	
-			element.x = 300;
-			element.c = 0xFFFFFF00;
-			buffer.updateElement(element);
-		}, 5000);
-		
+		}, 1000);		
 	}
 	
 	// ---------------------------------------------------------------
 	
 	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
 	{
+		element.x += 100;
+		element.c = 0xFFFFFF00;
+		buffer.updateElement(element);
 	}
 
 	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void

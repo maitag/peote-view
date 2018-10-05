@@ -37,6 +37,8 @@
 	<haxedef name="peoteview_instancedrawing" />
 
 
+	<haxedef name="peoteview_debug_macro" />
+
 	<!-- -Dwebgl -debug -->
 	<!-- <haxedef name="source-map-content" /> -->
 	<haxeflag name="-dce" value="full" />

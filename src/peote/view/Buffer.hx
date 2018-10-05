@@ -38,6 +38,8 @@ class BufferMacro
 		{
 			cache[className] = true;
 			var elemField = elementPack.concat([elementName]);
+			#if peoteview_debug_macro
+			trace('generating Class: '+classPackage.concat([className]).join('.'));	
 			/*		
 			trace("ClassName:"+className); // Buffer_ElementSimple
 			trace("classPackage:" + classPackage); // [peote,view]	
@@ -45,7 +47,7 @@ class BufferMacro
 			trace("ElementPackage:" + elementPack);// [elements]
 			trace("ElementType:" + elementType); // TPath({ name => ElementSimple, pack => [elements], params => [] })
 			*/
-			trace('generating Class: '+classPackage.concat([className]).join('.'));	
+			#end
 
 			var c = macro		
 // -------------------------------------------------------------------------------------------
@@ -294,7 +296,7 @@ class $className implements BufferInterface
 			//Context.defineModule(classPackage.concat([className]).join('.'),[c],Context.getLocalImports());
 			Context.defineModule(classPackage.concat([className]).join('.'),[c]);
 			//Context.defineType(c);
-		}	
+		}
 		return TPath({ pack:classPackage, name:className, params:[] });
 	}
 }

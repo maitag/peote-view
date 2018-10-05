@@ -22,7 +22,7 @@ typedef ConfParam =
 }
 typedef ConfSubParam =
 {
-	vStart:Int, vEnd:Int, n:Int, isAnim:Bool, name:String, isStart:Bool, isEnd:Bool, time:String,
+	vStart:Dynamic, vEnd:Dynamic, n:Int, isAnim:Bool, name:String, isStart:Bool, isEnd:Bool, time:String,
 }
 
 typedef GLConfParam =
@@ -36,6 +36,16 @@ typedef GLConfParam =
 
 class ElementImpl
 {
+	static inline function debug(s:String):Void	{
+		#if peoteview_debug_macro
+		trace(s);
+		#end
+	}
+	static inline function debugLastField(fields:Array<Field>):Void	{
+		#if peoteview_debug_macro
+		trace(new Printer().printField(fields[fields.length - 1]));
+		#end
+	}
 	/*
 	static var rComments:EReg = new EReg("//.*?$","gm");
 	static var rEmptylines:EReg = new EReg("([ \t]*\r?\n)+", "g");
@@ -97,12 +107,13 @@ class ElementImpl
 				kind: (isConstant) ? FieldType.FProp("get", "never", type) : FieldType.FVar( type, macro $v{value} ), 
 				pos: Context.currentPos(),
 			});
+			debugLastField(fields);
 			if (isConstant) genConstGetter(type, name, value);
 		}
 	}
 	
 	static inline function genConstGetter(type:ComplexType, name:String, value:Dynamic) {
-		if (fieldnames.indexOf("get_"+name) == -1)
+		if (fieldnames.indexOf("get_"+name) == -1) {
 			fields.push({
 				name: "get_"+name,
 				access: [Access.APrivate, Access.AInline],
@@ -114,10 +125,12 @@ class ElementImpl
 					ret: type
 				})
 			});
+			debugLastField(fields);
+		}
 	}
 	
 	static inline function genSetter(v:Dynamic) {
-		if (fieldnames.indexOf("set_"+v.name) == -1)
+		if (fieldnames.indexOf("set_"+v.name) == -1) {
 			fields.push({
 				name: "set_"+v.name,
 				access: [Access.APrivate, Access.AInline],
@@ -129,6 +142,8 @@ class ElementImpl
 					ret: v.type
 				})
 			});
+			debugLastField(fields);
+		}
 	}
 	
 	static inline function checkSet(f:Field, isAnim:Bool = false, isAnimStart:Bool = false, isAnimEnd:Bool = false )
@@ -142,7 +157,7 @@ class ElementImpl
 				setFun.set( param, v);
 			}
 			var name:String = f.name;
-			v.args.push( {name:name, type:macro:Int} ); // todo: default param
+			v.args.push( {name:name, type:macro:Int} );
 			if (!isAnim) v.expr.push( macro this.$name = $i{name} );
 			else {
 				var nameStart:String = name + "Start";
@@ -165,12 +180,12 @@ class ElementImpl
 			}			
 			if (isAnimStart) {
 				var nameStart:String = f.name + "Start";
-				v.argsStart.push( {name:nameStart, type:macro:Int} ); // todo: default param
+				v.argsStart.push( {name:nameStart, type:macro:Int} );
 				v.exprStart.push( macro this.$nameStart   = $i{nameStart} );
 			}
 			if (isAnimEnd) {
 				var nameEnd:String   = f.name + "End";
-				v.argsEnd.push( {name:nameEnd, type:macro:Int} ); // todo: default param
+				v.argsEnd.push( {name:nameEnd, type:macro:Int} );
 				v.exprEnd.push( macro this.$nameEnd   = $i{nameEnd} );
 			}
 		}		
@@ -193,28 +208,38 @@ class ElementImpl
 	}
 	
 	
-	static inline function checkMetas(f:Field, expectedType:String, type:ComplexType, val:Expr, confItem:ConfSubParam)
+	static inline function checkMetas(f:Field, expectedType:ComplexType, type:ComplexType, val:Expr, confItem:ConfSubParam, getter:String, setter:String)
 	{
 		if (confItem.name == "") confItem.name = f.name;
-		else throw Context.error('Error: attribute already defined for ${confItem.name}', f.pos);
+		else throw Context.error('Error: attribute already defined for "${f.name}"', f.pos);
 		
-		// TODO: check that type is equal to expected type
-		// TODO: check that type is NOT Access.AStatic
+		if (f.access.indexOf(Access.AStatic) != -1) throw Context.error('Error: "${f.name}" can not be static', f.pos);
 		
+		var printer = new Printer();
+		var expType:String = printer.printComplexType(expectedType);
+		//trace('var ${f.name}:${(type==null)? null : printer.printComplexType(type)} - expected type:${expType}');
+		
+		if (type == null) {
+			type = expectedType; debug('set type of ${f.name} to ${printer.printComplexType(expectedType)}');
+			f.kind = FieldType.FVar( type, val );
+		}
+		else if (printer.printComplexType(type) != expType) throw Context.error('Error: type of "${f.name}" should be ${ printer.printComplexType(expectedType) }', f.pos);
+				
 		var defaultVal:Dynamic;
 		if (val != null) {
+			var v = ExprTools.getValue(val);
+			if (expType=="Int" && Type.typeof(v) != Type.ValueType.TInt)
+				throw Context.error('Error: init value "$v" for "${f.name}" had to be Int', f.pos);
+			else if (expType=="Float" && Type.typeof(v) != Type.ValueType.TFloat)
+				throw Context.error('Error: init value "$v" for "${f.name}" had to be Float', f.pos);
 			defaultVal = ExprTools.getValue(val);
-			/*switch (val.expr) {
-				case (EConst(CInt(v))):   t = "Int"; defaultVal = v;
-				case (EConst(CFloat(v))): t = "Float"; defaultVal = v;
-				default:
-			}*/
 		} else {
-			defaultVal = confItem.vStart;
-			f.kind = FieldType.FVar( macro: $type, macro $v{defaultVal} );
+			defaultVal = confItem.vStart; debug('set default value of ${f.name} to ${(macro $v{defaultVal}).expr}');
+			f.kind = FieldType.FVar( type, macro $v{defaultVal} );
 		}
 		
-		var param = getMetaParam(f, "time"); // TODO: if only @anim is set use this identifier instead
+		var param = getMetaParam(f, "time");
+		if (param == null) param = getMetaParam(f, "anim"); // if no @time exists, use @anim instead
 		if (param != null) {
 			confItem.isAnim = true;
 			if (timers.indexOf(param) == -1) timers.push( param );
@@ -222,7 +247,7 @@ class ElementImpl
 			param = getMetaParam(f, "constStart");
 			if (param != null) {
 				if (param == "") confItem.vStart = defaultVal;
-				else confItem.vStart = Std.parseInt(param); // TODO: other types
+				else confItem.vStart = (expType=="Int") ? Std.parseInt(param) : Std.parseFloat(param);
 			} else {
 				confItem.isStart = true;
 				confItem.n++;
@@ -230,7 +255,7 @@ class ElementImpl
 			param = getMetaParam(f, "constEnd");
 			if (param != null) {
 				if (param == "") confItem.vEnd = defaultVal;
-				else confItem.vEnd = Std.parseInt(param); // TODO: other types
+				else confItem.vEnd = (expType=="Int") ? Std.parseInt(param) : Std.parseFloat(param);
 				if (confItem.vStart == confItem.vEnd) throw Context.error('Error: it is senseless to animate if @constStart == @constEnd', f.pos);
 			} else {
 				confItem.isEnd = true;
@@ -239,17 +264,31 @@ class ElementImpl
 			if (confItem.isStart || confItem.isEnd) {
 				checkSet(f, true, confItem.isStart, confItem.isEnd);
 				checkAnim(f, confItem.isStart, confItem.isEnd);
-				f.kind = FieldType.FProp("never", "set", type);
-				addSetter(type, f.name, confItem.isStart, confItem.isEnd);			
-			} else f.kind = FieldType.FProp("never", "never", type);
+				if (getter == "null" || getter == "default")
+					throw Context.error('Error: for ${f.name}-getter use "never" or "get" for custom getter-function', f.pos);
+				// todo: generate new function "getCurrentX(time:Float)" to get relative value
+				if (setter == "null")
+					throw Context.error('Error: for ${f.name}-setter use "never" or "set".\nFor "default" a setter will be generated automatically that sets ${(confItem.isStart) ? f.name+"Start": ""} ${(confItem.isEnd) ? f.name+"End": ""} .', f.pos);
+				f.kind = FieldType.FProp( (getter == null || getter == "never") ? "never" : getter,
+				                          (setter == null || setter == "default") ? "set" : setter, type);
+				if (setter == null || setter == "default") addSetter(type, f.name, confItem.isStart, confItem.isEnd);
+			} else {
+				if ((getter != null && getter != "never") || (setter != null && setter != "never"))
+					throw Context.error('Error: for constant start/end-values ${f.name} getter and setter has to be "never"', f.pos);
+				f.kind = FieldType.FProp("never", "never", type);
+			}
 		} 
 		else {
 			param = getMetaParam(f, "const");
 			if (param != null) {
 				if (param == "") confItem.vStart = defaultVal;
-				else confItem.vStart = Std.parseInt(param); // TODO: other types				
-				f.kind = FieldType.FProp("get", "never", type);
-				addConstGetter(type, f.name, confItem.vStart);
+				else confItem.vStart = (expType=="Int") ? Std.parseInt(param) : Std.parseFloat(param);
+				if (getter == "null")
+					throw Context.error('Error: for constant ${f.name} the getter has to be "default", "never" or "get"', f.pos);
+				if (setter != null && setter != "never")
+					throw Context.error('Error: for constant ${f.name} the setter has to be "never"', f.pos);
+				f.kind = FieldType.FProp( (getter == null || getter == "default") ? "get" : getter, "never", type);
+				if (getter == null || getter == "default") addConstGetter(type, f.name, confItem.vStart);
 			} else {
 				confItem.isStart = true;
 				checkSet(f);
@@ -261,17 +300,16 @@ class ElementImpl
 	
 	static inline function configure(f:Field, type:ComplexType, val:Expr, getter:String=null, setter:String=null)
 	{
-		// trace(type, val, getter, setter);
-		if      ( hasMeta(f, "posX")  ) checkMetas(f, "Int", type, val, conf.posX);
-		else if ( hasMeta(f, "posY")  ) checkMetas(f, "Int", type, val, conf.posY);
-		else if ( hasMeta(f, "sizeX") ) checkMetas(f, "Int", type, val, conf.sizeX);
-		else if ( hasMeta(f, "sizeY") ) checkMetas(f, "Int", type, val, conf.sizeY);
-		else if ( hasMeta(f, "color") ) checkMetas(f, "Int", type, val, conf.color);
+		//trace(f.name, type, val, getter, setter);
+		if      ( hasMeta(f, "posX")  ) checkMetas(f, macro:Int, type, val, conf.posX, getter, setter);
+		else if ( hasMeta(f, "posY")  ) checkMetas(f, macro:Int, type, val, conf.posY, getter, setter);
+		else if ( hasMeta(f, "sizeX") ) checkMetas(f, macro:Int, type, val, conf.sizeX, getter, setter);
+		else if ( hasMeta(f, "sizeY") ) checkMetas(f, macro:Int, type, val, conf.sizeY, getter, setter);
+		else if ( hasMeta(f, "color") ) checkMetas(f, macro:Int, type, val, conf.color, getter, setter);
 		// TODO
 		// rotation, pivot
 	}
 	
-	// -------------------------------------- BUILD -------------------------------------------------
 
 	static var setFun :StringMap<Dynamic>;
 	static var animFun:StringMap<Dynamic>;
@@ -287,6 +325,7 @@ class ElementImpl
 	static var conf:ConfParam;
 	static var glConf:GLConfParam;	
 		
+	// -------------------------------------- BUILD -------------------------------------------------
 	public static function build()
 	{
 		conf = {
@@ -315,10 +354,9 @@ class ElementImpl
 		var hasNoNew:Bool = true;		
 		var classname:String = Context.getLocalClass().get().name;
 		//var classpackage = Context.getLocalClass().get().pack;
-		//trace("--------------- " + classname + " -------------------");
 		
 		// trace(Context.getLocalClass().get().superClass); 
-		trace("generating Class: "+classname);
+		debug('----- generating Class: $classname -----');
 
 		// TODO: childclasses!
 		
@@ -336,21 +374,7 @@ class ElementImpl
 
 		}
 		
-		// add constructor ("new") if it is not there
-		if (hasNoNew) fields.push({
-			name: "new",
-			access: [Access.APublic],
-			pos: Context.currentPos(),
-			kind: FFun({
-				args: [],
-				expr: macro {},
-				params: [],
-				ret: null
-			})
-		});
-		
 		// --------------------- generate shader-template vars -------------------------------
-
 		for (i in 0...Std.int((timers.length + 1) / 2)) {
 			if ((i == Std.int(timers.length / 2)) && (timers.length % 2 != 0))
 			     glConf.ATTRIB_TIME += '::IN:: vec2 aTime$i;';
@@ -429,12 +453,27 @@ class ElementImpl
 		} else glConf.FRAGMENT_CALC_COLOR = color2vec4(conf.color.vStart);
 		
 		// ---------------------- generate helper vars and functions ---------------------------
+		debug("-- generate:");
+		
+		// add constructor ("new") if it is not there
+		if (hasNoNew) fields.push({
+			name: "new",
+			access: [Access.APublic],
+			pos: Context.currentPos(),
+			kind: FFun({
+				args: [],
+				expr: macro {},
+				params: [],
+				ret: null
+			})
+		});
+		debugLastField(fields);
+		
 		for (t in timers) {
 			var name = camelCase("time", t);
 			genVar(macro:Float, name + "Start",    0.0);
 			genVar(macro:Float, name + "Duration", 1.0);
-			
-			if (fieldnames.indexOf(name) == -1)
+			if (fieldnames.indexOf(name) == -1) {
 				fields.push({
 					name: name,
 					access: [Access.APublic], //, Access.AInline
@@ -448,10 +487,12 @@ class ElementImpl
 						ret: null
 					})
 				});
+				debugLastField(fields);
+			}
 		}
 		// @set
 		for (name in setFun.keys()) {
-			if (fieldnames.indexOf(name) == -1)
+			if (fieldnames.indexOf(name) == -1) {
 				fields.push({
 					name: name,
 					access: [Access.APublic], //, Access.AInline
@@ -462,10 +503,12 @@ class ElementImpl
 						ret: null
 					})
 				});
+				debugLastField(fields);
+			}
 		}
 		// @anim
 		for (name in animFun.keys()) {
-			if (fieldnames.indexOf(name) == -1)
+			if (fieldnames.indexOf(name) == -1) {
 				fields.push({
 					name: name,
 					access: [Access.APublic], //, Access.AInline
@@ -476,6 +519,8 @@ class ElementImpl
 						ret: null
 					})
 				});
+				debugLastField(fields);
+			}
 		}
 		
 		// getters for constant values (non anim)
@@ -508,8 +553,7 @@ class ElementImpl
 			genVar(macro:Int, conf.color.name+"End",   conf.color.vEnd,   !conf.color.isEnd);
 		}
 		
-		// ------------------------- calc buffer size ----------------------------------------
-		
+		// ------------------------- calc buffer size ----------------------------------------		
 		var vertex_count:Int = 6;
 		
 		var buff_size_instanced:Int = Std.int(timers.length * 8
@@ -519,8 +563,7 @@ class ElementImpl
 		);
 		var fillStride_instanced:Int = buff_size_instanced % 4; // this fix the stride offset-Problem
 		var fillStride:Int = (buff_size_instanced + 2) % 4;
-		var buff_size:Int = vertex_count * ( buff_size_instanced + 2 + fillStride);
-		
+		var buff_size:Int = vertex_count * ( buff_size_instanced + 2 + fillStride);		
 		
 		// ---------------------- vertex count and bufsize -----------------------------------
 		fields.push({
