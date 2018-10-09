@@ -1,5 +1,6 @@
 package;
 
+#if sampleAnimation
 import haxe.Timer;
 
 import lime.ui.Window;
@@ -40,8 +41,7 @@ class Animation
 		
 		peoteView.start();
 		
-		element.setPosSize(20, 10, 50, 50);
-		
+		element.setPosSize(20, 0, 50, 50);
 		//element.x = 10;
 		//element.xStart = 0;
 		//element.xEnd = 110;
@@ -50,6 +50,8 @@ class Animation
 		//element.yStart =110;
 		//element.yEnd = 10;
 		element.animPosition(10, 400);
+		element.setPivot(25, 25);
+		element.animRotation(0, 45);
 		
 		//element.timePositionStart = 0;
 		//element.timePositionDuration = 3;
@@ -60,9 +62,11 @@ class Animation
 				
 		Timer.delay(function() {
 			element.animSize(50,50,100,100);
+			element.animPivot(25, 25, 50, 0);
+			element.animRotation(45, -90);
 			element.timeSize(3 , 1);
 			buffer.updateElement(element);
-		}, 1000);		
+		}, 2000);
 	}
 	
 	// ---------------------------------------------------------------
@@ -93,3 +97,4 @@ class Animation
 	}
 
 }
+#end

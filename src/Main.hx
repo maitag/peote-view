@@ -9,17 +9,17 @@ import lime.ui.Touch;
 import lime.ui.KeyCode;
 import lime.ui.KeyModifier;
 
-#if (sampleTest)
+#if sampleTest
 typedef Sample = Test;
-#elseif (sampleMultidisplay)
+#elseif sampleMultidisplay
 typedef Sample = Multidisplay;
-#elseif (sampleMultibuffer)
+#elseif sampleMultibuffer
 typedef Sample = Multibuffer;
-#elseif (sampleAnimation)
+#elseif sampleAnimation
 typedef Sample = Animation;
-#elseif (sampleElementInherit)
+#elseif sampleElementInherit
 typedef Sample = ElementInherit;
-#elseif (sampleGLPicking)
+#elseif sampleGLPicking
 typedef Sample = GLPicking;
 #end 
 

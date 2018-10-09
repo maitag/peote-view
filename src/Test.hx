@@ -1,5 +1,5 @@
 package;
-
+#if sampleTest
 import haxe.Timer;
 
 import lime.ui.Window;
@@ -77,3 +77,4 @@ class Test
 	}
 
 }
+#end

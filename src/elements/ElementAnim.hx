@@ -22,18 +22,22 @@ class ElementAnim implements Element
 	@color @anim("Color") @time("Position") // @constStart(0xFF112200) @constEnd(0x0000FE00) 
 	public var c:Int; // TODO: different coloring methods and gradients
 	
-	// TODO
-	/*
 	// Rotation around pivot point
-	@rotation
-	public var r:Float = 45.4;
+	@rotation @anim("Rotation") @time("Size") 
+	public var r:Float;
 	
-	@pivotX 
-	// pivot x (position offset)
+	// pivot x (rotation offset)
+	@pivotX @anim("Pivot") @set("Pivot") @time("Size") 
 	public var px:Int = 0;
-	@pivotY
-	// pivot y (position offset)
+
+	// pivot y (rotation offset)
+	@pivotY @anim("Pivot") @set("Pivot") @time("Size") 
 	public var py:Int = 0;
-	*/
+	
+	// z-index
+	@zIndex @const(1) // max 0x3FFFFFFF , min -0xC0000000
+	public var z:Int = 0;
+	
+	// TODO: textures
 	
 }

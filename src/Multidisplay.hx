@@ -1,5 +1,6 @@
 package;
 
+#if sampleMultidisplay
 import haxe.Timer;
 
 import lime.ui.Window;
@@ -117,3 +118,4 @@ class Multidisplay
 	}
 
 }
+#end

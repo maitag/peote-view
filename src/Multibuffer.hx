@@ -1,5 +1,6 @@
 package;
 
+#if sampleMultibuffer
 import haxe.Timer;
 
 import lime.ui.Window;
@@ -82,3 +83,4 @@ class Multibuffer
 	}
 
 }
+#end

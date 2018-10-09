@@ -19,6 +19,10 @@ typedef ConfParam =
 	sizeX:ConfSubParam,
 	sizeY:ConfSubParam,
 	color:ConfSubParam,
+	pivotX:ConfSubParam,
+	pivotY:ConfSubParam,
+	rotation:ConfSubParam,
+	zIndex:ConfSubParam,
 }
 typedef ConfSubParam =
 {
@@ -28,10 +32,10 @@ typedef ConfSubParam =
 typedef GLConfParam =
 {			isPICK:Bool,
 			UNIFORM_TIME:String,
-			ATTRIB_TIME:String, ATTRIB_SIZE:String, ATTRIB_POS:String, ATTRIB_COLOR:String,
-			OUT_COLOR:String, IN_COLOR:String,
+			ATTRIB_TIME:String, ATTRIB_SIZE:String, ATTRIB_POS:String, ATTRIB_COLOR:String, ATTRIB_ROTZ:String, ATTRIB_PIVOT:String,
+			OUT_COLOR:String, IN_COLOR:String, ZINDEX:String,
 			FRAGMENT_CALC_COLOR:String,
-			CALC_TIME:String, CALC_SIZE:String, CALC_POS:String, CALC_COLOR:String,
+			CALC_TIME:String, CALC_SIZE:String, CALC_POS:String, CALC_COLOR:String, CALC_ROTZ:String, CALC_PIVOT:String,
 };
 
 class ElementImpl
@@ -62,7 +66,7 @@ class ElementImpl
 	
 	static inline function toFloatString(value:Dynamic):String {
 		var s:String = Std.string(value);
-		return (s.indexOf('.') != -1) ? s : s + ".0";
+		return (s.indexOf(".") != -1 || s.indexOf("e-") != -1) ? s : s + ".0";
 	}
 	
 	static inline function color2vec4(c:UInt):String {
@@ -146,7 +150,7 @@ class ElementImpl
 		}
 	}
 	
-	static inline function checkSet(f:Field, isAnim:Bool = false, isAnimStart:Bool = false, isAnimEnd:Bool = false )
+	static inline function checkSet(f:Field, type:ComplexType, isAnim:Bool = false, isAnimStart:Bool = false, isAnimEnd:Bool = false )
 	{
 		var param:String = getMetaParam(f, "set");
 		if (param != null) {
@@ -157,7 +161,7 @@ class ElementImpl
 				setFun.set( param, v);
 			}
 			var name:String = f.name;
-			v.args.push( {name:name, type:macro:Int} );
+			v.args.push( {name:name, type:type} );
 			if (!isAnim) v.expr.push( macro this.$name = $i{name} );
 			else {
 				var nameStart:String = name + "Start";
@@ -168,7 +172,7 @@ class ElementImpl
 		}		
 	}
 	
-	static inline function checkAnim(f:Field, isAnimStart:Bool, isAnimEnd:Bool)
+	static inline function checkAnim(f:Field, type:ComplexType, isAnimStart:Bool, isAnimEnd:Bool)
 	{
 		var param:String = getMetaParam(f, "anim");
 		if (param != null) {
@@ -180,12 +184,12 @@ class ElementImpl
 			}			
 			if (isAnimStart) {
 				var nameStart:String = f.name + "Start";
-				v.argsStart.push( {name:nameStart, type:macro:Int} );
+				v.argsStart.push( {name:nameStart, type:type} );
 				v.exprStart.push( macro this.$nameStart   = $i{nameStart} );
 			}
 			if (isAnimEnd) {
 				var nameEnd:String   = f.name + "End";
-				v.argsEnd.push( {name:nameEnd, type:macro:Int} );
+				v.argsEnd.push( {name:nameEnd, type:type} );
 				v.exprEnd.push( macro this.$nameEnd   = $i{nameEnd} );
 			}
 		}		
@@ -262,8 +266,8 @@ class ElementImpl
 				confItem.n++;
 			}
 			if (confItem.isStart || confItem.isEnd) {
-				checkSet(f, true, confItem.isStart, confItem.isEnd);
-				checkAnim(f, confItem.isStart, confItem.isEnd);
+				checkSet(f, type, true, confItem.isStart, confItem.isEnd);
+				checkAnim(f, type, confItem.isStart, confItem.isEnd);
 				if (getter == "null" || getter == "default")
 					throw Context.error('Error: for ${f.name}-getter use "never" or "get" for custom getter-function', f.pos);
 				// todo: generate new function "getCurrentX(time:Float)" to get relative value
@@ -291,7 +295,7 @@ class ElementImpl
 				if (getter == null || getter == "default") addConstGetter(type, f.name, confItem.vStart);
 			} else {
 				confItem.isStart = true;
-				checkSet(f);
+				checkSet(f, type);
 				confItem.n++;
 			}							
 		}
@@ -307,6 +311,10 @@ class ElementImpl
 		else if ( hasMeta(f, "sizeX") ) checkMetas(f, macro:Int, type, val, conf.sizeX, getter, setter);
 		else if ( hasMeta(f, "sizeY") ) checkMetas(f, macro:Int, type, val, conf.sizeY, getter, setter);
 		else if ( hasMeta(f, "color") ) checkMetas(f, macro:Int, type, val, conf.color, getter, setter);
+		else if ( hasMeta(f, "pivotX") ) checkMetas(f, macro:Int, type, val, conf.pivotX, getter, setter);
+		else if ( hasMeta(f, "pivotY") ) checkMetas(f, macro:Int, type, val, conf.pivotY, getter, setter);
+		else if ( hasMeta(f, "rotation") ) checkMetas(f, macro:Float, type, val, conf.rotation, getter, setter);
+		else if ( hasMeta(f, "zIndex") ) checkMetas(f, macro:Int, type, val, conf.zIndex, getter, setter);
 		// TODO
 		// rotation, pivot
 	}
@@ -336,14 +344,18 @@ class ElementImpl
 			sizeX:{ vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },
 			sizeY:{ vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },
 			color:{ vStart:0xFF000000, vEnd:0xFF000000, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },			
+			pivotX:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },			
+			pivotY:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },			
+			rotation:{ vStart:0.0, vEnd:0.0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },			
+			zIndex:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },			
 		};
 		glConf = {
 			isPICK:false,
 			UNIFORM_TIME:"",
-			ATTRIB_TIME:"", ATTRIB_SIZE:"", ATTRIB_POS:"", ATTRIB_COLOR:"",
-			OUT_COLOR:"", IN_COLOR:"",
+			ATTRIB_TIME:"", ATTRIB_SIZE:"", ATTRIB_POS:"", ATTRIB_COLOR:"", ATTRIB_ROTZ:"", ATTRIB_PIVOT:"",
+			OUT_COLOR:"", IN_COLOR:"", ZINDEX:"",
 			FRAGMENT_CALC_COLOR:"",
-			CALC_TIME:"", CALC_SIZE:"", CALC_POS:"", CALC_COLOR:""
+			CALC_TIME:"", CALC_SIZE:"", CALC_POS:"", CALC_COLOR:"", CALC_ROTZ:"", CALC_PIVOT:""
 		};		
 		setFun  = new StringMap<Dynamic>();
 		animFun = new StringMap<Dynamic>();
@@ -387,6 +399,10 @@ class ElementImpl
 		if (n > 0) glConf.ATTRIB_SIZE = '::IN:: ${ (n==1) ? "float" : "vec"+n} aSize;';
 		n = conf.posX.n + conf.posY.n;
 		if (n > 0) glConf.ATTRIB_POS  = '::IN:: ${ (n==1) ? "float" : "vec"+n } aPos;';
+		n = conf.pivotX.n + conf.pivotY.n;
+		if (n > 0) glConf.ATTRIB_PIVOT = '::IN:: ${ (n==1) ? "float" : "vec"+n } aPivot;';
+		n = conf.rotation.n + conf.zIndex.n;
+		if (n > 0) glConf.ATTRIB_ROTZ = '::IN:: ${ (n==1) ? "float" : "vec"+n } aRotZ;';
 		
 		if (conf.color.name != "") {
 			if (conf.color.isStart) glConf.ATTRIB_COLOR  = '::IN:: vec4 aColorStart;';
@@ -400,7 +416,7 @@ class ElementImpl
 			var t:String = "" + Std.int(i / 2);
 			var d:String = "" + Std.int(i/2);
 			if (i % 2 == 0) { t += ".x"; d += ".y"; } else { t += ".z"; d += ".w"; } 
-			glConf.CALC_TIME += 'float time$i = clamp( (uTime - aTime$t) / aTime$d, 0.0, 1.0);';
+			glConf.CALC_TIME += 'float time$i = clamp( (uTime - aTime$t) / aTime$d, 0.0, 1.0); ';
 		}
 		if (timers.length > 0) glConf.UNIFORM_TIME = "uniform float uTime;";
 		
@@ -440,8 +456,29 @@ class ElementImpl
 		
 		// size
 		glConf.CALC_SIZE = "vec2 size = aPosition * " + pack2in1("aSize", conf.sizeX, conf.sizeY) + ";";
+		
+		// rotation and zIndex
+		conf.zIndex.vStart /= 0x3FFFFFFF;
+		conf.zIndex.vEnd   /= 0x3FFFFFFF;
+		if (conf.rotation.n + conf.zIndex.n > 0) {
+			conf.rotation.vStart /= 180 * Math.PI;
+			conf.rotation.vEnd   /= 180 * Math.PI;
+			glConf.CALC_ROTZ  = "vec2 rotZ = " + pack2in1("aRotZ" , conf.rotation, conf.zIndex ) + ";";
+		}
+		if (conf.rotation.n > 0) {
+			var rotationmatrix = "mat2( vec2(cos(rotZ.x), -sin(rotZ.x)), vec2(sin(rotZ.x), cos(rotZ.x)) )";
+			if (conf.pivotX.n + conf.pivotY.n > 0) {
+				// pivot
+				glConf.CALC_PIVOT = "vec2 pivot = " + pack2in1("aPivot" , conf.pivotX,  conf.pivotY ) + ";";
+				glConf.CALC_ROTZ += ' size = (size-pivot) * $rotationmatrix + pivot;';
+			}
+			else glConf.CALC_ROTZ += ' size = size * $rotationmatrix;';
+		}
+		if (conf.zIndex.n > 0) glConf.ZINDEX = "rotZ.y" else glConf.ZINDEX = toFloatString(conf.zIndex.vStart);
+		
 		// pos
-		glConf.CALC_POS  = "vec2 pos  = size + "      + pack2in1("aPos" , conf.posX,  conf.posY ) + ";";
+		glConf.CALC_POS  = "vec2 pos  = size + " + pack2in1("aPos" , conf.posX,  conf.posY ) + ";";
+
 		// color
 		if (conf.color.name != "") {
 			var start = (conf.color.isStart) ? "aColorStart.wzyx" : color2vec4(conf.color.vStart);
@@ -453,7 +490,7 @@ class ElementImpl
 			glConf.FRAGMENT_CALC_COLOR = "vColor"; // TODO: methods for texel-recoloring
 		} else glConf.FRAGMENT_CALC_COLOR = color2vec4(conf.color.vStart);
 		
-		// rotation
+		// texcoord
 		
 		// ---------------------- generate helper vars and functions ---------------------------
 		debug("-- generate:");
@@ -552,7 +589,22 @@ class ElementImpl
 			genVar(macro:Int, conf.sizeY.name+"Start", conf.sizeY.vStart, !conf.sizeY.isStart);
 			genVar(macro:Int, conf.sizeY.name+"End",   conf.sizeY.vEnd,   !conf.sizeY.isEnd);
 		}
-		
+		if (conf.rotation.isAnim) {
+			genVar(macro:Float, conf.rotation.name+"Start", conf.rotation.vStart, !conf.rotation.isStart);
+			genVar(macro:Float, conf.rotation.name+"End",   conf.rotation.vEnd,   !conf.rotation.isEnd);
+		}
+		if (conf.zIndex.isAnim) {
+			genVar(macro:Int, conf.zIndex.name+"Start", conf.zIndex.vStart, !conf.zIndex.isStart);
+			genVar(macro:Int, conf.zIndex.name+"End",   conf.zIndex.vEnd,   !conf.zIndex.isEnd);
+		}
+		if (conf.pivotX.isAnim) {
+			genVar(macro:Int, conf.pivotX.name+"Start", conf.pivotX.vStart, !conf.pivotX.isStart);
+			genVar(macro:Int, conf.pivotX.name+"End",   conf.pivotX.vEnd,   !conf.pivotX.isEnd);
+		}
+		if (conf.pivotY.isAnim) {
+			genVar(macro:Int, conf.pivotY.name+"Start", conf.pivotY.vStart, !conf.pivotY.isStart);
+			genVar(macro:Int, conf.pivotY.name+"End",   conf.pivotY.vEnd,   !conf.pivotY.isEnd);
+		}		
 		if (conf.color.isAnim) {		
 			genVar(macro:Int, conf.color.name+"Start", conf.color.vStart, !conf.color.isStart); // TODO: uint?
 			genVar(macro:Int, conf.color.name+"End",   conf.color.vEnd,   !conf.color.isEnd);
@@ -564,6 +616,8 @@ class ElementImpl
 		var buff_size_instanced:Int = Std.int(timers.length * 8
 			+ 2 * (conf.posX.n  + conf.posY.n)
 			+ 2 * (conf.sizeX.n + conf.sizeY.n)
+			+ 2 * (conf.pivotX.n + conf.pivotY.n)
+			+ 4 * (conf.rotation.n + conf.zIndex.n)
 			+ 4 *  conf.color.n
 		);
 		var fillStride_instanced:Int = buff_size_instanced % 4; // this fix the stride offset-Problem
@@ -631,6 +685,20 @@ class ElementImpl
 				kind: FieldType.FVar(macro:Int, macro $v{attrNumber++}), 
 				pos: Context.currentPos(),
 			});
+		if (conf.pivotX.n + conf.pivotY.n > 0)
+			fields.push({
+				name:  "aPIVOT",
+				access:  [Access.APrivate, Access.AStatic, Access.AInline],
+				kind: FieldType.FVar(macro:Int, macro $v{attrNumber++}), 
+				pos: Context.currentPos(),
+			});
+		if (conf.rotation.n + conf.zIndex.n > 0)
+			fields.push({
+				name:  "aROTZ",
+				access:  [Access.APrivate, Access.AStatic, Access.AInline],
+				kind: FieldType.FVar(macro:Int, macro $v{attrNumber++}), 
+				pos: Context.currentPos(),
+			});
 		for (i in 0...Std.int((timers.length+1) / 2)) {
 			fields.push({
 				name:  "aTIME"+i,
@@ -656,7 +724,7 @@ class ElementImpl
 			});
 		}	
 		
-		// TODO: rotation ...
+		// TODO: texturecoords ...
 		
 
 		// -------------------------- instancedrawing --------------------------------------
@@ -724,7 +792,15 @@ class ElementImpl
 				if (conf.color.isAnim && conf.color.isStart) { exprBlock.push( macro bytes.setInt32(bytePos + $v{i}, $i{conf.color.name+"Start"}) ); i+=4; }
 				if (!conf.color.isAnim && conf.color.isStart){ exprBlock.push( macro bytes.setInt32(bytePos + $v{i}, $i{conf.color.name}) ); i+=4; }
 				if (conf.color.isAnim && conf.color.isEnd)   { exprBlock.push( macro bytes.setInt32(bytePos + $v{i}, $i{conf.color.name+"End"}) ); i+=4; }
-				
+
+				// ROTZ
+				if (conf.rotation.isAnim && conf.rotation.isStart) { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{conf.rotation.name+"Start"}/180*Math.PI) ); i+=4; }
+				if (!conf.rotation.isAnim && conf.rotation.isStart){ exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{conf.rotation.name }/180*Math.PI) ); i+=4; }
+				if (conf.zIndex.isAnim && conf.zIndex.isStart)     { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{conf.zIndex.name+"Start"}/0x3FFFFFFF) ); i+=4; }
+				if (!conf.zIndex.isAnim && conf.zIndex.isStart)    { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{conf.zIndex.name }/0x3FFFFFFF) ); i+=4; }
+				if (conf.rotation.isAnim && conf.rotation.isEnd)   { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{conf.rotation.name+"End"}/180*Math.PI) ); i+=4; }
+				if (conf.zIndex.isAnim && conf.zIndex.isEnd)       { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{conf.zIndex.name+"End"}/0x3FFFFFFF) ); i+=4; }
+
 				// POSITION for non-instancedrawing
 				if (verts != null) {
 					exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $v{verts[j][0]}) ); i++;
@@ -745,6 +821,13 @@ class ElementImpl
 				if (!conf.sizeY.isAnim && conf.sizeY.isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.sizeY.name}) ); i+=2; }
 				if (conf.sizeX.isAnim && conf.sizeX.isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.sizeX.name+"End"}) ); i+=2; }
 				if (conf.sizeY.isAnim && conf.sizeY.isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.sizeY.name+"End"}) ); i+=2; }
+				// PIVOT
+				if (conf.pivotX.isAnim && conf.pivotX.isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.pivotX.name+"Start"}) ); i+=2; }
+				if (!conf.pivotX.isAnim && conf.pivotX.isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.pivotX.name}) ); i+=2; }
+				if (conf.pivotY.isAnim && conf.pivotY.isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.pivotY.name+"Start"}) ); i+=2; }
+				if (!conf.pivotY.isAnim && conf.pivotY.isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.pivotY.name}) ); i+=2; }
+				if (conf.pivotX.isAnim && conf.pivotX.isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.pivotX.name+"End"}) ); i+=2; }
+				if (conf.pivotY.isAnim && conf.pivotY.isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.pivotY.name+"End"}) ); i+=2; }
 				
 				if (verts != null) i += fillStride else i += fillStride_instanced;
 			}
@@ -802,6 +885,8 @@ class ElementImpl
 		var exprBlock = [ macro gl.bindAttribLocation(glProgram, aPOSITION, "aPosition") ];
 		if (conf.posX.n  + conf.posY.n  > 0 ) exprBlock.push( macro gl.bindAttribLocation(glProgram, aPOS,  "aPos" ) );
 		if (conf.sizeX.n + conf.sizeY.n > 0 ) exprBlock.push( macro gl.bindAttribLocation(glProgram, aSIZE, "aSize") );
+		if (conf.pivotX.n + conf.pivotY.n > 0 ) exprBlock.push( macro gl.bindAttribLocation(glProgram, aPIVOT, "aPivot") );
+		if (conf.rotation.n + conf.zIndex.n > 0 ) exprBlock.push( macro gl.bindAttribLocation(glProgram, aROTZ, "aRotZ") );
 		if (conf.color.isStart) exprBlock.push( macro gl.bindAttribLocation(glProgram, aCOLORSTART, "aColorStart") );
 		if (conf.color.isEnd)   exprBlock.push( macro gl.bindAttribLocation(glProgram, aCOLOREND,   "aColorEnd") );
 		for (j in 0...Std.int((timers.length+1) / 2) )
@@ -854,6 +939,13 @@ class ElementImpl
 				exprBlock.push( macro gl.vertexAttribPointer(aCOLOREND, 4, gl.UNSIGNED_BYTE, true, $v{stride}, $v{i} ) ); i += 4;
 				if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor(aCOLOREND, 1) );			
 			}
+			// ROTZ
+			n = conf.rotation.n + conf.zIndex.n;
+			if (n > 0 ) {
+				exprBlock.push( macro gl.enableVertexAttribArray (aROTZ) );
+				exprBlock.push( macro gl.vertexAttribPointer(aROTZ, $v{n}, gl.FLOAT, false, $v{stride}, $v{i} ) ); i += n * 4;
+				if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor(aROTZ, 1) );			
+			}
 			// POSITION for non-instancedrawing
 			if (!isInstanced) {
 				exprBlock.push( macro gl.enableVertexAttribArray (aPOSITION) );
@@ -872,6 +964,13 @@ class ElementImpl
 				exprBlock.push( macro gl.enableVertexAttribArray (aSIZE) );
 				exprBlock.push( macro gl.vertexAttribPointer(aSIZE, $v{n}, gl.SHORT, false, $v{stride}, $v{i} ) ); i += n * 2;
 				if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor(aSIZE, 1) );			
+			}
+			// PIVOT
+			n = conf.pivotX.n + conf.pivotY.n;
+			if (n > 0 ) {
+				exprBlock.push( macro gl.enableVertexAttribArray (aPIVOT) );
+				exprBlock.push( macro gl.vertexAttribPointer(aPIVOT, $v{n}, gl.SHORT, false, $v{stride}, $v{i} ) ); i += n * 2;
+				if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor(aPIVOT, 1) );			
 			}
 			return exprBlock;
 		}
@@ -909,6 +1008,8 @@ class ElementImpl
 		exprBlock = [ macro gl.disableVertexAttribArray (aPOSITION) ];
 		if (conf.posX.n  + conf.posY.n  > 0 ) exprBlock.push( macro gl.disableVertexAttribArray (aPOS ) );
 		if (conf.sizeX.n + conf.sizeY.n > 0 ) exprBlock.push( macro gl.disableVertexAttribArray (aSIZE) );
+		if (conf.pivotX.n + conf.pivotY.n > 0 ) exprBlock.push( macro gl.disableVertexAttribArray (aPIVOT) );
+		if (conf.rotation.n + conf.zIndex.n > 0 ) exprBlock.push( macro gl.disableVertexAttribArray (aROTZ) );
 		if (conf.color.isStart) exprBlock.push( macro gl.disableVertexAttribArray (aCOLORSTART) );
 		if (conf.color.isEnd)   exprBlock.push( macro gl.disableVertexAttribArray (aCOLOREND) );
 		for (i in 0...Std.int((timers.length+1) / 2)) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTIME"+i}) );

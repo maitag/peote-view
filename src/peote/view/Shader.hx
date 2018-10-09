@@ -37,6 +37,8 @@ class Shader
 	::ATTRIB_SIZE::
 	::ATTRIB_TIME::
 	::ATTRIB_COLOR::
+	::ATTRIB_ROTZ::
+	::ATTRIB_PIVOT::
 	
 	
 	//aPivot
@@ -59,8 +61,9 @@ class Shader
 	void main(void) {
 		::CALC_TIME::		
 		::CALC_SIZE::
+		::CALC_PIVOT::		
+		::CALC_ROTZ::
 		::CALC_POS::
-		
 		::CALC_COLOR::
 		
 		// PICKING instanceID = gl_InstanceID;
@@ -88,7 +91,7 @@ class Shader
 			vec4(-(right + left) / (right - left), -(top + bottom) / (top - bottom), 0.0, 1.0)
 		)
 		* vec4 (pos ,
-			0.0
+			::ZINDEX::
 			, 1.0
 			);
 	}

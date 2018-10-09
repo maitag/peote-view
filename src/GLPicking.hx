@@ -1,5 +1,6 @@
 package;
 
+#if sampleGLPicking
 import haxe.Timer;
 
 import lime.ui.Window;
@@ -85,3 +86,4 @@ class GLPicking
 	}
 
 }
+#end

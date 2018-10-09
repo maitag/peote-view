@@ -1,5 +1,5 @@
 package;
-
+#if sampleElementInherit
 import haxe.Timer;
 
 import lime.ui.Window;
@@ -103,3 +103,4 @@ class ElementInherit
 	}
 
 }
+#end
