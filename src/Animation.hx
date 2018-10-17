@@ -39,24 +39,19 @@ class Animation
 		element  = new ElementAnim();
 		buffer.addElement(element);     // element to buffer
 		
+		// --------------------------
 		peoteView.start();
 		
 		element.setPosSize(20, 0, 50, 50);
-		//element.x = 10;
-		//element.xStart = 0;
-		//element.xEnd = 110;
 		
-		//element.y = 10;
-		//element.yStart =110;
-		//element.yEnd = 10;
 		element.animPosition(10, 400);
-		element.setPivot(25, 25);
-		element.animRotation(0, 45);
-		
-		//element.timePositionStart = 0;
-		//element.timePositionDuration = 3;
-		element.timePosition(0.0, 8.0);
 		element.animColor(0xFF000000, 0x0000FF00);
+		element.timePosition(0.0, 6.0);
+
+		element.setPivot(25, 25);
+		
+		element.animRotation(0, 45);
+		element.timeRotation(1.0, 1.0);
 		
 		buffer.updateElement(element);
 				
@@ -64,9 +59,10 @@ class Animation
 			element.animSize(50,50,100,100);
 			element.animPivot(25, 25, 50, 0);
 			element.animRotation(45, -90);
-			element.timeSize(3 , 1);
+			element.timeRotation(peoteView.time, 1.0);
+			element.timeSize(peoteView.time , 1);
 			buffer.updateElement(element);
-		}, 2000);
+		}, 3000);
 	}
 	
 	// ---------------------------------------------------------------
@@ -74,7 +70,7 @@ class Animation
 	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
 	{
 		element.x += 100;
-		element.c = 0xFFFFFF00;
+		element.c = Std.int(Math.random()*0xFFFFFF) << 8;
 		buffer.updateElement(element);
 	}
 

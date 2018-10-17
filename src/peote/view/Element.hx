@@ -40,6 +40,8 @@ typedef GLConfParam =
 
 class ElementImpl
 {
+	static inline var MAX_ZINDEX:Int = 0x1FFFFF;
+	
 	static inline function debug(s:String):Void	{
 		#if peoteview_debug_macro
 		trace(s);
@@ -458,8 +460,8 @@ class ElementImpl
 		glConf.CALC_SIZE = "vec2 size = aPosition * " + pack2in1("aSize", conf.sizeX, conf.sizeY) + ";";
 		
 		// rotation and zIndex
-		conf.zIndex.vStart /= 0x3FFFFFFF;
-		conf.zIndex.vEnd   /= 0x3FFFFFFF;
+		conf.zIndex.vStart = Math.min(1.0,Math.max(-1.0, conf.zIndex.vStart/MAX_ZINDEX));
+		conf.zIndex.vEnd   = Math.min(1.0,Math.max(-1.0, conf.zIndex.vEnd/MAX_ZINDEX));
 		if (conf.rotation.n + conf.zIndex.n > 0) {
 			conf.rotation.vStart /= 180 * Math.PI;
 			conf.rotation.vEnd   /= 180 * Math.PI;
@@ -514,7 +516,7 @@ class ElementImpl
 		for (t in timers) {
 			var name = camelCase("time", t);
 			genVar(macro:Float, name + "Start",    0.0);
-			genVar(macro:Float, name + "Duration", 1.0);
+			genVar(macro:Float, name + "Duration", 0.0);
 			if (fieldnames.indexOf(name) == -1) {
 				fields.push({
 					name: name,
@@ -624,6 +626,14 @@ class ElementImpl
 		var fillStride:Int = (buff_size_instanced + 2) % 4;
 		var buff_size:Int = vertex_count * ( buff_size_instanced + 2 + fillStride);		
 		
+		// ---------------------- constants -----------------------------------
+		fields.push({
+			name:  "MAX_ZINDEX",
+			//meta:  allowForBuffer,
+			access:  [Access.APublic, Access.AStatic, Access.AInline],
+			kind: FieldType.FVar(macro:Int, macro $v{MAX_ZINDEX}), 
+			pos: Context.currentPos(),
+		});
 		// ---------------------- vertex count and bufsize -----------------------------------
 		fields.push({
 			name:  "VERTEX_COUNT",
@@ -796,10 +806,10 @@ class ElementImpl
 				// ROTZ
 				if (conf.rotation.isAnim && conf.rotation.isStart) { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{conf.rotation.name+"Start"}/180*Math.PI) ); i+=4; }
 				if (!conf.rotation.isAnim && conf.rotation.isStart){ exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{conf.rotation.name }/180*Math.PI) ); i+=4; }
-				if (conf.zIndex.isAnim && conf.zIndex.isStart)     { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{conf.zIndex.name+"Start"}/0x3FFFFFFF) ); i+=4; }
-				if (!conf.zIndex.isAnim && conf.zIndex.isStart)    { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{conf.zIndex.name }/0x3FFFFFFF) ); i+=4; }
+				if (conf.zIndex.isAnim && conf.zIndex.isStart)     { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, Math.min(1.0,Math.max(-1.0, $i{conf.zIndex.name+"Start"}/MAX_ZINDEX))) ); i+=4; }
+				if (!conf.zIndex.isAnim && conf.zIndex.isStart)    { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, Math.min(1.0,Math.max(-1.0, $i{conf.zIndex.name }/MAX_ZINDEX))) ); i+=4; }
 				if (conf.rotation.isAnim && conf.rotation.isEnd)   { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{conf.rotation.name+"End"}/180*Math.PI) ); i+=4; }
-				if (conf.zIndex.isAnim && conf.zIndex.isEnd)       { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{conf.zIndex.name+"End"}/0x3FFFFFFF) ); i+=4; }
+				if (conf.zIndex.isAnim && conf.zIndex.isEnd)       { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, Math.min(1.0,Math.max(-1.0, $i{conf.zIndex.name+"End"}/MAX_ZINDEX))) ); i+=4; }
 
 				// POSITION for non-instancedrawing
 				if (verts != null) {

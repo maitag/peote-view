@@ -10,12 +10,17 @@ class ElementSimple implements Element
 	@sizeX public var w:Int=100;
 	@sizeY public var h:Int=100;
 	
-	public function new(positionX:Int=0, positionY:Int=0, width:Int=100, height:Int=100 )
+	@color public var c:Int = 0xFF000000;
+	
+	@zIndex public var z:Int = 0;
+	
+	public function new(positionX:Int=0, positionY:Int=0, width:Int=100, height:Int=100, c:Int=0xFF000000 )
 	{
 		this.x = positionX;
 		this.y = positionY;
 		this.w = width;
 		this.h = height;
+		this.c = c;
 	}
 
 

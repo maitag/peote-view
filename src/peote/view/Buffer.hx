@@ -181,6 +181,12 @@ class $className implements BufferInterface
     **/
 	public function update():Void
 	{
+		for (i in 0..._maxElements) {
+			if (peote.view.PeoteGL.Version.isINSTANCED)
+				_elements.get(i).writeBytesInstanced(_bytes);
+			else
+				_elements.get(i).writeBytes(_bytes);
+		}		
 		updateGLBuffer();
 	}
 	
@@ -291,6 +297,8 @@ class $className implements BufferInterface
 		}
 		#end
 		
+		_gl.enable(_gl.DEPTH_TEST); //TODO: (only if !depthON state!)
+		
 		if (peote.view.PeoteGL.Version.isINSTANCED) {
 			// $p{elemField}.enableVertexAttribInstanced(_gl, _glBuffer, _glInstanceBuffer);
 			_gl.bindVertexArray(_glVAO); // use VAO
@@ -303,6 +311,8 @@ class $className implements BufferInterface
 			$p{elemField}.disableVertexAttrib(_gl);
 			_gl.bindBuffer (_gl.ARRAY_BUFFER, null);
 		}
+		
+		_gl.disable(_gl.DEPTH_TEST); // TODO: move up and disable if (depthON)
 	}
 
 	

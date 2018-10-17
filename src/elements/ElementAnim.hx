@@ -23,7 +23,7 @@ class ElementAnim implements Element
 	public var c:Int; // TODO: different coloring methods and gradients
 	
 	// Rotation around pivot point
-	@rotation @anim("Rotation") @time("Size") 
+	@rotation @anim("Rotation")
 	public var r:Float;
 	
 	// pivot x (rotation offset)
@@ -38,6 +38,13 @@ class ElementAnim implements Element
 	@zIndex @const(1) // max 0x3FFFFFFF , min -0xC0000000
 	public var z:Int = 0;
 	
-	// TODO: textures
+	// TODO: texture coordinates
+	@texX public var tx:Int;
+	@texY public var ty:Int;
+	@texW public var tw:Int;
+	@texH public var th:Int;
 	
+	// mappings
+	@texSlot public var slot:Int;
+	@texTile public var tile:Int;
 }

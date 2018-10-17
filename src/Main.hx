@@ -11,6 +11,8 @@ import lime.ui.KeyModifier;
 
 #if sampleTest
 typedef Sample = Test;
+#elseif sampleDepthBlend
+typedef Sample = DepthBlend;
 #elseif sampleMultidisplay
 typedef Sample = Multidisplay;
 #elseif sampleMultibuffer

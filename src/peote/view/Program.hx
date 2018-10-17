@@ -16,7 +16,7 @@ class Program
 	var glVertexShader:GLShader = null;
 	var glFragmentShader:GLShader = null;
 	
-	var buffer:BufferInterface;
+	var buffer:BufferInterface; // TODO: make public with getter/setter
 	
 	public var glShaderConfig = {
 		isES3: false,

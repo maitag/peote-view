@@ -225,7 +225,11 @@ class PeoteView
 		gl.clearColor(0.0, 0.0, 0.0, 1.0); // TODO: maybe alpha to 0.0 ?
 		//gl.clearDepthf(0.0);
 		
+		 // Optimize: only clear depth if is in use somewhere (depthON state!)
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); //gl.STENCIL_BUFFER_BIT);
+		
+		
+		gl.depthFunc(gl.LEQUAL);
 	}
 	
 	// ------------------------------------------------------------------------------
