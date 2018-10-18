@@ -73,7 +73,10 @@ class BufferMacro
 // -------------------------------------------------------------------------------------------
 
 class $className implements BufferInterface
-{	
+{
+	public var alphaEnabled:Bool;
+	public var zIndexEnabled:Bool;
+	
 	var _gl: peote.view.PeoteGL = null;
 	var _glBuffer: peote.view.PeoteGL.GLBuffer;
 	var _glInstanceBuffer: peote.view.PeoteGL.GLBuffer = null;
@@ -98,6 +101,9 @@ class $className implements BufferInterface
 		#if peoteview_queueGLbuffering
 		updateGLBufferElementQueue = new Array<$elementType>();
 		#end
+		
+		alphaEnabled  = $p{elemField}.ALPHA_ENABLED;
+		zIndexEnabled = $p{elemField}.ZINDEX_ENABLED;
 		
 		_elements = new haxe.ds.Vector<$elementType>(size);
 		
@@ -250,6 +256,11 @@ class $className implements BufferInterface
 		}
 		else throw("Error: Element is not inside Buffer");
 	}
+
+	// TODO: if alpha + zIndex this will be needed 
+	/*public function sortTransparency():Void
+	{
+	}*/
 	
 	private inline function getVertexShader():String
 	{
@@ -297,21 +308,9 @@ class $className implements BufferInterface
 		}
 		#end
 		
-		//if ($p{elemField}.useZindex && !peoteView.depthIsEnabled) {
-			_gl.enable(_gl.DEPTH_TEST);
-		//  peoteView.depthIsEnabled = true;
-		// } else if (!$p{elemField}.useZindex && peoteView.depthIsEnabled) {
-		//    _gl.disable(_gl.DEPTH_TEST); peoteView.depthIsEnabled = false; }
-		/*
-		if ($p{elemField}.useAlpha && !peoteView.alphaIsEnabled) {
-			peoteView.alphaIsEnabled = true;
-			_gl.enable(_gl.BLEND);
-		}
-		else if (!$p{elemField}.useAlpha && peoteView.alphaIsEnabled) {
-			_gl.disable(_gl.BLEND);
-			peoteView.alphaIsEnabled = false;
-		}
-		*/
+		peoteView.setGLDepth(zIndexEnabled);
+		peoteView.setGLAlpha(alphaEnabled);
+		
 		if (peote.view.PeoteGL.Version.isINSTANCED) {
 			// $p{elemField}.enableVertexAttribInstanced(_gl, _glBuffer, _glInstanceBuffer);
 			_gl.bindVertexArray(_glVAO); // use VAO
@@ -325,7 +324,6 @@ class $className implements BufferInterface
 			_gl.bindBuffer (_gl.ARRAY_BUFFER, null);
 		}
 		
-		_gl.disable(_gl.DEPTH_TEST); // TODO: move up and disable if (depthON)
 	}
 
 	

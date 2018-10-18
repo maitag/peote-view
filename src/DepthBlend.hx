@@ -43,14 +43,14 @@ class DepthBlend
 		peoteView = new PeoteView(window.context, window.width, window.height);
 		
 		displayL  = new Display(0, 0, 400, 400);
-		displayL.color = Color.BLUE;
+		displayL.color = Color.GREY3;
 		bufferL  = new Buffer<ElementSimple>(100);
 		programL = new Program(bufferL);
 		displayL.addProgram(programL);
 		peoteView.addDisplay(displayL);
 		
 		displayR = new Display(300, 100, 400, 400);
-		displayR.color = Color.CYAN;
+		displayR.color = 0x00FFFF99;
 		bufferR  = new Buffer<ElementSimple>(100);
 		programR = new Program(bufferR);
 		displayR.addProgram(programR);
@@ -61,12 +61,13 @@ class DepthBlend
 		bufferL.addElement(element1);
 		bufferL.addElement(element2);
 		
-		element3 = new ElementSimple(100, 100, 100, 100, 0x0000FF00);
-		element4 = new ElementSimple(150, 150, 100, 100, 0xFFFF0000);
+		element3 = new ElementSimple(100, 100, 100, 100, 0x0000FFaa);
+		element4 = new ElementSimple(150, 150, 100, 100, 0xFFFF0022);
 		bufferR.addElement(element3);
 		bufferR.addElement(element4);
 		
 		activeElement = element1;
+		trace(bufferL.alphaEnabled);
 	}
 
 	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
@@ -79,6 +80,9 @@ class DepthBlend
 	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
 	{
 		switch (keyCode) {
+			case KeyCode.A: displayR.backgroundAlpha = !displayR.backgroundAlpha;
+			case KeyCode.B: displayR.backgroundEnabled = !displayR.backgroundEnabled;
+			case KeyCode.Z: displayR.backgroundDepth = !displayR.backgroundDepth;
 			case KeyCode.NUMBER_1: activeElement = element1;
 			case KeyCode.NUMBER_2: activeElement = element2;
 			case KeyCode.NUMBER_3: activeElement = element3;

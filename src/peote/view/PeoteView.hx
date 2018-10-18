@@ -32,6 +32,9 @@ class PeoteView
 	var blue:Float = 0.0;
 	var alpha:Float = 0.0;
 	
+	var glStateAlpha:Bool = false;
+	var glStateDepth:Bool = false;
+	
 	public var zoom(default, set):Float = 1.0;
 	public inline function set_zoom(z:Float):Float {
 		if (PeoteGL.Version.isUBO) uniformBuffer.updateZoom(gl, z);
@@ -238,21 +241,44 @@ class PeoteView
 		gl.enable(gl.SCISSOR_TEST);	
 		
 		gl.clearColor(red, green, blue, alpha); // Optimizing: cache r g b values and setter for color
-		//gl.clearDepthf(0.0);
+		//gl.clearDepthf(1.0);
 		
-		//_gl.blendFunc(_gl.SRC_ALPHA, _gl.ONE_MINUS_SRC_ALPHA); // TODO: set only if program added or background need it
-
-		 // Optimize: only clear depth if is in use somewhere (depthON state!)
+		// Optimize: only clear depth if is in use somewhere (depthON state!)
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); //gl.STENCIL_BUFFER_BIT);
 		
+		// TODO: set only if program added or background need it
+		gl.blendFunc(gl.ONE_MINUS_SRC_ALPHA, gl.SRC_ALPHA);
+		//gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); // reverse
+		//glBlendFuncSeparate(gl.ONE_MINUS_SRC_ALPHA, gl.SRC_ALPHA, gl.ONE, gl.ZERO); // colors separate
 		
 		gl.depthFunc(gl.LEQUAL);
+	}
+	
+	private inline function setGLDepth(enabled:Bool):Void
+	{	
+		if (enabled && !glStateDepth) {
+			glStateDepth = true;
+			gl.enable(gl.DEPTH_TEST);
+		} else if (!enabled && glStateDepth) {
+			glStateDepth = false;
+			gl.disable(gl.DEPTH_TEST);
+		}
+	}
+	private inline function setGLAlpha(enabled:Bool):Void
+	{	
+		if (enabled && !glStateAlpha) {
+			glStateAlpha = true;
+			gl.enable(gl.BLEND);
+		} else if (!enabled && glStateAlpha) {
+			glStateAlpha = false;
+			gl.disable(gl.BLEND);
+		}
 	}
 	
 	// ------------------------------------------------------------------------------
 	var renderListItem:RenderListItem<Display>;
 	var renderDisplay:Display;
-	
+
 	public function render():Void
 	{	
 		//trace("===peoteView.render===");

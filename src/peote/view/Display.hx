@@ -7,40 +7,42 @@ import peote.view.utils.RenderListItem;
 class Display 
 {
 	// params
-	public var x:Int = 0; // x Position
-	public var y:Int = 0; // y Position
-	public var z:Int = 0; // z Index
-	public var width:Int = 0;  // width
-	public var height:Int = 0; // height
+	public var x:Int = 0;
+	public var y:Int = 0;
+	public var width:Int = 0;
+	public var height:Int = 0;
+	
+	public var backgroundAlpha:Bool = false;
+	public var backgroundDepth:Bool = false;
+	public var backgroundEnabled:Bool = false;
 	
 	public var zoom(default, set):Float = 1.0;
 	public inline function set_zoom(z:Float):Float {
 		if (PeoteGL.Version.isUBO) uniformBuffer.updateZoom(gl, z);
 		return zoom = z;
 	}
-	
 	public var xOffset(default, set):Int = 0;
 	public inline function set_xOffset(offset:Int):Int {
 		if (PeoteGL.Version.isUBO) uniformBuffer.updateXOffset(gl, x + offset);
 		return xOffset = offset;
 	}
-	
 	public var yOffset(default, set):Int = 0;
 	public inline function set_yOffset(offset:Int):Int {
 		if (PeoteGL.Version.isUBO) uniformBuffer.updateYOffset(gl, y + offset);
 		return yOffset = offset;
 	}
 	
-	var hasBackground:Bool = false;
 	public var color(default,set):Color = 0x00000000;
 	inline function set_color(c:Color):Color {
 		if (c != null) {
-			hasBackground = true;
+			backgroundEnabled = true;
 			red   = c.red   / 255.0;
 			green = c.green / 255.0;
 			blue  = c.blue  / 255.0;
 			alpha = c.alpha / 255.0;
-		} else hasBackground = false;
+			backgroundEnabled = (alpha < 1.0) ? true : false;
+			backgroundAlpha   = (alpha > 0.0) ? true : false;
+		} else backgroundEnabled = false;
 		return c;
 	}
 	var red:Float = 0.0;
@@ -66,12 +68,10 @@ class Display
 		programList = new RenderList<Program>(new Map<Program,RenderListItem<Program>>());
 		
 		if (PeoteGL.Version.isUBO) uniformBuffer = new UniformBufferDisplay();
-
 	}
 
 	private inline function addToPeoteView(peoteView:PeoteView):Bool
-	{
-		
+	{		
 		if (this.peoteView == peoteView) return false; // is already added
 		else
 		{
@@ -88,8 +88,7 @@ class Display
 			} 
 			// if it's stay into same gl-context, no buffers had to recreate/fill
 			return true;
-		}	
-
+		}
 	}
 	
 	private inline function removedFromPeoteView():Void
@@ -188,14 +187,15 @@ class Display
 	var renderProgram:Program;
 	
 	private inline function render(peoteView:PeoteView):Void
-	{
-		
+	{	
 		//trace("  ---display.render---");
-		
 		glScissor(peoteView.gl, peoteView.width, peoteView.height, peoteView.zoom, peoteView.xOffset, peoteView.yOffset);
 		
-		// TODO: depth und alpha an/aus
-		if (hasBackground) peoteView.background.render(red, green, blue, alpha);
+		if (backgroundEnabled) {
+			peoteView.setGLDepth(backgroundDepth);
+			peoteView.setGLAlpha(backgroundAlpha);
+			peoteView.background.render(red, green, blue, alpha);
+		}
 		
 		renderListItem = programList.first;
 		while (renderListItem != null)

@@ -79,10 +79,10 @@ class Shader
 		float deltaY = uOffset.y;
 		::end::
 		
-		float right = width-deltaX*zoom;
-		float left = -deltaX*zoom;
-		float bottom = height-deltaY*zoom;
-		float top = -deltaY * zoom;
+		//float right = width-deltaX*zoom;
+		//float left = -deltaX*zoom;
+		//float bottom = height-deltaY*zoom;
+		//float top = -deltaY * zoom;
 			
 		gl_Position = mat4 (
 			//vec4(2.0 / (right - left)*zoom, 0.0, 0.0, 0.0),

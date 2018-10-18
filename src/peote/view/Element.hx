@@ -635,12 +635,26 @@ class ElementImpl
 		var fillStride:Int = (buff_size_instanced + 2) % 4;
 		var buff_size:Int = vertex_count * ( buff_size_instanced + 2 + fillStride);		
 		
-		// ---------------------- constants -----------------------------------
+		// ---------------------- constants and switches -----------------------------------
 		fields.push({
 			name:  "MAX_ZINDEX",
 			//meta:  allowForBuffer,
 			access:  [Access.APublic, Access.AStatic, Access.AInline],
 			kind: FieldType.FVar(macro:Int, macro $v{MAX_ZINDEX}), 
+			pos: Context.currentPos(),
+		});
+		fields.push({
+			name:  "ALPHA_ENABLED",
+			meta:  allowForBuffer,
+			access:  [Access.APrivate, Access.AStatic, Access.AInline],
+			kind: FieldType.FVar(macro:Bool, macro $v{(conf.color.name != "")}), 
+			pos: Context.currentPos(),
+		});
+		fields.push({
+			name:  "ZINDEX_ENABLED",
+			meta:  allowForBuffer,
+			access:  [Access.APrivate, Access.AStatic, Access.AInline],
+			kind: FieldType.FVar(macro:Bool, macro $v{(conf.zIndex.name != "")}), 
 			pos: Context.currentPos(),
 		});
 		// ---------------------- vertex count and bufsize -----------------------------------
