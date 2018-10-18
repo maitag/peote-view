@@ -66,7 +66,10 @@ class Background
 			uniform vec4 uRGBA;
 			void main(void)
 			{
-				gl_FragColor = clamp(uRGBA, 0.003, 1.0);
+				gl_FragColor = uRGBA;
+				
+				// TODO: Fix for old FF
+				gl_FragColor.w = clamp(uRGBA.w, 0.003, 1.0);
 			}
 		"			
 		);
