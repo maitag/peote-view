@@ -1,5 +1,6 @@
 package elements;
 
+import peote.view.Color;
 import peote.view.Element;
 
 class ElementAnim implements Element
@@ -20,7 +21,7 @@ class ElementAnim implements Element
 	
 	// Color (RGBA)
 	@color @anim("Color") @time("Position") // @constStart(0xFF112200) @constEnd(0x0000FE00) 
-	public var c:Int; // TODO: different coloring methods and gradients
+	public var c:Color; // TODO: different coloring methods and gradients
 	
 	// Rotation around pivot point
 	@rotation @anim("Rotation")

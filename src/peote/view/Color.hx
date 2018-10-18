@@ -46,6 +46,9 @@ abstract Color(Int) from Int to Int
 	public static inline function random():Color {
 		return (Std.int(Math.random()*256) << 24) | Std.random(0x1000000);
 	}
+	public inline function randomize() {
+		this = random();
+	}
 
 	public static inline var BLACK   :Int = 0x00000000;
     public static inline var RED     :Int = 0xff000000;
@@ -55,4 +58,11 @@ abstract Color(Int) from Int to Int
     public static inline var MAGENTA :Int = 0xff00ff00;
     public static inline var CYAN    :Int = 0x00ffff00;
     public static inline var WHITE   :Int = 0xffffff00;
+    public static inline var GREY1   :Int = 0x22222200;
+    public static inline var GREY2   :Int = 0x44444400;
+    public static inline var GREY3   :Int = 0x66666600;
+    public static inline var GREY4   :Int = 0x88888800;
+    public static inline var GREY5   :Int = 0xaaaaaa00;
+    public static inline var GREY6   :Int = 0xcccccc00;
+    public static inline var GREY7   :Int = 0xeeeeee00;
 }

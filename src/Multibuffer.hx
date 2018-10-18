@@ -13,6 +13,7 @@ import peote.view.PeoteView;
 import peote.view.Display;
 import peote.view.Buffer;
 import peote.view.Program;
+import peote.view.Color;
 //import peote.view.Texture;
 
 import elements.ElementSimple;
@@ -26,10 +27,10 @@ class Multibuffer
 
 		peoteView = new PeoteView(window.context, window.width, window.height);
 		var displayLeft  = new Display(10, 10, 280, 280);
-		displayLeft.blue = 1.0;
+		displayLeft.color = Color.BLUE;
 		
 		var displayRight = new Display(300, 10, 280, 280);
-		displayRight.green = 1.0;
+		displayRight.color = Color.GREEN;
 		
 		var bufferLeft = new Buffer<ElementSimple>(100);
 		var bufferRight = new Buffer<ElementSimple>(100);

@@ -1,5 +1,6 @@
 package elements;
 
+import peote.view.Color;
 import peote.view.Element;
 
 class ElementSimple implements Element
@@ -10,7 +11,7 @@ class ElementSimple implements Element
 	@sizeX public var w:Int=100;
 	@sizeY public var h:Int=100;
 	
-	@color public var c:Int = 0xFF000000;
+	@color public var c:Color = 0xff000000;
 	
 	@zIndex public var z:Int = 0;
 	

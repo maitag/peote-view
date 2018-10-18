@@ -12,6 +12,7 @@ import peote.view.PeoteView;
 import peote.view.Display;
 import peote.view.Buffer;
 import peote.view.Program;
+import peote.view.Color;
 //import peote.view.Texture;
 
 import elements.ElementSimple;
@@ -24,13 +25,11 @@ class Test
 	
 	public function new(window:Window)
 	{	
-
-
 		peoteView = new PeoteView(window.context, window.width, window.height);
 		
 		buffer = new Buffer<ElementSimple>(100);
 
-		var display   = new Display(10,10, window.width-20, window.height-20); display.green = 1.0;
+		var display   = new Display(10,10, window.width-20, window.height-20, Color.GREEN);
 		var program   = new Program(buffer);
 		
 		peoteView.addDisplay(display);  // display to peoteView

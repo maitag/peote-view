@@ -43,14 +43,14 @@ class DepthBlend
 		peoteView = new PeoteView(window.context, window.width, window.height);
 		
 		displayL  = new Display(0, 0, 400, 400);
-		displayL.blue = 1.0;
+		displayL.color = Color.BLUE;
 		bufferL  = new Buffer<ElementSimple>(100);
 		programL = new Program(bufferL);
 		displayL.addProgram(programL);
 		peoteView.addDisplay(displayL);
 		
 		displayR = new Display(300, 100, 400, 400);
-		displayR.green = 1.0;
+		displayR.color = Color.CYAN;
 		bufferR  = new Buffer<ElementSimple>(100);
 		programR = new Program(bufferR);
 		displayR.addProgram(programR);

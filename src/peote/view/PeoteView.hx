@@ -16,7 +16,21 @@ class PeoteView
 	public var gl(default, null):PeoteGL;
 	
 	var width:Int;
-	var height:Int;	
+	var height:Int;
+	public var color(default,set):Color = 0x00000000;
+	inline function set_color(c:Color):Color {
+		if (c != null) {
+			red   = c.red   / 255.0;			
+			green = c.green / 255.0;			
+			blue  = c.blue  / 255.0;
+			alpha = c.alpha / 255.0;
+		} else color = 0x00000000;
+		return c;
+	}
+	var red:Float = 0.0;
+	var green:Float = 0.0;
+	var blue:Float = 0.0;
+	var alpha:Float = 0.0;
 	
 	public var zoom(default, set):Float = 1.0;
 	public inline function set_zoom(z:Float):Float {
@@ -65,11 +79,12 @@ class PeoteView
 		isRun = false;
 	}
 
-	public function new(gl:PeoteGL, width:Int, height:Int)
+	public function new(gl:PeoteGL, width:Int, height:Int, ?color:Color)
 	{
 		this.gl = gl;
 		this.width = width;
 		this.height = height;
+		set_color(color);
 		
 		if (PeoteGL.Version.isUBO) {
             trace("OpenGL Uniform Buffer Objects enabled.");
@@ -222,7 +237,7 @@ class PeoteView
 		gl.scissor(0, 0, w, h);
 		gl.enable(gl.SCISSOR_TEST);	
 		
-		gl.clearColor(0.0, 0.0, 0.0, 1.0); // TODO: own colors for peoteview ( with no alpha or maybe alpha to 0.0 as default ? )
+		gl.clearColor(red, green, blue, alpha); // Optimizing: cache r g b values and setter for color
 		//gl.clearDepthf(0.0);
 		
 		//_gl.blendFunc(_gl.SRC_ALPHA, _gl.ONE_MINUS_SRC_ALPHA); // TODO: set only if program added or background need it

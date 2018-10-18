@@ -6,6 +6,7 @@ interface Element {}
 class ElementImpl {}
 #else
 
+import haxe.Log;
 import haxe.ds.StringMap;
 import haxe.macro.Expr;
 import haxe.macro.Context;
@@ -42,9 +43,10 @@ class ElementImpl
 {
 	static inline var MAX_ZINDEX:Int = 0x1FFFFF;
 	
-	static inline function debug(s:String):Void	{
+	static inline function debug(s:String, ?pos:haxe.PosInfos):Void	{
 		#if peoteview_debug_macro
-		trace(s);
+		//trace(s);
+		Log.trace(s,pos);
 		#end
 	}
 	static inline function debugLastField(fields:Array<Field>):Void	{
@@ -222,23 +224,31 @@ class ElementImpl
 		if (f.access.indexOf(Access.AStatic) != -1) throw Context.error('Error: "${f.name}" can not be static', f.pos);
 		
 		var printer = new Printer();
-		var expType:String = printer.printComplexType(expectedType);
-		//trace('var ${f.name}:${(type==null)? null : printer.printComplexType(type)} - expected type:${expType}');
 		
-		if (type == null) {
-			type = expectedType; debug('set type of ${f.name} to ${printer.printComplexType(expectedType)}');
+		var expType:String = switch(expectedType) {	case TPath(tp): tp.name; default: ""; }
+		var hasType:String;
+		
+		if (type == null) { debug('set type of ${f.name} to ${printer.printComplexType(expectedType)}');
+			type = expectedType;
 			f.kind = FieldType.FVar( type, val );
 		}
-		else if (printer.printComplexType(type) != expType) throw Context.error('Error: type of "${f.name}" should be ${ printer.printComplexType(expectedType) }', f.pos);
+		else {
+			hasType = switch(type) { case TPath(tp): tp.name; default: ""; }
+			//trace('var ${f.name}: - type:${hasType} - expected type:${expType}');
+			if (hasType != expType) throw Context.error('Error: type of "${f.name}" should be ${ printer.printComplexType(expectedType) }', f.pos);
+		}
 				
 		var defaultVal:Dynamic;
 		if (val != null) {
-			var v = ExprTools.getValue(val);
+			var v:Dynamic;
+			try v = ExprTools.getValue(val) catch(e:String) throw Context.error('Error: init value for "${f.name}" had to be Int or Float', f.pos);
 			if (expType=="Int" && Type.typeof(v) != Type.ValueType.TInt)
 				throw Context.error('Error: init value "$v" for "${f.name}" had to be Int', f.pos);
 			else if (expType=="Float" && Type.typeof(v) != Type.ValueType.TFloat)
 				throw Context.error('Error: init value "$v" for "${f.name}" had to be Float', f.pos);
-			defaultVal = ExprTools.getValue(val);
+			else if (expType=="Color" && Type.typeof(v) != Type.ValueType.TInt)
+				throw Context.error('Error: init value "$v" for "${f.name}" had to be Int', f.pos);
+			defaultVal = v;
 		} else {
 			defaultVal = confItem.vStart; debug('set default value of ${f.name} to ${(macro $v{defaultVal}).expr}');
 			f.kind = FieldType.FVar( type, macro $v{defaultVal} );
@@ -312,13 +322,13 @@ class ElementImpl
 		else if ( hasMeta(f, "posY")  ) checkMetas(f, macro:Int, type, val, conf.posY, getter, setter);
 		else if ( hasMeta(f, "sizeX") ) checkMetas(f, macro:Int, type, val, conf.sizeX, getter, setter);
 		else if ( hasMeta(f, "sizeY") ) checkMetas(f, macro:Int, type, val, conf.sizeY, getter, setter);
-		else if ( hasMeta(f, "color") ) checkMetas(f, macro:Int, type, val, conf.color, getter, setter);
+		else if ( hasMeta(f, "color") ) checkMetas(f, macro:Color, type, val, conf.color, getter, setter);
 		else if ( hasMeta(f, "pivotX") ) checkMetas(f, macro:Int, type, val, conf.pivotX, getter, setter);
 		else if ( hasMeta(f, "pivotY") ) checkMetas(f, macro:Int, type, val, conf.pivotY, getter, setter);
 		else if ( hasMeta(f, "rotation") ) checkMetas(f, macro:Float, type, val, conf.rotation, getter, setter);
 		else if ( hasMeta(f, "zIndex") ) checkMetas(f, macro:Int, type, val, conf.zIndex, getter, setter);
 		// TODO
-		// rotation, pivot
+		// texture coords
 	}
 	
 
@@ -386,7 +396,6 @@ class ElementImpl
 				case FProp(getter, setter, type, val): configure(f, type, val, getter, setter);
 				default: //trace(f.kind);
 			}
-
 		}
 		
 		// --------------------- generate shader-template vars -------------------------------
@@ -495,7 +504,7 @@ class ElementImpl
 		// texcoord
 		
 		// ---------------------- generate helper vars and functions ---------------------------
-		debug("-- generate:");
+		debug("__generate vars and functions__");
 		
 		// add constructor ("new") if it is not there
 		if (hasNoNew) {
@@ -608,8 +617,8 @@ class ElementImpl
 			genVar(macro:Int, conf.pivotY.name+"End",   conf.pivotY.vEnd,   !conf.pivotY.isEnd);
 		}		
 		if (conf.color.isAnim) {		
-			genVar(macro:Int, conf.color.name+"Start", conf.color.vStart, !conf.color.isStart); // TODO: uint?
-			genVar(macro:Int, conf.color.name+"End",   conf.color.vEnd,   !conf.color.isEnd);
+			genVar(macro:Color, conf.color.name+"Start", conf.color.vStart, !conf.color.isStart);
+			genVar(macro:Color, conf.color.name+"End",   conf.color.vEnd,   !conf.color.isEnd);
 		}
 		
 		// ------------------------- calc buffer size ----------------------------------------		

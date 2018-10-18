@@ -11,6 +11,7 @@ import peote.view.PeoteView;
 import peote.view.Display;
 import peote.view.Buffer;
 import peote.view.Program;
+import peote.view.Color;
 //import peote.view.Texture;
 
 import peote.view.Element;
@@ -54,13 +55,13 @@ class ElementInherit
 		
 		buffer = new Buffer<ElementChild>(100);
 
-		var display   = new Display(10,10, window.width-20, window.height-20); display.green = 1.0;
-		var program   = new Program(buffer);
+		var display = new Display(10,10, window.width-20, window.height-20, Color.GREEN);
+		var program = new Program(buffer);
 		
 		peoteView.addDisplay(display);  // display to peoteView
 		display.addProgram(program);    // programm to display
 	
-		element  = new ElementChild(10, 10);
+		element = new ElementChild(10, 10);
 		buffer.addElement(element);     // element to buffer
 		
 		peoteView.start();

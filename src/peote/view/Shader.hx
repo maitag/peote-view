@@ -85,10 +85,15 @@ class Shader
 		float top = -deltaY * zoom;
 			
 		gl_Position = mat4 (
-			vec4(2.0 / (right - left)*zoom, 0.0, 0.0, 0.0),
-			vec4(0.0, 2.0 / (top - bottom)*zoom, 0.0, 0.0),
+			//vec4(2.0 / (right - left)*zoom, 0.0, 0.0, 0.0),
+			//vec4(0.0, 2.0 / (top - bottom)*zoom, 0.0, 0.0),
+			//vec4(0.0, 0.0, -1.0, 0.0),
+			//vec4(-(right + left) / (right - left), -(top + bottom) / (top - bottom), 0.0, 1.0)
+			
+			vec4(2.0 / width*zoom, 0.0, 0.0, 0.0),
+			vec4(0.0, -2.0 / height*zoom, 0.0, 0.0),
 			vec4(0.0, 0.0, -1.0, 0.0),
-			vec4(-(right + left) / (right - left), -(top + bottom) / (top - bottom), 0.0, 1.0)
+			vec4( 2.0*deltaX*zoom/width-1.0, 1.0-2.0*deltaY*zoom/height, 0.0, 1.0)
 		)
 		* vec4 (pos ,
 			::ZINDEX::

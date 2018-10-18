@@ -7,7 +7,7 @@
 	
 	
 	<app main="Main" path="bin" file="Main" />
-	<haxedef name="sampleDepthBlend" /> <!-- sampleTest, sampleDepthBlend, sampleMultidisplay, sampleMultibuffer, sampleAnimation, sampleElementInherit, sampleGLPicking... -->
+	<haxedef name="sampleAnimation" /> <!-- sampleTest, sampleDepthBlend, sampleMultidisplay, sampleMultibuffer, sampleAnimation, sampleElementInherit, sampleGLPicking... -->
 	
 	<!-- multiple windows -->
 	<!-- <app main="MultipleWindows" path="bin" file="MultipleWindows" /> 

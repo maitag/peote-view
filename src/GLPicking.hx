@@ -13,6 +13,7 @@ import peote.view.PeoteView;
 import peote.view.Display;
 import peote.view.Buffer;
 import peote.view.Program;
+import peote.view.Color;
 //import peote.view.Texture;
 
 import elements.ElementSimple;
@@ -29,12 +30,9 @@ class GLPicking
 	public function new(window:Window)
 	{	
 
-		peoteView = new PeoteView(window.context, window.width, window.height);
-		var displayLeft  = new Display(10, 10, 280, 280);
-		displayLeft.blue = 1.0;
-		
-		var displayRight = new Display(300, 10, 280, 280);
-		displayRight.green = 1.0;
+		peoteView = new PeoteView(window.context, window.width, window.height, Color.GREY1);
+		var displayLeft  = new Display(10, 10, 280, 280, Color.BLUE);
+		var displayRight = new Display(300, 10, 280, 280, Color.YELLOW);
 		
 		peoteView.addDisplay(displayLeft);
 		peoteView.addDisplay(displayRight);

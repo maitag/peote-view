@@ -15,6 +15,7 @@ import peote.view.PeoteView;
 import peote.view.Display;
 import peote.view.Buffer;
 import peote.view.Program;
+import peote.view.Color;
 //import peote.view.Texture;
 
 
@@ -30,7 +31,7 @@ class Animation
 		
 		buffer = new Buffer<ElementAnim>(100);
 
-		var display   = new Display(10,10, window.width-20, window.height-20); display.green = 1.0;
+		var display   = new Display(10,10, window.width-20, window.height-20); display.color = Color.GREEN;
 		var program   = new Program(buffer);
 		
 		peoteView.addDisplay(display);  // display to peoteView
@@ -45,7 +46,7 @@ class Animation
 		element.setPosSize(20, 0, 50, 50);
 		
 		element.animPosition(10, 400);
-		element.animColor(0xFF000000, 0x0000FF00);
+		element.animColor(Color.RED, 0x0000FF00);
 		element.timePosition(0.0, 6.0);
 
 		element.setPivot(25, 25);
@@ -70,7 +71,8 @@ class Animation
 	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
 	{
 		element.x += 100;
-		element.c = Std.int(Math.random()*0xFFFFFF) << 8;
+		element.cStart.randomize();
+		element.cEnd.randomize();
 		buffer.updateElement(element);
 	}
 

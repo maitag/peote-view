@@ -13,6 +13,7 @@ import peote.view.PeoteView;
 import peote.view.Display;
 import peote.view.Buffer;
 import peote.view.Program;
+import peote.view.Color;
 //import peote.view.Texture;
 
 import elements.ElementSimple;
@@ -32,10 +33,10 @@ class Multidisplay
 
 		peoteView = new PeoteView(window.context, window.width, window.height);
 		displayLeft  = new Display(0, 0, 400, 400);
-		displayLeft.blue = 1.0;
+		displayLeft.color = Color.BLUE;
 		
 		displayRight = new Display(400, 0, 400, 400);
-		displayRight.green = 1.0;
+		displayRight.color = Color.GREEN;
 		
 		peoteView.addDisplay(displayLeft);
 		peoteView.addDisplay(displayRight);

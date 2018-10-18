@@ -31,11 +31,22 @@ class Display
 		return yOffset = offset;
 	}
 	
-	// TODO: a 4 byte color uint
-	public var red:Float = 0.0;
-	public var green:Float = 0.0;
-	public var blue:Float = 0.0;
-	public var alpha:Float = 1.0; // TODO
+	var hasBackground:Bool = false;
+	public var color(default,set):Color = 0x00000000;
+	inline function set_color(c:Color):Color {
+		if (c != null) {
+			hasBackground = true;
+			red   = c.red   / 255.0;
+			green = c.green / 255.0;
+			blue  = c.blue  / 255.0;
+			alpha = c.alpha / 255.0;
+		} else hasBackground = false;
+		return c;
+	}
+	var red:Float = 0.0;
+	var green:Float = 0.0;
+	var blue:Float = 0.0;
+	var alpha:Float = 0.0;
 	
 	var peoteView:PeoteView = null;
 	var gl:PeoteGL = null;
@@ -44,12 +55,13 @@ class Display
 		
 	var uniformBuffer:UniformBufferDisplay;
 
-	public function new(x:Int, y:Int, width:Int, height:Int) 
-	{
+	public function new(x:Int, y:Int, width:Int, height:Int, ?color:Color) 
+	{	
 		this.x = x;
 		this.y = y;
 		this.width = width;
 		this.height = height;
+		set_color(color);
 		
 		programList = new RenderList<Program>(new Map<Program,RenderListItem<Program>>());
 		
@@ -183,7 +195,7 @@ class Display
 		glScissor(peoteView.gl, peoteView.width, peoteView.height, peoteView.zoom, peoteView.xOffset, peoteView.yOffset);
 		
 		// TODO: depth und alpha an/aus
-		peoteView.background.render(red, green, blue, alpha);
+		if (hasBackground) peoteView.background.render(red, green, blue, alpha);
 		
 		renderListItem = programList.first;
 		while (renderListItem != null)
