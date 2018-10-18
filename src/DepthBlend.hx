@@ -1,4 +1,5 @@
 package;
+import peote.view.Color;
 
 #if sampleDepthBlend
 import haxe.Timer;
@@ -69,7 +70,10 @@ class DepthBlend
 	}
 
 	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
-	{		
+	{
+		element2.z -= 1;
+		element4.z -= 1;
+		bufferL.update(); bufferR.update();
 	}
 	
 	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void

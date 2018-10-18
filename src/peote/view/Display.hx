@@ -9,7 +9,7 @@ class Display
 	// params
 	public var x:Int = 0; // x Position
 	public var y:Int = 0; // y Position
-	public var z:Int = 0; // z order
+	public var z:Int = 0; // z Index
 	public var width:Int = 0;  // width
 	public var height:Int = 0; // height
 	
@@ -181,6 +181,8 @@ class Display
 		//trace("  ---display.render---");
 		
 		glScissor(peoteView.gl, peoteView.width, peoteView.height, peoteView.zoom, peoteView.xOffset, peoteView.yOffset);
+		
+		// TODO: depth und alpha an/aus
 		peoteView.background.render(red, green, blue, alpha);
 		
 		renderListItem = programList.first;

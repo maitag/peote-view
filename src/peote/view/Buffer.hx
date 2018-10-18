@@ -297,8 +297,21 @@ class $className implements BufferInterface
 		}
 		#end
 		
-		_gl.enable(_gl.DEPTH_TEST); //TODO: (only if !depthON state!)
-		
+		//if ($p{elemField}.useZindex && !peoteView.depthIsEnabled) {
+			_gl.enable(_gl.DEPTH_TEST);
+		//  peoteView.depthIsEnabled = true;
+		// } else if (!$p{elemField}.useZindex && peoteView.depthIsEnabled) {
+		//    _gl.disable(_gl.DEPTH_TEST); peoteView.depthIsEnabled = false; }
+		/*
+		if ($p{elemField}.useAlpha && !peoteView.alphaIsEnabled) {
+			peoteView.alphaIsEnabled = true;
+			_gl.enable(_gl.BLEND);
+		}
+		else if (!$p{elemField}.useAlpha && peoteView.alphaIsEnabled) {
+			_gl.disable(_gl.BLEND);
+			peoteView.alphaIsEnabled = false;
+		}
+		*/
 		if (peote.view.PeoteGL.Version.isINSTANCED) {
 			// $p{elemField}.enableVertexAttribInstanced(_gl, _glBuffer, _glInstanceBuffer);
 			_gl.bindVertexArray(_glVAO); // use VAO

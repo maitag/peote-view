@@ -222,9 +222,11 @@ class PeoteView
 		gl.scissor(0, 0, w, h);
 		gl.enable(gl.SCISSOR_TEST);	
 		
-		gl.clearColor(0.0, 0.0, 0.0, 1.0); // TODO: maybe alpha to 0.0 ?
+		gl.clearColor(0.0, 0.0, 0.0, 1.0); // TODO: own colors for peoteview ( with no alpha or maybe alpha to 0.0 as default ? )
 		//gl.clearDepthf(0.0);
 		
+		//_gl.blendFunc(_gl.SRC_ALPHA, _gl.ONE_MINUS_SRC_ALPHA); // TODO: set only if program added or background need it
+
 		 // Optimize: only clear depth if is in use somewhere (depthON state!)
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); //gl.STENCIL_BUFFER_BIT);
 		
