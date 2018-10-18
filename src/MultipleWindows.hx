@@ -13,6 +13,7 @@ import peote.view.PeoteView;
 import peote.view.Display;
 import peote.view.Buffer;
 import peote.view.Program;
+import peote.view.Color;
 import elements.ElementSimple;
 
 
@@ -40,8 +41,7 @@ class MultipleWindows extends Application
 		window.context.attributes.background = 1;
 		
 		peoteView_1 = new PeoteView(window.context, window.width, window.height);
-		display_1   = new Display(10, 10, window.width - 20, window.height - 20);
-		display_1.green = 1.0;
+		display_1   = new Display(10, 10, window.width - 20, window.height - 20, Color.GREEN);
 		buffer_1    = new Buffer<ElementSimple>(100);
 		program_1   = new Program(buffer_1);
 		display_1.addProgram(program_1);
@@ -71,8 +71,7 @@ class MultipleWindows extends Application
 		#end
 		
 		peoteView_2 = new PeoteView(window.context, window.width, window.height);
-		display_2   = new Display(10, 10, window.width - 20, window.height - 20);
-		display_2.blue = 1.0;
+		display_2   = new Display(10, 10, window.width - 20, window.height - 20, Color.BLUE);
 		buffer_2    = new Buffer<ElementSimple>(100);
 		program_2   = new Program(buffer_2);
 		display_2.addProgram(program_2);
@@ -95,8 +94,7 @@ class MultipleWindows extends Application
 		#end
 		
 		peoteView_3 = new PeoteView(window.context, window.width, window.height);
-		display_3   = new Display(10, 10, window.width - 20, window.height - 20);
-		display_3.green = 1.0;display_3.red = 1.0;
+		display_3   = new Display(10, 10, window.width - 20, window.height - 20, Color.YELLOW);
 		buffer_3    = new Buffer<ElementSimple>(100);
 		program_3   = new Program(buffer_3);
 		display_3.addProgram(program_3);
