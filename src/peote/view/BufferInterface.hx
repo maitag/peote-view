@@ -11,6 +11,8 @@ interface BufferInterface
 	
 	private function getVertexShader():String;
 	private function getFragmentShader():String;
+	private function hasAlpha():Bool;
+	private function hasZindex():Bool;
 	
 	private function bindAttribLocations(gl: peote.view.PeoteGL, glProgram:lime.graphics.opengl.GLProgram):Void;
 	

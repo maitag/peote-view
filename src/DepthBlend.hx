@@ -56,18 +56,17 @@ class DepthBlend
 		displayR.addProgram(programR);
 		peoteView.addDisplay(displayR);
 		
-		element1 = new ElementSimple(100, 100, 100, 100, 0xFF000033); element1.z = ElementSimple.MAX_ZINDEX;
-		element2 = new ElementSimple(150, 150, 100, 100, 0x00FF0044); element2.z = ElementSimple.MAX_ZINDEX;
+		element1 = new ElementSimple(100, 100, 100, 100, 0xFF0000FF); element1.z = ElementSimple.MAX_ZINDEX;
+		element2 = new ElementSimple(150, 150, 100, 100, 0x00FF0055); element2.z = ElementSimple.MAX_ZINDEX;
 		bufferL.addElement(element1);
 		bufferL.addElement(element2);
 		
-		element3 = new ElementSimple(100, 100, 100, 100, 0x0000FFaa);
-		element4 = new ElementSimple(150, 150, 100, 100, 0xFFFF0022);
+		element3 = new ElementSimple(100, 100, 100, 100, 0x0000FFFF);
+		element4 = new ElementSimple(150, 150, 100, 100, 0xFFFF0099);
 		bufferR.addElement(element3);
 		bufferR.addElement(element4);
 		
 		activeElement = element1;
-		trace(bufferL.alphaEnabled);
 	}
 
 	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
@@ -82,10 +81,10 @@ class DepthBlend
 		switch (keyCode) {
 			case KeyCode.A: displayR.backgroundAlpha = !displayR.backgroundAlpha;
 			case KeyCode.B: displayR.backgroundEnabled = !displayR.backgroundEnabled;
-			case KeyCode.X: bufferL.alphaEnabled = !bufferL.alphaEnabled;
-			case KeyCode.Y: bufferR.alphaEnabled = !bufferR.alphaEnabled;
-			case KeyCode.C: bufferL.zIndexEnabled = !bufferL.zIndexEnabled;
-			case KeyCode.V: bufferR.zIndexEnabled = !bufferR.zIndexEnabled;
+			case KeyCode.X: programL.alphaEnabled = !programL.alphaEnabled;
+			case KeyCode.Y: programR.alphaEnabled = !programR.alphaEnabled;
+			case KeyCode.C: programL.zIndexEnabled = !programL.zIndexEnabled;
+			case KeyCode.V: programR.zIndexEnabled = !programR.zIndexEnabled;
 			case KeyCode.Z: displayR.backgroundDepth = !displayR.backgroundDepth;
 			case KeyCode.NUMBER_1: activeElement = element1;
 			case KeyCode.NUMBER_2: activeElement = element2;

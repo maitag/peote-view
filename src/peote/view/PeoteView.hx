@@ -17,20 +17,20 @@ class PeoteView
 	
 	var width:Int;
 	var height:Int;
-	public var color(default,set):Color = 0x00000000;
+	public var color(default,set):Color = 0x000000FF;
 	inline function set_color(c:Color):Color {
 		if (c != null) {
 			red   = c.red   / 255.0;			
 			green = c.green / 255.0;			
 			blue  = c.blue  / 255.0;
 			alpha = c.alpha / 255.0;
-		} else color = 0x00000000;
+		} else color = 0x000000FF;
 		return c;
 	}
 	var red:Float = 0.0;
 	var green:Float = 0.0;
 	var blue:Float = 0.0;
-	var alpha:Float = 0.0;
+	var alpha:Float = 1.0;
 	
 	var glStateAlpha:Bool = false;
 	var glStateDepth:Bool = false;
@@ -240,15 +240,15 @@ class PeoteView
 		gl.scissor(0, 0, w, h);
 		gl.enable(gl.SCISSOR_TEST);	
 		
-		gl.clearColor(red, green, blue, alpha); // Optimizing: cache r g b values and setter for color
+		gl.clearColor(red, green, blue, alpha);
 		//gl.clearDepthf(1.0);
 		
 		// Optimize: only clear depth if is in use somewhere (depthON state!)
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); //gl.STENCIL_BUFFER_BIT);
 		
 		// TODO: set only if program added or background need it
-		gl.blendFunc(gl.ONE_MINUS_SRC_ALPHA, gl.SRC_ALPHA);
-		//gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); // reverse
+		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+		//gl.blendFunc(gl.ONE_MINUS_SRC_ALPHA, gl.SRC_ALPHA); // reverse
 		//glBlendFuncSeparate(gl.ONE_MINUS_SRC_ALPHA, gl.SRC_ALPHA, gl.ONE, gl.ZERO); // colors separate
 		
 		gl.depthFunc(gl.LEQUAL);

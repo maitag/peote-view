@@ -74,9 +74,6 @@ class BufferMacro
 
 class $className implements BufferInterface
 {
-	public var alphaEnabled:Bool;
-	public var zIndexEnabled:Bool;
-	
 	var _gl: peote.view.PeoteGL = null;
 	var _glBuffer: peote.view.PeoteGL.GLBuffer;
 	var _glInstanceBuffer: peote.view.PeoteGL.GLBuffer = null;
@@ -101,9 +98,6 @@ class $className implements BufferInterface
 		#if peoteview_queueGLbuffering
 		updateGLBufferElementQueue = new Array<$elementType>();
 		#end
-		
-		alphaEnabled  = $p{elemField}.ALPHA_ENABLED;
-		zIndexEnabled = $p{elemField}.ZINDEX_ENABLED;
 		
 		_elements = new haxe.ds.Vector<$elementType>(size);
 		
@@ -262,15 +256,10 @@ class $className implements BufferInterface
 	{
 	}*/
 	
-	private inline function getVertexShader():String
-	{
-		return $p{elemField}.vertexShader;
-	}
-
-	private inline function getFragmentShader():String
-	{
-		return $p{elemField}.fragmentShader;
-	}
+	private inline function getVertexShader():String return $p{elemField}.vertexShader;
+	private inline function getFragmentShader():String return $p{elemField}.fragmentShader;
+	private inline function hasAlpha():Bool return $p{elemField}.ALPHA_ENABLED;
+	private inline function hasZindex():Bool return $p{elemField}.ZINDEX_ENABLED;
 
 	private inline function bindAttribLocations(gl: peote.view.PeoteGL, glProgram: peote.view.PeoteGL.GLProgram):Void
 	{
@@ -307,9 +296,6 @@ class $className implements BufferInterface
 			_updateGLBuffer();
 		}
 		#end
-		
-		peoteView.setGLDepth(zIndexEnabled);
-		peoteView.setGLAlpha(alphaEnabled);
 		
 		if (peote.view.PeoteGL.Version.isINSTANCED) {
 			// $p{elemField}.enableVertexAttribInstanced(_gl, _glBuffer, _glInstanceBuffer);

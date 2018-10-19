@@ -9,6 +9,9 @@ import peote.view.utils.GLTool;
 @:allow(peote.view)
 class Program 
 {
+	public var alphaEnabled:Bool;
+	public var zIndexEnabled:Bool;
+	
 	var display:Display = null;
 	var gl:PeoteGL = null;
 
@@ -30,6 +33,8 @@ class Program
 	public function new(buffer:BufferInterface) 
 	{
 		this.buffer = buffer;
+		alphaEnabled = buffer.hasAlpha();
+		zIndexEnabled = buffer.hasZindex();
 	}
 	
  	private inline function isIn(display:Display):Bool
@@ -172,6 +177,9 @@ class Program
 		}
 		
 		peoteView.gl.uniform1f (uTIME, peoteView.time);
+		
+		peoteView.setGLDepth(zIndexEnabled);
+		peoteView.setGLAlpha(alphaEnabled);
 		
 		buffer.render(peoteView, display, this);
 		peoteView.gl.useProgram (null);

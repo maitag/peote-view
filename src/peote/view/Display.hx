@@ -32,7 +32,7 @@ class Display
 		return yOffset = offset;
 	}
 	
-	public var color(default,set):Color = 0x00000000;
+	public var color(default,set):Color = 0x000000FF;
 	inline function set_color(c:Color):Color {
 		if (c != null) {
 			backgroundEnabled = true;
@@ -40,15 +40,15 @@ class Display
 			green = c.green / 255.0;
 			blue  = c.blue  / 255.0;
 			alpha = c.alpha / 255.0;
-			backgroundEnabled = (alpha < 1.0) ? true : false;
-			backgroundAlpha   = (alpha > 0.0) ? true : false;
+			backgroundEnabled = (alpha > 0.0) ? true : false;
+			backgroundAlpha   = (alpha < 1.0) ? true : false;
 		} else backgroundEnabled = false;
 		return c;
 	}
 	var red:Float = 0.0;
 	var green:Float = 0.0;
 	var blue:Float = 0.0;
-	var alpha:Float = 0.0;
+	var alpha:Float = 1.0;
 	
 	var peoteView:PeoteView = null;
 	var gl:PeoteGL = null;
