@@ -39,13 +39,5 @@ class ElementAnim implements Element
 	@zIndex @const(1) // max 0x3FFFFFFF , min -0xC0000000
 	public var z:Int = 0;
 	
-	// TODO: texture coordinates
-	@texX public var tx:Int;
-	@texY public var ty:Int;
-	@texW public var tw:Int;
-	@texH public var th:Int;
-	
-	// mappings
-	@texSlot public var slot:Int;
-	@texTile public var tile:Int;
+
 }

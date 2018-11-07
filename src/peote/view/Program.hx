@@ -48,16 +48,14 @@ class Program
 		if (this.display == display) return false; // is already added
 		else
 		{
-			if (this.display != null) {  // was added to another display
-				trace("removing from " + ((this.display.blue == 1.0)?"blue":"green"));
-				this.display.removeProgram(this); // removing from the other one
-			}
+			// if added to another one remove it frome there first
+			if (this.display != null) this.display.removeProgram(this);
 			
 			this.display = display;
 			
-			if (this.gl != display.gl) // new or different GL-Context
+			if (gl != display.gl) // new or different GL-Context
 			{
-				if (this.gl != null) clearOldGLContext(); // different GL-Context
+				if (gl != null) clearOldGLContext(); // different GL-Context
 				setNewGLContext(display.gl);
 			}
 			else if (PeoteGL.Version.isUBO)
@@ -151,38 +149,61 @@ class Program
 	var uOFFSET:GLUniformLocation;
 	var uTIME:GLUniformLocation;
 	
+	var uTEXTURE:haxe.ds.Vector<GLUniformLocation>;
+	
 	// ------------------------------------------------------------------------------
 	// ----------------------------- Render -----------------------------------------
 	// ------------------------------------------------------------------------------
 	private inline function render(peoteView:PeoteView, display:Display)
 	{	
 		//trace("    ---program.render---");
-		peoteView.gl.useProgram(glProgram); // ------ Shader Program
+		gl.useProgram(glProgram); // ------ Shader Program
+		
+		
+		// Texture Units
+		/*
+		 * TODO: lieber nicht mit "add" sondern program.setTexture(0, texture) um direkt in die Unit-Nummer zu setzen
+		 *       im Element dann definieren welche Unitnummer welche Art von Texture (z.b. color, alpha-mask, uv ..usw) 
+		 *    
+		 * 
+		textureListItem = textureList.first;
+		var i = 0;
+		while (textureListItem != null)
+		{
+			gl.activeTexture (gl.TEXTURE0+i);
+			gl.bindTexture (gl.TEXTURE_2D, textureListItem.value); // <-- das hier optimieren!!!
+			//gl.enable(gl.TEXTURE_2D); // is default ?
+			
+			// TODO: UBOs also
+			gl.uniform1i (uTEXTURE.get(i), i); // Uniform 2d Sampler
+			i++;
+		}
+		*/
 		
 		// TODO: from Program
 		if (PeoteGL.Version.isUBO)
 		{	
 			// ------------- uniform block -------------
-			//peoteView.gl.bindBufferRange(peoteView.gl.UNIFORM_BUFFER, 0, uProgramBuffer, 0, 8);
-			peoteView.gl.bindBufferBase(peoteView.gl.UNIFORM_BUFFER, peoteView.uniformBuffer.block , peoteView.uniformBuffer.uniformBuffer);
-			peoteView.gl.bindBufferBase(peoteView.gl.UNIFORM_BUFFER, display.uniformBuffer.block , display.uniformBuffer.uniformBuffer);
+			//gl.bindBufferRange(gl.UNIFORM_BUFFER, 0, uProgramBuffer, 0, 8);
+			gl.bindBufferBase(gl.UNIFORM_BUFFER, peoteView.uniformBuffer.block , peoteView.uniformBuffer.uniformBuffer);
+			gl.bindBufferBase(gl.UNIFORM_BUFFER, display.uniformBuffer.block , display.uniformBuffer.uniformBuffer);
 		}
 		else
 		{
 			// ------------- simple uniform -------------
-			peoteView.gl.uniform2f (uRESOLUTION, peoteView.width, peoteView.height);
-			peoteView.gl.uniform1f (uZOOM, peoteView.zoom * display.zoom);
-			peoteView.gl.uniform2f (uOFFSET, (display.x + display.xOffset + peoteView.xOffset) / display.zoom, 
+			gl.uniform2f (uRESOLUTION, peoteView.width, peoteView.height);
+			gl.uniform1f (uZOOM, peoteView.zoom * display.zoom);
+			gl.uniform2f (uOFFSET, (display.x + display.xOffset + peoteView.xOffset) / display.zoom, 
 											 (display.y + display.yOffset + peoteView.yOffset) / display.zoom);
 		}
 		
-		peoteView.gl.uniform1f (uTIME, peoteView.time);
+		gl.uniform1f (uTIME, peoteView.time);
 		
 		peoteView.setGLDepth(zIndexEnabled);
 		peoteView.setGLAlpha(alphaEnabled);
 		
 		buffer.render(peoteView, display, this);
-		peoteView.gl.useProgram (null);
+		gl.useProgram (null);
 	}
 	// ------------------------------------------------------------------------------
 	// ------------------------ OPENGL PICKING -------------------------------------- 
@@ -190,7 +211,7 @@ class Program
 	private inline function pick( mouseX:Int, mouseY:Int, peoteView:PeoteView, display:Display):Void
 	{
 		// TODO
-		// peoteView.gl.useProgram(glProgramPick);
+		// gl.useProgram(glProgramPick);
 		// TODO -> translate peoteview relative to zoom and mouseposition before rendreing
 		// no changes for the uniform-buffers for the picking-shader
 	}

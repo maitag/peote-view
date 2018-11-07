@@ -7,7 +7,8 @@
 	
 	
 	<app main="Main" path="bin" file="Main" />
-	<haxedef name="sampleDepthBlend" /> <!-- sampleTest, sampleDepthBlend, sampleMultidisplay, sampleMultibuffer, sampleAnimation, sampleElementInherit, sampleGLPicking... -->
+	<haxedef name="sampleTextures" />
+	<!-- sampleTest, sampleTextures, sampleDepthBlend, sampleMultidisplay, sampleMultibuffer, sampleAnimation, sampleElementInherit, sampleGLPicking... -->
 	
 	<!-- multiple windows -->
 	<!-- <app main="MultipleWindows" path="bin" file="MultipleWindows" /> 
@@ -25,7 +26,7 @@
 	<source path="src" />
 	
 	<haxelib name="lime" />
-	<haxedef name="webgl" />
+	<haxedef name="webgl" /><!-- mhhmmm ... did i need this ? ;) -->
 	
 	<!-- force compiling for a special opengl-es version (only set one of them) -->
 	<!-- this optimizes the build and forces no-runtimecheck for the gl-features -->
@@ -39,7 +40,7 @@
 
 	<haxedef name="peoteview_debug_macro" />
 
-	<!-- -Dwebgl -debug -->
+	<!-- <haxedef name="webgl-debug" /> --> <!-- try with chrome and look here: https://www.khronos.org/webgl/wiki/Debugging -->
 	<!-- <haxedef name="source-map-content" /> -->
 	<haxeflag name="-dce" value="full" />
 	

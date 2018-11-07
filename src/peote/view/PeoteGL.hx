@@ -8,6 +8,8 @@ typedef GLUniformLocation   = lime.graphics.opengl.GLUniformLocation;
 typedef GLBuffer            = lime.graphics.opengl.GLBuffer;
 typedef GLVertexArrayObject = lime.graphics.opengl.GLVertexArrayObject;
 
+typedef Image = lime.graphics.Image;
+
 typedef BytePointer = lime.utils.BytePointer;
 typedef DataPointer = lime.utils.DataPointer;
 

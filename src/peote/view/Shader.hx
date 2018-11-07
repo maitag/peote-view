@@ -93,7 +93,7 @@ class Shader
 			vec4(2.0 / width*zoom, 0.0, 0.0, 0.0),
 			vec4(0.0, -2.0 / height*zoom, 0.0, 0.0),
 			vec4(0.0, 0.0, -1.0, 0.0),
-			vec4( 2.0*deltaX*zoom/width-1.0, 1.0-2.0*deltaY*zoom/height, 0.0, 1.0)
+			vec4(2.0*deltaX*zoom/width-1.0, 1.0-2.0*deltaY*zoom/height, 0.0, 1.0)
 		)
 		* vec4 (pos ,
 			::ZINDEX::

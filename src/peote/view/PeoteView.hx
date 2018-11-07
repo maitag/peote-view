@@ -112,7 +112,10 @@ class PeoteView
 		trace("GL.MAX_VERTEX_ATTRIBS:" + gl.getParameter(gl.MAX_VERTEX_ATTRIBS));
 		trace("GL.MAX_VERTEX_UNIFORM_VECTORS:" + gl.getParameter(gl.MAX_VERTEX_UNIFORM_VECTORS));
 		trace("GL.MAX_FRAGMENT_UNIFORM_VECTORS:" + gl.getParameter(gl.MAX_FRAGMENT_UNIFORM_VECTORS));
-		trace("EXTENSIONS:\n"+gl.getSupportedExtensions());
+		trace("EXTENSIONS:\n" + gl.getSupportedExtensions());
+		// to use internal 32 bit float-textures for webgl enable: gl.getExtension("EXT_color_buffer_float");
+		// or look here https://stackoverflow.com/questions/45571488/webgl-2-readpixels-on-framebuffers-with-float-textures
+		
 		/*
 		// only ES2:
 		trace("precision range low precision", gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.LOW_FLOAT).precision);

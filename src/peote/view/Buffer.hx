@@ -161,7 +161,7 @@ class $className implements BufferInterface
 	
 	inline function _updateGLBuffer():Void
 	{
-		trace("fill full GlBuffer", _bytes.length);
+		//trace("fill full GlBuffer", _bytes.length);
 		_gl.bindBuffer (_gl.ARRAY_BUFFER, _glBuffer);
 		_gl.bufferData (_gl.ARRAY_BUFFER, _bytes.length, _bytes, _gl.STATIC_DRAW); // _gl.DYNAMIC_DRAW _gl.STREAM_DRAW
 		_gl.bindBuffer (_gl.ARRAY_BUFFER, null);
@@ -210,7 +210,7 @@ class $className implements BufferInterface
 	
 	public inline function _updateElement(element: $elementType):Void
 	{	
-		trace("Buffer.updateElement at position" + element.bytePos);
+		//trace("Buffer.updateElement at position" + element.bytePos);
 		if (_gl != null) element.updateGLBuffer(_gl, _glBuffer, _elemBuffSize);
 	}
 	
@@ -223,7 +223,7 @@ class $className implements BufferInterface
 		if (element.bytePos == -1) {
 			element.bytePos = _maxElements * _elemBuffSize;
 			element.dataPointer = new peote.view.PeoteGL.BytePointer(_bytes, element.bytePos);
-			trace("Buffer.addElement", _maxElements, element.bytePos);
+			//trace("Buffer.addElement", _maxElements, element.bytePos);
 			_elements.set(_maxElements++, element);
 			updateElement(element);		
 		} 
