@@ -112,6 +112,8 @@ class Multidisplay
 	{
 		peoteView.render();
 	}
+	public function update(deltaTime:Int):Void {}
+	public function onMouseUp (x:Float, y:Float, button:MouseButton):Void {}
 
 	public function resize(width:Int, height:Int)
 	{

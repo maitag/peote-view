@@ -505,7 +505,7 @@ class ElementImpl
 		} else glConf.FRAGMENT_CALC_COLOR = color2vec4(conf.color.vStart);
 		
 		// texcoords
-		glConf.CALC_TEXCOORD  = "vTexCoord = aPosition;"; //TODO
+		glConf.CALC_TEXCOORD  = "vTexCoord = aPosition;"; //TODO  texcords / vec2(::TEXTURE_WIDTH::.0,::TEXTURE_HEIGHT::.0));
 		
 		
 		// ---------------------- generate helper vars and functions ---------------------------

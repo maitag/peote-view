@@ -25,6 +25,8 @@ typedef Sample = Animation;
 typedef Sample = ElementInherit;
 #elseif sampleGLPicking
 typedef Sample = GLPicking;
+#elseif sampleBunnyMark
+typedef Sample = BunnyMark;
 #end 
 
 class Main extends Application
@@ -61,6 +63,11 @@ class Main extends Application
 	public override function render(context:RenderContext):Void
 	{	
 		if (renderTest) test.render();
+	}
+	
+	public override function update (deltaTime:Int):Void
+	{
+		if (renderTest) test.update(deltaTime);
 	}
 
 	// ------------------------------------------------------------
@@ -117,7 +124,8 @@ class Main extends Application
 	
 	public override function onMouseUp (x:Float, y:Float, button:MouseButton):Void
 	{	
-		trace("onmouseup: "+button+" x=" + x + " y="+ y);
+		//trace("onmouseup: " + button + " x=" + x + " y=" + y);
+		if (renderTest) test.onMouseUp(x, y, button);
 	}
 	
 	public override function onMouseWheel (deltaX:Float, deltaY:Float, deltaMode:MouseWheelMode):Void

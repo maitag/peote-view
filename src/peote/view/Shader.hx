@@ -110,7 +110,8 @@ class Shader
 	"
 	::if isES3::#version 300 es::end::
 	
-    precision highp float;
+    //precision highp float;
+    precision mediump float;
 	
 	::FRAGMENT_PROGRAM_UNIFORMS::
 	
@@ -131,8 +132,9 @@ class Shader
 		vec4 texel = ::FRAGMENT_CALC_COLOR::;
 		
 		::if hasTEXTURES::
-			texel = texel * texture::if !isES3::2D::end::(uTexture0, vTexCoord);// / vec2(1024.0,1024.0)); // ::TEXTURE_WIDTH::, TEXTURE_HEIGHT
-			//if (texel.a == 0.0) discard;
+			texel = texel * texture::if !isES3::2D::end::(uTexture0, vTexCoord);
+			//vec4 texel = texture::if !isES3::2D::end::(uTexture0, vTexCoord);
+			if (texel.a == 0.0) discard;
 		::end::
 		
 		::if !isES3::gl_Frag::end::Color = texel;

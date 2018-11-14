@@ -83,7 +83,9 @@ class Animation
 			default:
 		}
 	}
-
+	public function update(deltaTime:Int):Void {}
+	public function onMouseUp (x:Float, y:Float, button:MouseButton):Void {}
+	
 	public function render()
 	{
 		peoteView.render();

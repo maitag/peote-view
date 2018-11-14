@@ -157,9 +157,7 @@ class Program
 	var uOFFSET:GLUniformLocation;
 	var uTIME:GLUniformLocation;
 	
-	//var uTEXTURE:Vector<GLUniformLocation>;
-	
-	var activeTextures = new Array<{unit:Int, type:Int, texture:Texture, uniformLoc:Null<GLUniformLocation>}>(); // mehrere units fuer den selben typ (unit muss eindeutig sein)
+	var activeTextures = new Array<{unit:Int, type:Int, texture:Texture, ?uniformLoc:GLUniformLocation}>(); // mehrere units fuer den selben typ (unit muss eindeutig sein)
 	
 	public function setTexture(texture:Texture, ?textureType:Int, textureUnit:Null<Int> = null) // TODO 
 	{		
@@ -190,7 +188,7 @@ class Program
 		}
 		
 		if (isAdd) {
-			activeTextures.push({unit:textureUnit, type:textureType, texture:texture, uniformLoc:null});
+			activeTextures.push({unit:textureUnit, type:textureType, texture:texture});
 			// resort
 			haxe.ds.ArraySort.sort(activeTextures, function(a, b):Int {
 			  if (a.unit < b.unit) return -1;
@@ -224,12 +222,12 @@ class Program
 		{
 			var t = activeTextures[i];
 			//TODO: if t != null
-			//if ( peoteView.isTextureStateChange(i, t.texture.glTexture) ) {
+			if ( peoteView.isTextureStateChange(i, t.texture.glTexture) ) {
 				gl.activeTexture (gl.TEXTURE0 + t.unit);
 				gl.bindTexture (gl.TEXTURE_2D, t.texture.glTexture);
 				//glBindSampler(i, linearFiltering);
 				//gl.enable(gl.TEXTURE_2D); // is default ?
-			//}
+			}
 			gl.uniform1i (t.uniformLoc, i); // TODO: also in this.uniformBuffer ?
 		}
 		

@@ -40,18 +40,19 @@ class Textures
 		future.onProgress (function (a:Int,b:Int) trace ('loading image $a/$b'));
 		future.onError (function (msg:String) trace ("Error: "+msg));
 		future.onComplete (function (image:Image) {
-			trace("loading complete",image.width);
+			trace("loading complete");
 			
 			var texture = new Texture(image.width, image.height);
 			
 			texture.setImage(image);
 			
-			program.setTexture(texture);
 			//program.setTexture(texture, ElementSimple.TEXTURE_COLOR);
 			
+			program.setTexture(texture); // TODO: bug if set after
 			
 			display.addProgram(program);    // programm to display
 			peoteView.addDisplay(display);  // display to peoteView
+			
 		
 			element  = new ElementSimple(10, 10);
 			buffer.addElement(element);     // element to buffer
@@ -79,6 +80,8 @@ class Textures
 	{
 		peoteView.render();
 	}
+	public function update(deltaTime:Int):Void {}
+	public function onMouseUp (x:Float, y:Float, button:MouseButton):Void {}
 
 	public function resize(width:Int, height:Int)
 	{

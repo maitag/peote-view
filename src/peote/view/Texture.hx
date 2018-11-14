@@ -140,7 +140,7 @@ class Texture
 		
 		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, 0);
 		// sometimes 32 float is essential for multipass-rendering (needs extension EXT_color_buffer_float)
-		// gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, width, height, 0, gl.RGBA, gl.FLOAT, null);
+		// gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, width, height, 0, gl.RGBA, gl.FLOAT, 0);
 		
 		
 		// TODO: outsource into other function ?
