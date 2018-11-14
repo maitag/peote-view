@@ -34,9 +34,9 @@ typedef GLConfParam =
 {			isPICK:Bool,
 			UNIFORM_TIME:String,
 			ATTRIB_TIME:String, ATTRIB_SIZE:String, ATTRIB_POS:String, ATTRIB_COLOR:String, ATTRIB_ROTZ:String, ATTRIB_PIVOT:String,
-			OUT_COLOR:String, IN_COLOR:String, ZINDEX:String,
+			OUT_COLOR:String, IN_COLOR:String, OUT_TEXCOORD:String, IN_TEXCOORD:String, ZINDEX:String,
 			FRAGMENT_CALC_COLOR:String,
-			CALC_TIME:String, CALC_SIZE:String, CALC_POS:String, CALC_COLOR:String, CALC_ROTZ:String, CALC_PIVOT:String,
+			CALC_TIME:String, CALC_SIZE:String, CALC_POS:String, CALC_COLOR:String, CALC_ROTZ:String, CALC_PIVOT:String, CALC_TEXCOORD:String,
 };
 
 class ElementImpl
@@ -365,9 +365,9 @@ class ElementImpl
 			isPICK:false,
 			UNIFORM_TIME:"",
 			ATTRIB_TIME:"", ATTRIB_SIZE:"", ATTRIB_POS:"", ATTRIB_COLOR:"", ATTRIB_ROTZ:"", ATTRIB_PIVOT:"",
-			OUT_COLOR:"", IN_COLOR:"", ZINDEX:"",
+			OUT_COLOR:"", IN_COLOR:"", OUT_TEXCOORD:"", IN_TEXCOORD:"", ZINDEX:"",
 			FRAGMENT_CALC_COLOR:"",
-			CALC_TIME:"", CALC_SIZE:"", CALC_POS:"", CALC_COLOR:"", CALC_ROTZ:"", CALC_PIVOT:""
+			CALC_TIME:"", CALC_SIZE:"", CALC_POS:"", CALC_COLOR:"", CALC_ROTZ:"", CALC_PIVOT:"", CALC_TEXCOORD:""
 		};		
 		setFun  = new StringMap<Dynamic>();
 		animFun = new StringMap<Dynamic>();
@@ -421,6 +421,9 @@ class ElementImpl
 			glConf.OUT_COLOR = "::VAROUT:: vec4 vColor;";
 			glConf.IN_COLOR  = "::VARIN::  vec4 vColor;";
 		}
+		
+		glConf.OUT_TEXCOORD = "::VAROUT:: vec2 vTexCoord;";
+		glConf.IN_TEXCOORD  = "::VARIN::  vec2 vTexCoord;";
 		
 		// CALC TIME-MUTLIPLICATORS:
 		for (i in 0...timers.length) {
@@ -501,7 +504,9 @@ class ElementImpl
 			glConf.FRAGMENT_CALC_COLOR = "vColor"; // TODO: methods for texel-recoloring
 		} else glConf.FRAGMENT_CALC_COLOR = color2vec4(conf.color.vStart);
 		
-		// texcoord
+		// texcoords
+		glConf.CALC_TEXCOORD  = "vTexCoord = aPosition;"; //TODO
+		
 		
 		// ---------------------- generate helper vars and functions ---------------------------
 		debug("__generate vars and functions__");

@@ -1,5 +1,7 @@
 package peote.view;
 
+import haxe.ds.IntMap;
+import haxe.ds.Vector;
 import peote.view.PeoteGL.GLProgram;
 import peote.view.PeoteGL.GLShader;
 import peote.view.PeoteGL.GLUniformLocation;
@@ -21,13 +23,15 @@ class Program
 	
 	var buffer:BufferInterface; // TODO: make public with getter/setter
 	
-	public var glShaderConfig = {
+	var glShaderConfig = {
 		isES3: false,
 		isINSTANCED: false,
 		isUBO: false,
 		IN: "attribute",
 		VARIN: "varying",
 		VAROUT: "varying",
+		hasTEXTURES: false,
+		FRAGMENT_PROGRAM_UNIFORMS:"",
 	};
 	
 	public function new(buffer:BufferInterface) 
@@ -44,10 +48,10 @@ class Program
 			
 	private inline function addToDisplay(display:Display):Bool
 	{
-		
+		trace("Program added to Display");
 		if (this.display == display) return false; // is already added
 		else
-		{
+		{	
 			// if added to another one remove it frome there first
 			if (this.display != null) this.display.removeProgram(this);
 			
@@ -56,7 +60,7 @@ class Program
 			if (gl != display.gl) // new or different GL-Context
 			{
 				if (gl != null) clearOldGLContext(); // different GL-Context
-				setNewGLContext(display.gl);
+				setNewGLContext(display.gl); //TODO: check that this is not Null
 			}
 			else if (PeoteGL.Version.isUBO)
 			{	// if Display is changed but same gl-context -> bind to UBO of new Display
@@ -81,6 +85,8 @@ class Program
 		buffer.createGLBuffer();
 		buffer.updateGLBuffer();
 		
+		for (t in activeTextures) t.texture.setNewGLContext(newGl);
+		
 		if (PeoteGL.Version.isES3) {
 			glShaderConfig.isES3 = true;
 			glShaderConfig.IN = "in";
@@ -102,22 +108,20 @@ class Program
 		gl.deleteProgram(glProgram);
 		
 		buffer.deleteGLBuffer();
+		for (t in activeTextures) t.texture.clearOldGLContext();
 	}
-	
-	
-	public function addTexture(texture:Texture) 
-	{
-		// TODO
-	}
-	
-	public function removeTexture(texture:Texture) 
-	{
-		// TODO
-	}
-	
+
 	private function createProgram():Void  // TODO: do not compile twice if same program is used inside multiple displays
 	{
 		trace("create Program");
+		
+		if (activeTextures.length == 0)	glShaderConfig.hasTEXTURES = false;
+		else {
+			glShaderConfig.hasTEXTURES = true;
+			// TODO: fill more textures templates
+			glShaderConfig.FRAGMENT_PROGRAM_UNIFORMS = "uniform sampler2D uTexture0;";
+		}
+		
 		glVertexShader   = GLTool.compileGLShader(gl, gl.VERTEX_SHADER,   GLTool.parseShader(buffer.getVertexShader(), glShaderConfig) );
 		glFragmentShader = GLTool.compileGLShader(gl, gl.FRAGMENT_SHADER, GLTool.parseShader(buffer.getFragmentShader(), glShaderConfig) );
 		
@@ -142,6 +146,10 @@ class Program
 			uOFFSET = gl.getUniformLocation(glProgram, "uOffset");
 		}
 		uTIME = gl.getUniformLocation(glProgram, "uTime");
+		for (i in 0...activeTextures.length)
+		{
+			activeTextures[i].uniformLoc = gl.getUniformLocation(glProgram, "uTexture" + i);
+		}	
 	}
 	
 	var uRESOLUTION:GLUniformLocation;
@@ -149,7 +157,59 @@ class Program
 	var uOFFSET:GLUniformLocation;
 	var uTIME:GLUniformLocation;
 	
-	var uTEXTURE:haxe.ds.Vector<GLUniformLocation>;
+	//var uTEXTURE:Vector<GLUniformLocation>;
+	
+	var activeTextures = new Array<{unit:Int, type:Int, texture:Texture, uniformLoc:Null<GLUniformLocation>}>(); // mehrere units fuer den selben typ (unit muss eindeutig sein)
+	
+	public function setTexture(texture:Texture, ?textureType:Int, textureUnit:Null<Int> = null) // TODO 
+	{		
+		// TODO: check buffer.maxTextureType -> element.maxTextureType
+		if (textureType == null) textureType = 0;
+		
+		var autoTextureUnit = false;
+		if (textureUnit != null) {			
+			if (textureUnit >= gl.MAX_TEXTURE_IMAGE_UNITS) throw('Error, maximum for textureUnit is ${gl.MAX_TEXTURE_IMAGE_UNITS}.');
+		}
+		else {
+			textureUnit = 0;
+			autoTextureUnit = true;
+		}
+		
+		var isAdd = true;
+		for (t in activeTextures) {
+			if ((textureUnit == t.unit || autoTextureUnit) && textureType == t.type) {
+				if (t.texture != texture) {
+					t.texture = texture;
+					if (!texture.setToProgram(this)) throw("Error, texture already used by another gl-context.");
+					//TODO:check if textureslots /size changed ->recompile
+				}
+				isAdd = false;
+				break;
+			}
+			if (t.unit == textureUnit) textureUnit++;
+		}
+		
+		if (isAdd) {
+			activeTextures.push({unit:textureUnit, type:textureType, texture:texture, uniformLoc:null});
+			// resort
+			haxe.ds.ArraySort.sort(activeTextures, function(a, b):Int {
+			  if (a.unit < b.unit) return -1;
+			  else if (a.unit > b.unit) return 1;
+			  return 0;
+			});
+			
+			if (display != null) createProgram(); // recompile shader
+		}
+	}
+	
+	public function removeTexture(texture:Texture)
+	{
+		// TODO
+		
+		// if() {
+			// TODO: recompile shader
+		//}
+	}
 	
 	// ------------------------------------------------------------------------------
 	// ----------------------------- Render -----------------------------------------
@@ -159,26 +219,19 @@ class Program
 		//trace("    ---program.render---");
 		gl.useProgram(glProgram); // ------ Shader Program
 		
-		
 		// Texture Units
-		/*
-		 * TODO: lieber nicht mit "add" sondern program.setTexture(0, texture) um direkt in die Unit-Nummer zu setzen
-		 *       im Element dann definieren welche Unitnummer welche Art von Texture (z.b. color, alpha-mask, uv ..usw) 
-		 *    
-		 * 
-		textureListItem = textureList.first;
-		var i = 0;
-		while (textureListItem != null)
+		for (i in 0...activeTextures.length)
 		{
-			gl.activeTexture (gl.TEXTURE0+i);
-			gl.bindTexture (gl.TEXTURE_2D, textureListItem.value); // <-- das hier optimieren!!!
-			//gl.enable(gl.TEXTURE_2D); // is default ?
-			
-			// TODO: UBOs also
-			gl.uniform1i (uTEXTURE.get(i), i); // Uniform 2d Sampler
-			i++;
+			var t = activeTextures[i];
+			//TODO: if t != null
+			//if ( peoteView.isTextureStateChange(i, t.texture.glTexture) ) {
+				gl.activeTexture (gl.TEXTURE0 + t.unit);
+				gl.bindTexture (gl.TEXTURE_2D, t.texture.glTexture);
+				//glBindSampler(i, linearFiltering);
+				//gl.enable(gl.TEXTURE_2D); // is default ?
+			//}
+			gl.uniform1i (t.uniformLoc, i); // TODO: also in this.uniformBuffer ?
 		}
-		*/
 		
 		// TODO: from Program
 		if (PeoteGL.Version.isUBO)

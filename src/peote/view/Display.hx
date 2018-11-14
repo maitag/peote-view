@@ -34,15 +34,12 @@ class Display
 	
 	public var color(default,set):Color = 0x000000FF;
 	inline function set_color(c:Color):Color {
-		if (c != null) {
-			backgroundEnabled = true;
-			red   = c.red   / 255.0;
-			green = c.green / 255.0;
-			blue  = c.blue  / 255.0;
-			alpha = c.alpha / 255.0;
-			backgroundEnabled = (alpha > 0.0) ? true : false;
-			backgroundAlpha   = (alpha < 1.0) ? true : false;
-		} else backgroundEnabled = false;
+		red   = c.red   / 255.0;
+		green = c.green / 255.0;
+		blue  = c.blue  / 255.0;
+		alpha = c.alpha / 255.0;
+		backgroundEnabled = (alpha > 0.0) ? true : false;
+		backgroundAlpha   = (alpha < 1.0) ? true : false;
 		return c;
 	}
 	var red:Float = 0.0;
@@ -57,7 +54,7 @@ class Display
 		
 	var uniformBuffer:UniformBufferDisplay;
 
-	public function new(x:Int, y:Int, width:Int, height:Int, ?color:Color) 
+	public function new(x:Int, y:Int, width:Int, height:Int, color:Color = 0x000000FF) 
 	{	
 		this.x = x;
 		this.y = y;

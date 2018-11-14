@@ -15,16 +15,17 @@ class ElementSimple implements Element
 	
 	@zIndex public var z:Int = 0;
 
-	// type("color") is default
-	@texUnit @type("color", "alpha") public var unit:Int;
-	@texSlot @type("color", "alpha") public var slot:Int;
-	@texTile @type("color", "alpha") public var tile:Int;
+	@texUnit("color", "alpha") public var unit:Int;  // unsigned 1 bytes integer
+	@texSlot("color", "alpha") public var slot:Int;  // unsigned 2 bytes integer
+	@texTile("color", "alpha") public var tile:Int;  // unsigned 2 bytes integer
+
 	// innerhalb des Tiles oder Slots oder der gesammten Texture
-	@texX @type("color") public var txOffset:Int;
-	@texY @type("color") public var tyOffset:Int;
-	@texW @type("alpha") public var twOffset:Int;
-	@texH @type("alpha") public var thOffset:Int;
-	//TODO: @texXOffset @type("color") public var tx:Int;
+	@texX("color") public var tx:Int;
+	@texY("color") public var ty:Int;
+	@texW("alpha") public var tw:Int;
+	@texH("alpha") public var th:Int;
+	
+	// TODO: @texXOffset("color") public var txOffset:Int;
 	
 	
 	public function new(positionX:Int=0, positionY:Int=0, width:Int=100, height:Int=100, c:Int=0xFF0000FF )

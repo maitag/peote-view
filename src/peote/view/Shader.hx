@@ -41,20 +41,18 @@ class Shader
 	::ATTRIB_PIVOT::
 	
 	
-	//aPivot
-	//aRotation
-	//aColor
 	//aElement
 	//aTexCoord
 	//aTile
-	//aZindex
 	
 	// custom Attributes --
 	//aCustom0
 	
 	// Varyings ---------------------------
 	::OUT_COLOR::
-	
+	::if hasTEXTURES::
+		::OUT_TEXCOORD::
+	::end::
 
 	// PICKING  ::if isES3:: flat out int instanceID; ::end::
 	
@@ -65,6 +63,9 @@ class Shader
 		::CALC_ROTZ::
 		::CALC_POS::
 		::CALC_COLOR::
+		::if hasTEXTURES::
+			::CALC_TEXCOORD::
+		::end::
 		
 		// PICKING instanceID = gl_InstanceID;
 		
@@ -111,7 +112,12 @@ class Shader
 	
     precision highp float;
 	
+	::FRAGMENT_PROGRAM_UNIFORMS::
+	
 	::IN_COLOR::
+	::if hasTEXTURES::
+		::IN_TEXCOORD::
+	::end::
 	
 	::if isES3::
 	//flat in int instanceID;
@@ -122,10 +128,17 @@ class Shader
 	
 	void main(void)
 	{	
-		::if !isES3::gl_Frag::end::Color = ::FRAGMENT_CALC_COLOR::; 
+		vec4 texel = ::FRAGMENT_CALC_COLOR::;
 		
-		// TODO: problem on old FF if alpha goes zero
-		::if !isES3::gl_Frag::end::Color.w = clamp(::if !isES3::gl_Frag::end::Color.w, 0.003, 1.0); // FIX
+		::if hasTEXTURES::
+			texel = texel * texture::if !isES3::2D::end::(uTexture0, vTexCoord);// / vec2(1024.0,1024.0)); // ::TEXTURE_WIDTH::, TEXTURE_HEIGHT
+			//if (texel.a == 0.0) discard;
+		::end::
+		
+		::if !isES3::gl_Frag::end::Color = texel;
+		
+		// TODO: check this fix for problem on old FF if alpha goes zero
+		::if !isES3::gl_Frag::end::Color.w = clamp(::if !isES3::gl_Frag::end::Color.w, 0.003, 1.0);
 		
 		// PICKING ::if isES3::color::else::gl_FragColor::end:: =  instanceID*50;
 	}

@@ -31,7 +31,6 @@ class Textures
 		buffer = new Buffer<ElementSimple>(100);
 
 		var display   = new Display(10,10, window.width-20, window.height-20, Color.GREEN);
-		peoteView.addDisplay(display);  // display to peoteView
 
 		var program   = new Program(buffer);
 		
@@ -41,17 +40,18 @@ class Textures
 		future.onProgress (function (a:Int,b:Int) trace ('loading image $a/$b'));
 		future.onError (function (msg:String) trace ("Error: "+msg));
 		future.onComplete (function (image:Image) {
-			trace("loading complete");
+			trace("loading complete",image.width);
 			
 			var texture = new Texture(image.width, image.height);
 			
-			texture.addImage(image);
+			texture.setImage(image);
 			
-			program.addTexture(texture);
+			program.setTexture(texture);
+			//program.setTexture(texture, ElementSimple.TEXTURE_COLOR);
 			
-			Texture.createEmptyTexture(peoteView.gl, 64, 64);
 			
 			display.addProgram(program);    // programm to display
+			peoteView.addDisplay(display);  // display to peoteView
 		
 			element  = new ElementSimple(10, 10);
 			buffer.addElement(element);     // element to buffer

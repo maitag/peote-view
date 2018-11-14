@@ -38,16 +38,15 @@ typedef LimeGLRenderContext = lime.graphics.OpenGLRenderContext;
 abstract PeoteGL(LimeGLRenderContext) from LimeGLRenderContext to LimeGLRenderContext {
 	#if html5
 		public inline function bufferData (target:Int, size:Int, srcData:DataPointer, usage:Int):Void {
-			var a = srcData.toUInt8Array();
-			//trace("bufferData",srcData,a);
-			this.bufferData (target, a, usage);
+			this.bufferData (target, srcData.toUInt8Array(), usage);
 		}
 		
 		public inline function bufferSubData (target:Int, offset:Int, size:Int, srcData:DataPointer):Void {
-			//var a = srcData.toBufferOrBufferView(size);
-			var a = srcData.toUInt8Array(size);
-			//trace("bufferSubData",srcData,a);
-			this.bufferSubData (target, offset, a);
+			this.bufferSubData (target, offset, srcData.toUInt8Array(size));
+		}
+		
+		public inline function texImage2D (target:Int, level:Int, internalformat:Int, width:Int, height:Int, border:Int, format:Int, type:Int, srcData:DataPointer):Void {
+			this.texImage2D(target, level, internalformat, width, height, border, format, type, srcData.toUInt8Array());
 		}
 		
 	#else

@@ -1,41 +1,144 @@
 package peote.view;
 
-import peote.view.PeoteGL.GLTexture;
+import haxe.ds.Vector;
 import peote.view.PeoteGL.Image;
+import peote.view.PeoteGL.GLTexture;
+import peote.view.PeoteGL.DataPointer;
 
+typedef ImgProp = {imageSlot:Int}; //isRotated
 
+@:allow(peote.view)
 class Texture 
 {
-	public var gl(default, null):PeoteGL = null;
+	var gl:PeoteGL = null;
+
+	public var glTexture(default, null):GLTexture = null;	
+	
+	var used:Int = 0; //TODO (from program)
 	
 	public var colorChannels(default, null):Int=4;
 	
-	public var width(default, null):Int;
-	public var height(default, null):Int;
+	public var width(default, null):Int = 0;
+	public var height(default, null):Int = 0;
 	
-	public var slots(default, null):Int = 1;
-
+	public var imageSlots(default, null):Int = 1;
+	public var slotsX(default, null):Int = 1;
+	public var slotsY(default, null):Int = 1;
+	
+	public var slotWidth(default, null):Int;
+	public var slotHeight(default, null):Int;
+	
+	public var images = new Map<Image, ImgProp>();
+	
 	public var createMipmaps:Bool = false;
 	public var magFilter:Int = 0;
 	public var minFilter:Int = 0;
 
-	public function new(width:Int, height:Int, slots:Int=1, colorChannels:Int=4, createMipmaps:Bool=false, magFilter:Int=0, minFilter:Int=0)
+
+	public function new(slotWidth:Int, slotHeight:Int, imageSlots:Int=1, colorChannels:Int=4, createMipmaps:Bool=false, magFilter:Int=0, minFilter:Int=0)
 	{
-		this.width = width;
-		this.height = height;
-		this.slots = slots;
+		this.slotWidth = slotWidth;
+		this.slotHeight = slotHeight;
+		this.imageSlots = imageSlots;
+		this.colorChannels = colorChannels;
 		this.createMipmaps = createMipmaps;
 		this.magFilter = magFilter;
 		this.minFilter = minFilter;
-		this.colorChannels = colorChannels;
 	}
 	
-	public static inline function createEmptyTexture(gl:PeoteGL, width:Int, height:Int, colorChannels:Int=4, slots:Int=1, createMipmaps:Bool=false, magFilter:Int=0, minFilter:Int=0):GLTexture
+	private function setToProgram(program:Program):Bool
 	{
-		var glTexture:GLTexture = gl.createTexture();
+		if (gl != program.gl) // new or different GL-Context
+		{
+			if (gl != null) {
+				if (used > 0) return false; // already used by another gl-context
+				else clearOldGLContext();
+			}
+			setNewGLContext(program.gl);
+		}
+		used++;
+		return true;
+	}
+
+	private inline function removedFromProgram():Void
+	{
+		used--;
+	}
+	private inline function setNewGLContext(newGl:PeoteGL)
+	{
+		trace("Texture setNewGLContext");
+		gl = newGl;
+		createTexture();
+		// all images to gpu
+		for (image in images.keys()) bufferImage(image,images.get(image));
+	}
+	private inline function clearOldGLContext() 
+	{
+		trace("Texture clearOldGLContext");
+		//TODO
+		gl.deleteTexture(glTexture);
+		glTexture = null;
+	}
+	
+	private inline function createTexture()
+	{
+		trace("Create new Texture");
+		// optimal size!
+		var p = optimalTextureSize(imageSlots, slotWidth, slotHeight, gl.getParameter(gl.MAX_TEXTURE_SIZE));
+		width = p.width;
+		height = p.height;
+		slotsX = p.slotsX;
+		slotsY = p.slotsY;
+		glTexture = createEmptyTexture(gl, width, height, colorChannels, createMipmaps, magFilter, minFilter);			
+	}
+
+	public function setImage(image:Image, imageSlot:Int = 0) {
+		trace("Set Image into Texture Slot"+imageSlot);
+		images.set(image, {imageSlot:imageSlot}); // TODO: is already set?
+		if (gl != null) {
+			if (glTexture == null) createTexture();
+			bufferImage(image, {imageSlot:imageSlot});
+		}
+	}
+	
+	private function bufferImage(image:Image, imgProp:ImgProp) {
+		trace("buffer Image to Texture");
+		
+		// TODO
+		imageToTexture(gl, glTexture,
+		                   0,//slotWidth * (imgProp.imageSlot % slotsX),
+		                   0,//slotHeight * Math.floor(imgProp.imageSlot / slotsX),
+		                   image.width, image.height, //slotWidth, slotHeight,
+		                   image, false );		
+	}
+	
+	private static inline function imageToTexture(gl:PeoteGL, glTexture:PeoteGL.GLTexture, x:Int, y:Int, w:Int, h:Int, 
+	                                              image:Image, createMipmaps:Bool=false):Void
+	{
 		gl.bindTexture(gl.TEXTURE_2D, glTexture);
 		
-		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+		//gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, w, h, gl.RGBA, gl.UNSIGNED_BYTE,  image.buffer.data );
+		gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, w, h, gl.RGBA, gl.UNSIGNED_BYTE,  image.data );
+		
+		if (createMipmaps) { // re-create for full texture ?
+			//GL.hint(GL.GENERATE_MIPMAP_HINT, GL.NICEST);
+			//GL.hint(GL.GENERATE_MIPMAP_HINT, GL.FASTEST);
+			gl.generateMipmap(gl.TEXTURE_2D);
+		}
+		gl.bindTexture(gl.TEXTURE_2D, null);
+	}
+	
+	
+	private static inline function createEmptyTexture(gl:PeoteGL, width:Int, height:Int, colorChannels:Int = 4,
+	                                                 createMipmaps:Bool=false, magFilter:Int=0, minFilter:Int=0):GLTexture
+	{
+		// TODO: colorchannels !
+		
+		var glTexture:GLTexture = gl.createTexture();
+		
+		gl.bindTexture(gl.TEXTURE_2D, glTexture);
+		
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, 0);
 		// sometimes 32 float is essential for multipass-rendering (needs extension EXT_color_buffer_float)
 		// gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, width, height, 0, gl.RGBA, gl.FLOAT, null);
 		
@@ -73,40 +176,17 @@ class Texture
 
 		if (createMipmaps) gl.generateMipmap(gl.TEXTURE_2D);
 		
+		//peoteView.glStateTexture.set(gl.getInteger(gl.ACTIVE_TEXTURE), null); // TODO: check with multiwindows (gl.getInteger did not work on html5)
 		gl.bindTexture(gl.TEXTURE_2D, null);
+		
 		return glTexture;
 	}
 
-	public function addImage(image:Image, ?slot:Int) {
-		// put image into a Map: key:image, value:slot
-		// create texture if is not already
-		// copy if gl is there
-		// put slot-parameters into a vector where slot is the index and value: {isCopyed, width, height, isRotated}
-	}
-	
-	private inline function imageDataToTexture(gl:PeoteGL, glTexture:PeoteGL.GLTexture, x:Int, y:Int, w:Int, h:Int, data:PeoteGL.DataPointer, createMipmaps:Bool = false):Void
-	{
-		gl.bindTexture(gl.TEXTURE_2D, glTexture);
-		gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, w, h, gl.RGBA, gl.UNSIGNED_BYTE,  data );
-		
-		if (createMipmaps) { // re-create for full texture ?
-			//GL.hint(GL.GENERATE_MIPMAP_HINT, GL.NICEST);
-			//GL.hint(GL.GENERATE_MIPMAP_HINT, GL.FASTEST);
-			gl.generateMipmap(gl.TEXTURE_2D);
-		}
-		gl.bindTexture(gl.TEXTURE_2D, null);
-	}
-	
-	public inline function optimalTextureSize(slots:Int, slotWidth:Int, slotHeight:Int, ?maxTextureSize:Int):Dynamic
+	public inline function optimalTextureSize(imageSlots:Int, slotWidth:Int, slotHeight:Int, maxTextureSize:Int):Dynamic
     {
-		//if (maxTextureSize == null) maxTextureSize = GL.getParameter(GL.MAX_TEXTURE_SIZE);
         maxTextureSize = Math.ceil( Math.log(maxTextureSize) / Math.log(2) );
-        //trace('maxTextureSize: ${1<<maxTextureSize}');
-        //trace('Texture-slots:${slots}');
-        //trace('slot width : ${slotWidth}');
-        //trace('slot height: ${slotHeight}');
         
-        var a:Int = Math.ceil( Math.log(slots * slotWidth * slotHeight ) / Math.log(2) );  //trace(a);
+        var a:Int = Math.ceil( Math.log(imageSlots * slotWidth * slotHeight ) / Math.log(2) );  //trace(a);
         var r:Int; // unused area -> minimize!
         var w:Int = 1;
         var h:Int = a-1;
@@ -121,8 +201,8 @@ class Texture
  	        m = Math.floor(Math.min( maxTextureSize, a - n + 1 ));
             while ((1 << m) >= slotHeight)
             {	//trace('  $n,$m - ${1<<n} w ${1<<m}');  
-                if (Math.floor((1 << n) / slotWidth) * Math.floor((1 << m) / slotHeight) < slots) break;
-                r = ( (1 << n) * (1 << m) ) - (slots * slotWidth * slotHeight);    //trace('$r');   
+                if (Math.floor((1 << n) / slotWidth) * Math.floor((1 << m) / slotHeight) < imageSlots) break;
+                r = ( (1 << n) * (1 << m) ) - (imageSlots * slotWidth * slotHeight);    //trace('$r');   
 				if (r < 0) break;
                 if (r <= rmin)
                 {
@@ -151,12 +231,12 @@ class Texture
 		var param:Dynamic = {};
         if (found)
         {	//trace('optimal:$w,$h - ${1<<w} x ${1<<h}');
-            param.sx = Math.floor((1 << w) / slotWidth);
-            param.sy = Math.floor((1 << h) / slotHeight);
-			param.slots = param.sx * param.sy;
-			param.w = 1 << w;
-			param.h = 1 << h;
-            trace('${param.sx * param.sy} Slots (${param.sx} * ${param.sy}) on ${1<<w} x ${1<<h} Texture'); 
+            param.slotsX = Math.floor((1 << w) / slotWidth);
+            param.slotsY = Math.floor((1 << h) / slotHeight);
+			param.imageSlots = param.slotsX * param.slotsY;
+			param.width = 1 << w;
+			param.height = 1 << h;
+            trace('${imageSlots} imageSlots (${param.slotsX} * ${param.slotsY}) on ${param.width} x ${param.height} Texture'); 
         }
         else
 		{

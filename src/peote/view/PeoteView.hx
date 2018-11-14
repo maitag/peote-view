@@ -1,6 +1,7 @@
 package peote.view;
 
 import haxe.Timer;
+import haxe.ds.Vector;
 
 import peote.view.utils.Background;
 import peote.view.utils.GLTool;
@@ -19,12 +20,10 @@ class PeoteView
 	var height:Int;
 	public var color(default,set):Color = 0x000000FF;
 	inline function set_color(c:Color):Color {
-		if (c != null) {
-			red   = c.red   / 255.0;			
-			green = c.green / 255.0;			
-			blue  = c.blue  / 255.0;
-			alpha = c.alpha / 255.0;
-		} else color = 0x000000FF;
+		red   = c.red   / 255.0;			
+		green = c.green / 255.0;			
+		blue  = c.blue  / 255.0;
+		alpha = c.alpha / 255.0;
 		return c;
 	}
 	var red:Float = 0.0;
@@ -34,6 +33,15 @@ class PeoteView
 	
 	var glStateAlpha:Bool = false;
 	var glStateDepth:Bool = false;
+	
+	var maxTextureImageUnits:Int;
+	var glStateTexture:Vector<GLTexture>;
+	public function isTextureStateChange(activeTextureUnit:Int, glTexture:GLTexture):Bool {
+		if (glStateTexture.get(activeTextureUnit) != glTexture) {
+			glStateTexture.set(activeTextureUnit, glTexture);
+			return true;
+		} else return false;
+	}
 	
 	public var zoom(default, set):Float = 1.0;
 	public inline function set_zoom(z:Float):Float {
@@ -82,7 +90,7 @@ class PeoteView
 		isRun = false;
 	}
 
-	public function new(gl:PeoteGL, width:Int, height:Int, ?color:Color)
+	public function new(gl:PeoteGL, width:Int, height:Int, color:Color = 0x000000FF)
 	{
 		this.gl = gl;
 		this.width = width;
@@ -105,8 +113,11 @@ class PeoteView
             trace("OpenGL InstanceDrawing disabled.");
         }
 		
+		maxTextureImageUnits = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS);
+		glStateTexture = new Vector<GLTexture>(maxTextureImageUnits);
+		
 		trace("GL.MAX_TEXTURE_IMAGE_UNITS:" + gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS));
-		trace("GL.MAX_COMBINED_TEXTURE_IMAGE_UNITS:" + gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS));
+		trace("GL.MAX_COMBINED_TEXTURE_IMAGE_UNITS:" + gl.getParameter(gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS));
 		trace("GL.MAX_VERTEX_TEXTURE_IMAGE_UNITS:" + gl.getParameter(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS));
 		trace("GL.MAX_TEXTURE_SIZE:" + gl.getParameter(gl.MAX_TEXTURE_SIZE));
 		trace("GL.MAX_VERTEX_ATTRIBS:" + gl.getParameter(gl.MAX_VERTEX_ATTRIBS));
