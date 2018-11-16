@@ -165,7 +165,10 @@ class $className implements BufferInterface
 	{
 		//trace("fill full GlBuffer", _bytes.length);
 		_gl.bindBuffer (_gl.ARRAY_BUFFER, _glBuffer);
-		_gl.bufferData (_gl.ARRAY_BUFFER, _bytes.length, _bytes, _gl.STATIC_DRAW); // _gl.DYNAMIC_DRAW _gl.STREAM_DRAW
+		//_gl.bufferData (_gl.ARRAY_BUFFER, _bytes.length, _bytes, _gl.STATIC_DRAW); // _gl.DYNAMIC_DRAW _gl.STREAM_DRAW
+		_gl.bufferData (_gl.ARRAY_BUFFER, _bytes.length, _bytes, _gl.STREAM_DRAW); // more performance if allways updating (on IE better then DYNAMIC_DRAW)
+		//_gl.bufferSubData(_gl.ARRAY_BUFFER, 0, _elemBuffSize*_maxElements, _bytes );
+		
 		_gl.bindBuffer (_gl.ARRAY_BUFFER, null);
 		
 		if (peote.view.PeoteGL.Version.isINSTANCED) {

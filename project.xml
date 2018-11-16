@@ -39,7 +39,7 @@
 	
 	<!-- use special gl-features for optimization (if supported by opengl-es version) -->
 	<haxedef name="peoteview_uniformbuffers" />
-	<!--<haxedef name="peoteview_instancedrawing" />-->
+	<haxedef name="peoteview_instancedrawing" />
 
 
 	<haxedef name="peoteview_debug_macro" />

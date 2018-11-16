@@ -59,7 +59,7 @@ class BunnyMark
 		
 		peoteView = new PeoteView(window.context, window.width, window.height);
 		
-		buffer = new Buffer<Bunny>(2000000);
+		buffer = new Buffer<Bunny>(300000);
 		
 		var display = new Display(0, 0, window.width, window.height, Color.GREEN);
 		
@@ -171,7 +171,7 @@ class BunnyMark
 	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
 	{
 		switch (keyCode) {
-			//case KeyCode.:
+			case KeyCode.SPACE:isStart = !isStart;
 			default:
 		}
 	}
