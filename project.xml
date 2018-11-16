@@ -8,8 +8,10 @@
 	
 	<app main="Main" path="bin" file="Main" />
 	<haxedef name="sampleBunnyMark" />
-	<!-- sampleTest, sampleTextures, sampleDepthBlend, sampleBunnyMark, sampleMultidisplay, sampleMultibuffer, sampleAnimation, sampleElementInherit, sampleGLPicking... -->
+	<!-- sampleTest, sampleTextures, sampleDepthBlend, sampleBunnyMark, sampleMultidisplay,
+		sampleMultibuffer, sampleAnimation, sampleElementInherit, sampleGLPicking... -->
 	<define name="bunnies" value="200000" />
+	<define name="bunnies"  value="20000" if="android||neko" />
 	<define name="stats" if="html5" />
 
 	<!-- multiple windows -->
@@ -21,14 +23,14 @@
 	
 	<!-- <window fps="60" width="800" height="600" vsync="true" antialiasing="4" resizable="true" hardware="true" allow-shaders="true" require-shaders="true" depth-buffer="true" stencil-buffer="false" /> -->
 	<!--<window fps="60" width="800" height="600" vsync="true" resizable="true" hardware="true" allow-shaders="true" require-shaders="true" depth-buffer="true" stencil-buffer="false" /> -->
-	<window width="800" height="600" />
-	<window if="html5||android" fps="61" width="0" height="0" />
+	<window width="800" height="600" fps="61" />
+	<window if="html5||android" width="0" height="0" />
 	<!--<set name="angle" if="windows" />-->
 	
 	<source path="src" />
 	
 	<haxelib name="lime" />
-	<!--<haxedef name="webgl" />--><!-- mhhmmm ... did i need this ? ;) -->
+	<haxedef name="webgl" /><!-- mhhmmm ... did i need this ? ;) -->
 	
 	<!-- force compiling for a special opengl-es version (only set one of them) -->
 	<!-- this optimizes the build and forces no-runtimecheck for the gl-features -->
@@ -37,7 +39,7 @@
 	
 	<!-- use special gl-features for optimization (if supported by opengl-es version) -->
 	<haxedef name="peoteview_uniformbuffers" />
-	<haxedef name="peoteview_instancedrawing" />
+	<!--<haxedef name="peoteview_instancedrawing" />-->
 
 
 	<haxedef name="peoteview_debug_macro" />

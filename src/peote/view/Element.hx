@@ -769,7 +769,7 @@ class ElementImpl
 		fields.push({
 			name:  "instanceBytes", // only for instanceDrawing
 			access:  [Access.APrivate, Access.AStatic],
-			kind: FieldType.FVar(macro:haxe.io.Bytes, macro null), 
+			kind: FieldType.FVar(macro:utils.Bytes, macro null), 
 			pos: Context.currentPos(),
 		});
 		fields.push({
@@ -782,7 +782,7 @@ class ElementImpl
 				expr: macro {
 					if (instanceBytes == null) {
 						trace("create bytes for instance GLbuffer");
-						instanceBytes = haxe.io.Bytes.alloc(VERTEX_COUNT * 2);
+						instanceBytes = utils.Bytes.alloc(VERTEX_COUNT * 2);
 						instanceBytes.set(0 , 1); instanceBytes.set(1,  1);
 						instanceBytes.set(2 , 1); instanceBytes.set(3,  1);
 						instanceBytes.set(4 , 0); instanceBytes.set(5,  1);
@@ -821,16 +821,18 @@ class ElementImpl
 			if (verts != null) len = verts.length;			
 			for (j in 0...len)
 			{
+				// -------------- setInt32 ------------------------------
+				// COLOR
+				if (conf.color.isAnim && conf.color.isStart) { exprBlock.push( macro bytes.setInt32(bytePos + $v{i}, $i{conf.color.name+"Start"}) ); i+=4; }
+				if (!conf.color.isAnim && conf.color.isStart){ exprBlock.push( macro bytes.setInt32(bytePos + $v{i}, $i{conf.color.name}) ); i+=4; }
+				if (conf.color.isAnim && conf.color.isEnd)   { exprBlock.push( macro bytes.setInt32(bytePos + $v{i}, $i{conf.color.name+"End"}) ); i+=4; }
+				
+				// -------------- setFloat (32) ------------------------------
 				// TIMERS
 				for (t in timers) {
 					exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{"time"+t+"Start"}) ); i+=4;
 					exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{"time"+t+"Duration"}) ); i+=4;
 				}
-				// COLOR
-				if (conf.color.isAnim && conf.color.isStart) { exprBlock.push( macro bytes.setInt32(bytePos + $v{i}, $i{conf.color.name+"Start"}) ); i+=4; }
-				if (!conf.color.isAnim && conf.color.isStart){ exprBlock.push( macro bytes.setInt32(bytePos + $v{i}, $i{conf.color.name}) ); i+=4; }
-				if (conf.color.isAnim && conf.color.isEnd)   { exprBlock.push( macro bytes.setInt32(bytePos + $v{i}, $i{conf.color.name+"End"}) ); i+=4; }
-
 				// ROTZ
 				if (conf.rotation.isAnim && conf.rotation.isStart) { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{conf.rotation.name+"Start"}/180*Math.PI) ); i+=4; }
 				if (!conf.rotation.isAnim && conf.rotation.isStart){ exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{conf.rotation.name }/180*Math.PI) ); i+=4; }
@@ -838,11 +840,12 @@ class ElementImpl
 				if (!conf.zIndex.isAnim && conf.zIndex.isStart)    { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, Math.min(1.0,Math.max(-1.0, $i{conf.zIndex.name }/MAX_ZINDEX))) ); i+=4; }
 				if (conf.rotation.isAnim && conf.rotation.isEnd)   { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{conf.rotation.name+"End"}/180*Math.PI) ); i+=4; }
 				if (conf.zIndex.isAnim && conf.zIndex.isEnd)       { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, Math.min(1.0,Math.max(-1.0, $i{conf.zIndex.name+"End"}/MAX_ZINDEX))) ); i+=4; }
-
+				
+				// -------------- setUInt16 ------------------------------
 				// POSITION for non-instancedrawing
 				if (verts != null) {
-					exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $v{verts[j][0]}) ); i++;
-					exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $v{verts[j][1]}) ); i++;
+					exprBlock.push( macro bytes.set(bytePos + $v{i}, $v{verts[j][0]}) ); i++;
+					exprBlock.push( macro bytes.set(bytePos + $v{i}, $v{verts[j][1]}) ); i++;
 				}
 				
 				// POS
@@ -878,7 +881,7 @@ class ElementImpl
 			access: [Access.APrivate, Access.AInline],
 			pos: Context.currentPos(),
 			kind: FFun({
-				args:[ {name:"bytes", type:macro:haxe.io.Bytes}
+				args:[ {name:"bytes", type:macro:utils.Bytes}
 				],
 				expr: macro $b{ writeBytesExpr() },
 				ret: null
@@ -892,7 +895,7 @@ class ElementImpl
 			access: [Access.APrivate, Access.AInline],
 			pos: Context.currentPos(),
 			kind: FFun({
-				args:[ {name:"bytes", type:macro:haxe.io.Bytes}
+				args:[ {name:"bytes", type:macro:utils.Bytes}
 				],
 				expr: macro $b{ writeBytesExpr([[1,1],[1,1],[0,1],[1,0],[0,0],[0,0]]) },
 				ret: null
@@ -959,13 +962,6 @@ class ElementImpl
 
 			exprBlock.push( macro gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer) );
 			
-			// TIMERS
-			for (j in 0...Std.int((timers.length+1) / 2) ) {
-				exprBlock.push( macro gl.enableVertexAttribArray ($i{"aTIME" + j}) );
-				n = ((j==Std.int(timers.length / 2)) && (timers.length % 2 != 0)) ? 2 : 4;
-				exprBlock.push( macro gl.vertexAttribPointer($i{"aTIME"+j}, $v{n}, gl.FLOAT, false, $v{stride}, $v{i} ) ); i += n * 4;
-				if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{"aTIME"+j}, 1) );			
-			}
 			// COLOR
 			if (conf.color.isStart) {
 				exprBlock.push( macro gl.enableVertexAttribArray (aCOLORSTART) );
@@ -976,6 +972,13 @@ class ElementImpl
 				exprBlock.push( macro gl.enableVertexAttribArray (aCOLOREND) );
 				exprBlock.push( macro gl.vertexAttribPointer(aCOLOREND, 4, gl.UNSIGNED_BYTE, true, $v{stride}, $v{i} ) ); i += 4;
 				if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor(aCOLOREND, 1) );			
+			}
+			// TIMERS
+			for (j in 0...Std.int((timers.length+1) / 2) ) {
+				exprBlock.push( macro gl.enableVertexAttribArray ($i{"aTIME" + j}) );
+				n = ((j==Std.int(timers.length / 2)) && (timers.length % 2 != 0)) ? 2 : 4;
+				exprBlock.push( macro gl.vertexAttribPointer($i{"aTIME"+j}, $v{n}, gl.FLOAT, false, $v{stride}, $v{i} ) ); i += n * 4;
+				if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{"aTIME"+j}, 1) );			
 			}
 			// ROTZ
 			n = conf.rotation.n + conf.zIndex.n;

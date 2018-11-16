@@ -42,7 +42,8 @@ abstract PeoteGL(LimeGLRenderContext) from LimeGLRenderContext to LimeGLRenderCo
 		}
 		
 		public inline function bufferSubData (target:Int, offset:Int, size:Int, srcData:DataPointer):Void {
-			this.bufferSubData (target, offset, srcData.toUInt8Array(size));
+			//this.bufferSubData (target, offset, srcData.toUInt8Array(size));
+			this.bufferSubData (target, offset, srcData.toBufferView(size));
 		}
 		
 		public inline function texImage2D (target:Int, level:Int, internalformat:Int, width:Int, height:Int, border:Int, format:Int, type:Int, srcData:DataPointer):Void {

@@ -84,7 +84,7 @@ class $className implements BufferInterface
 	var _elemBuffSize:Int;
 	
 	// local bytes-buffer
-	var _bytes: haxe.io.Bytes;
+	var _bytes: utils.Bytes;
 	
 	#if peoteview_queueGLbuffering
 	var updateGLBufferElementQueue:Array<$elementType>;
@@ -109,7 +109,7 @@ class $className implements BufferInterface
 		else _elemBuffSize = $p{elemField}.BUFF_SIZE;
 		
 		trace("create bytes for GLbuffer");
-		_bytes = haxe.io.Bytes.alloc(_elemBuffSize * size);
+		_bytes = utils.Bytes.alloc(_elemBuffSize * size);
 		_bytes.fill(0, _elemBuffSize * size, 0);		
 	}
 	
@@ -155,7 +155,9 @@ class $className implements BufferInterface
 		#if peoteview_queueGLbuffering
 		queueUpdateGLBuffer = true;
 		#else
+		//var t = haxe.Timer.stamp();
 		_updateGLBuffer();
+		//trace("updateGLBuffer time:"+(haxe.Timer.stamp()-t));
 		#end
 	}
 	
@@ -181,12 +183,14 @@ class $className implements BufferInterface
     **/
 	public function update():Void
 	{
+		//var t = haxe.Timer.stamp();
 		for (i in 0..._maxElements) {
 			if (peote.view.PeoteGL.Version.isINSTANCED)
 				_elements.get(i).writeBytesInstanced(_bytes);
 			else
 				_elements.get(i).writeBytes(_bytes);
-		}		
+		}
+		//trace("updateElement Bytes time:"+(haxe.Timer.stamp()-t));
 		updateGLBuffer();
 	}
 	
@@ -305,7 +309,9 @@ class $className implements BufferInterface
 			// $p{elemField}.disableVertexAttrib(_gl); _gl.bindBuffer (_gl.ARRAY_BUFFER, null);
 		} else {
 			$p{elemField}.enableVertexAttrib(_gl, _glBuffer);
+			//var t = haxe.Timer.stamp();
 			_gl.drawArrays (_gl.TRIANGLE_STRIP,  0, _maxElements * $p{elemField}.VERTEX_COUNT);
+			//trace("render time:"+(haxe.Timer.stamp()-t));
 			$p{elemField}.disableVertexAttrib(_gl);
 			_gl.bindBuffer (_gl.ARRAY_BUFFER, null);
 		}

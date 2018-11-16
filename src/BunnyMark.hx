@@ -59,7 +59,7 @@ class BunnyMark
 		
 		peoteView = new PeoteView(window.context, window.width, window.height);
 		
-		buffer = new Buffer<Bunny>(1000000);
+		buffer = new Buffer<Bunny>(2000000);
 		
 		var display = new Display(0, 0, window.width, window.height, Color.GREEN);
 		
@@ -93,8 +93,8 @@ class BunnyMark
 	private function addBunny():Void
 	{
 		var bunny = new Bunny();
-		bunny.x = Std.int(Math.random () * 135);
-		bunny.y = Std.int(Math.random () * 135);
+		bunny.x = Std.int(Math.random () * 20);
+		bunny.y = Std.int(Math.random () * 20);
 		bunny.speedX = Math.random () * 5;
 		bunny.speedY = (Math.random () * 5) - 2.5;
 		bunnies.push (bunny);
@@ -138,7 +138,7 @@ class BunnyMark
 				bunny.y = minY;
 				
 			}
-			
+			//buffer.updateElement(bunny);
 		}
 		
 		if (addingBunnies) {
