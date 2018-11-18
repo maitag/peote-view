@@ -914,6 +914,7 @@ class ElementImpl
 				       {name:"elemBuffSize", type:macro:Int}
 				],
 				expr: macro {
+					//trace("Element updateGLBuffer");
 					gl.bindBuffer (gl.ARRAY_BUFFER, glBuffer);
 					gl.bufferSubData(gl.ARRAY_BUFFER, bytePos, elemBuffSize, dataPointer );
 					gl.bindBuffer (gl.ARRAY_BUFFER, null);

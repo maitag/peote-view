@@ -19,8 +19,10 @@ import peote.view.Element;
 
 class Bunny implements Element
 {
-	@posX public var x:Int=0;
-	@posY public var y:Int=0;
+	public var x:Float=0;
+	public var y:Float=0;
+	@posX public var xi:Int=0;
+	@posY public var yi:Int=0;
 	@sizeX @const public var w:Int=64;
 	@sizeY @const public var h:Int=64;
 	
@@ -59,7 +61,7 @@ class BunnyMark
 		
 		peoteView = new PeoteView(window.context, window.width, window.height);
 		
-		buffer = new Buffer<Bunny>(300000);
+		buffer = new Buffer<Bunny>(400000);
 		
 		var display = new Display(0, 0, window.width, window.height, Color.GREEN);
 		
@@ -93,8 +95,8 @@ class BunnyMark
 	private function addBunny():Void
 	{
 		var bunny = new Bunny();
-		bunny.x = Std.int(Math.random () * 20);
-		bunny.y = Std.int(Math.random () * 20);
+		bunny.x = 0;
+		bunny.y = 0;
 		bunny.speedX = Math.random () * 5;
 		bunny.speedY = (Math.random () * 5) - 2.5;
 		bunnies.push (bunny);
@@ -105,8 +107,8 @@ class BunnyMark
 		if (!isStart) return;
 		for (bunny in bunnies) {
 			
-			bunny.x += Std.int(bunny.speedX);
-			bunny.y += Std.int(bunny.speedY);
+			bunny.x += bunny.speedX;
+			bunny.y += bunny.speedY;
 			bunny.speedY += gravity;
 			
 			if (bunny.x > maxX) {
@@ -138,6 +140,8 @@ class BunnyMark
 				bunny.y = minY;
 				
 			}
+			bunny.xi = Std.int(bunny.x);
+			bunny.yi = Std.int(bunny.y);
 			//buffer.updateElement(bunny);
 		}
 		

@@ -125,9 +125,21 @@ class $className implements BufferInterface
 	{
 		trace("create new GlBuffer");
 		_glBuffer = _gl.createBuffer();
+		
+		_gl.bindBuffer (_gl.ARRAY_BUFFER, _glBuffer);
+		_gl.bufferData (_gl.ARRAY_BUFFER, _bytes.length, _bytes, _gl.STREAM_DRAW);
+		_gl.bindBuffer (_gl.ARRAY_BUFFER, null);
+		
 		if (peote.view.PeoteGL.Version.isINSTANCED) {
 			_glInstanceBuffer = _gl.createBuffer();
 			_glVAO = _gl.createVertexArray();
+			
+			// update instance buffer
+			$p{elemField}.updateInstanceGLBuffer(_gl, _glInstanceBuffer);
+			// init VAO 
+			_gl.bindVertexArray(_glVAO);
+			$p{elemField}.enableVertexAttribInstanced(_gl, _glBuffer, _glInstanceBuffer);
+			_gl.bindVertexArray(null);
 		}
 	}
 	
@@ -163,14 +175,15 @@ class $className implements BufferInterface
 	
 	inline function _updateGLBuffer():Void
 	{
-		//trace("fill full GlBuffer", _bytes.length);
 		_gl.bindBuffer (_gl.ARRAY_BUFFER, _glBuffer);
 		//_gl.bufferData (_gl.ARRAY_BUFFER, _bytes.length, _bytes, _gl.STATIC_DRAW); // _gl.DYNAMIC_DRAW _gl.STREAM_DRAW
-		_gl.bufferData (_gl.ARRAY_BUFFER, _bytes.length, _bytes, _gl.STREAM_DRAW); // more performance if allways updating (on IE better then DYNAMIC_DRAW)
-		//_gl.bufferSubData(_gl.ARRAY_BUFFER, 0, _elemBuffSize*_maxElements, _bytes );
+		//_gl.bufferData (_gl.ARRAY_BUFFER, _bytes.length, _bytes, _gl.STREAM_DRAW); // more performance if allways updating (on IE better then DYNAMIC_DRAW)
+		_gl.bufferSubData(_gl.ARRAY_BUFFER, 0, _elemBuffSize*_maxElements, _bytes );
+		//_gl.bufferSubData(_gl.ARRAY_BUFFER, 0, _elemBuffSize*_maxElements, new peote.view.PeoteGL.BytePointer(_bytes) );
 		
 		_gl.bindBuffer (_gl.ARRAY_BUFFER, null);
 		
+		/*
 		if (peote.view.PeoteGL.Version.isINSTANCED) {
 			// instance buffer
 			$p{elemField}.updateInstanceGLBuffer(_gl, _glInstanceBuffer);
@@ -178,7 +191,7 @@ class $className implements BufferInterface
 			_gl.bindVertexArray(_glVAO);
 			$p{elemField}.enableVertexAttribInstanced(_gl, _glBuffer, _glInstanceBuffer);
 			_gl.bindVertexArray(null);
-		}
+		}*/
 	}
 	
 	/**
@@ -290,13 +303,13 @@ class $className implements BufferInterface
 		#if peoteview_queueGLbuffering
 		//TODO: put all in one glCommandQueue (+ loop)
 		if (updateGLBufferElementQueue.length > 0) _updateElement(updateGLBufferElementQueue.shift());
-		if (queueCreateGLBuffer) {
-			queueCreateGLBuffer = false;
-			_createGLBuffer();
-		}
 		if (queueDeleteGLBuffer) {
 			queueDeleteGLBuffer = false;
 			_deleteGLBuffer();
+		}
+		if (queueCreateGLBuffer) {
+			queueCreateGLBuffer = false;
+			_createGLBuffer();
 		}
 		if (queueUpdateGLBuffer) {
 			queueUpdateGLBuffer = false;
