@@ -47,10 +47,10 @@ class Textures
 			texture.setImage(image);
 			
 			//program.setTexture(texture, ElementSimple.TEXTURE_COLOR);
-			
 			program.setTexture(texture); // TODO: bug if set after
 			
 			display.addProgram(program);    // programm to display
+			
 			peoteView.addDisplay(display);  // display to peoteView
 			
 		

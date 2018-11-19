@@ -15,13 +15,13 @@ class GLTool
 	
 	static public inline function compileGLShader(gl:PeoteGL, type:Int, shaderSrc:String):GLShader
 	{
-		trace('compile ${(type==gl.VERTEX_SHADER) ? "vertex":"fragment"} shader');
-		trace("\n"+shaderSrc);
+		//trace('compile ${(type==gl.VERTEX_SHADER) ? "vertex":"fragment"} shader');
+		//trace("\n"+shaderSrc);
 		var glShader:GLShader = gl.createShader(type);
 		gl.shaderSource(glShader, shaderSrc);
 		gl.compileShader(glShader);
 		if (gl.getShaderParameter(glShader, gl.COMPILE_STATUS) == 0) {
-			trace('ERROR compiling ${(type==gl.VERTEX_SHADER) ? "vertex":"fragment"} shader\n' + gl.getShaderInfoLog(glShader));
+			throw('ERROR compiling ${(type==gl.VERTEX_SHADER) ? "vertex":"fragment"} shader\n' + gl.getShaderInfoLog(glShader));
 			return null;
 		} else return glShader;		
 	}
@@ -32,7 +32,7 @@ class GLTool
 
 		if (gl.getProgramParameter(glProgram, gl.LINK_STATUS) == 0) // glsl compile error
 		{
-			trace(gl.getProgramInfoLog(glProgram)
+			throw(gl.getProgramInfoLog(glProgram)
 				+ "VALIDATE_STATUS: " + gl.getProgramParameter(glProgram, gl.VALIDATE_STATUS)
 				+ "ERROR: " + gl.getError()
 			);

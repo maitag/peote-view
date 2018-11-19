@@ -58,7 +58,7 @@ class Program
 			this.display = display;
 			
 			if (gl != display.gl) // new or different GL-Context
-			{
+			{	
 				if (gl != null) clearOldGLContext(); // different GL-Context
 				setNewGLContext(display.gl); //TODO: check that this is not Null
 			}
@@ -123,8 +123,14 @@ class Program
 		}
 		
 		glVertexShader   = GLTool.compileGLShader(gl, gl.VERTEX_SHADER,   GLTool.parseShader(buffer.getVertexShader(), glShaderConfig) );
+		#if peoteview_debug_shader
+		trace("\n"+GLTool.parseShader(buffer.getVertexShader(), glShaderConfig));
+		#end
 		glFragmentShader = GLTool.compileGLShader(gl, gl.FRAGMENT_SHADER, GLTool.parseShader(buffer.getFragmentShader(), glShaderConfig) );
-		
+		#if peoteview_debug_shader
+		trace("\n"+GLTool.parseShader(buffer.getFragmentShader(), glShaderConfig));
+		#end
+
 		glProgram = gl.createProgram();
 
 		gl.attachShader(glProgram, glVertexShader);
@@ -160,7 +166,7 @@ class Program
 	var activeTextures = new Array<{unit:Int, type:Int, texture:Texture, ?uniformLoc:GLUniformLocation}>(); // mehrere units fuer den selben typ (unit muss eindeutig sein)
 	
 	public function setTexture(texture:Texture, ?textureType:Int, textureUnit:Null<Int> = null) // TODO 
-	{		
+	{
 		// TODO: check buffer.maxTextureType -> element.maxTextureType
 		if (textureType == null) textureType = 0;
 		
@@ -177,9 +183,14 @@ class Program
 		for (t in activeTextures) {
 			if ((textureUnit == t.unit || autoTextureUnit) && textureType == t.type) {
 				if (t.texture != texture) {
-					t.texture = texture;
+					trace("this texture was already set");
+					if (texture.gl == null && gl != null)  texture.setNewGLContext(gl);
+				} else {
+					trace('Texture replaced');
 					if (!texture.setToProgram(this)) throw("Error, texture already used by another gl-context.");
 					//TODO:check if textureslots /size changed ->recompile
+					//if (gl != null) createProgram();  // recompile shader
+					t.texture = texture;
 				}
 				isAdd = false;
 				break;
@@ -188,6 +199,8 @@ class Program
 		}
 		
 		if (isAdd) {
+			trace("new Texture added");
+			if (!texture.setToProgram(this)) throw("Error, texture already used by another gl-context.");
 			activeTextures.push({unit:textureUnit, type:textureType, texture:texture});
 			// resort
 			haxe.ds.ArraySort.sort(activeTextures, function(a, b):Int {
@@ -196,8 +209,10 @@ class Program
 			  return 0;
 			});
 			
-			if (display != null) createProgram(); // recompile shader
+			if (gl != null) createProgram(); // recompile shader
 		}
+		
+		trace("active textures:",activeTextures);
 	}
 	
 	public function removeTexture(texture:Texture)

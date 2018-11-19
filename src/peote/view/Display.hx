@@ -68,7 +68,8 @@ class Display
 	}
 
 	private inline function addToPeoteView(peoteView:PeoteView):Bool
-	{		
+	{
+		trace("Display added to PeoteView");
 		if (this.peoteView == peoteView) return false; // is already added
 		else
 		{

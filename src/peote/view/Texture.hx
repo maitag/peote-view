@@ -106,8 +106,8 @@ class Texture
 		
 		// TODO
 		imageToTexture(gl, glTexture,
-		                   0,//slotWidth * (imgProp.imageSlot % slotsX),
-		                   0,//slotHeight * Math.floor(imgProp.imageSlot / slotsX),
+		                   slotWidth * (imgProp.imageSlot % slotsX),
+		                   slotHeight * Math.floor(imgProp.imageSlot / slotsX),
 		                   image.width, image.height, //slotWidth, slotHeight,
 		                   image, false );		
 	}
