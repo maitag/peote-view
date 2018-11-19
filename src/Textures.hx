@@ -23,18 +23,18 @@ class Textures
 	var peoteView:PeoteView;
 	var element:ElementSimple;
 	var buffer:Buffer<ElementSimple>;
+	var display:Display;
+	var program:Program;
+	var texture:Texture;
 	
 	public function new(window:Window)
 	{	
 		peoteView = new PeoteView(window.context, window.width, window.height);
+		display   = new Display(10,10, window.width-20, window.height-20, Color.GREEN);
+		peoteView.addDisplay(display);  // display to peoteView
 		
 		buffer = new Buffer<ElementSimple>(100);
-
-		var display   = new Display(10,10, window.width-20, window.height-20, Color.GREEN);
-
-		var program   = new Program(buffer);
-		
-		var image = new Image();
+		program   = new Program(buffer);
 		
 		var future = Image.loadFromFile("assets/images/peote_tiles.png");
 		future.onProgress (function (a:Int,b:Int) trace ('loading image $a/$b'));
@@ -42,17 +42,17 @@ class Textures
 		future.onComplete (function (image:Image) {
 			trace("loading complete");
 			
-			var texture = new Texture(image.width, image.height);
+			texture = new Texture(image.width, image.height);
 			
 			texture.setImage(image);
 			
 			//program.setTexture(texture, ElementSimple.TEXTURE_COLOR);
-			program.setTexture(texture); // TODO: bug if set after
+			program.setTexture(texture);
 			
 			display.addProgram(program);    // programm to display
 			
-			peoteView.addDisplay(display);  // display to peoteView
 			
+			// TODO: test second program
 		
 			element  = new ElementSimple(10, 10);
 			buffer.addElement(element);     // element to buffer
@@ -71,7 +71,9 @@ class Textures
 	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
 	{
 		switch (keyCode) {
-			//case KeyCode.:
+			case KeyCode.T:
+				if (program.hasTexture(texture)) program.removeTexture(texture);
+				else program.setTexture(texture);
 			default:
 		}
 	}

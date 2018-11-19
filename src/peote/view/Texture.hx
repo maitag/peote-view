@@ -1,9 +1,7 @@
 package peote.view;
 
-import haxe.ds.Vector;
 import peote.view.PeoteGL.Image;
 import peote.view.PeoteGL.GLTexture;
-import peote.view.PeoteGL.DataPointer;
 
 typedef ImgProp = {imageSlot:Int}; //isRotated
 
@@ -64,6 +62,7 @@ class Texture
 	{
 		used--;
 	}
+	
 	private inline function setNewGLContext(newGl:PeoteGL)
 	{
 		trace("Texture setNewGLContext");
@@ -72,9 +71,11 @@ class Texture
 		// all images to gpu
 		for (image in images.keys()) bufferImage(image,images.get(image));
 	}
+	
 	private inline function clearOldGLContext() 
 	{
 		trace("Texture clearOldGLContext");
+		if (used > 1) throw("Error, texture can not change gl context if used by another program");
 		//TODO
 		gl.deleteTexture(glTexture);
 		glTexture = null;

@@ -1,7 +1,5 @@
 package peote.view;
 
-import haxe.ds.IntMap;
-import haxe.ds.Vector;
 import peote.view.PeoteGL.GLProgram;
 import peote.view.PeoteGL.GLShader;
 import peote.view.PeoteGL.GLUniformLocation;
@@ -111,6 +109,14 @@ class Program
 		for (t in activeTextures) t.texture.clearOldGLContext();
 	}
 
+	private function reCreateProgram():Void 
+	{
+		gl.deleteShader(glVertexShader);
+		gl.deleteShader(glFragmentShader);
+		gl.deleteProgram(glProgram);
+		createProgram();
+	}
+	
 	private function createProgram():Void  // TODO: do not compile twice if same program is used inside multiple displays
 	{
 		trace("create Program");
@@ -165,31 +171,34 @@ class Program
 	
 	var activeTextures = new Array<{unit:Int, type:Int, texture:Texture, ?uniformLoc:GLUniformLocation}>(); // mehrere units fuer den selben typ (unit muss eindeutig sein)
 	
-	public function setTexture(texture:Texture, ?textureType:Int, textureUnit:Null<Int> = null) // TODO 
+	public function setTextures(textures:Array<{texture:Texture, ?textureType:Int, ?textureUnit:Int}>):Void {
+		for (p in textures) setTexture(p.texture, p.textureType, p.textureUnit);
+	}
+	
+	public function setTexture(texture:Texture, ?textureType:Int, ?textureUnit:Int):Void
 	{
 		// TODO: check buffer.maxTextureType -> element.maxTextureType
 		if (textureType == null) textureType = 0;
 		
 		var autoTextureUnit = false;
-		if (textureUnit != null) {			
-			if (textureUnit >= gl.MAX_TEXTURE_IMAGE_UNITS) throw('Error, maximum for textureUnit is ${gl.MAX_TEXTURE_IMAGE_UNITS}.');
-		}
-		else {
+		if (textureUnit == null) {			
 			textureUnit = 0;
 			autoTextureUnit = true;
 		}
+		else if (textureUnit >= gl.MAX_TEXTURE_IMAGE_UNITS) throw('Error, maximum for textureUnit is ${gl.MAX_TEXTURE_IMAGE_UNITS}.');
 		
+		var recompile = true;
 		var isAdd = true;
 		for (t in activeTextures) {
 			if ((textureUnit == t.unit || autoTextureUnit) && textureType == t.type) {
-				if (t.texture != texture) {
-					trace("this texture was already set");
-					if (texture.gl == null && gl != null)  texture.setNewGLContext(gl);
-				} else {
+				if (t.texture == texture) trace("this texture was already set");
+				else {
 					trace('Texture replaced');
 					if (!texture.setToProgram(this)) throw("Error, texture already used by another gl-context.");
-					//TODO:check if textureslots /size changed ->recompile
-					//if (gl != null) createProgram();  // recompile shader
+					// only recompile if textureslots/size changed
+					if (t.texture.width == texture.width && t.texture.height == texture.width &&
+						t.texture.slotsX == texture.slotsX && t.texture.slotsY == texture.slotsY) // TODO: check tiling also
+						recompile = false;
 					t.texture = texture;
 				}
 				isAdd = false;
@@ -207,22 +216,40 @@ class Program
 			  if (a.unit < b.unit) return -1;
 			  else if (a.unit > b.unit) return 1;
 			  return 0;
-			});
-			
-			if (gl != null) createProgram(); // recompile shader
+			});			
 		}
 		
+		if (gl != null && recompile) reCreateProgram(); // recompile shaders
 		trace("active textures:",activeTextures);
 	}
 	
-	public function removeTexture(texture:Texture)
+	public function removeTexture(texture:Texture, textureType:Null<Int> = null, textureUnit:Null<Int> = null):Void
 	{
-		// TODO
-		
-		// if() {
-			// TODO: recompile shader
-		//}
+		var i = activeTextures.length;
+		while (i-- > 0) {
+			var t = activeTextures[i];
+			if ((texture==null || t.texture == texture) && (textureType==null || t.type==textureType) && (textureUnit==null || t.unit==textureUnit) ) {
+				activeTextures.splice(i, 1);
+				t.texture.removedFromProgram();
+				if (gl != null) reCreateProgram(); // recompile shaders
+				break;
+			}
+		}
+
 	}
+	public function removeTextureType(textureType:Int):Void removeTexture(null, textureType);
+	public function removeTextureUnit(textureUnit:Int):Void removeTexture(null, null, textureUnit);
+
+ 	public function hasTexture(texture:Texture, ?textureType:Int, ?textureUnit:Int):Bool
+	{
+		for (t in activeTextures) {
+			if ((texture == null || t.texture == texture) && (textureType == null || t.type == textureType) && (textureUnit == null || t.unit == textureUnit) )
+				return true;
+		}
+		return false;
+	}
+	public function hasTextureType(textureType:Int):Void hasTexture(null, textureType);
+	public function hasTextureUnit(textureUnit:Int):Void hasTexture(null, null, textureUnit);
 	
 	// ------------------------------------------------------------------------------
 	// ----------------------------- Render -----------------------------------------
@@ -243,7 +270,7 @@ class Program
 				//glBindSampler(i, linearFiltering);
 				//gl.enable(gl.TEXTURE_2D); // is default ?
 			}
-			gl.uniform1i (t.uniformLoc, i); // TODO: also in this.uniformBuffer ?
+			gl.uniform1i (t.uniformLoc, i); // optimizing: later in this.uniformBuffer for isUBO
 		}
 		
 		// TODO: from Program
