@@ -163,7 +163,7 @@ class Program
 		// create textureList with new unitormlocations
 		var unit:Int = 0;
 		for (t in textures)
-			textureList.add(new ActiveTexture(unit, t, gl.getUniformLocation(glProgram, "uTexture" + unit++)), null, null );
+			textureList.add(new ActiveTexture(unit, t, gl.getUniformLocation(glProgram, "uTexture" + unit++)), null, false );
 		
 		if (PeoteGL.Version.isUBO)
 		{
@@ -265,9 +265,9 @@ class Program
 		{
 			if (textureListItem.value.texture.glTexture == null) trace("=======PROBLEM========");
 			
-			if ( peoteView.isTextureStateChange(textureListItem.value.unit, textureListItem.value.texture.glTexture) ) {
-				trace("activate Texture", textureListItem.value.unit);
+			if ( peoteView.isTextureStateChange(textureListItem.value.unit, textureListItem.value.texture) ) {
 				gl.activeTexture (gl.TEXTURE0 + textureListItem.value.unit);
+				trace("activate Texture", textureListItem.value.unit);
 				gl.bindTexture (gl.TEXTURE_2D, textureListItem.value.texture.glTexture);
 				//glBindSampler(i, linearFiltering);
 				//gl.enable(gl.TEXTURE_2D); // is default ?

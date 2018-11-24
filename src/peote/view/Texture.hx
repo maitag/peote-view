@@ -33,6 +33,8 @@ class Texture
 	public var minFilter:Int = 0;
 
 
+	var updated:Bool = false;
+	
 	public function new(slotWidth:Int, slotHeight:Int, imageSlots:Int=1, colorChannels:Int=4, createMipmaps:Bool=false, magFilter:Int=0, minFilter:Int=0)
 	{
 		this.slotWidth = slotWidth;
@@ -111,6 +113,9 @@ class Texture
 		                   slotHeight * Math.floor(imgProp.imageSlot / slotsX),
 		                   image.width, image.height, //slotWidth, slotHeight,
 		                   image, false );		
+		
+		// to reset peoteView.glStateTexture
+		updated = true;
 	}
 	
 	private static inline function imageToTexture(gl:PeoteGL, glTexture:PeoteGL.GLTexture, x:Int, y:Int, w:Int, h:Int, 
@@ -127,9 +132,6 @@ class Texture
 			gl.generateMipmap(gl.TEXTURE_2D);
 		}
 		gl.bindTexture(gl.TEXTURE_2D, null);
-		
-		// TODO: peoteView.glStateTexture.set(last_active, null);
-		
 	}
 	
 	

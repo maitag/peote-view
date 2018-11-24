@@ -36,9 +36,10 @@ class PeoteView
 	
 	var maxTextureImageUnits:Int;
 	var glStateTexture:Vector<GLTexture>;
-	public function isTextureStateChange(activeTextureUnit:Int, glTexture:GLTexture):Bool {
-		if (glStateTexture.get(activeTextureUnit) != glTexture) {
-			glStateTexture.set(activeTextureUnit, glTexture);
+	public function isTextureStateChange(activeTextureUnit:Int, texture:Texture):Bool {
+		if (texture.updated) {texture.updated = false; return true; }
+		if (glStateTexture.get(activeTextureUnit) != texture.glTexture) {
+			glStateTexture.set(activeTextureUnit, texture.glTexture);
 			return true;
 		} else return false;
 	}
