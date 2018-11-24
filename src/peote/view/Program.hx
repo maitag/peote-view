@@ -155,11 +155,9 @@ class Program
 		gl.attachShader(glProgram, glFragmentShader);
 		
 		buffer.bindAttribLocations(gl, glProgram);
-		
-		// TODO: did not cleared if set with new unit! -> textureList.clear(); trace(textureList);
-		// better own single-linked list here!
-		textureList = new RenderList<ActiveTexture>(new Map<ActiveTexture,RenderListItem<ActiveTexture>>());
-		
+				
+		textureList.clear(); // maybe optimize later with own single-linked list here!
+
 		GLTool.linkGLProgram(gl, glProgram);
 		
 		// create textureList with new unitormlocations
@@ -276,6 +274,7 @@ class Program
 	
 	
 	public function setTextureUnit(texture:Texture, unit:Int):Void {
+		trace("set texture unit to " + unit);
 		var oldUnit:Int = -1;
 		var j:Int = -1;
 		for (i in 0...activeTextures.length) {

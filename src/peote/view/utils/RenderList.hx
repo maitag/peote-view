@@ -56,6 +56,7 @@ class RenderList<T>
 			}			
 		}
 		
+		// override if value already inside List
 		var oldItem:RenderListItem<T> = itemMap.get(value);
 		if (oldItem != null) removeItem(oldItem);
 		itemMap.set(value, newItem);
@@ -73,19 +74,19 @@ class RenderList<T>
 	
 	private inline function removeItem(item:RenderListItem<T>):Void {
 		if (item == first) first = item.next;
-		else if (item == last ) last  = item.prev;
+		if (item == last ) last  = item.prev;
 		item.unlink(); // remove if already exist
 		item = null;
 	}
-	/*
+	
 	public function clear():Void
-	{	
+	{
 		while (first != null) {
 			if (last.value != null) itemMap.remove(last.value);
 			removeItem(last);
-		}
+		}		
 	}
-	*/
+	
 	
 	/**
 		Returns an iterator on the elements of the list.
