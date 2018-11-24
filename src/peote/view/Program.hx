@@ -46,16 +46,16 @@ class Program
 		FRAGMENT_PROGRAM_UNIFORMS:"",
 	};
 	
-	var textureList:RenderList<ActiveTexture>;
+	var textureList = new RenderList<ActiveTexture>(new Map<ActiveTexture,RenderListItem<ActiveTexture>>());
 	var textureLayers = new IntMap<Array<Texture>>();
-	var textures = new Array<Texture>();
+	var activeTextures = new Array<Texture>();
+	var activeUnits = new Array<Int>();
 
 	public function new(buffer:BufferInterface) 
 	{
 		this.buffer = buffer;
 		alphaEnabled = buffer.hasAlpha();
-		zIndexEnabled = buffer.hasZindex();
-		textureList = new RenderList<ActiveTexture>(new Map<ActiveTexture,RenderListItem<ActiveTexture>>());
+		zIndexEnabled = buffer.hasZindex();		
 	}
 	
  	private inline function isIn(display:Display):Bool
@@ -102,7 +102,7 @@ class Program
 		buffer.createGLBuffer();
 		buffer.updateGLBuffer();
 		
-		for (t in textures) t.setNewGLContext(newGl);
+		for (t in activeTextures) t.setNewGLContext(newGl);
 		
 		if (PeoteGL.Version.isES3) {
 			glShaderConfig.isES3 = true;
@@ -125,7 +125,7 @@ class Program
 		gl.deleteProgram(glProgram);
 		
 		buffer.deleteGLBuffer();
-		for (t in textures) t.clearOldGLContext();
+		for (t in activeTextures) t.clearOldGLContext();
 	}
 
 	private function reCreateProgram():Void 
@@ -156,14 +156,16 @@ class Program
 		
 		buffer.bindAttribLocations(gl, glProgram);
 		
-		textureList.clear();
-
+		// TODO: did not cleared if set with new unit! -> textureList.clear(); trace(textureList);
+		// better own single-linked list here!
+		textureList = new RenderList<ActiveTexture>(new Map<ActiveTexture,RenderListItem<ActiveTexture>>());
+		
 		GLTool.linkGLProgram(gl, glProgram);
 		
 		// create textureList with new unitormlocations
-		var unit:Int = 0;
-		for (t in textures)
-			textureList.add(new ActiveTexture(unit, t, gl.getUniformLocation(glProgram, "uTexture" + unit++)), null, false );
+		for (i in 0...activeTextures.length) {
+			textureList.add(new ActiveTexture(activeUnits[i], activeTextures[i], gl.getUniformLocation(glProgram, "uTexture" + i)), null, false );
+		}
 		
 		if (PeoteGL.Version.isUBO)
 		{
@@ -185,36 +187,82 @@ class Program
 	var uTIME:GLUniformLocation;
 	
 	public function setTextureLayer(layer:Int, textures:Array<Texture>):Void {
+		trace("set texture layer");
 		if (textures == null) throw("Error, textures needs array of textures");
 		if (textures.length == 0) throw("Error, array needs at least 1 texture");
+		var i = textures.length;
+		while (i-- > 0) if (textures.indexOf(textures[i]) != i) throw("Error, textureLayer can not contain same texture twice.");		
 		textureLayers.set(layer, textures);
 		updateTextures();
 	}
 	
+	public function addTexture(texture:Texture, layer:Int = 0):Void {
+		trace("add texture to layer "+ layer);
+		var textures:Array<Texture> = textureLayers.get(layer);
+		if (textures != null) {
+			if (textures.indexOf(texture) >= 0) throw("Error, textureLayer already contains this texture.");
+			else {
+				textures.push(texture);
+				textureLayers.set(layer, textures);
+			}
+		}
+		else textureLayers.set(layer, [texture]);
+		updateTextures();
+	}
+	
+	public function removeTextureLayer(layer:Int):Void {
+		trace("remove texture layer");
+		textureLayers.remove(layer);
+		updateTextures();
+	}
+	
+	public function removeTexture(texture:Texture, layer:Null<Int>=null):Void {
+		trace("remove texture from layer");
+		if (layer == null)
+			for (l in textureLayers.keys()) {
+				var textures:Array<Texture> = textureLayers.get(l);
+				textures.remove(texture);
+				if (textures.length == 0) textureLayers.remove(l);
+				else textureLayers.set(l, textures );
+			}
+		else textureLayers.get(layer).remove(texture);
+		updateTextures();
+	}
+	
 	public function updateTextures():Void {
-		trace("Program - update Textures");
+		trace("update Textures");
+		
+		// collect new or removed old textures
 		var newTextures = new Array<Texture>();
-		// collect new or removed all textures
 		for (layer in textureLayers.keys()) {
 			for (t in textureLayers.get(layer)) {
-				if (textures.indexOf(t) < 0) newTextures.push(t);
+				if (activeTextures.indexOf(t) < 0) newTextures.push(t);
 			}
-		}
-		var i = textures.length;
-		while (i-- > 0) 
-			if (newTextures.indexOf(textures[i]) < 0) { // remove texture
-				textures.splice(i, 1);
-				textures[i].removedFromProgram();
-			}
-		for (t in newTextures) {
-				if (textures.indexOf(t) < 0) { // add texture
-					textures.push(t);
-					if (! t.setToProgram(this)) throw("Error, texture already used by another program into different gl-context");
-				}
 		}
 		
+		var i = activeTextures.length;
+		while (i-- > 0) 
+			if (newTextures.indexOf(activeTextures[i]) < 0) { // remove texture
+				activeTextures[i].removedFromProgram();
+				activeTextures.splice(i, 1);
+				activeUnits.splice(i, 1);
+			}
+		
+		for (t in newTextures) {
+			if (activeTextures.indexOf(t) < 0) { // add texture
+				activeTextures.push(t);
+				var unit = 0;
+				while (activeUnits.indexOf(unit) >= 0 ) unit++;
+				activeUnits.push(unit);
+				if (! t.setToProgram(this)) throw("Error, texture already used by another program into different gl-context");
+			}
+		}
+		
+
+		
+		// -----------
 			
-		if (textures.length == 0) glShaderConfig.hasTEXTURES = false;
+		if (activeTextures.length == 0) glShaderConfig.hasTEXTURES = false;
 		else {
 			glShaderConfig.hasTEXTURES = true;
 			// TODO: fill more textures templates
@@ -229,23 +277,32 @@ class Program
 	
 	public function setTextureUnit(texture:Texture, unit:Int):Void {
 		var oldUnit:Int = -1;
-		var sameUnitTexure:ActiveTexture = null;
-		for (t in textureList) {
-			if (t.texture == texture) oldUnit = t.unit;
-			else if (unit == t.unit) sameUnitTexure = t;
+		var j:Int = -1;
+		for (i in 0...activeTextures.length) {
+			if (activeTextures[i] == texture) {
+				oldUnit = activeUnits[i];
+				activeUnits[i] = unit;
+			}
+			else if (unit == activeUnits[i]) j = i;
 		}
 		if (oldUnit == -1) throw("Error, texture is not in use, try setTextureLayer(layer, [texture]) before setting unit-number manual");
-		if (sameUnitTexure != null) sameUnitTexure.unit = oldUnit;
+		if (j != -1) activeUnits[j] = oldUnit;
+		
+		// update textureList with units
+		j = 0;
+		for (t in textureList) t.unit = activeUnits[j++];
 	}
 	
- 	public function hasTexture(texture:Texture, layer:Null<Int>):Bool
+ 	public function hasTexture(texture:Texture, layer:Null<Int>=null):Bool
 	{
 		if (layer == null) {
-			for (t in textureList) {
-				if (t.texture == texture) return true;
-			}
+			for (t in activeTextures) if (t == texture) return true;
 		}
-		else if (textureLayers.get(layer).indexOf(texture) >= 0 ) return true;
+		else {
+			var textures = textureLayers.get(layer);
+			if (textures != null)
+				if (textures.indexOf(texture) >= 0 ) return true;
+		}
 		return false;
 	}
 	

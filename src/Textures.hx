@@ -56,11 +56,14 @@ class Textures
 			program.setTextureLayer(0, [texture]);
 			//program.setTextureLayer(ElementSimple.TEXTURE_COLOR, [texture]);
 			//program.removeTextureLayer(ElementSimple.TEXTURE_COLOR);
+			
 			//program.addTexture(texture, ElementSimple.TEXTURE_COLOR);
 			//program.addTexture(texture); // automatic to Layer 0
+			
 			//program.removeTexture(texture, ElementSimple.TEXTURE_COLOR); // remove only from Layer
 			//program.removeTexture(texture); // remove from all Layers
-			//program.setTextureUnit(texture, 2);
+			
+			program.setTextureUnit(texture, 2);
 			//program.replaceTexture(texture, texture1);
 		});
 				
@@ -77,9 +80,15 @@ class Textures
 	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
 	{
 		switch (keyCode) {
+			case KeyCode.L:
+				if (program.hasTexture(texture,0)) program.removeTextureLayer(0);
+				else {
+					program.setTextureLayer(0, [texture]);
+					program.setTextureUnit(texture, 3);
+				}
 			case KeyCode.T:
-				/*if (program.hasTexture(texture)) program.removeTexture(texture);
-				else program.setTexture(texture);*/
+				if (program.hasTexture(texture)) program.removeTexture(texture);
+				else program.addTexture(texture);
 			default:
 		}
 	}

@@ -77,11 +77,16 @@ class RenderList<T>
 		item.unlink(); // remove if already exist
 		item = null;
 	}
-	
+	/*
 	public function clear():Void
-	{
-		while (first != null) removeItem(last);
+	{	
+		while (first != null) {
+			if (last.value != null) itemMap.remove(last.value);
+			removeItem(last);
+		}
 	}
+	*/
+	
 	/**
 		Returns an iterator on the elements of the list.
 	**/
