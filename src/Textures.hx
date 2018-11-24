@@ -33,8 +33,16 @@ class Textures
 		display   = new Display(10,10, window.width-20, window.height-20, Color.GREEN);
 		peoteView.addDisplay(display);  // display to peoteView
 		
-		buffer = new Buffer<ElementSimple>(100);
-		program   = new Program(buffer);
+		buffer  = new Buffer<ElementSimple>(100);
+		program = new Program(buffer);
+		
+		texture = new Texture(512, 512);
+		//program.setTextureLayer(0, [texture]);
+		
+		display.addProgram(program);    // programm to display
+
+		element  = new ElementSimple(10, 10);
+		buffer.addElement(element);     // element to buffer
 		
 		var future = Image.loadFromFile("assets/images/peote_tiles.png");
 		future.onProgress (function (a:Int,b:Int) trace ('loading image $a/$b'));
@@ -42,20 +50,18 @@ class Textures
 		future.onComplete (function (image:Image) {
 			trace("loading complete");
 			
-			texture = new Texture(image.width, image.height);
-			
+			//texture = new Texture(image.width, image.height);
 			texture.setImage(image);
 			
-			//program.setTexture(texture, ElementSimple.TEXTURE_COLOR);
-			program.setTexture(texture);
-			
-			display.addProgram(program);    // programm to display
-			
-			
-			// TODO: test second program
-		
-			element  = new ElementSimple(10, 10);
-			buffer.addElement(element);     // element to buffer
+			program.setTextureLayer(0, [texture]);
+			//program.setTextureLayer(ElementSimple.TEXTURE_COLOR, [texture]);
+			//program.removeTextureLayer(ElementSimple.TEXTURE_COLOR);
+			//program.addTexture(texture, ElementSimple.TEXTURE_COLOR);
+			//program.addTexture(texture); // automatic to Layer 0
+			//program.removeTexture(texture, ElementSimple.TEXTURE_COLOR); // remove only from Layer
+			//program.removeTexture(texture); // remove from all Layers
+			//program.setTextureUnit(texture, 2);
+			//program.replaceTexture(texture, texture1);
 		});
 				
 		// ---------------------------------------------------------------
@@ -72,8 +78,8 @@ class Textures
 	{
 		switch (keyCode) {
 			case KeyCode.T:
-				if (program.hasTexture(texture)) program.removeTexture(texture);
-				else program.setTexture(texture);
+				/*if (program.hasTexture(texture)) program.removeTexture(texture);
+				else program.setTexture(texture);*/
 			default:
 		}
 	}

@@ -3,10 +3,13 @@ package peote.view.utils;
 @:generic
 class RenderList<T>
 {
-	public var first(default,null):RenderListItem<T> = null; // first value in list
-	public var last(default,null) :RenderListItem<T> = null; // last value in list
-
+	public var first(default, null):RenderListItem<T> = null; // first value in list
+	public var last(default, null) :RenderListItem<T> = null; // last value in list
+	
 	public var itemMap:Map<T,RenderListItem<T>>;
+	
+	public var isEmpty(get, never):Bool;
+	inline function get_isEmpty():Bool return first == null;
 	
 	public function new(itemMap:Map<T,RenderListItem<T>>) 
 	{
@@ -31,7 +34,7 @@ class RenderList<T>
 						newItem = new RenderListItem<T>(value, atItem.prev, atItem);
 						if (atItem == first) first = newItem;
 					}
-					else throw('Error on addDisplay: $atValue is not in Displaylist.');
+					else throw('Error on add: $atValue is not in list.');
 				}			
 			}
 		}
@@ -48,7 +51,7 @@ class RenderList<T>
 						newItem = new RenderListItem<T>(value, atItem, atItem.next);
 						if (atItem == last) last = newItem;
 					}
-					else throw('Error on addDisplay: $atValue is not in Displaylist.');
+					else throw('Error on addD: $atValue is not in list.');
 				}
 			}			
 		}
@@ -62,16 +65,40 @@ class RenderList<T>
 	{
 		var item:RenderListItem<T> = itemMap.get(value);
 		if (item != null) {
-			removeItem(item);
 			itemMap.remove(value);
+			removeItem(item);
 		}
-		else throw('Error on removeDisplay: $value is not in Displaylist.');
+		else throw('Error on remove: $value is not in list.');
 	}
 	
 	private inline function removeItem(item:RenderListItem<T>):Void {
 		if (item == first) first = item.next;
-		if (item == last ) last  = item.prev;
-		item.remove(); // remove if already exist
+		else if (item == last ) last  = item.prev;
+		item.unlink(); // remove if already exist
+		item = null;
 	}
+	
+	public function clear():Void
+	{
+		while (first != null) removeItem(last);
+	}
+	/**
+		Returns an iterator on the elements of the list.
+	**/
+	public inline function iterator() : RenderListIterator<T> {
+		return new RenderListIterator<T>(first);
+	}
+
 }
 
+@:generic
+private class RenderListIterator<T> {
+	var item:RenderListItem<T>;
+	public inline function new(first:RenderListItem<T>) item = first;
+	public inline function hasNext():Bool return item != null;
+	public inline function next():T {
+		var value = item.value;
+		item = item.next;
+		return value;
+	}
+}

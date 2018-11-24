@@ -14,7 +14,7 @@ class RenderListItem<T>
 		if (prev != null) prev.next = this;
 		if (next != null) next.prev = this;		
 	}
-	public inline function remove()
+	public inline function unlink()
 	{
 		if (prev != null) prev.next = next;
 		if (next != null) next.prev = prev;		

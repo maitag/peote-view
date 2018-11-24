@@ -101,13 +101,7 @@ class Display
 		if (PeoteGL.Version.isUBO) {
 			uniformBuffer.createGLBuffer(gl, x + xOffset, y + yOffset, zoom);
 		}
-		// for all programms in list
-		var listItem:RenderListItem<Program> = programList.first;
-		while (listItem != null)
-		{
-			listItem.value.setNewGLContext(gl);
-			listItem = listItem.next;
-		}
+		for (program in programList) program.setNewGLContext(newGl);
 	}
 
 	private inline function clearOldGLContext() 
@@ -116,13 +110,7 @@ class Display
 		if (PeoteGL.Version.isUBO) {
 			uniformBuffer.deleteGLBuffer(gl);
 		}
-		// for all programms in list
-		var listItem:RenderListItem<Program> = programList.first;
-		while (listItem != null)
-		{
-			listItem.value.clearOldGLContext();
-			listItem = listItem.next;
-		}
+		for (program in programList) program.clearOldGLContext();
 	}
 
 	
@@ -181,8 +169,7 @@ class Display
 		gl.scissor(sx, height - sh - sy, sw, sh);
 	}
 	
-	var renderListItem:RenderListItem<Program>;
-	var renderProgram:Program;
+	var programListItem:RenderListItem<Program>;
 	
 	private inline function render(peoteView:PeoteView):Void
 	{	
@@ -195,13 +182,11 @@ class Display
 			peoteView.background.render(red, green, blue, alpha);
 		}
 		
-		renderListItem = programList.first;
-		while (renderListItem != null)
+		programListItem = programList.first;
+		while (programListItem != null)
 		{
-			renderProgram = renderListItem.value;
-			renderProgram.render(peoteView, this);
-			
-			renderListItem = renderListItem.next;// next program in renderlist
+			programListItem.value.render(peoteView, this);			
+			programListItem = programListItem.next;
 		}
 		
 	}

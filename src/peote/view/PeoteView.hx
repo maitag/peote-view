@@ -144,28 +144,14 @@ class PeoteView
 		trace("PeoteView setNewGLContext");
 		gl = newGl;
 		if (PeoteGL.Version.isUBO) uniformBuffer.createGLBuffer(gl, width, height, xOffset, yOffset, zoom);
-		
-		// for all displays in list
-		var listItem:RenderListItem<Display> = displayList.first;
-		while (listItem != null)
-		{
-			listItem.value.setNewGLContext(gl);
-			listItem = listItem.next;
-		}
+		for (display in displayList) display.setNewGLContext(newGl);
 	}
 
 	public function clearOldGLContext() 
 	{
 		trace("Display clearOldGLContext");
 		if (PeoteGL.Version.isUBO) uniformBuffer.deleteGLBuffer(gl);
-		
-		// for all programms in list
-		var listItem:RenderListItem<Display> = displayList.first;
-		while (listItem != null)
-		{
-			listItem.value.clearOldGLContext();
-			listItem = listItem.next;
-		}
+		for (display in displayList) display.clearOldGLContext();
 	}
 
  	public inline function hasDisplay(display:Display):Bool
@@ -290,8 +276,7 @@ class PeoteView
 	}
 	
 	// ------------------------------------------------------------------------------
-	var renderListItem:RenderListItem<Display>;
-	var renderDisplay:Display;
+	var displayListItem:RenderListItem<Display>;
 
 	public function render():Void
 	{	
@@ -299,14 +284,11 @@ class PeoteView
 
 		initGLViewport(width, height);
 		
-		renderListItem = displayList.first;
-		while (renderListItem != null)
+		displayListItem = displayList.first;
+		while (displayListItem != null)
 		{
-
-			renderDisplay = renderListItem.value;
-			renderDisplay.render(this);
-			
-			renderListItem = renderListItem.next;
+			displayListItem.value.render(this);			
+			displayListItem = displayListItem.next;
 		}
 		
 	}

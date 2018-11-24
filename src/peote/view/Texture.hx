@@ -127,6 +127,9 @@ class Texture
 			gl.generateMipmap(gl.TEXTURE_2D);
 		}
 		gl.bindTexture(gl.TEXTURE_2D, null);
+		
+		// TODO: peoteView.glStateTexture.set(last_active, null);
+		
 	}
 	
 	

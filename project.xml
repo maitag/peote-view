@@ -30,7 +30,7 @@
 	<source path="src" />
 	
 	<haxelib name="lime" />
-	<haxedef name="webgl" /><!-- mhhmmm ... did i need this ? ;) -->
+	<!--<haxedef name="webgl" /> mhhmmm ... did i need this ? ;) -->
 	
 	<!-- force compiling for a special opengl-es version (only set one of them) -->
 	<!-- this optimizes the build and forces no-runtimecheck for the gl-features -->
