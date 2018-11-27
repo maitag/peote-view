@@ -78,7 +78,7 @@ class BunnyMark
 			
 			texture.setImage(image);
 			
-			program.setTexture(texture);
+			program.addTexture(texture);
 			
 			display.addProgram(program);    // programm to display
 			peoteView.addDisplay(display);  // display to peoteView

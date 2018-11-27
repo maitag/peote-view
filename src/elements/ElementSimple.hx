@@ -15,7 +15,11 @@ class ElementSimple implements Element
 	
 	@zIndex public var z:Int = 0;
 
-	@texUnit("color", "alpha") public var unit:Int;  // unsigned 1 bytes integer
+	@texUnit("color","mask") public var unitColor:Int;  //  unit for "color" and "mask" Layers
+	@texUnit("alpha") public var unitAlpha:Int;  // unit only for "alpha" Layer
+	@texUnit public var unit:Int;  // unit for all other Layers
+
+	
 	@texSlot("color", "alpha") public var slot:Int;  // unsigned 2 bytes integer
 	@texTile("color", "alpha") public var tile:Int;  // unsigned 2 bytes integer
 

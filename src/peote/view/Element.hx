@@ -24,10 +24,13 @@ typedef ConfParam =
 	pivotY:ConfSubParam,
 	rotation:ConfSubParam,
 	zIndex:ConfSubParam,
+	texUnitDefault:ConfSubParam,
+	texUnit:Array<ConfSubParam>,
 }
 typedef ConfSubParam =
 {
 	vStart:Dynamic, vEnd:Dynamic, n:Int, isAnim:Bool, name:String, isStart:Bool, isEnd:Bool, time:String,
+	?layer:Array<String>,
 }
 
 typedef GLConfParam =
@@ -101,6 +104,24 @@ class ElementImpl
 				}
 			}
 			else return "";
+		}
+		else return null;
+	}
+	
+	static inline function getMetaTexParams(f:Field, s:String):Null<Array<String>> {
+		var pa:Null<Array<Expr>> = null;
+		var found = false;
+		for (m in f.meta) if (m.name == s || m.name == ':$s') { pa = m.params; found = true; break; }
+		if (found) {
+			var ret = new Array<String>();
+			if (pa != null)
+				for (p in pa)
+					switch (p.expr) {
+						case EConst(CString(value)): ret.push(value);
+						case EConst(CInt(value)): ret.push(value);
+						default:
+					}
+			return ret;
 		}
 		else return null;
 	}
@@ -216,7 +237,7 @@ class ElementImpl
 	}
 	
 	
-	static inline function checkMetas(f:Field, expectedType:ComplexType, type:ComplexType, val:Expr, confItem:ConfSubParam, getter:String, setter:String)
+	static function checkMetas(f:Field, expectedType:ComplexType, type:ComplexType, val:Expr, confItem:ConfSubParam, getter:String, setter:String)
 	{
 		if (confItem.name == "") confItem.name = f.name;
 		else throw Context.error('Error: attribute already defined for "${f.name}"', f.pos);
@@ -314,10 +335,21 @@ class ElementImpl
 		//trace(confItem);
 	}
 	
-	static inline function configure(f:Field, type:ComplexType, val:Expr, getter:String=null, setter:String=null)
+	static function checkMetasLayered(meta:String, f:Field, expectedType:ComplexType, type:ComplexType, val:Expr, d:ConfSubParam, confItem:Array<ConfSubParam>, getter:String, setter:String):Bool
 	{
-		//trace(f.name, type, val, getter, setter);
-		// TODO: debug like "posX -> x" or "posX -> x, xStart -> setPos, setAnim...
+		var layers = getMetaTexParams(f, meta);
+		if (layers == null) return false; //trace("layer for " + layers);
+		for (l in layers) 
+			for (i in confItem) 
+				if (i.layer.indexOf(l) >=0) throw Context.error('Error: layer $l is already used for $meta', f.pos);
+		var c = { vStart:d.vStart, vEnd:d.vEnd, n:d.n, isAnim:d.isAnim, name:d.name, isStart:d.isStart, isEnd:d.isEnd, time:d.time, layer:layers };
+		checkMetas(f, macro:Int, type, val, c , getter, setter);
+		confItem.push(c);
+		return true;
+	}
+	
+	static inline function configure(f:Field, type:ComplexType, val:Expr, getter:String=null, setter:String=null)
+	{	//trace(f.name, type, val, getter, setter);
 		if      ( hasMeta(f, "posX")  ) checkMetas(f, macro:Int, type, val, conf.posX, getter, setter);
 		else if ( hasMeta(f, "posY")  ) checkMetas(f, macro:Int, type, val, conf.posY, getter, setter);
 		else if ( hasMeta(f, "sizeX") ) checkMetas(f, macro:Int, type, val, conf.sizeX, getter, setter);
@@ -327,8 +359,8 @@ class ElementImpl
 		else if ( hasMeta(f, "pivotY") ) checkMetas(f, macro:Int, type, val, conf.pivotY, getter, setter);
 		else if ( hasMeta(f, "rotation") ) checkMetas(f, macro:Float, type, val, conf.rotation, getter, setter);
 		else if ( hasMeta(f, "zIndex") ) checkMetas(f, macro:Int, type, val, conf.zIndex, getter, setter);
-		// TODO
-		// texture coords
+		// texture layer attributes
+		else if ( checkMetasLayered("texUnit", f, macro:Int, type, val, conf.texUnitDefault, conf.texUnit, getter, setter) ) {}
 	}
 	
 
@@ -360,6 +392,7 @@ class ElementImpl
 			pivotY:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },			
 			rotation:{ vStart:0.0, vEnd:0.0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },			
 			zIndex:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },			
+			texUnitDefault:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" }, texUnit:[],
 		};
 		glConf = {
 			isPICK:false,

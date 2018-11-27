@@ -287,7 +287,7 @@ class Program
 		if (oldUnit == -1) throw("Error, texture is not in use, try setTextureLayer(layer, [texture]) before setting unit-number manual");
 		if (j != -1) activeUnits[j] = oldUnit;
 		
-		// update textureList with units
+		// update textureList units
 		j = 0;
 		for (t in textureList) t.unit = activeUnits[j++];
 	}
@@ -325,14 +325,14 @@ class Program
 				gl.activeTexture (gl.TEXTURE0 + textureListItem.value.unit);
 				trace("activate Texture", textureListItem.value.unit);
 				gl.bindTexture (gl.TEXTURE_2D, textureListItem.value.texture.glTexture);
-				//glBindSampler(i, linearFiltering);
+				//gl.bindSampler(textureListItem.value.unit, gl.TEXTURE_3D);
 				//gl.enable(gl.TEXTURE_2D); // is default ?
 			}
 			gl.uniform1i (textureListItem.value.uniformLoc, textureListItem.value.unit); // optimizing: later in this.uniformBuffer for isUBO
 			textureListItem = textureListItem.next;
 		}
 		
-		// TODO: from Program
+		// TODO: own uniforms for every Program
 		if (PeoteGL.Version.isUBO)
 		{	
 			// ------------- uniform block -------------
