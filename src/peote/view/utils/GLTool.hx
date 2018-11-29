@@ -47,7 +47,8 @@ class GLTool
 
 	static public inline function parseShader(shader:String, conf:Dynamic):String {
 		var template = new MultipassTemplate(shader);
-		return rStartspaces.replace(rEmptylines.replace(rComments.replace(template.execute(conf), ""), "\n"), "");
+		return rStartspaces.replace(rEmptylines.replace(template.execute(conf), "\n"), "");
+		//return rStartspaces.replace(rEmptylines.replace(rComments.replace(template.execute(conf), ""), "\n"), "");
 	}
 
 }

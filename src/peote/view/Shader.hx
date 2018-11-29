@@ -39,11 +39,9 @@ class Shader
 	::ATTRIB_COLOR::
 	::ATTRIB_ROTZ::
 	::ATTRIB_PIVOT::
-	
-	
+	::ATTRIB_UNIT::
+		
 	//aElement
-	//aTexCoord
-	//aTile
 	
 	// custom Attributes --
 	//aCustom0
@@ -51,6 +49,7 @@ class Shader
 	// Varyings ---------------------------
 	::OUT_COLOR::
 	::if hasTEXTURES::
+		::OUT_UNIT::
 		::OUT_TEXCOORD::
 	::end::
 
@@ -64,6 +63,7 @@ class Shader
 		::CALC_POS::
 		::CALC_COLOR::
 		::if hasTEXTURES::
+			::CALC_UNIT::
 			::CALC_TEXCOORD::
 		::end::
 		
@@ -110,13 +110,14 @@ class Shader
 	"
 	::if isES3::#version 300 es::end::
 	
-    //precision highp float;
-    precision mediump float;
+    precision highp float;
+    //precision mediump float;
 	
 	::FRAGMENT_PROGRAM_UNIFORMS::
 	
 	::IN_COLOR::
 	::if hasTEXTURES::
+		::IN_UNIT::
 		::IN_TEXCOORD::
 	::end::
 	

@@ -64,6 +64,9 @@ class Textures
 			//program.removeTexture(texture); // remove from all Layers
 			
 			program.setTextureUnit(texture, 2);
+			element.w = image.width;
+			element.h = image.height;
+			buffer.updateElement(element);
 			//program.replaceTexture(texture, texture1);
 		});
 				

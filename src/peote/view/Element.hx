@@ -37,9 +37,12 @@ typedef GLConfParam =
 {			isPICK:Bool,
 			UNIFORM_TIME:String,
 			ATTRIB_TIME:String, ATTRIB_SIZE:String, ATTRIB_POS:String, ATTRIB_COLOR:String, ATTRIB_ROTZ:String, ATTRIB_PIVOT:String,
+			ATTRIB_UNIT:String,
 			OUT_COLOR:String, IN_COLOR:String, OUT_TEXCOORD:String, IN_TEXCOORD:String, ZINDEX:String,
+			OUT_UNIT:String, IN_UNIT:String,
 			FRAGMENT_CALC_COLOR:String,
 			CALC_TIME:String, CALC_SIZE:String, CALC_POS:String, CALC_COLOR:String, CALC_ROTZ:String, CALC_PIVOT:String, CALC_TEXCOORD:String,
+			CALC_UNIT:String,
 };
 
 class ElementImpl
@@ -81,7 +84,7 @@ class ElementImpl
 		            ' ${toFloatString(((c & 0x0000FF00)>>8)/255)}, ${toFloatString((c & 0x000000FF)/255)})';
 	}
 	
-	static inline function hasMeta(f:Field, s:String):Bool {
+	static function hasMeta(f:Field, s:String):Bool {
 		var itHas:Bool = false;
 		for (m in f.meta) {
 			if (m.name == s || m.name == ':$s') {
@@ -91,7 +94,7 @@ class ElementImpl
 		return itHas;
 	}
 	
-	static inline function getMetaParam(f:Field, s:String):String {
+	static function getMetaParam(f:Field, s:String):String {
 		var p = null;
 		var found = false;
 		for (m in f.meta) if (m.name == s || m.name == ':$s') { p = m.params[0]; found = true; break; }
@@ -128,7 +131,7 @@ class ElementImpl
 	
 	static var allowForBuffer = [{name:":allow", params:[macro peote.view], pos:Context.currentPos()}];
 	
-	static inline function genVar(type:ComplexType, name:String, value:Dynamic, isConstant:Bool = false) {
+	static function genVar(type:ComplexType, name:String, value:Dynamic, isConstant:Bool = false) {
 		if (fieldnames.indexOf(name) == -1) {
 			fields.push({
 				name:  name,
@@ -398,9 +401,12 @@ class ElementImpl
 			isPICK:false,
 			UNIFORM_TIME:"",
 			ATTRIB_TIME:"", ATTRIB_SIZE:"", ATTRIB_POS:"", ATTRIB_COLOR:"", ATTRIB_ROTZ:"", ATTRIB_PIVOT:"",
+			ATTRIB_UNIT:"",
 			OUT_COLOR:"", IN_COLOR:"", OUT_TEXCOORD:"", IN_TEXCOORD:"", ZINDEX:"",
+			OUT_UNIT:"", IN_UNIT:"",
 			FRAGMENT_CALC_COLOR:"",
-			CALC_TIME:"", CALC_SIZE:"", CALC_POS:"", CALC_COLOR:"", CALC_ROTZ:"", CALC_PIVOT:"", CALC_TEXCOORD:""
+			CALC_TIME:"", CALC_SIZE:"", CALC_POS:"", CALC_COLOR:"", CALC_ROTZ:"", CALC_PIVOT:"", CALC_TEXCOORD:"",
+			CALC_UNIT:"",
 		};		
 		setFun  = new StringMap<Dynamic>();
 		animFun = new StringMap<Dynamic>();
@@ -451,8 +457,21 @@ class ElementImpl
 		if (conf.color.name != "") {
 			if (conf.color.isStart) glConf.ATTRIB_COLOR  = '::IN:: vec4 aColorStart;';
 			if (conf.color.isEnd)   glConf.ATTRIB_COLOR += '::IN:: vec4 aColorEnd;';
-			glConf.OUT_COLOR = "::VAROUT:: vec4 vColor;";
+			glConf.OUT_COLOR = "::VAROUT:: vec4 vColor;"; // TODO: make flat for es3 only? ::FLAT::
 			glConf.IN_COLOR  = "::VARIN::  vec4 vColor;";
+		}
+		
+		//TODO ------------------------- 
+		for (k in 0...conf.texUnit.length) {
+			if (conf.texUnit[k].n > 0) {
+				//var type:String = (conf.texUnit[k].n == 1) ? "uint" : "uvec2";
+				var type:String = (conf.texUnit[k].n == 1) ? "float" : "vec2";
+				glConf.ATTRIB_UNIT += '::IN:: $type aUnit${k};';
+				//glConf.OUT_UNIT += '::if isES3::flat::end:: ::VAROUT:: ::if isES3::uint::else::float::end:: vUnit${k};'; // TODO: make flat for es3 only? ::FLAT::
+				//glConf.IN_UNIT  += '::if isES3::flat::end:: ::VARIN::  ::if isES3::uint::else::float::end:: vUnit${k};';
+				glConf.OUT_UNIT += '::VAROUT:: float vUnit${k};'; // TODO: make flat for es3 only? ::FLAT::
+				glConf.IN_UNIT  += '::VARIN::  float vUnit${k};';
+			}
 		}
 		
 		glConf.OUT_TEXCOORD = "::VAROUT:: vec2 vTexCoord;";
@@ -537,6 +556,27 @@ class ElementImpl
 			glConf.FRAGMENT_CALC_COLOR = "vColor"; // TODO: methods for texel-recoloring
 		} else glConf.FRAGMENT_CALC_COLOR = color2vec4(conf.color.vStart);
 		
+		//TODO make function for slots and tiles ------------------------- 
+		for (k in 0...conf.texUnit.length) {
+			if (conf.texUnit[k].n > 0) {
+				var name = 'Unit';
+				//var start = (conf.texUnit[k].isStart) ? 'a${name+k}' : conf.texUnit[k].vStart + "::if !isES3::.0::end::";
+				var start = (conf.texUnit[k].isStart) ? 'a${name+k}' : toFloatString(conf.texUnit[k].vStart);
+				
+				if (conf.texUnit[k].isAnim) {
+					//var end = (conf.texUnit[k].isEnd) ? 'a${name+k}' : conf.texUnit[k].vEnd + "::if !isES3::.0::end::";
+					var end = (conf.texUnit[k].isEnd) ? 'a${name+k}' : toFloatString(conf.texUnit[k].vEnd);
+					
+					if (conf.texUnit[k].isStart && conf.texUnit[k].isEnd) { start += ".x"; end += ".y"; }
+					else if (conf.texUnit[k].isEnd) { end += ".x"; }
+					start = '$start + ($end - $start) * time' + timers.indexOf(conf.texUnit[k].time);
+				}
+				glConf.CALC_UNIT += 'v${name+k} = $start;';
+			}
+		}
+		// texUnit, texSlot, texTile
+		// TODO call the upper function
+		
 		// texcoords
 		glConf.CALC_TEXCOORD  = "vTexCoord = aPosition;"; //TODO  texcords / vec2(::TEXTURE_WIDTH::.0,::TEXTURE_HEIGHT::.0));
 		
@@ -551,7 +591,7 @@ class ElementImpl
 				access: [Access.APublic],
 				pos: Context.currentPos(),
 				kind: FFun({
-					args: [],
+					args: [], // TODO: params for all that have @new meta
 					expr: macro {},
 					params: [],
 					ret: null
@@ -658,21 +698,35 @@ class ElementImpl
 			genVar(macro:Color, conf.color.name+"Start", conf.color.vStart, !conf.color.isStart);
 			genVar(macro:Color, conf.color.name+"End",   conf.color.vEnd,   !conf.color.isEnd);
 		}
+		for (c in conf.texUnit) {
+			if (c.isAnim) {		
+				genVar(macro:Int, c.name+"Start", c.vStart, !c.isStart);
+				genVar(macro:Int, c.name+"End",   c.vEnd,   !c.isEnd);
+			}
+		}
 		
 		// ------------------------- calc buffer size ----------------------------------------		
 		var vertex_count:Int = 6;
 		
 		var buff_size_instanced:Int = Std.int(timers.length * 8
+			+ 4 * (conf.rotation.n + conf.zIndex.n)
+			+ 4 *  conf.color.n
 			+ 2 * (conf.posX.n  + conf.posY.n)
 			+ 2 * (conf.sizeX.n + conf.sizeY.n)
 			+ 2 * (conf.pivotX.n + conf.pivotY.n)
-			+ 4 * (conf.rotation.n + conf.zIndex.n)
-			+ 4 *  conf.color.n
 		);
-		var fillStride_instanced:Int = buff_size_instanced % 4; // this fix the stride offset-Problem
-		var fillStride:Int = (buff_size_instanced + 2) % 4;
-		var buff_size:Int = vertex_count * ( buff_size_instanced + 2 + fillStride);		
+		for (c in conf.texUnit) buff_size_instanced += Std.int(c.n);
 		
+		//trace("buff_size_instanced:", buff_size_instanced);
+		
+		var fillStride_instanced:Int = 4 - (buff_size_instanced % 4); //trace("fillStride_instanced",fillStride_instanced);
+		//buff_size_instanced += fillStride_instanced;
+		
+		var fillStride:Int = 4 - ((buff_size_instanced + 2) % 4); //trace("fillStride",fillStride);
+
+		var buff_size:Int = vertex_count * ( buff_size_instanced + 2 + fillStride);
+		//trace("buff_size:", buff_size_instanced + 2 + fillStride);
+
 		// ---------------------- constants and switches -----------------------------------
 		fields.push({
 			name:  "MAX_ZINDEX",
@@ -793,8 +847,17 @@ class ElementImpl
 				kind: FieldType.FVar(macro:Int, macro $v{attrNumber++}), 
 				pos: Context.currentPos(),
 			});
-		}	
-		
+		}
+		for (k in 0...conf.texUnit.length) {
+			if (conf.texUnit[k].n > 0) {
+				fields.push({
+					name:  "aUNIT"+k,
+					access:  [Access.APrivate, Access.AStatic, Access.AInline],
+					kind: FieldType.FVar(macro:Int, macro $v{attrNumber++}), 
+					pos: Context.currentPos(),
+				});
+			}			
+		}
 		// TODO: texturecoords ...
 		
 
@@ -862,9 +925,9 @@ class ElementImpl
 				
 				// -------------- setFloat (32) ------------------------------
 				// TIMERS
-				for (t in timers) {
-					exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{"time"+t+"Start"}) ); i+=4;
-					exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{"time"+t+"Duration"}) ); i+=4;
+				for (k in 0...timers.length) {
+					exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{"time"+timers[k]+"Start"}) ); i+=4;
+					exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{"time"+timers[k]+"Duration"}) ); i+=4;
 				}
 				// ROTZ
 				if (conf.rotation.isAnim && conf.rotation.isStart) { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{conf.rotation.name+"Start"}/180*Math.PI) ); i+=4; }
@@ -902,6 +965,14 @@ class ElementImpl
 				if (!conf.pivotY.isAnim && conf.pivotY.isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.pivotY.name}) ); i+=2; }
 				if (conf.pivotX.isAnim && conf.pivotX.isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.pivotX.name+"End"}) ); i+=2; }
 				if (conf.pivotY.isAnim && conf.pivotY.isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.pivotY.name+"End"}) ); i+=2; }
+				
+				// ----------------- Bytes --------------------------------
+				// UNITS
+				for (k in 0...conf.texUnit.length) {
+					if (conf.texUnit[k].isAnim && conf.texUnit[k].isStart) { exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texUnit[k].name+"Start"}) ); i++; }
+					if (!conf.texUnit[k].isAnim && conf.texUnit[k].isStart){ exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texUnit[k].name}) ); i++; }
+					if (conf.texUnit[k].isAnim && conf.texUnit[k].isEnd)   { exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texUnit[k].name+"End"}) ); i++; }
+				}
 				
 				if (verts != null) i += fillStride else i += fillStride_instanced;
 			}
@@ -964,9 +1035,9 @@ class ElementImpl
 		if (conf.rotation.n + conf.zIndex.n > 0 ) exprBlock.push( macro gl.bindAttribLocation(glProgram, aROTZ, "aRotZ") );
 		if (conf.color.isStart) exprBlock.push( macro gl.bindAttribLocation(glProgram, aCOLORSTART, "aColorStart") );
 		if (conf.color.isEnd)   exprBlock.push( macro gl.bindAttribLocation(glProgram, aCOLOREND,   "aColorEnd") );
-		for (j in 0...Std.int((timers.length+1) / 2) )
-			exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTIME" + j}, $v{"aTime"+j} ) );
-				
+		for (k in 0...Std.int((timers.length+1) / 2)) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTIME" + k}, $v{"aTime"+k} ) );
+		for (k in 0...conf.texUnit.length) if (conf.texUnit[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aUNIT" + k}, $v{"aUnit"+k} ) );
+		
 		fields.push({
 			name: "bindAttribLocations",
 			meta: allowForBuffer,
@@ -1008,11 +1079,11 @@ class ElementImpl
 				if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor(aCOLOREND, 1) );			
 			}
 			// TIMERS
-			for (j in 0...Std.int((timers.length+1) / 2) ) {
-				exprBlock.push( macro gl.enableVertexAttribArray ($i{"aTIME" + j}) );
-				n = ((j==Std.int(timers.length / 2)) && (timers.length % 2 != 0)) ? 2 : 4;
-				exprBlock.push( macro gl.vertexAttribPointer($i{"aTIME"+j}, $v{n}, gl.FLOAT, false, $v{stride}, $v{i} ) ); i += n * 4;
-				if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{"aTIME"+j}, 1) );			
+			for (k in 0...Std.int((timers.length+1) / 2) ) {
+				exprBlock.push( macro gl.enableVertexAttribArray ($i{"aTIME" + k}) );
+				n = ((k==Std.int(timers.length / 2)) && (timers.length % 2 != 0)) ? 2 : 4;
+				exprBlock.push( macro gl.vertexAttribPointer($i{"aTIME"+k}, $v{n}, gl.FLOAT, false, $v{stride}, $v{i} ) ); i += n * 4;
+				if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{"aTIME"+k}, 1) );			
 			}
 			// ROTZ
 			n = conf.rotation.n + conf.zIndex.n;
@@ -1024,7 +1095,7 @@ class ElementImpl
 			// POSITION for non-instancedrawing
 			if (!isInstanced) {
 				exprBlock.push( macro gl.enableVertexAttribArray (aPOSITION) );
-				exprBlock.push( macro gl.vertexAttribPointer(aPOSITION, 2, gl.UNSIGNED_BYTE, false, $v{stride}, $v{i} )); i+=2;
+				exprBlock.push( macro gl.vertexAttribPointer(aPOSITION, 2, gl.UNSIGNED_BYTE, false, $v{stride}, $v{i} )); i += 2;
 			}
 			// POS
 			n = conf.posX.n + conf.posY.n;
@@ -1047,6 +1118,16 @@ class ElementImpl
 				exprBlock.push( macro gl.vertexAttribPointer(aPIVOT, $v{n}, gl.SHORT, false, $v{stride}, $v{i} ) ); i += n * 2;
 				if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor(aPIVOT, 1) );			
 			}
+			// UNIT
+			for (k in 0...conf.texUnit.length) {
+				n = conf.texUnit[k].n;
+				if (n > 0 ) {
+					exprBlock.push( macro gl.enableVertexAttribArray ($i{"aUNIT"+k}) );
+					exprBlock.push( macro gl.vertexAttribPointer($i{"aUNIT"+k}, $v{n}, gl.UNSIGNED_BYTE, true, $v{stride}, $v{i} ) ); i += n;
+					if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{"aUNIT"+k}, 1) );
+				}
+			}
+
 			return exprBlock;
 		}
 		fields.push({
@@ -1087,8 +1168,9 @@ class ElementImpl
 		if (conf.rotation.n + conf.zIndex.n > 0 ) exprBlock.push( macro gl.disableVertexAttribArray (aROTZ) );
 		if (conf.color.isStart) exprBlock.push( macro gl.disableVertexAttribArray (aCOLORSTART) );
 		if (conf.color.isEnd)   exprBlock.push( macro gl.disableVertexAttribArray (aCOLOREND) );
-		for (i in 0...Std.int((timers.length+1) / 2)) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTIME"+i}) );
-		
+		for (k in 0...Std.int((timers.length+1) / 2)) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTIME"+k}) );
+		for (k in 0...conf.texUnit.length) if (conf.texUnit[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aUNIT"+k}) );
+			
 		fields.push({
 			name: "disableVertexAttrib",
 			meta: allowForBuffer,
