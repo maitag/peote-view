@@ -457,7 +457,7 @@ class ElementImpl
 		if (conf.color.name != "") {
 			if (conf.color.isStart) glConf.ATTRIB_COLOR  = '::IN:: vec4 aColorStart;';
 			if (conf.color.isEnd)   glConf.ATTRIB_COLOR += '::IN:: vec4 aColorEnd;';
-			glConf.OUT_COLOR = "::if isES3::flat::end:: ::VAROUT:: vec4 vColor;"; // TODO: make flat for es3 only? ::FLAT::
+			glConf.OUT_COLOR = "::if isES3::flat::end:: ::VAROUT:: vec4 vColor;";
 			glConf.IN_COLOR  = "::if isES3::flat::end:: ::VARIN::  vec4 vColor;";
 		}
 		
@@ -467,11 +467,11 @@ class ElementImpl
 				//var type:String = (conf.texUnit[k].n == 1) ? "uint" : "uvec2";
 				var type:String = (conf.texUnit[k].n == 1) ? "float" : "vec2";
 				glConf.ATTRIB_UNIT += '::IN:: $type aUnit${k};';
-				//glConf.OUT_UNIT += '::if isES3::flat::end:: ::VAROUT:: ::if isES3::uint::else::float::end:: vUnit${k};'; // TODO: make flat for es3 only? ::FLAT::
+				//glConf.OUT_UNIT += '::if isES3::flat::end:: ::VAROUT:: ::if isES3::uint::else::float::end:: vUnit${k};';
 				//glConf.IN_UNIT  += '::if isES3::flat::end:: ::VARIN::  ::if isES3::uint::else::float::end:: vUnit${k};';
-				glConf.OUT_UNIT += '::if isES3::flat::end:: ::VAROUT:: float vUnit${k};'; // TODO: make flat for es3 only? ::FLAT::
-				glConf.IN_UNIT  += '::if isES3::flat::end:: ::VARIN::  float vUnit${k};';
 			}
+			glConf.OUT_UNIT += '::if isES3::flat::end:: ::VAROUT:: float vUnit${k};';
+			glConf.IN_UNIT  += '::if isES3::flat::end:: ::VARIN::  float vUnit${k};';
 		}
 		
 		glConf.OUT_TEXCOORD = "::VAROUT:: vec2 vTexCoord;";
@@ -526,21 +526,21 @@ class ElementImpl
 		// rotation and zIndex
 		conf.zIndex.vStart = Math.min(1.0,Math.max(-1.0, conf.zIndex.vStart/MAX_ZINDEX));
 		conf.zIndex.vEnd   = Math.min(1.0,Math.max(-1.0, conf.zIndex.vEnd/MAX_ZINDEX));
-		if (conf.rotation.n + conf.zIndex.n > 0) {
-			conf.rotation.vStart /= 180 * Math.PI;
-			conf.rotation.vEnd   /= 180 * Math.PI;
+		if (conf.rotation.name != "" || conf.zIndex.name != "") {
+			conf.rotation.vStart = conf.rotation.vStart/180 * Math.PI;
+			conf.rotation.vEnd   = conf.rotation.vEnd/180 * Math.PI;
 			glConf.CALC_ROTZ  = "vec2 rotZ = " + pack2in1("aRotZ" , conf.rotation, conf.zIndex ) + ";";
 		}
-		if (conf.rotation.n > 0) {
+		if (conf.rotation.name != "") {
 			var rotationmatrix = "mat2( vec2(cos(rotZ.x), -sin(rotZ.x)), vec2(sin(rotZ.x), cos(rotZ.x)) )";
-			if (conf.pivotX.n + conf.pivotY.n > 0) {
+			if (conf.pivotX.name != "" || conf.pivotY.name != "") {
 				// pivot
 				glConf.CALC_PIVOT = "vec2 pivot = " + pack2in1("aPivot" , conf.pivotX,  conf.pivotY ) + ";";
 				glConf.CALC_ROTZ += ' size = (size-pivot) * $rotationmatrix + pivot;';
 			}
 			else glConf.CALC_ROTZ += ' size = size * $rotationmatrix;';
 		}
-		if (conf.zIndex.n > 0) glConf.ZINDEX = "rotZ.y" else glConf.ZINDEX = toFloatString(conf.zIndex.vStart);
+		if (conf.zIndex.name != "") glConf.ZINDEX = "rotZ.y" else glConf.ZINDEX = toFloatString(conf.zIndex.vStart);
 		
 		// pos
 		glConf.CALC_POS  = "vec2 pos  = size + " + pack2in1("aPos" , conf.posX,  conf.posY ) + ";";
@@ -558,21 +558,17 @@ class ElementImpl
 		
 		//TODO make function for slots and tiles ------------------------- 
 		for (k in 0...conf.texUnit.length) {
-			if (conf.texUnit[k].n > 0) {
-				var name = 'Unit';
-				//var start = (conf.texUnit[k].isStart) ? 'a${name+k}' : conf.texUnit[k].vStart + "::if !isES3::.0::end::";
-				var start = (conf.texUnit[k].isStart) ? 'a${name+k}' : toFloatString(conf.texUnit[k].vStart);
+			var name = 'Unit';
+			var start = (conf.texUnit[k].isStart) ? 'a${name+k}' : toFloatString(conf.texUnit[k].vStart);
+			
+			if (conf.texUnit[k].isAnim) {
+				var end = (conf.texUnit[k].isEnd) ? 'a${name+k}' : toFloatString(conf.texUnit[k].vEnd);
 				
-				if (conf.texUnit[k].isAnim) {
-					//var end = (conf.texUnit[k].isEnd) ? 'a${name+k}' : conf.texUnit[k].vEnd + "::if !isES3::.0::end::";
-					var end = (conf.texUnit[k].isEnd) ? 'a${name+k}' : toFloatString(conf.texUnit[k].vEnd);
-					
-					if (conf.texUnit[k].isStart && conf.texUnit[k].isEnd) { start += ".x"; end += ".y"; }
-					else if (conf.texUnit[k].isEnd) { end += ".x"; }
-					start = '$start + ($end - $start) * time' + timers.indexOf(conf.texUnit[k].time);
-				}
-				glConf.CALC_UNIT += 'v${name+k} = $start;';
+				if (conf.texUnit[k].isStart && conf.texUnit[k].isEnd) { start += ".x"; end += ".y"; }
+				else if (conf.texUnit[k].isEnd) { end += ".x"; }
+				start = '$start + ($end - $start) * time' + timers.indexOf(conf.texUnit[k].time);
 			}
+			glConf.CALC_UNIT += 'v${name+k} = $start;';
 		}
 		// texUnit, texSlot, texTile
 		// TODO call the upper function
