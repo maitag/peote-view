@@ -44,6 +44,7 @@ class Program
 		VAROUT: "varying",
 		hasTEXTURES: false,
 		FRAGMENT_PROGRAM_UNIFORMS:"",
+		TEXTURES:[],
 	};
 	
 	var textureList = new RenderList<ActiveTexture>(new Map<ActiveTexture,RenderListItem<ActiveTexture>>());
@@ -184,8 +185,9 @@ class Program
 	var uOFFSET:GLUniformLocation;
 	var uTIME:GLUniformLocation;
 	
-	public function setTextureLayer(layer:Int, textures:Array<Texture>):Void {
+	public function setTextureLayer(textures:Array<Texture>, layer:Null<Int>=null):Void {
 		trace("set texture layer");
+		if (layer == null) layer = buffer.getMaxTextureLayer();
 		if (textures == null) throw("Error, textures needs array of textures");
 		if (textures.length == 0) throw("Error, array needs at least 1 texture");
 		var i = textures.length;
@@ -194,8 +196,9 @@ class Program
 		updateTextures();
 	}
 	
-	public function addTexture(texture:Texture, layer:Int = 0):Void {
+	public function addTexture(texture:Texture, layer:Null<Int>=null):Void {
 		trace("add texture to layer "+ layer);
+		if (layer == null) layer = buffer.getMaxTextureLayer();
 		var textures:Array<Texture> = textureLayers.get(layer);
 		if (textures != null) {
 			if (textures.indexOf(texture) >= 0) throw("Error, textureLayer already contains this texture.");
@@ -263,8 +266,26 @@ class Program
 		if (activeTextures.length == 0) glShaderConfig.hasTEXTURES = false;
 		else {
 			glShaderConfig.hasTEXTURES = true;
-			// TODO: fill more textures templates
 			glShaderConfig.FRAGMENT_PROGRAM_UNIFORMS = "uniform sampler2D uTexture0;";
+			// TODO: fill more textures templates
+			glShaderConfig.TEXTURES.push(
+				{LAYER:0, UNITS:[ 
+					{TEXEL:"texel0", UNIT_VALUE:"1.0", TEXTURE:"uTexture0",FIRST:true ,LAST:false},
+					{TEXEL:"texel0", UNIT_VALUE:"2.0", TEXTURE:"uTexture1",FIRST:false,LAST:true},
+				]}
+			);
+			glShaderConfig.TEXTURES.push(	
+				{LAYER:1, UNITS:[ 
+					{TEXEL:"texel5", UNIT_VALUE:"1.0", TEXTURE:"uTexture0",FIRST:true,LAST:true},
+				]}
+			);
+			glShaderConfig.TEXTURES.push(	
+				{LAYER:99, UNITS:[ 
+					{TEXEL:"texel3", UNIT_VALUE:"1.0", TEXTURE:"uTexture2",FIRST:true ,LAST:false},
+					{TEXEL:"texel3", UNIT_VALUE:"2.0", TEXTURE:"uTexture3",FIRST:false,LAST:true},
+				]}
+			);
+			// TODO: inject units
 		}
 
 		

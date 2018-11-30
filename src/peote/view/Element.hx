@@ -30,7 +30,6 @@ typedef ConfParam =
 typedef ConfSubParam =
 {
 	vStart:Dynamic, vEnd:Dynamic, n:Int, isAnim:Bool, name:String, isStart:Bool, isEnd:Bool, time:String,
-	?layer:Array<String>,
 }
 
 typedef GLConfParam =
@@ -43,6 +42,7 @@ typedef GLConfParam =
 			FRAGMENT_CALC_COLOR:String,
 			CALC_TIME:String, CALC_SIZE:String, CALC_POS:String, CALC_COLOR:String, CALC_ROTZ:String, CALC_PIVOT:String, CALC_TEXCOORD:String,
 			CALC_UNIT:String,
+			ELEMENT_LAYERS:Array<{UNIT:String, end_ELEMENT_LAYER:String, if_ELEMENT_LAYER:String, TEXCOORD:String}>,
 };
 
 class ElementImpl
@@ -340,12 +340,22 @@ class ElementImpl
 	
 	static function checkMetasLayered(meta:String, f:Field, expectedType:ComplexType, type:ComplexType, val:Expr, d:ConfSubParam, confItem:Array<ConfSubParam>, getter:String, setter:String):Bool
 	{
-		var layers = getMetaTexParams(f, meta);
-		if (layers == null) return false; //trace("layer for " + layers);
-		for (l in layers) 
-			for (i in confItem) 
-				if (i.layer.indexOf(l) >=0) throw Context.error('Error: layer $l is already used for $meta', f.pos);
-		var c = { vStart:d.vStart, vEnd:d.vEnd, n:d.n, isAnim:d.isAnim, name:d.name, isStart:d.isStart, isEnd:d.isEnd, time:d.time, layer:layers };
+		var layers:Array<String> = getMetaTexParams(f, meta);
+		if (layers == null) return false;
+		if (layers.length == 0) layers.push("__default__");
+		for (name in layers) {
+			var layer:StringMap<Int> = confLayer.get(name);
+			if (layer != null) {
+				if (layer.exists(meta)) throw Context.error('Error: layer $name is already used for $meta', f.pos);
+				layer.set(meta, confItem.length);
+			} else {
+				layer = new StringMap<Int>();
+				if (name != "__default__") layer.set("layer", maxLayer++);
+				layer.set(meta, confItem.length );
+				confLayer.set(name, layer);
+			}
+		}
+		var c = { vStart:d.vStart, vEnd:d.vEnd, n:d.n, isAnim:d.isAnim, name:d.name, isStart:d.isStart, isEnd:d.isEnd, time:d.time };
 		checkMetas(f, macro:Int, type, val, c , getter, setter);
 		confItem.push(c);
 		return true;
@@ -381,6 +391,9 @@ class ElementImpl
 	static var conf:ConfParam;
 	static var glConf:GLConfParam;
 	
+	static var maxLayer:Int = 0;
+	static var confLayer = new StringMap<StringMap<Int>>();
+	
 	//static var isChild:Bool = false;
 	// -------------------------------------- BUILD -------------------------------------------------
 	public static function build()
@@ -407,6 +420,7 @@ class ElementImpl
 			FRAGMENT_CALC_COLOR:"",
 			CALC_TIME:"", CALC_SIZE:"", CALC_POS:"", CALC_COLOR:"", CALC_ROTZ:"", CALC_PIVOT:"", CALC_TEXCOORD:"",
 			CALC_UNIT:"",
+			ELEMENT_LAYERS:[],
 		};		
 		setFun  = new StringMap<Dynamic>();
 		animFun = new StringMap<Dynamic>();
@@ -576,6 +590,44 @@ class ElementImpl
 		// texcoords
 		glConf.CALC_TEXCOORD  = "vTexCoord = aPosition;"; //TODO  texcords / vec2(::TEXTURE_WIDTH::.0,::TEXTURE_HEIGHT::.0));
 		
+		// texture layers
+		trace(confLayer);
+		var default_unit = "";
+		var default_texCoord = "";
+		if (confLayer.exists("__default__")) {
+			var defaultLayer = confLayer.get("__default__");
+			if (defaultLayer.exists("texUnit")) default_unit += defaultLayer.get("texUnit");
+			if (defaultLayer.exists("texCoord")) default_texCoord += defaultLayer.get("texCoord");
+		} else {
+			confLayer.set("__default__",new StringMap<Int>());
+		}
+		for (name in confLayer.keys()) {
+			var v = confLayer.get(name);
+			var unit = "vUnit";
+			var texCoord = "vTexCoord";
+			var layer = (name == "__default__") ? maxLayer : v.get("layer");
+			
+			if (v.exists("texUnit")) unit += v.get("texUnit");
+			else if (default_unit != "") unit += default_unit;
+			else unit = "0.0";
+			
+			if (v.exists("texCoord")) texCoord += v.get("texCoord"); else texCoord += default_texCoord;
+			
+			glConf.ELEMENT_LAYERS.push({
+				UNIT:unit,
+				TEXCOORD:texCoord,
+				if_ELEMENT_LAYER:'::if (LAYER ${(name == "__default__") ? ">" : "="}= $layer)::',
+				end_ELEMENT_LAYER:"::end::"
+			});
+			// create static vars
+			fields.push({
+				name:  "LAYER_" + ( (name != "__default__") ? name.toUpperCase() : "CUSTOM_0" ),
+				access:  [Access.APublic, Access.AStatic, Access.AInline],
+				kind: FieldType.FVar(macro:Int, macro $v{layer}), 
+				pos: Context.currentPos(),
+			});
+			debugLastField(fields);
+		}
 		
 		// ---------------------- generate helper vars and functions ---------------------------
 		debug("__generate vars and functions__");

@@ -53,14 +53,14 @@ class Textures
 			//texture = new Texture(image.width, image.height);
 			texture.setImage(image);
 			
-			program.setTextureLayer(0, [texture]);
-			//program.setTextureLayer(ElementSimple.TEXTURE_COLOR, [texture]);
-			//program.removeTextureLayer(ElementSimple.TEXTURE_COLOR);
+			program.setTextureLayer([texture], ElementSimple.LAYER_COLOR);
+			//program.setTextureLayer( [texture], ElementSimple.LAYER_CUSTOM_0);
+			//program.removeTextureLayer(ElementSimple.LAYER_COLOR);
 			
-			//program.addTexture(texture, ElementSimple.TEXTURE_COLOR);
+			//program.addTexture(texture, ElementSimple.LAYER_COLOR);
 			//program.addTexture(texture); // automatic to Layer 0
 			
-			//program.removeTexture(texture, ElementSimple.TEXTURE_COLOR); // remove only from Layer
+			//program.removeTexture(texture, ElementSimple.LAYER_COLOR); // remove only from Layer
 			//program.removeTexture(texture); // remove from all Layers
 			
 			program.setTextureUnit(texture, 2);
@@ -84,14 +84,14 @@ class Textures
 	{
 		switch (keyCode) {
 			case KeyCode.L:
-				if (program.hasTexture(texture,0)) program.removeTextureLayer(0);
+				if (program.hasTexture(texture,ElementSimple.LAYER_COLOR)) program.removeTextureLayer(ElementSimple.LAYER_COLOR);
 				else {
-					program.setTextureLayer(0, [texture]);
+					program.setTextureLayer([texture], ElementSimple.LAYER_COLOR);
 					program.setTextureUnit(texture, 3);
 				}
 			case KeyCode.T:
 				if (program.hasTexture(texture)) program.removeTexture(texture);
-				else program.addTexture(texture);
+				else program.addTexture(texture,ElementSimple.LAYER_COLOR);
 			default:
 		}
 	}
