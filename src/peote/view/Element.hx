@@ -457,8 +457,8 @@ class ElementImpl
 		if (conf.color.name != "") {
 			if (conf.color.isStart) glConf.ATTRIB_COLOR  = '::IN:: vec4 aColorStart;';
 			if (conf.color.isEnd)   glConf.ATTRIB_COLOR += '::IN:: vec4 aColorEnd;';
-			glConf.OUT_COLOR = "::VAROUT:: vec4 vColor;"; // TODO: make flat for es3 only? ::FLAT::
-			glConf.IN_COLOR  = "::VARIN::  vec4 vColor;";
+			glConf.OUT_COLOR = "::if isES3::flat::end:: ::VAROUT:: vec4 vColor;"; // TODO: make flat for es3 only? ::FLAT::
+			glConf.IN_COLOR  = "::if isES3::flat::end:: ::VARIN::  vec4 vColor;";
 		}
 		
 		//TODO ------------------------- 
@@ -469,8 +469,8 @@ class ElementImpl
 				glConf.ATTRIB_UNIT += '::IN:: $type aUnit${k};';
 				//glConf.OUT_UNIT += '::if isES3::flat::end:: ::VAROUT:: ::if isES3::uint::else::float::end:: vUnit${k};'; // TODO: make flat for es3 only? ::FLAT::
 				//glConf.IN_UNIT  += '::if isES3::flat::end:: ::VARIN::  ::if isES3::uint::else::float::end:: vUnit${k};';
-				glConf.OUT_UNIT += '::VAROUT:: float vUnit${k};'; // TODO: make flat for es3 only? ::FLAT::
-				glConf.IN_UNIT  += '::VARIN::  float vUnit${k};';
+				glConf.OUT_UNIT += '::if isES3::flat::end:: ::VAROUT:: float vUnit${k};'; // TODO: make flat for es3 only? ::FLAT::
+				glConf.IN_UNIT  += '::if isES3::flat::end:: ::VARIN::  float vUnit${k};';
 			}
 		}
 		
@@ -717,16 +717,20 @@ class ElementImpl
 		);
 		for (c in conf.texUnit) buff_size_instanced += Std.int(c.n);
 		
-		//trace("buff_size_instanced:", buff_size_instanced);
+		var buff_size:Int = buff_size_instanced +2;
+		trace("buff_size_instanced", buff_size_instanced);
+		trace("buff_size", buff_size);
 		
-		var fillStride_instanced:Int = 4 - (buff_size_instanced % 4); //trace("fillStride_instanced",fillStride_instanced);
-		//buff_size_instanced += fillStride_instanced;
+		var fillStride:Int = buff_size % 4;
+		if (fillStride != 0) fillStride = 4 - fillStride;
+		var fillStride_instanced:Int = buff_size_instanced % 4;
+		if (fillStride_instanced != 0) fillStride_instanced = 4 - fillStride_instanced;
 		
-		var fillStride:Int = 4 - ((buff_size_instanced + 2) % 4); //trace("fillStride",fillStride);
-
-		var buff_size:Int = vertex_count * ( buff_size_instanced + 2 + fillStride);
-		//trace("buff_size:", buff_size_instanced + 2 + fillStride);
-
+		buff_size += fillStride;
+		buff_size_instanced += fillStride_instanced;
+		trace("fillStride_instanced",fillStride_instanced, "buff_size_instanced", buff_size_instanced);
+		trace("fillStride",fillStride, "buff_size", buff_size);
+		
 		// ---------------------- constants and switches -----------------------------------
 		fields.push({
 			name:  "MAX_ZINDEX",
@@ -974,7 +978,7 @@ class ElementImpl
 					if (conf.texUnit[k].isAnim && conf.texUnit[k].isEnd)   { exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texUnit[k].name+"End"}) ); i++; }
 				}
 				
-				if (verts != null) i += fillStride else i += fillStride_instanced;
+				if (verts != null) i += fillStride;// else i += fillStride_instanced;
 			}
 			return exprBlock;
 		}
@@ -1057,13 +1061,13 @@ class ElementImpl
 			var i:Int = 0;
 			var n:Int = 0;
 			var exprBlock = new Array<Expr>();
-			var stride = buff_size_instanced;
+			var stride = buff_size;
 			if (isInstanced) {
 				exprBlock.push( macro gl.bindBuffer(gl.ARRAY_BUFFER, glInstanceBuffer) );
 				exprBlock.push( macro gl.enableVertexAttribArray (aPOSITION) );
 				exprBlock.push( macro gl.vertexAttribPointer(aPOSITION, 2, gl.UNSIGNED_BYTE, false, 2, 0 ) );
-				stride += fillStride_instanced;
-			} else stride += 2 + fillStride;
+				stride = buff_size_instanced;
+			}
 
 			exprBlock.push( macro gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer) );
 			

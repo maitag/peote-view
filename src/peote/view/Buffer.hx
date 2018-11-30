@@ -106,7 +106,7 @@ class $className implements BufferInterface
 			$p{elemField}.createInstanceBytes();
 		    _elemBuffSize = $p{elemField}.BUFF_SIZE_INSTANCED;
 		}
-		else _elemBuffSize = $p{elemField}.BUFF_SIZE;
+		else _elemBuffSize = $p{elemField}.BUFF_SIZE * $p{elemField}.VERTEX_COUNT;
 		
 		trace("create bytes for GLbuffer");
 		_bytes = utils.Bytes.alloc(_elemBuffSize * size);
