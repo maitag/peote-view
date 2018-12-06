@@ -138,32 +138,29 @@ class Shader
 	
 	void main(void)
 	{	
-		vec4 texel = ::FRAGMENT_CALC_COLOR::;
+		vec4 c = ::FRAGMENT_CALC_COLOR::;
 		
 		::if hasTEXTURES::
-		
-		::foreach TEXTURES::
-			// LAYER ::LAYER::
-			::foreach ELEMENT_LAYERS::
-			::if_ELEMENT_LAYER::
-				vec4 texel::LAYER::;
+			::foreach TEXTURES::
+				// ------------- LAYER ::LAYER:: --------------
+				::foreach ELEMENT_LAYERS::
+				::if_ELEMENT_LAYER::
+				vec4 c::LAYER::;
 				::foreach UNITS::
 				::if !FIRST ::else ::end::::if !LAST ::if (::UNIT:: < ::UNIT_VALUE::)::end::
-				{ texel::LAYER:: = texture::if !isES3::2D::end::(::TEXTURE::, ::TEXCOORD::); }
+					c::LAYER:: = texture::if !isES3::2D::end::(::TEXTURE::, ::TEXCOORD::);
 				::end::
-			::end_ELEMENT_LAYER::
+				::end_ELEMENT_LAYER::
+				::end::
 			::end::
 		::end::
 		
-		// calc final texel
-		//texel = texel * texture::if !isES3::2D::end::(uTexture0, vTexCoord);
-		texel = texel0; // TODO
-
-		if (texel.a == 0.0) discard;
+		// calc final color from all layers
+		vec4 color = ::FRAGMENT_CALC_LAYER::; // TODO: set per progam
 		
-		::end::
+		if (color.a == 0.0) discard; // TODO: set per progam
 		
-		::if !isES3::gl_Frag::end::Color = texel;
+		::if !isES3::gl_Frag::end::Color = color;
 		
 		// TODO: check this fix for problem on old FF if alpha goes zero
 		::if !isES3::gl_Frag::end::Color.w = clamp(::if !isES3::gl_Frag::end::Color.w, 0.003, 1.0);

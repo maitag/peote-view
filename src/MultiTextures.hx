@@ -44,9 +44,15 @@ class MultiTextures
 		texture0 = new Texture(512, 512);
 		texture1 = new Texture(512, 512);
 
+		
 		program.setTextureLayer([texture0], ElementSimple.LAYER_COLOR);
-		program.setTextureLayer([texture0, texture1], ElementSimple.LAYER_COLOR);
+		program.setTextureLayer([texture0, texture1], ElementSimple.LAYER_ALPHA);
 		program.setTextureLayer([texture1], ElementSimple.LAYER_MASK);
+		
+		program.colorFormula = 'c * c0'; // c is default color, c0 is for ElementSimple.LAYER_COLOR, c1 is ElementSimple.LAYER_ALPHA ... and so on .)
+		
+		program.updateTextures(); // updates gl-textures and also rebuilds the shadercode
+		
 		
 		loadImage(texture0, "assets/images/peote_tiles.png");
 		loadImage(texture1, "assets/images/peote_tiles_bunnys.png");

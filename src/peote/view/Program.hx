@@ -26,6 +26,8 @@ class Program
 	public var alphaEnabled:Bool;
 	public var zIndexEnabled:Bool;
 	
+	public var colorFormula = "c * c0";
+	
 	var display:Display = null;
 	var gl:PeoteGL = null;
 
@@ -44,6 +46,7 @@ class Program
 		VAROUT: "varying",
 		hasTEXTURES: false,
 		FRAGMENT_PROGRAM_UNIFORMS:"",
+		FRAGMENT_CALC_LAYER:"c",
 		TEXTURES:[],
 	};
 	
@@ -193,7 +196,7 @@ class Program
 		var i = textureUnits.length;
 		while (i-- > 0) if (textureUnits.indexOf(textureUnits[i]) != i) throw("Error, textureLayer can not contain same texture twice.");		
 		textureLayers.set(layer, textureUnits);
-		updateTextures();
+		//updateTextures();
 	}
 	
 	public function addTexture(texture:Texture, layer:Null<Int>=null):Void {
@@ -208,13 +211,13 @@ class Program
 			}
 		}
 		else textureLayers.set(layer, [texture]);
-		updateTextures();
+		//updateTextures();
 	}
 	
 	public function removeTextureLayer(layer:Int):Void {
 		trace("remove texture layer");
 		textureLayers.remove(layer);
-		updateTextures();
+		//updateTextures();
 	}
 	
 	public function removeTexture(texture:Texture, layer:Null<Int>=null):Void {
@@ -227,7 +230,7 @@ class Program
 				else textureLayers.set(l, textures );
 			}
 		else textureLayers.get(layer).remove(texture);
-		updateTextures();
+		//updateTextures();
 	}
 	
 	public function updateTextures():Void {
@@ -264,10 +267,15 @@ class Program
 		
 		// -----------
 		trace("textureLayers", [for (layer in textureLayers.keys()) layer]);
-		trace(activeTextures.length);
-		if (activeTextures.length == 0) glShaderConfig.hasTEXTURES = false;
+		
+		if (activeTextures.length == 0) {
+			glShaderConfig.hasTEXTURES = false;
+			glShaderConfig.FRAGMENT_CALC_LAYER = "c";
+		}
 		else {
 			glShaderConfig.hasTEXTURES = true;
+			glShaderConfig.FRAGMENT_CALC_LAYER = colorFormula;
+			
 			glShaderConfig.FRAGMENT_PROGRAM_UNIFORMS = "";
 			for (i in 0...activeTextures.length)
 				glShaderConfig.FRAGMENT_PROGRAM_UNIFORMS += 'uniform sampler2D uTexture$i;';
@@ -275,7 +283,7 @@ class Program
 			// fill texture-layer in template
 			glShaderConfig.TEXTURES = [];
 			for (layer in textureLayers.keys()) {
-				var units = new Array < {TEXEL:String, UNIT_VALUE:String, TEXTURE:String,
+				var units = new Array < {UNIT_VALUE:String, TEXTURE:String,
 										SLOTS_X:String, SLOTS_Y:String, SLOT_WIDTH:String, SLOT_HEIGHT:String,
 										TILES_X:String, TILES_Y:String, TILE_WIDTH:String, TILE_HEIGHT:String,
 										TEXTURE_WIDTH:String, TEXTURE_HEIGHT:String,
@@ -283,7 +291,7 @@ class Program
 				var textures = textureLayers.get(layer);
 				for (i in 0...textures.length) {
 					units.push({
-						TEXEL:"texel" + layer, UNIT_VALUE:(i + 1) + ".0",
+						UNIT_VALUE:(i + 1) + ".0",
 						TEXTURE:"uTexture" + activeTextures.indexOf(textures[i]),
 						SLOTS_X: textures[i].slotsX + ".0",
 						SLOTS_Y: textures[i].slotsY + ".0",
