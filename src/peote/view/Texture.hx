@@ -20,11 +20,14 @@ class Texture
 	public var height(default, null):Int = 0;
 	
 	public var imageSlots(default, null):Int = 1;
+	
 	public var slotsX(default, null):Int = 1;
 	public var slotsY(default, null):Int = 1;
-	
 	public var slotWidth(default, null):Int;
 	public var slotHeight(default, null):Int;
+
+	public var tilesX(default, null):Int = 1;
+	public var tilesY(default, null):Int = 1;
 	
 	public var images = new Map<Image, ImgProp>();
 	

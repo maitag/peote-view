@@ -15,6 +15,8 @@ typedef Sample = Test;
 typedef Sample = DepthBlend;
 #elseif sampleTextures
 typedef Sample = Textures;
+#elseif sampleMultiTextures
+typedef Sample = MultiTextures;
 #elseif sampleMultidisplay
 typedef Sample = Multidisplay;
 #elseif sampleMultibuffer

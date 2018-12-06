@@ -26,6 +26,10 @@ typedef ConfParam =
 	zIndex:ConfSubParam,
 	texUnitDefault:ConfSubParam,
 	texUnit:Array<ConfSubParam>,
+	texSlotDefault:ConfSubParam,
+	texSlot:Array<ConfSubParam>,
+	texTileDefault:ConfSubParam,
+	texTile:Array<ConfSubParam>,
 }
 typedef ConfSubParam =
 {
@@ -36,12 +40,12 @@ typedef GLConfParam =
 {			isPICK:Bool,
 			UNIFORM_TIME:String,
 			ATTRIB_TIME:String, ATTRIB_SIZE:String, ATTRIB_POS:String, ATTRIB_COLOR:String, ATTRIB_ROTZ:String, ATTRIB_PIVOT:String,
-			ATTRIB_UNIT:String,
+			ATTRIB_UNIT:String, ATTRIB_SLOT:String, ATTRIB_TILE:String,
 			OUT_COLOR:String, IN_COLOR:String, OUT_TEXCOORD:String, IN_TEXCOORD:String, ZINDEX:String,
-			OUT_UNIT:String, IN_UNIT:String,
+			OUT_UNIT:String, IN_UNIT:String, OUT_SLOT:String, IN_SLOT:String, OUT_TILE:String, IN_TILE:String, 
 			FRAGMENT_CALC_COLOR:String,
 			CALC_TIME:String, CALC_SIZE:String, CALC_POS:String, CALC_COLOR:String, CALC_ROTZ:String, CALC_PIVOT:String, CALC_TEXCOORD:String,
-			CALC_UNIT:String,
+			CALC_UNIT:String, CALC_SLOT:String, CALC_TILE:String,
 			ELEMENT_LAYERS:Array<{UNIT:String, end_ELEMENT_LAYER:String, if_ELEMENT_LAYER:String, TEXCOORD:String}>,
 };
 
@@ -340,11 +344,11 @@ class ElementImpl
 	
 	static function checkMetasLayered(meta:String, f:Field, expectedType:ComplexType, type:ComplexType, val:Expr, d:ConfSubParam, confItem:Array<ConfSubParam>, getter:String, setter:String):Bool
 	{
-		var layers:Array<String> = getMetaTexParams(f, meta);
-		if (layers == null) return false;
-		if (layers.length == 0) layers.push("__default__");
-		for (name in layers) {
-			var layer:StringMap<Int> = confLayer.get(name);
+		var metas:Array<String> = getMetaTexParams(f, meta);
+		if (metas == null) return false;
+		if (metas.length == 0) metas.push("__default__");
+		for (name in metas) {
+			var layer = confLayer.get(name);
 			if (layer != null) {
 				if (layer.exists(meta)) throw Context.error('Error: layer $name is already used for $meta', f.pos);
 				layer.set(meta, confItem.length);
@@ -374,6 +378,8 @@ class ElementImpl
 		else if ( hasMeta(f, "zIndex") ) checkMetas(f, macro:Int, type, val, conf.zIndex, getter, setter);
 		// texture layer attributes
 		else if ( checkMetasLayered("texUnit", f, macro:Int, type, val, conf.texUnitDefault, conf.texUnit, getter, setter) ) {}
+		else if ( checkMetasLayered("texSlot", f, macro:Int, type, val, conf.texSlotDefault, conf.texSlot, getter, setter) ) {}
+		else if ( checkMetasLayered("texTile", f, macro:Int, type, val, conf.texTileDefault, conf.texTile, getter, setter) ) {}
 	}
 	
 
@@ -409,17 +415,19 @@ class ElementImpl
 			rotation:{ vStart:0.0, vEnd:0.0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },			
 			zIndex:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },			
 			texUnitDefault:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" }, texUnit:[],
+			texSlotDefault:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" }, texSlot:[],
+			texTileDefault:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" }, texTile:[],
 		};
 		glConf = {
 			isPICK:false,
 			UNIFORM_TIME:"",
 			ATTRIB_TIME:"", ATTRIB_SIZE:"", ATTRIB_POS:"", ATTRIB_COLOR:"", ATTRIB_ROTZ:"", ATTRIB_PIVOT:"",
-			ATTRIB_UNIT:"",
+			ATTRIB_UNIT:"", ATTRIB_SLOT:"", ATTRIB_TILE:"",
 			OUT_COLOR:"", IN_COLOR:"", OUT_TEXCOORD:"", IN_TEXCOORD:"", ZINDEX:"",
-			OUT_UNIT:"", IN_UNIT:"",
+			OUT_UNIT:"", IN_UNIT:"", OUT_SLOT:"", IN_SLOT:"", OUT_TILE:"", IN_TILE:"", 
 			FRAGMENT_CALC_COLOR:"",
 			CALC_TIME:"", CALC_SIZE:"", CALC_POS:"", CALC_COLOR:"", CALC_ROTZ:"", CALC_PIVOT:"", CALC_TEXCOORD:"",
-			CALC_UNIT:"",
+			CALC_UNIT:"", CALC_SLOT:"", CALC_TILE:"", 
 			ELEMENT_LAYERS:[],
 		};		
 		setFun  = new StringMap<Dynamic>();
@@ -458,6 +466,7 @@ class ElementImpl
 			else glConf.ATTRIB_TIME += '::IN:: vec4 aTime$i;';
 		}
 		
+		// size, pos, pivot and rotation+z-index
 		var n:Int;
 		n = conf.sizeX.n + conf.sizeY.n;
 		if (n > 0) glConf.ATTRIB_SIZE = '::IN:: ${ (n==1) ? "float" : "vec"+n} aSize;';
@@ -468,6 +477,7 @@ class ElementImpl
 		n = conf.rotation.n + conf.zIndex.n;
 		if (n > 0) glConf.ATTRIB_ROTZ = '::IN:: ${ (n==1) ? "float" : "vec"+n } aRotZ;';
 		
+		// color
 		if (conf.color.name != "") {
 			if (conf.color.isStart) glConf.ATTRIB_COLOR  = '::IN:: vec4 aColorStart;';
 			if (conf.color.isEnd)   glConf.ATTRIB_COLOR += '::IN:: vec4 aColorEnd;';
@@ -475,17 +485,33 @@ class ElementImpl
 			glConf.IN_COLOR  = "::if isES3::flat::end:: ::VARIN::  vec4 vColor;";
 		}
 		
-		//TODO ------------------------- 
+		//TODO: better pack the attributes here ------------------------- 
+		// units
 		for (k in 0...conf.texUnit.length) {
 			if (conf.texUnit[k].n > 0) {
-				//var type:String = (conf.texUnit[k].n == 1) ? "uint" : "uvec2";
 				var type:String = (conf.texUnit[k].n == 1) ? "float" : "vec2";
 				glConf.ATTRIB_UNIT += '::IN:: $type aUnit${k};';
-				//glConf.OUT_UNIT += '::if isES3::flat::end:: ::VAROUT:: ::if isES3::uint::else::float::end:: vUnit${k};';
-				//glConf.IN_UNIT  += '::if isES3::flat::end:: ::VARIN::  ::if isES3::uint::else::float::end:: vUnit${k};';
 			}
 			glConf.OUT_UNIT += '::if isES3::flat::end:: ::VAROUT:: float vUnit${k};';
 			glConf.IN_UNIT  += '::if isES3::flat::end:: ::VARIN::  float vUnit${k};';
+		}
+		// slots
+		for (k in 0...conf.texSlot.length) {
+			if (conf.texSlot[k].n > 0) {
+				var type:String = (conf.texSlot[k].n == 1) ? "float" : "vec2";
+				glConf.ATTRIB_SLOT += '::IN:: $type aSlot${k};';
+			}
+			glConf.OUT_SLOT += '::if isES3::flat::end:: ::VAROUT:: float vSlot${k};';
+			glConf.IN_SLOT  += '::if isES3::flat::end:: ::VARIN::  float vSlot${k};';
+		}
+		// tiles
+		for (k in 0...conf.texTile.length) {
+			if (conf.texTile[k].n > 0) {
+				var type:String = (conf.texTile[k].n == 1) ? "float" : "vec2";
+				glConf.ATTRIB_TILE += '::IN:: $type aTile${k};';
+			}
+			glConf.OUT_TILE += '::if isES3::flat::end:: ::VAROUT:: float vTile${k};';
+			glConf.IN_TILE  += '::if isES3::flat::end:: ::VARIN::  float vTile${k};';
 		}
 		
 		glConf.OUT_TEXCOORD = "::VAROUT:: vec2 vTexCoord;";
@@ -494,7 +520,7 @@ class ElementImpl
 		// CALC TIME-MUTLIPLICATORS:
 		for (i in 0...timers.length) {
 			var t:String = "" + Std.int(i / 2);
-			var d:String = "" + Std.int(i/2);
+			var d:String = "" + Std.int(i / 2);
 			if (i % 2 == 0) { t += ".x"; d += ".y"; } else { t += ".z"; d += ".w"; } 
 			glConf.CALC_TIME += 'float time$i = clamp( (uTime - aTime$t) / aTime$d, 0.0, 1.0); ';
 		}
@@ -570,52 +596,75 @@ class ElementImpl
 			glConf.FRAGMENT_CALC_COLOR = "vColor"; // TODO: methods for texel-recoloring
 		} else glConf.FRAGMENT_CALC_COLOR = color2vec4(conf.color.vStart);
 		
-		//TODO make function for slots and tiles ------------------------- 
-		for (k in 0...conf.texUnit.length) {
-			var name = 'Unit';
-			var start = (conf.texUnit[k].isStart) ? 'a${name+k}' : toFloatString(conf.texUnit[k].vStart);
-			
-			if (conf.texUnit[k].isAnim) {
-				var end = (conf.texUnit[k].isEnd) ? 'a${name+k}' : toFloatString(conf.texUnit[k].vEnd);
-				
-				if (conf.texUnit[k].isStart && conf.texUnit[k].isEnd) { start += ".x"; end += ".y"; }
-				else if (conf.texUnit[k].isEnd) { end += ".x"; }
-				start = '$start + ($end - $start) * time' + timers.indexOf(conf.texUnit[k].time);
+		//TODO make that packs all units, slots and tiles together into many aUnitSlotTile vec4 attributes --------- 
+		function packTex(name:String, confItems:Array<ConfSubParam>, index:Int):String {
+			name += index;
+			var confItem:ConfSubParam = confItems[index];
+			var start = (confItem.isStart) ? name : toFloatString(confItem.vStart);
+			if (confItem.isAnim) {
+				var end = (confItem.isEnd) ? name : toFloatString(confItem.vEnd);				
+				if (confItem.isStart && confItem.isEnd) { start += ".x"; end += ".y"; }
+				else if (confItem.isEnd) { end += ".x"; }
+				start = '$start + ($end - $start) * time' + timers.indexOf(confItem.time);
 			}
-			glConf.CALC_UNIT += 'v${name+k} = $start;';
+			return start;
 		}
-		// texUnit, texSlot, texTile
-		// TODO call the upper function
+		// texUnit
+		for (k in 0...conf.texUnit.length) {
+			glConf.CALC_UNIT += 'vUnit$k = ' + packTex("aUnit", conf.texUnit, k) + ";";
+		}		
+		// texSlot
+		for (k in 0...conf.texSlot.length) {
+			glConf.CALC_SLOT += 'vSlot$k = ' + packTex("aSlot", conf.texSlot, k) + ";";
+		}		
+		// texTile
+		for (k in 0...conf.texTile.length) {
+			glConf.CALC_TILE += 'vTile$k = ' + packTex("aTile", conf.texTile, k) + ";";
+		}
+		// default texcoords
+		glConf.CALC_TEXCOORD  = "vTexCoord = aPosition;";
 		
-		// texcoords
-		glConf.CALC_TEXCOORD  = "vTexCoord = aPosition;"; //TODO  texcords / vec2(::TEXTURE_WIDTH::.0,::TEXTURE_HEIGHT::.0));
-		
-		// texture layers
-		trace(confLayer);
+		// for each texture layers
 		var default_unit = "";
-		var default_texCoord = "";
+		var default_slot = "";
+		var default_tile = "";
 		if (confLayer.exists("__default__")) {
 			var defaultLayer = confLayer.get("__default__");
 			if (defaultLayer.exists("texUnit")) default_unit += defaultLayer.get("texUnit");
-			if (defaultLayer.exists("texCoord")) default_texCoord += defaultLayer.get("texCoord");
+			if (defaultLayer.exists("texSlot")) default_slot += defaultLayer.get("texSlot");
+			if (defaultLayer.exists("texTile")) default_tile += defaultLayer.get("texTile");
 		} else {
 			confLayer.set("__default__",new StringMap<Int>());
 		}
+		
 		for (name in confLayer.keys()) {
-			var v = confLayer.get(name);
-			var unit = "vUnit";
-			var texCoord = "vTexCoord";
+			trace(name, confLayer.get(name));
+			var v:StringMap<Int> = confLayer.get(name);
+			
 			var layer = (name == "__default__") ? maxLayer : v.get("layer");
 			
+			var unit = "vUnit";
 			if (v.exists("texUnit")) unit += v.get("texUnit");
 			else if (default_unit != "") unit += default_unit;
 			else unit = "0.0";
 			
-			if (v.exists("texCoord")) texCoord += v.get("texCoord"); else texCoord += default_texCoord;
+			var texCoord = "";
+
+			var slot = "vSlot";
+			if (v.exists("texSlot")) slot += v.get("texSlot");
+			else if (default_slot != "") slot += default_slot;
+			else slot = "";
+			if (slot != "") texCoord += 'vec2( mod($slot, ::SLOTS_Y::)*::SLOT_HEIGHT::, floor($slot/::SLOTS_X::)*::SLOT_HEIGHT::)';
 			
+			var tile = "vTile";
+			if (v.exists("texTile")) tile += v.get("texTile");
+			else if (default_slot != "") slot += default_slot;
+			else tile = "";
+			if (tile != "") texCoord += ((texCoord != "") ? " + " :"") + 'vec2( mod($tile, ::TILES_Y::)*::TILE_HEIGHT::, floor($tile/::TILES_X::)*::TILE_HEIGHT::)'; 
+						
 			glConf.ELEMENT_LAYERS.push({
 				UNIT:unit,
-				TEXCOORD:texCoord,
+				TEXCOORD:'vTexCoord + ( $texCoord / vec2(::TEXTURE_HEIGHT::, ::TEXTURE_WIDTH::))',
 				if_ELEMENT_LAYER:'::if (LAYER ${(name == "__default__") ? ">" : "="}= $layer)::',
 				end_ELEMENT_LAYER:"::end::"
 			});
@@ -628,7 +677,7 @@ class ElementImpl
 			});
 			debugLastField(fields);
 		}
-		
+				
 		// ---------------------- generate helper vars and functions ---------------------------
 		debug("__generate vars and functions__");
 		
@@ -746,11 +795,17 @@ class ElementImpl
 			genVar(macro:Color, conf.color.name+"Start", conf.color.vStart, !conf.color.isStart);
 			genVar(macro:Color, conf.color.name+"End",   conf.color.vEnd,   !conf.color.isEnd);
 		}
-		for (c in conf.texUnit) {
-			if (c.isAnim) {		
-				genVar(macro:Int, c.name+"Start", c.vStart, !c.isStart);
-				genVar(macro:Int, c.name+"End",   c.vEnd,   !c.isEnd);
-			}
+		for (c in conf.texUnit) if (c.isAnim) {		
+			genVar(macro:Int, c.name+"Start", c.vStart, !c.isStart);
+			genVar(macro:Int, c.name+"End",   c.vEnd,   !c.isEnd);
+		}
+		for (c in conf.texSlot) if (c.isAnim) {		
+			genVar(macro:Int, c.name+"Start", c.vStart, !c.isStart);
+			genVar(macro:Int, c.name+"End",   c.vEnd,   !c.isEnd);
+		}
+		for (c in conf.texTile) if (c.isAnim) {		
+			genVar(macro:Int, c.name+"Start", c.vStart, !c.isStart);
+			genVar(macro:Int, c.name+"End",   c.vEnd,   !c.isEnd);
 		}
 		
 		// ------------------------- calc buffer size ----------------------------------------		
@@ -764,6 +819,8 @@ class ElementImpl
 			+ 2 * (conf.pivotX.n + conf.pivotY.n)
 		);
 		for (c in conf.texUnit) buff_size_instanced += Std.int(c.n);
+		for (c in conf.texSlot) buff_size_instanced += Std.int(c.n * 2);
+		for (c in conf.texTile) buff_size_instanced += Std.int(c.n * 2);
 		
 		var buff_size:Int = buff_size_instanced +2;
 		trace("buff_size_instanced", buff_size_instanced);
@@ -910,8 +967,29 @@ class ElementImpl
 				});
 			}			
 		}
-		// TODO: texturecoords ...
+		for (k in 0...conf.texSlot.length) {
+			if (conf.texUnit[k].n > 0) {
+				fields.push({
+					name:  "aSLOT"+k,
+					access:  [Access.APrivate, Access.AStatic, Access.AInline],
+					kind: FieldType.FVar(macro:Int, macro $v{attrNumber++}), 
+					pos: Context.currentPos(),
+				});
+			}			
+		}
+		for (k in 0...conf.texTile.length) {
+			if (conf.texUnit[k].n > 0) {
+				fields.push({
+					name:  "aTILE"+k,
+					access:  [Access.APrivate, Access.AStatic, Access.AInline],
+					kind: FieldType.FVar(macro:Int, macro $v{attrNumber++}), 
+					pos: Context.currentPos(),
+				});
+			}			
+		}
+		// TODO: tx ty ...
 		
+		if (attrNumber >= 16) debug("WARNING: more then 16 vertex attributes not supported on most devices.");
 
 		// -------------------------- instancedrawing --------------------------------------
 		fields.push({
@@ -1018,6 +1096,19 @@ class ElementImpl
 				if (conf.pivotX.isAnim && conf.pivotX.isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.pivotX.name+"End"}) ); i+=2; }
 				if (conf.pivotY.isAnim && conf.pivotY.isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.pivotY.name+"End"}) ); i+=2; }
 				
+				// SLOTS
+				for (k in 0...conf.texSlot.length) {
+					if (conf.texSlot[k].isAnim && conf.texSlot[k].isStart) { exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texSlot[k].name+"Start"}) ); i+=2; }
+					if (!conf.texSlot[k].isAnim && conf.texSlot[k].isStart){ exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texSlot[k].name}) ); i+=2; }
+					if (conf.texSlot[k].isAnim && conf.texSlot[k].isEnd)   { exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texSlot[k].name+"End"}) ); i+=2; }
+				}
+				// TILES
+				for (k in 0...conf.texTile.length) {
+					if (conf.texTile[k].isAnim && conf.texTile[k].isStart) { exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texTile[k].name+"Start"}) ); i+=2; }
+					if (!conf.texTile[k].isAnim && conf.texTile[k].isStart){ exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texTile[k].name}) ); i+=2; }
+					if (conf.texTile[k].isAnim && conf.texTile[k].isEnd)   { exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texTile[k].name+"End"}) ); i+=2; }
+				}
+				
 				// ----------------- Bytes --------------------------------
 				// UNITS
 				for (k in 0...conf.texUnit.length) {
@@ -1088,7 +1179,9 @@ class ElementImpl
 		if (conf.color.isStart) exprBlock.push( macro gl.bindAttribLocation(glProgram, aCOLORSTART, "aColorStart") );
 		if (conf.color.isEnd)   exprBlock.push( macro gl.bindAttribLocation(glProgram, aCOLOREND,   "aColorEnd") );
 		for (k in 0...Std.int((timers.length+1) / 2)) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTIME" + k}, $v{"aTime"+k} ) );
-		for (k in 0...conf.texUnit.length) if (conf.texUnit[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aUNIT" + k}, $v{"aUnit"+k} ) );
+		for (k in 0...conf.texUnit.length) if (conf.texUnit[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aUNIT"+k}, $v{"aUnit"+k} ) );
+		for (k in 0...conf.texSlot.length) if (conf.texSlot[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aSLOT"+k}, $v{"aSLOT"+k} ) );
+		for (k in 0...conf.texTile.length) if (conf.texTile[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTILE"+k}, $v{"aTILE"+k} ) );
 		
 		fields.push({
 			name: "bindAttribLocations",
@@ -1170,12 +1263,30 @@ class ElementImpl
 				exprBlock.push( macro gl.vertexAttribPointer(aPIVOT, $v{n}, gl.SHORT, false, $v{stride}, $v{i} ) ); i += n * 2;
 				if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor(aPIVOT, 1) );			
 			}
+			// SLOT
+			for (k in 0...conf.texSlot.length) {
+				n = conf.texSlot[k].n;
+				if (n > 0 ) {
+					exprBlock.push( macro gl.enableVertexAttribArray ($i{"aSLOT"+k}) );
+					exprBlock.push( macro gl.vertexAttribPointer($i{"aSLOT"+k}, $v{n}, gl.SHORT, false, $v{stride}, $v{i} ) ); i += n * 2;
+					if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{"aSLOT"+k}, 1) );
+				}
+			}
+			// TILE
+			for (k in 0...conf.texTile.length) {
+				n = conf.texTile[k].n;
+				if (n > 0 ) {
+					exprBlock.push( macro gl.enableVertexAttribArray ($i{"aTILE"+k}) );
+					exprBlock.push( macro gl.vertexAttribPointer($i{"aTILE"+k}, $v{n}, gl.SHORT, false, $v{stride}, $v{i} ) ); i += n * 2;
+					if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{"aTILE"+k}, 1) );
+				}
+			}
 			// UNIT
 			for (k in 0...conf.texUnit.length) {
 				n = conf.texUnit[k].n;
 				if (n > 0 ) {
 					exprBlock.push( macro gl.enableVertexAttribArray ($i{"aUNIT"+k}) );
-					exprBlock.push( macro gl.vertexAttribPointer($i{"aUNIT"+k}, $v{n}, gl.UNSIGNED_BYTE, true, $v{stride}, $v{i} ) ); i += n;
+					exprBlock.push( macro gl.vertexAttribPointer($i{"aUNIT"+k}, $v{n}, gl.UNSIGNED_BYTE, false, $v{stride}, $v{i} ) ); i += n;
 					if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{"aUNIT"+k}, 1) );
 				}
 			}
@@ -1222,6 +1333,8 @@ class ElementImpl
 		if (conf.color.isEnd)   exprBlock.push( macro gl.disableVertexAttribArray (aCOLOREND) );
 		for (k in 0...Std.int((timers.length+1) / 2)) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTIME"+k}) );
 		for (k in 0...conf.texUnit.length) if (conf.texUnit[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aUNIT"+k}) );
+		for (k in 0...conf.texSlot.length) if (conf.texSlot[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aSLOT"+k}) );
+		for (k in 0...conf.texTile.length) if (conf.texTile[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTILE"+k}) );
 			
 		fields.push({
 			name: "disableVertexAttrib",

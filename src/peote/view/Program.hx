@@ -141,14 +141,14 @@ class Program
 	{
 		trace("create Program");
 		
-		glVertexShader   = GLTool.compileGLShader(gl, gl.VERTEX_SHADER,   GLTool.parseShader(buffer.getVertexShader(), glShaderConfig) );
 		#if peoteview_debug_shader
 		trace("\n"+GLTool.parseShader(buffer.getVertexShader(), glShaderConfig));
 		#end
-		glFragmentShader = GLTool.compileGLShader(gl, gl.FRAGMENT_SHADER, GLTool.parseShader(buffer.getFragmentShader(), glShaderConfig) );
+		glVertexShader   = GLTool.compileGLShader(gl, gl.VERTEX_SHADER,   GLTool.parseShader(buffer.getVertexShader(), glShaderConfig) );
 		#if peoteview_debug_shader
 		trace("\n"+GLTool.parseShader(buffer.getFragmentShader(), glShaderConfig));
 		#end
+		glFragmentShader = GLTool.compileGLShader(gl, gl.FRAGMENT_SHADER, GLTool.parseShader(buffer.getFragmentShader(), glShaderConfig) );
 
 		glProgram = gl.createProgram();
 
@@ -185,14 +185,14 @@ class Program
 	var uOFFSET:GLUniformLocation;
 	var uTIME:GLUniformLocation;
 	
-	public function setTextureLayer(textures:Array<Texture>, layer:Null<Int>=null):Void {
+	public function setTextureLayer(textureUnits:Array<Texture>, layer:Null<Int>=null):Void {
 		trace("set texture layer");
 		if (layer == null) layer = buffer.getMaxTextureLayer();
-		if (textures == null) throw("Error, textures needs array of textures");
-		if (textures.length == 0) throw("Error, array needs at least 1 texture");
-		var i = textures.length;
-		while (i-- > 0) if (textures.indexOf(textures[i]) != i) throw("Error, textureLayer can not contain same texture twice.");		
-		textureLayers.set(layer, textures);
+		if (textureUnits == null) throw("Error, textures needs array of textures");
+		if (textureUnits.length == 0) throw("Error, array needs at least 1 texture");
+		var i = textureUnits.length;
+		while (i-- > 0) if (textureUnits.indexOf(textureUnits[i]) != i) throw("Error, textureLayer can not contain same texture twice.");		
+		textureLayers.set(layer, textureUnits);
 		updateTextures();
 	}
 	
@@ -232,18 +232,18 @@ class Program
 	
 	public function updateTextures():Void {
 		trace("update Textures");
-		
 		// collect new or removed old textures
 		var newTextures = new Array<Texture>();
 		for (layer in textureLayers.keys()) {
 			for (t in textureLayers.get(layer)) {
-				if (activeTextures.indexOf(t) < 0) newTextures.push(t);
+				if (newTextures.indexOf(t) < 0) newTextures.push(t);
 			}
 		}
 		
 		var i = activeTextures.length;
 		while (i-- > 0) 
 			if (newTextures.indexOf(activeTextures[i]) < 0) { // remove texture
+				trace("REMOVE texture",i);
 				activeTextures[i].removedFromProgram();
 				activeTextures.splice(i, 1);
 				activeUnits.splice(i, 1);
@@ -251,6 +251,7 @@ class Program
 		
 		for (t in newTextures) {
 			if (activeTextures.indexOf(t) < 0) { // add texture
+				trace("ADD texture", activeTextures.length);
 				activeTextures.push(t);
 				var unit = 0;
 				while (activeUnits.indexOf(unit) >= 0 ) unit++;
@@ -262,30 +263,44 @@ class Program
 
 		
 		// -----------
-			
+		trace("textureLayers", [for (layer in textureLayers.keys()) layer]);
+		trace(activeTextures.length);
 		if (activeTextures.length == 0) glShaderConfig.hasTEXTURES = false;
 		else {
 			glShaderConfig.hasTEXTURES = true;
-			glShaderConfig.FRAGMENT_PROGRAM_UNIFORMS = "uniform sampler2D uTexture0;";
-			// TODO: fill more textures templates
-			glShaderConfig.TEXTURES.push(
-				{LAYER:0, UNITS:[ 
-					{TEXEL:"texel0", UNIT_VALUE:"1.0", TEXTURE:"uTexture0",FIRST:true ,LAST:false},
-					{TEXEL:"texel0", UNIT_VALUE:"2.0", TEXTURE:"uTexture1",FIRST:false,LAST:true},
-				]}
-			);
-			glShaderConfig.TEXTURES.push(	
-				{LAYER:1, UNITS:[ 
-					{TEXEL:"texel5", UNIT_VALUE:"1.0", TEXTURE:"uTexture0",FIRST:true,LAST:true},
-				]}
-			);
-			glShaderConfig.TEXTURES.push(	
-				{LAYER:99, UNITS:[ 
-					{TEXEL:"texel3", UNIT_VALUE:"1.0", TEXTURE:"uTexture2",FIRST:true ,LAST:false},
-					{TEXEL:"texel3", UNIT_VALUE:"2.0", TEXTURE:"uTexture3",FIRST:false,LAST:true},
-				]}
-			);
-			// TODO: inject units
+			glShaderConfig.FRAGMENT_PROGRAM_UNIFORMS = "";
+			for (i in 0...activeTextures.length)
+				glShaderConfig.FRAGMENT_PROGRAM_UNIFORMS += 'uniform sampler2D uTexture$i;';
+			
+			// fill texture-layer in template
+			glShaderConfig.TEXTURES = [];
+			for (layer in textureLayers.keys()) {
+				var units = new Array < {TEXEL:String, UNIT_VALUE:String, TEXTURE:String,
+										SLOTS_X:String, SLOTS_Y:String, SLOT_WIDTH:String, SLOT_HEIGHT:String,
+										TILES_X:String, TILES_Y:String, TILE_WIDTH:String, TILE_HEIGHT:String,
+										TEXTURE_WIDTH:String, TEXTURE_HEIGHT:String,
+										FIRST:Bool, LAST:Bool}>();
+				var textures = textureLayers.get(layer);
+				for (i in 0...textures.length) {
+					units.push({
+						TEXEL:"texel" + layer, UNIT_VALUE:(i + 1) + ".0",
+						TEXTURE:"uTexture" + activeTextures.indexOf(textures[i]),
+						SLOTS_X: textures[i].slotsX + ".0",
+						SLOTS_Y: textures[i].slotsY + ".0",
+						SLOT_WIDTH:  textures[i].slotWidth + ".0",
+						SLOT_HEIGHT: textures[i].slotHeight + ".0",
+						TILES_X: textures[i].tilesX + ".0",
+						TILES_Y: textures[i].tilesY + ".0",
+						TILE_WIDTH: Std.int( textures[i].slotWidth / textures[i].tilesX) + ".0",
+						TILE_HEIGHT:Std.int( textures[i].slotHeight/ textures[i].tilesY) + ".0",
+						TEXTURE_WIDTH: textures[i].width + ".0",
+						TEXTURE_HEIGHT:textures[i].height + ".0",
+						FIRST:((i == 0) ? true : false), LAST:((i == textures.length - 1) ? true : false)
+					});
+				}
+				trace("LAYER:", layer, units);
+				glShaderConfig.TEXTURES.push({LAYER:layer, UNITS:units});
+			}
 		}
 
 		

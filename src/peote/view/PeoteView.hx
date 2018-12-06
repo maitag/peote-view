@@ -37,7 +37,13 @@ class PeoteView
 	var maxTextureImageUnits:Int;
 	var glStateTexture:Vector<GLTexture>;
 	public function isTextureStateChange(activeTextureUnit:Int, texture:Texture):Bool {
-		if (texture.updated) {texture.updated = false; return true; }
+		if (texture.updated) {
+			texture.updated = false;
+			// TODO: should it update ALL other textures the program is in use?
+			// ..maybe program as param here and then set all glStateTexture of that program ?
+			//glStateTexture = new Vector<GLTexture>(maxTextureImageUnits); return false;// or clear full?			
+			return true;
+		}
 		if (glStateTexture.get(activeTextureUnit) != texture.glTexture) {
 			glStateTexture.set(activeTextureUnit, texture.glTexture);
 			return true;
@@ -122,6 +128,7 @@ class PeoteView
 		trace("GL.MAX_VERTEX_TEXTURE_IMAGE_UNITS:" + gl.getParameter(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS));
 		trace("GL.MAX_TEXTURE_SIZE:" + gl.getParameter(gl.MAX_TEXTURE_SIZE));
 		trace("GL.MAX_VERTEX_ATTRIBS:" + gl.getParameter(gl.MAX_VERTEX_ATTRIBS));
+		trace("GL.MAX_VARYING_VECTORS:" + gl.getParameter(gl.MAX_VARYING_VECTORS));
 		trace("GL.MAX_VERTEX_UNIFORM_VECTORS:" + gl.getParameter(gl.MAX_VERTEX_UNIFORM_VECTORS));
 		trace("GL.MAX_FRAGMENT_UNIFORM_VECTORS:" + gl.getParameter(gl.MAX_FRAGMENT_UNIFORM_VECTORS));
 		trace("EXTENSIONS:\n" + gl.getSupportedExtensions());

@@ -7,8 +7,8 @@
 	
 	
 	<app main="Main" path="bin" file="Main" />
-	<haxedef name="sampleTextures" />
-	<!-- sampleTest, sampleTextures, sampleDepthBlend, sampleBunnyMark, sampleMultidisplay,
+	<haxedef name="sampleMultiTextures" />
+	<!-- sampleTest, sampleTextures, sampleMultiTextures, sampleDepthBlend, sampleBunnyMark, sampleMultidisplay,
 		sampleMultibuffer, sampleAnimation, sampleElementInherit, sampleGLPicking... -->
 	<define name="bunnies" value="300000" />
 	<define name="bunnies"  value="30000" if="android||neko" />
@@ -43,7 +43,7 @@
 
 
 	<haxedef name="peoteview_debug_macro" />
-	<!-- <haxedef name="peoteview_debug_shader" /> -->
+	<haxedef name="peoteview_debug_shader" />
 
 	<!-- <haxedef name="webgl-debug" /> --> <!-- try with chrome and look here: https://www.khronos.org/webgl/wiki/Debugging -->
 	<!-- <haxedef name="source-map-content" /> -->
