@@ -648,23 +648,31 @@ class ElementImpl
 			else if (default_unit != "") unit += default_unit;
 			else unit = "0.0";
 			
-			var texCoord = "";
+			var texPos  = "";
+			//var texSize = "vec2(::TEXTURE_WIDTH::, ::TEXTURE_HEIGHT::)";
+			var texSize = "vec2(::SLOTS_WIDTH::, ::SLOTS_HEIGHT::)";
 
 			var slot = "vSlot";
 			if (v.exists("texSlot")) slot += v.get("texSlot");
 			else if (default_slot != "") slot += default_slot;
 			else slot = "";
-			if (slot != "") texCoord += 'vec2( mod($slot, ::SLOTS_Y::)*::SLOT_HEIGHT::, floor($slot/::SLOTS_X::)*::SLOT_HEIGHT::)';
+			if (slot != "") {
+				texPos  += '+ vec2( mod($slot, ::SLOTS_Y::)*::SLOT_HEIGHT::, floor($slot/::SLOTS_X::)*::SLOT_HEIGHT::)';
+				texSize = 'vec2(::SLOT_WIDTH::, ::SLOT_HEIGHT::)';
+			}
 			
 			var tile = "vTile";
 			if (v.exists("texTile")) tile += v.get("texTile");
 			else if (default_slot != "") slot += default_slot;
 			else tile = "";
-			if (tile != "") texCoord += ((texCoord != "") ? " + " :"") + 'vec2( mod($tile, ::TILES_Y::)*::TILE_HEIGHT::, floor($tile/::TILES_X::)*::TILE_HEIGHT::)'; 
+			if (tile != "") {
+				texPos  += '+ vec2( mod($tile, ::TILES_Y::)*::TILE_HEIGHT::, floor($tile/::TILES_X::)*::TILE_HEIGHT::)'; 
+				texSize = 'vec2(::TILE_WIDTH::, ::TILE_HEIGHT::)';
+			}
 						
 			glConf.ELEMENT_LAYERS.push({
 				UNIT:unit,
-				TEXCOORD:'vTexCoord + ( $texCoord / vec2(::TEXTURE_HEIGHT::, ::TEXTURE_WIDTH::))',
+				TEXCOORD:'(vTexCoord * $texSize  $texPos) / vec2(::TEXTURE_WIDTH::, ::TEXTURE_HEIGHT::)',
 				if_ELEMENT_LAYER:'::if (LAYER ${(name == "__default__") ? ">" : "="}= $layer)::',
 				end_ELEMENT_LAYER:"::end::"
 			});

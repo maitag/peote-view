@@ -188,7 +188,7 @@ class Program
 	var uOFFSET:GLUniformLocation;
 	var uTIME:GLUniformLocation;
 	
-	public function setTextureLayer(textureUnits:Array<Texture>, layer:Null<Int>=null):Void {
+	public function setTextureLayer(textureUnits:Array<Texture>, layer:Null<Int>=null, update:Bool = true):Void {
 		trace("set texture layer");
 		if (layer == null) layer = buffer.getMaxTextureLayer();
 		if (textureUnits == null) throw("Error, textures needs array of textures");
@@ -196,10 +196,10 @@ class Program
 		var i = textureUnits.length;
 		while (i-- > 0) if (textureUnits.indexOf(textureUnits[i]) != i) throw("Error, textureLayer can not contain same texture twice.");		
 		textureLayers.set(layer, textureUnits);
-		//updateTextures();
+		if (update) updateTextures();
 	}
 	
-	public function addTexture(texture:Texture, layer:Null<Int>=null):Void {
+	public function addTexture(texture:Texture, layer:Null<Int>=null, update:Bool = true):Void {
 		trace("add texture to layer "+ layer);
 		if (layer == null) layer = buffer.getMaxTextureLayer();
 		var textures:Array<Texture> = textureLayers.get(layer);
@@ -211,16 +211,16 @@ class Program
 			}
 		}
 		else textureLayers.set(layer, [texture]);
-		//updateTextures();
+		if (update) updateTextures();
 	}
 	
-	public function removeTextureLayer(layer:Int):Void {
+	public function removeTextureLayer(layer:Int, update:Bool = true):Void {
 		trace("remove texture layer");
 		textureLayers.remove(layer);
-		//updateTextures();
+		if (update) updateTextures();
 	}
 	
-	public function removeTexture(texture:Texture, layer:Null<Int>=null):Void {
+	public function removeTexture(texture:Texture, layer:Null<Int>=null, update:Bool = true):Void {
 		trace("remove texture from layer");
 		if (layer == null)
 			for (l in textureLayers.keys()) {
@@ -230,7 +230,7 @@ class Program
 				else textureLayers.set(l, textures );
 			}
 		else textureLayers.get(layer).remove(texture);
-		//updateTextures();
+		if (update) updateTextures();
 	}
 	
 	public function updateTextures():Void {
@@ -262,9 +262,7 @@ class Program
 				if (! t.setToProgram(this)) throw("Error, texture already used by another program into different gl-context");
 			}
 		}
-		
-
-		
+				
 		// -----------
 		trace("textureLayers", [for (layer in textureLayers.keys()) layer]);
 		
@@ -285,6 +283,7 @@ class Program
 			for (layer in textureLayers.keys()) {
 				var units = new Array < {UNIT_VALUE:String, TEXTURE:String,
 										SLOTS_X:String, SLOTS_Y:String, SLOT_WIDTH:String, SLOT_HEIGHT:String,
+										SLOTS_WIDTH:String, SLOTS_HEIGHT:String,
 										TILES_X:String, TILES_Y:String, TILE_WIDTH:String, TILE_HEIGHT:String,
 										TEXTURE_WIDTH:String, TEXTURE_HEIGHT:String,
 										FIRST:Bool, LAST:Bool}>();
@@ -295,8 +294,10 @@ class Program
 						TEXTURE:"uTexture" + activeTextures.indexOf(textures[i]),
 						SLOTS_X: textures[i].slotsX + ".0",
 						SLOTS_Y: textures[i].slotsY + ".0",
-						SLOT_WIDTH:  textures[i].slotWidth + ".0",
+						SLOT_WIDTH:  textures[i].slotWidth  + ".0",
 						SLOT_HEIGHT: textures[i].slotHeight + ".0",
+						SLOTS_WIDTH:  Std.int(textures[i].slotsX * textures[i].slotWidth ) + ".0",
+						SLOTS_HEIGHT: Std.int(textures[i].slotsY * textures[i].slotHeight) + ".0",
 						TILES_X: textures[i].tilesX + ".0",
 						TILES_Y: textures[i].tilesY + ".0",
 						TILE_WIDTH: Std.int( textures[i].slotWidth / textures[i].tilesX) + ".0",

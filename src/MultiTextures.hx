@@ -28,6 +28,7 @@ class MultiTextures
 	
 	var texture0:Texture;
 	var texture1:Texture;
+	var texture2:Texture;
 	
 	public function new(window:Window)
 	{	
@@ -41,23 +42,24 @@ class MultiTextures
 		buffer.addElement(element);     // element to buffer
 		display.addProgram(program);    // programm to display
 		
-		texture0 = new Texture(512, 512);
+		texture0 = new Texture(512, 512, 2);
 		texture1 = new Texture(512, 512);
+		texture2 = new Texture(512, 512);
 
 		
-		program.setTextureLayer([texture0], ElementSimple.LAYER_COLOR);
-		program.setTextureLayer([texture0, texture1], ElementSimple.LAYER_ALPHA);
-		program.setTextureLayer([texture1], ElementSimple.LAYER_MASK);
+		program.setTextureLayer([texture0, texture1, texture2], ElementSimple.LAYER_COLOR, false);
+		program.setTextureLayer([texture0, texture1], ElementSimple.LAYER_ALPHA, false);
+		program.setTextureLayer([texture1], ElementSimple.LAYER_MASK, false);
+		program.setTextureLayer([texture2], ElementSimple.LAYER_CUSTOM_0 + 1, false);
 		
 		program.colorFormula = 'c * c0'; // c is default color, c0 is for ElementSimple.LAYER_COLOR, c1 is ElementSimple.LAYER_ALPHA ... and so on .)
-		
+				
 		program.updateTextures(); // updates gl-textures and also rebuilds the shadercode
 		
 		
 		loadImage(texture0, "assets/images/peote_tiles.png");
 		loadImage(texture1, "assets/images/peote_tiles_bunnys.png");
-		
-			
+		loadImage(texture2, "assets/images/peote_font_green.png");
 		
 				
 		// ---------------------------------------------------------------		

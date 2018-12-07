@@ -23,8 +23,8 @@ class Bunny implements Element
 	public var y:Float=0;
 	@posX public var xi:Int=0;
 	@posY public var yi:Int=0;
-	@sizeX @const public var w:Int=64;
-	@sizeY @const public var h:Int=64;
+	@sizeX @const public var w:Int=26;
+	@sizeY @const public var h:Int=37;
 	
 	@color @const public var c:Color = 0xffffffff;
 	
@@ -47,6 +47,9 @@ class BunnyMark
 	var maxX:Int;
 	var maxY:Int;
 	
+	var count:Int = 100;
+	var maxBunnies:Int = 1000;
+	
 	var isStart:Bool = false;
 	
 	public function new(window:Window)
@@ -61,7 +64,13 @@ class BunnyMark
 		
 		peoteView = new PeoteView(window.context, window.width, window.height);
 		
-		buffer = new Buffer<Bunny>(400000);
+		#if bunnies 
+		count = Std.parseInt (haxe.macro.Compiler.getDefine ("bunnies"));
+		maxBunnies = count + Std.int(count * 0.2);
+		#end
+		trace("Bunnies:", count);
+		trace("maxBunnies:", maxBunnies);
+		buffer = new Buffer<Bunny>(maxBunnies); // TODO -> automatic grow/shrink buffersize
 		
 		var display = new Display(0, 0, window.width, window.height, Color.GREEN);
 		
@@ -83,17 +92,16 @@ class BunnyMark
 			display.addProgram(program);    // programm to display
 			peoteView.addDisplay(display);  // display to peoteView
 			
-			var count = #if bunnies Std.parseInt (haxe.macro.Compiler.getDefine ("bunnies")) #else 100 #end;
 			for (i in 0...count) {
 				addBunny ();
 			}
 			isStart = true;
-			//peoteView.start();	
 		});
 	}
 	
 	private function addBunny():Void
 	{
+		if (bunnies.length >= maxBunnies) return; // no more then buffersize, TODO -> automatic grow/shrink buffersize
 		var bunny = new Bunny();
 		bunny.x = 0;
 		bunny.y = 0;

@@ -38,7 +38,7 @@ class Texture
 
 	var updated:Bool = false;
 	
-	public function new(slotWidth:Int, slotHeight:Int, imageSlots:Int=1, colorChannels:Int=4, createMipmaps:Bool=false, magFilter:Int=0, minFilter:Int=0)
+	public function new(slotWidth:Int, slotHeight:Int, imageSlots:Int=1, colorChannels:Int=4, createMipmaps:Bool=false, magFilter:Int=0, minFilter:Int=0, maxTextureSize:Int=16384)
 	{
 		this.slotWidth = slotWidth;
 		this.slotHeight = slotHeight;
@@ -47,6 +47,12 @@ class Texture
 		this.createMipmaps = createMipmaps;
 		this.magFilter = magFilter;
 		this.minFilter = minFilter;
+		// optimal size!
+		var p = optimalTextureSize(imageSlots, slotWidth, slotHeight, maxTextureSize);
+		width = p.width;
+		height = p.height;
+		slotsX = p.slotsX;
+		slotsY = p.slotsY;
 	}
 	
 	private function setToProgram(program:Program):Bool
@@ -89,12 +95,8 @@ class Texture
 	private inline function createTexture()
 	{
 		trace("Create new Texture");
-		// optimal size!
-		var p = optimalTextureSize(imageSlots, slotWidth, slotHeight, gl.getParameter(gl.MAX_TEXTURE_SIZE));
-		width = p.width;
-		height = p.height;
-		slotsX = p.slotsX;
-		slotsY = p.slotsY;
+		if (width > gl.getParameter(gl.MAX_TEXTURE_SIZE) || height > gl.getParameter(gl.MAX_TEXTURE_SIZE))
+			throw("Error, texture size is greater then gl.MAX_TEXTURE_SIZE");
 		glTexture = createEmptyTexture(gl, width, height, colorChannels, createMipmaps, magFilter, minFilter);			
 	}
 
