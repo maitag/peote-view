@@ -27,11 +27,15 @@ class ElementSimple implements Element
 	@texTile() public var tile:Int;  // unsigned 2 bytes integer
 	@texTile("color", "mask") public var tileColor:Int;  // unsigned 2 bytes integer
 
-	// innerhalb des Tiles oder Slots oder der gesammten Texture (wenn kein @texSlot oder @texTile)
+	// texture padding from left, right, top or bottom inside Texture, Slots or Tile  
 	@texX("color") public var tx:Int;
 	@texY("color") public var ty:Int;
-	@texW("alpha") public var tw:Int;
-	@texH("alpha") public var th:Int;
+	@texW("color") public var tw:Int;
+	@texH("color") public var th:Int;
+	/*@texLeft("color") public var texLeft:Int;
+	@texTop("color") public var texTop:Int;
+	@texRight("color") public var texRight:Int;
+	@texBottom("color") public var texBottom:Int;*/
 	
 	//TODO:
 	//@texOffsetX("color") public var txOffset:Int;

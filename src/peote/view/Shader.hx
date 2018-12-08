@@ -42,6 +42,10 @@ class Shader
 	::ATTRIB_UNIT::
 	::ATTRIB_SLOT::
 	::ATTRIB_TILE::
+	::ATTRIB_TEXX::
+	::ATTRIB_TEXY::
+	::ATTRIB_TEXW::
+	::ATTRIB_TEXH::
 		
 	//aElement
 	
@@ -55,6 +59,10 @@ class Shader
 		::OUT_UNIT::
 		::OUT_SLOT::
 		::OUT_TILE::
+		::OUT_TEXX::
+		::OUT_TEXY::
+		::OUT_TEXW::
+		::OUT_TEXH::
 	::end::
 
 	// PICKING  ::if isES3:: flat out int instanceID; ::end::
@@ -71,6 +79,10 @@ class Shader
 			::CALC_UNIT::
 			::CALC_SLOT::
 			::CALC_TILE::
+			::CALC_TEXX::
+			::CALC_TEXY::
+			::CALC_TEXW::
+			::CALC_TEXH::
 		::end::
 		
 		// PICKING instanceID = gl_InstanceID;
@@ -127,6 +139,10 @@ class Shader
 		::IN_UNIT::
 		::IN_SLOT::
 		::IN_TILE::
+		::IN_TEXX::
+		::IN_TEXY::
+		::IN_TEXW::
+		::IN_TEXH::
 	::end::
 	
 	::if isES3::

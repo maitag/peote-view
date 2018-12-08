@@ -30,6 +30,14 @@ typedef ConfParam =
 	texSlot:Array<ConfSubParam>,
 	texTileDefault:ConfSubParam,
 	texTile:Array<ConfSubParam>,
+	texXDefault:ConfSubParam,
+	texX:Array<ConfSubParam>,
+	texYDefault:ConfSubParam,
+	texY:Array<ConfSubParam>,
+	texWDefault:ConfSubParam,
+	texW:Array<ConfSubParam>,
+	texHDefault:ConfSubParam,
+	texH:Array<ConfSubParam>,
 }
 typedef ConfSubParam =
 {
@@ -41,11 +49,14 @@ typedef GLConfParam =
 			UNIFORM_TIME:String,
 			ATTRIB_TIME:String, ATTRIB_SIZE:String, ATTRIB_POS:String, ATTRIB_COLOR:String, ATTRIB_ROTZ:String, ATTRIB_PIVOT:String,
 			ATTRIB_UNIT:String, ATTRIB_SLOT:String, ATTRIB_TILE:String,
+			ATTRIB_TEXX:String, ATTRIB_TEXY:String, ATTRIB_TEXW:String, ATTRIB_TEXH:String,
 			OUT_COLOR:String, IN_COLOR:String, OUT_TEXCOORD:String, IN_TEXCOORD:String, ZINDEX:String,
 			OUT_UNIT:String, IN_UNIT:String, OUT_SLOT:String, IN_SLOT:String, OUT_TILE:String, IN_TILE:String, 
+			OUT_TEXX:String, IN_TEXX:String, OUT_TEXY:String, IN_TEXY:String, OUT_TEXW:String, IN_TEXW:String, OUT_TEXH:String, IN_TEXH:String, 
 			FRAGMENT_CALC_COLOR:String,
 			CALC_TIME:String, CALC_SIZE:String, CALC_POS:String, CALC_COLOR:String, CALC_ROTZ:String, CALC_PIVOT:String, CALC_TEXCOORD:String,
 			CALC_UNIT:String, CALC_SLOT:String, CALC_TILE:String,
+			CALC_TEXX:String, CALC_TEXY:String, CALC_TEXW:String, CALC_TEXH:String,
 			ELEMENT_LAYERS:Array<{UNIT:String, end_ELEMENT_LAYER:String, if_ELEMENT_LAYER:String, TEXCOORD:String}>,
 };
 
@@ -380,6 +391,10 @@ class ElementImpl
 		else if ( checkMetasLayered("texUnit", f, macro:Int, type, val, conf.texUnitDefault, conf.texUnit, getter, setter) ) {}
 		else if ( checkMetasLayered("texSlot", f, macro:Int, type, val, conf.texSlotDefault, conf.texSlot, getter, setter) ) {}
 		else if ( checkMetasLayered("texTile", f, macro:Int, type, val, conf.texTileDefault, conf.texTile, getter, setter) ) {}
+		else if ( checkMetasLayered("texX",    f, macro:Int, type, val, conf.texXDefault, conf.texX, getter, setter) ) {}
+		else if ( checkMetasLayered("texY",    f, macro:Int, type, val, conf.texYDefault, conf.texY, getter, setter) ) {}
+		else if ( checkMetasLayered("texW",    f, macro:Int, type, val, conf.texWDefault, conf.texW, getter, setter) ) {}
+		else if ( checkMetasLayered("texH",    f, macro:Int, type, val, conf.texHDefault, conf.texH, getter, setter) ) {}
 	}
 	
 
@@ -417,17 +432,23 @@ class ElementImpl
 			texUnitDefault:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" }, texUnit:[],
 			texSlotDefault:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" }, texSlot:[],
 			texTileDefault:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" }, texTile:[],
+			texXDefault:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" }, texX:[],
+			texYDefault:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" }, texY:[],
+			texWDefault:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" }, texW:[],
+			texHDefault:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" }, texH:[],
 		};
 		glConf = {
 			isPICK:false,
 			UNIFORM_TIME:"",
 			ATTRIB_TIME:"", ATTRIB_SIZE:"", ATTRIB_POS:"", ATTRIB_COLOR:"", ATTRIB_ROTZ:"", ATTRIB_PIVOT:"",
 			ATTRIB_UNIT:"", ATTRIB_SLOT:"", ATTRIB_TILE:"",
+			ATTRIB_TEXX:"", ATTRIB_TEXY:"", ATTRIB_TEXW:"", ATTRIB_TEXH:"",
 			OUT_COLOR:"", IN_COLOR:"", OUT_TEXCOORD:"", IN_TEXCOORD:"", ZINDEX:"",
 			OUT_UNIT:"", IN_UNIT:"", OUT_SLOT:"", IN_SLOT:"", OUT_TILE:"", IN_TILE:"", 
+			OUT_TEXX:"", IN_TEXX:"", OUT_TEXY:"", IN_TEXY:"", OUT_TEXW:"", IN_TEXW:"", OUT_TEXH:"", IN_TEXH:"", 
 			FRAGMENT_CALC_COLOR:"",
 			CALC_TIME:"", CALC_SIZE:"", CALC_POS:"", CALC_COLOR:"", CALC_ROTZ:"", CALC_PIVOT:"", CALC_TEXCOORD:"",
-			CALC_UNIT:"", CALC_SLOT:"", CALC_TILE:"", 
+			CALC_UNIT:"", CALC_SLOT:"", CALC_TILE:"", CALC_TEXX:"", CALC_TEXY:"", CALC_TEXW:"", CALC_TEXH:"", 
 			ELEMENT_LAYERS:[],
 		};		
 		setFun  = new StringMap<Dynamic>();
@@ -512,6 +533,42 @@ class ElementImpl
 			}
 			glConf.OUT_TILE += '::if isES3::flat::end:: ::VAROUT:: float vTile${k};';
 			glConf.IN_TILE  += '::if isES3::flat::end:: ::VARIN::  float vTile${k};';
+		}
+		// texX
+		for (k in 0...conf.texX.length) {
+			if (conf.texX[k].n > 0) {
+				var type:String = (conf.texX[k].n == 1) ? "float" : "vec2";
+				glConf.ATTRIB_TEXX += '::IN:: $type aTexX${k};';
+			}
+			glConf.OUT_TEXX += '::if isES3::flat::end:: ::VAROUT:: float vTexX${k};';
+			glConf.IN_TEXX  += '::if isES3::flat::end:: ::VARIN::  float vTexX${k};';
+		}
+		// texY
+		for (k in 0...conf.texY.length) {
+			if (conf.texY[k].n > 0) {
+				var type:String = (conf.texY[k].n == 1) ? "float" : "vec2";
+				glConf.ATTRIB_TEXX += '::IN:: $type aTexY${k};';
+			}
+			glConf.OUT_TEXY += '::if isES3::flat::end:: ::VAROUT:: float vTexY${k};';
+			glConf.IN_TEXY  += '::if isES3::flat::end:: ::VARIN::  float vTexY${k};';
+		}
+		// texW
+		for (k in 0...conf.texW.length) {
+			if (conf.texW[k].n > 0) {
+				var type:String = (conf.texW[k].n == 1) ? "float" : "vec2";
+				glConf.ATTRIB_TEXX += '::IN:: $type aTexW${k};';
+			}
+			glConf.OUT_TEXH += '::if isES3::flat::end:: ::VAROUT:: float vTexW${k};';
+			glConf.IN_TEXH  += '::if isES3::flat::end:: ::VARIN::  float vTexW${k};';
+		}
+		// texH
+		for (k in 0...conf.texH.length) {
+			if (conf.texH[k].n > 0) {
+				var type:String = (conf.texH[k].n == 1) ? "float" : "vec2";
+				glConf.ATTRIB_TEXX += '::IN:: $type aTexH${k};';
+			}
+			glConf.OUT_TEXW += '::if isES3::flat::end:: ::VAROUT:: float vTexH${k};';
+			glConf.IN_TEXW  += '::if isES3::flat::end:: ::VARIN::  float vTexH${k};';
 		}
 		
 		glConf.OUT_TEXCOORD = "::VAROUT:: vec2 vTexCoord;";
@@ -621,6 +678,22 @@ class ElementImpl
 		for (k in 0...conf.texTile.length) {
 			glConf.CALC_TILE += 'vTile$k = ' + packTex("aTile", conf.texTile, k) + ";";
 		}
+		// texX
+		for (k in 0...conf.texX.length) {
+			glConf.CALC_TEXX += 'vTexX$k = ' + packTex("aTexX", conf.texX, k) + ";";
+		}
+		// texY
+		for (k in 0...conf.texY.length) {
+			glConf.CALC_TEXY += 'vTexY$k = ' + packTex("aTexY", conf.texY, k) + ";";
+		}
+		// texW
+		for (k in 0...conf.texW.length) {
+			glConf.CALC_TEXW += 'vTexW$k = ' + packTex("aTexW", conf.texW, k) + ";";
+		}
+		// texH
+		for (k in 0...conf.texH.length) {
+			glConf.CALC_TEXH += 'vTexH$k = ' + packTex("aTexH", conf.texH, k) + ";";
+		}
 		// default texcoords
 		glConf.CALC_TEXCOORD  = "vTexCoord = aPosition;";
 		
@@ -649,7 +722,6 @@ class ElementImpl
 			else unit = "0.0";
 			
 			var texPos  = "";
-			//var texSize = "vec2(::TEXTURE_WIDTH::, ::TEXTURE_HEIGHT::)";
 			var texSize = "vec2(::SLOTS_WIDTH::, ::SLOTS_HEIGHT::)";
 
 			var slot = "vSlot";
@@ -815,6 +887,22 @@ class ElementImpl
 			genVar(macro:Int, c.name+"Start", c.vStart, !c.isStart);
 			genVar(macro:Int, c.name+"End",   c.vEnd,   !c.isEnd);
 		}
+		for (c in conf.texX) if (c.isAnim) {		
+			genVar(macro:Int, c.name+"Start", c.vStart, !c.isStart);
+			genVar(macro:Int, c.name+"End",   c.vEnd,   !c.isEnd);
+		}
+		for (c in conf.texY) if (c.isAnim) {		
+			genVar(macro:Int, c.name+"Start", c.vStart, !c.isStart);
+			genVar(macro:Int, c.name+"End",   c.vEnd,   !c.isEnd);
+		}
+		for (c in conf.texW) if (c.isAnim) {		
+			genVar(macro:Int, c.name+"Start", c.vStart, !c.isStart);
+			genVar(macro:Int, c.name+"End",   c.vEnd,   !c.isEnd);
+		}
+		for (c in conf.texH) if (c.isAnim) {		
+			genVar(macro:Int, c.name+"Start", c.vStart, !c.isStart);
+			genVar(macro:Int, c.name+"End",   c.vEnd,   !c.isEnd);
+		}
 		
 		// ------------------------- calc buffer size ----------------------------------------		
 		var vertex_count:Int = 6;
@@ -829,6 +917,10 @@ class ElementImpl
 		for (c in conf.texUnit) buff_size_instanced += Std.int(c.n);
 		for (c in conf.texSlot) buff_size_instanced += Std.int(c.n * 2);
 		for (c in conf.texTile) buff_size_instanced += Std.int(c.n * 2);
+		for (c in conf.texX) buff_size_instanced += Std.int(c.n * 2);
+		for (c in conf.texY) buff_size_instanced += Std.int(c.n * 2);
+		for (c in conf.texW) buff_size_instanced += Std.int(c.n * 2);
+		for (c in conf.texH) buff_size_instanced += Std.int(c.n * 2);
 		
 		var buff_size:Int = buff_size_instanced +2;
 		trace("buff_size_instanced", buff_size_instanced);
@@ -976,7 +1068,7 @@ class ElementImpl
 			}			
 		}
 		for (k in 0...conf.texSlot.length) {
-			if (conf.texUnit[k].n > 0) {
+			if (conf.texSlot[k].n > 0) {
 				fields.push({
 					name:  "aSLOT"+k,
 					access:  [Access.APrivate, Access.AStatic, Access.AInline],
@@ -986,7 +1078,7 @@ class ElementImpl
 			}			
 		}
 		for (k in 0...conf.texTile.length) {
-			if (conf.texUnit[k].n > 0) {
+			if (conf.texTile[k].n > 0) {
 				fields.push({
 					name:  "aTILE"+k,
 					access:  [Access.APrivate, Access.AStatic, Access.AInline],
@@ -995,8 +1087,47 @@ class ElementImpl
 				});
 			}			
 		}
-		// TODO: tx ty ...
-		
+		for (k in 0...conf.texX.length) {
+			if (conf.texX[k].n > 0) {
+				fields.push({
+					name:  "aTEXX"+k,
+					access:  [Access.APrivate, Access.AStatic, Access.AInline],
+					kind: FieldType.FVar(macro:Int, macro $v{attrNumber++}), 
+					pos: Context.currentPos(),
+				});
+			}			
+		}
+		for (k in 0...conf.texY.length) {
+			if (conf.texY[k].n > 0) {
+				fields.push({
+					name:  "aTEXY"+k,
+					access:  [Access.APrivate, Access.AStatic, Access.AInline],
+					kind: FieldType.FVar(macro:Int, macro $v{attrNumber++}), 
+					pos: Context.currentPos(),
+				});
+			}			
+		}
+		for (k in 0...conf.texW.length) {
+			if (conf.texW[k].n > 0) {
+				fields.push({
+					name:  "aTEXW"+k,
+					access:  [Access.APrivate, Access.AStatic, Access.AInline],
+					kind: FieldType.FVar(macro:Int, macro $v{attrNumber++}), 
+					pos: Context.currentPos(),
+				});
+			}			
+		}
+		for (k in 0...conf.texH.length) {
+			if (conf.texH[k].n > 0) {
+				fields.push({
+					name:  "aTEXH"+k,
+					access:  [Access.APrivate, Access.AStatic, Access.AInline],
+					kind: FieldType.FVar(macro:Int, macro $v{attrNumber++}), 
+					pos: Context.currentPos(),
+				});
+			}			
+		}
+		debug("Number of vertex attributes:"+attrNumber);
 		if (attrNumber >= 16) debug("WARNING: more then 16 vertex attributes not supported on most devices.");
 
 		// -------------------------- instancedrawing --------------------------------------
@@ -1116,6 +1247,30 @@ class ElementImpl
 					if (!conf.texTile[k].isAnim && conf.texTile[k].isStart){ exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texTile[k].name}) ); i+=2; }
 					if (conf.texTile[k].isAnim && conf.texTile[k].isEnd)   { exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texTile[k].name+"End"}) ); i+=2; }
 				}
+				// TEXX
+				for (k in 0...conf.texX.length) {
+					if (conf.texX[k].isAnim && conf.texX[k].isStart) { exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texX[k].name+"Start"}) ); i+=2; }
+					if (!conf.texX[k].isAnim && conf.texX[k].isStart){ exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texX[k].name}) ); i+=2; }
+					if (conf.texX[k].isAnim && conf.texX[k].isEnd)   { exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texX[k].name+"End"}) ); i+=2; }
+				}
+				// TEXY
+				for (k in 0...conf.texY.length) {
+					if (conf.texY[k].isAnim && conf.texY[k].isStart) { exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texY[k].name+"Start"}) ); i+=2; }
+					if (!conf.texY[k].isAnim && conf.texY[k].isStart){ exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texY[k].name}) ); i+=2; }
+					if (conf.texY[k].isAnim && conf.texY[k].isEnd)   { exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texY[k].name+"End"}) ); i+=2; }
+				}
+				// TEXW
+				for (k in 0...conf.texW.length) {
+					if (conf.texW[k].isAnim && conf.texW[k].isStart) { exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texW[k].name+"Start"}) ); i+=2; }
+					if (!conf.texW[k].isAnim && conf.texW[k].isStart){ exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texW[k].name}) ); i+=2; }
+					if (conf.texW[k].isAnim && conf.texW[k].isEnd)   { exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texW[k].name+"End"}) ); i+=2; }
+				}
+				// TEXH
+				for (k in 0...conf.texH.length) {
+					if (conf.texH[k].isAnim && conf.texH[k].isStart) { exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texH[k].name+"Start"}) ); i+=2; }
+					if (!conf.texH[k].isAnim && conf.texH[k].isStart){ exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texH[k].name}) ); i+=2; }
+					if (conf.texH[k].isAnim && conf.texH[k].isEnd)   { exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texH[k].name+"End"}) ); i+=2; }
+				}
 				
 				// ----------------- Bytes --------------------------------
 				// UNITS
@@ -1190,6 +1345,10 @@ class ElementImpl
 		for (k in 0...conf.texUnit.length) if (conf.texUnit[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aUNIT"+k}, $v{"aUnit"+k} ) );
 		for (k in 0...conf.texSlot.length) if (conf.texSlot[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aSLOT"+k}, $v{"aSLOT"+k} ) );
 		for (k in 0...conf.texTile.length) if (conf.texTile[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTILE"+k}, $v{"aTILE"+k} ) );
+		for (k in 0...conf.texX.length) if (conf.texX[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTEXX"+k}, $v{"aTEXX"+k} ) );
+		for (k in 0...conf.texY.length) if (conf.texY[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTEXY"+k}, $v{"aTEXY"+k} ) );
+		for (k in 0...conf.texW.length) if (conf.texW[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTEXW"+k}, $v{"aTEXW"+k} ) );
+		for (k in 0...conf.texH.length) if (conf.texH[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTEXH"+k}, $v{"aTEXH"+k} ) );
 		
 		fields.push({
 			name: "bindAttribLocations",
@@ -1289,6 +1448,42 @@ class ElementImpl
 					if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{"aTILE"+k}, 1) );
 				}
 			}
+			// TEXX
+			for (k in 0...conf.texX.length) {
+				n = conf.texX[k].n;
+				if (n > 0 ) {
+					exprBlock.push( macro gl.enableVertexAttribArray ($i{"aTEXX"+k}) );
+					exprBlock.push( macro gl.vertexAttribPointer($i{"aTEXX"+k}, $v{n}, gl.SHORT, false, $v{stride}, $v{i} ) ); i += n * 2;
+					if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{"aTEXX"+k}, 1) );
+				}
+			}
+			// TEXY
+			for (k in 0...conf.texY.length) {
+				n = conf.texY[k].n;
+				if (n > 0 ) {
+					exprBlock.push( macro gl.enableVertexAttribArray ($i{"aTEXY"+k}) );
+					exprBlock.push( macro gl.vertexAttribPointer($i{"aTEXY"+k}, $v{n}, gl.SHORT, false, $v{stride}, $v{i} ) ); i += n * 2;
+					if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{"aTEXY"+k}, 1) );
+				}
+			}
+			// TEXW
+			for (k in 0...conf.texW.length) {
+				n = conf.texW[k].n;
+				if (n > 0 ) {
+					exprBlock.push( macro gl.enableVertexAttribArray ($i{"aTEXW"+k}) );
+					exprBlock.push( macro gl.vertexAttribPointer($i{"aTEXW"+k}, $v{n}, gl.SHORT, false, $v{stride}, $v{i} ) ); i += n * 2;
+					if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{"aTEXW"+k}, 1) );
+				}
+			}
+			// TEXH
+			for (k in 0...conf.texH.length) {
+				n = conf.texH[k].n;
+				if (n > 0 ) {
+					exprBlock.push( macro gl.enableVertexAttribArray ($i{"aTEXH"+k}) );
+					exprBlock.push( macro gl.vertexAttribPointer($i{"aTEXH"+k}, $v{n}, gl.SHORT, false, $v{stride}, $v{i} ) ); i += n * 2;
+					if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{"aTEXH"+k}, 1) );
+				}
+			}
 			// UNIT
 			for (k in 0...conf.texUnit.length) {
 				n = conf.texUnit[k].n;
@@ -1343,6 +1538,10 @@ class ElementImpl
 		for (k in 0...conf.texUnit.length) if (conf.texUnit[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aUNIT"+k}) );
 		for (k in 0...conf.texSlot.length) if (conf.texSlot[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aSLOT"+k}) );
 		for (k in 0...conf.texTile.length) if (conf.texTile[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTILE"+k}) );
+		for (k in 0...conf.texX.length) if (conf.texX[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTEXX"+k}) );
+		for (k in 0...conf.texY.length) if (conf.texY[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTEXY"+k}) );
+		for (k in 0...conf.texW.length) if (conf.texW[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTEXW"+k}) );
+		for (k in 0...conf.texH.length) if (conf.texH[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTEXH"+k}) );
 			
 		fields.push({
 			name: "disableVertexAttrib",
