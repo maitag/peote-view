@@ -38,7 +38,7 @@ class MultiTextures
 		
 		buffer  = new Buffer<ElementSimple>(100);
 		program = new Program(buffer);
-		element  = new ElementSimple(0,0, 256, 256);
+		element  = new ElementSimple(0,0, 512, 512);
 		buffer.addElement(element);     // element to buffer
 		display.addProgram(program);    // programm to display
 		

@@ -547,7 +547,7 @@ class ElementImpl
 		for (k in 0...conf.texY.length) {
 			if (conf.texY[k].n > 0) {
 				var type:String = (conf.texY[k].n == 1) ? "float" : "vec2";
-				glConf.ATTRIB_TEXX += '::IN:: $type aTexY${k};';
+				glConf.ATTRIB_TEXY += '::IN:: $type aTexY${k};';
 			}
 			glConf.OUT_TEXY += '::if isES3::flat::end:: ::VAROUT:: float vTexY${k};';
 			glConf.IN_TEXY  += '::if isES3::flat::end:: ::VARIN::  float vTexY${k};';
@@ -556,19 +556,19 @@ class ElementImpl
 		for (k in 0...conf.texW.length) {
 			if (conf.texW[k].n > 0) {
 				var type:String = (conf.texW[k].n == 1) ? "float" : "vec2";
-				glConf.ATTRIB_TEXX += '::IN:: $type aTexW${k};';
+				glConf.ATTRIB_TEXW += '::IN:: $type aTexW${k};';
 			}
-			glConf.OUT_TEXH += '::if isES3::flat::end:: ::VAROUT:: float vTexW${k};';
-			glConf.IN_TEXH  += '::if isES3::flat::end:: ::VARIN::  float vTexW${k};';
+			glConf.OUT_TEXW += '::if isES3::flat::end:: ::VAROUT:: float vTexW${k};';
+			glConf.IN_TEXW  += '::if isES3::flat::end:: ::VARIN::  float vTexW${k};';
 		}
 		// texH
 		for (k in 0...conf.texH.length) {
 			if (conf.texH[k].n > 0) {
 				var type:String = (conf.texH[k].n == 1) ? "float" : "vec2";
-				glConf.ATTRIB_TEXX += '::IN:: $type aTexH${k};';
+				glConf.ATTRIB_TEXH += '::IN:: $type aTexH${k};';
 			}
-			glConf.OUT_TEXW += '::if isES3::flat::end:: ::VAROUT:: float vTexH${k};';
-			glConf.IN_TEXW  += '::if isES3::flat::end:: ::VARIN::  float vTexH${k};';
+			glConf.OUT_TEXH += '::if isES3::flat::end:: ::VAROUT:: float vTexH${k};';
+			glConf.IN_TEXH  += '::if isES3::flat::end:: ::VARIN::  float vTexH${k};';
 		}
 		
 		glConf.OUT_TEXCOORD = "::VAROUT:: vec2 vTexCoord;";
@@ -701,11 +701,19 @@ class ElementImpl
 		var default_unit = "";
 		var default_slot = "";
 		var default_tile = "";
+		var default_texX = "";
+		var default_texY = "";
+		var default_texW = "";
+		var default_texH = "";
 		if (confLayer.exists("__default__")) {
 			var defaultLayer = confLayer.get("__default__");
 			if (defaultLayer.exists("texUnit")) default_unit += defaultLayer.get("texUnit");
 			if (defaultLayer.exists("texSlot")) default_slot += defaultLayer.get("texSlot");
 			if (defaultLayer.exists("texTile")) default_tile += defaultLayer.get("texTile");
+			if (defaultLayer.exists("texX")) default_texX += defaultLayer.get("texX");
+			if (defaultLayer.exists("texY")) default_texY += defaultLayer.get("texY");
+			if (defaultLayer.exists("texW")) default_texW += defaultLayer.get("texW");
+			if (defaultLayer.exists("texH")) default_texH += defaultLayer.get("texH");
 		} else {
 			confLayer.set("__default__",new StringMap<Int>());
 		}
@@ -721,30 +729,63 @@ class ElementImpl
 			else if (default_unit != "") unit += default_unit;
 			else unit = "0.0";
 			
-			var texPos  = "";
-			var texSize = "vec2(::SLOTS_WIDTH::, ::SLOTS_HEIGHT::)";
+			var texPosX  = "0.0";
+			var texPosY  = "0.0";
+			var texSizeW = "::SLOTS_WIDTH::";
+			var texSizeH = "::SLOTS_HEIGHT::";
 
 			var slot = "vSlot";
 			if (v.exists("texSlot")) slot += v.get("texSlot");
 			else if (default_slot != "") slot += default_slot;
 			else slot = "";
 			if (slot != "") {
-				texPos  += '+ vec2( mod($slot, ::SLOTS_Y::)*::SLOT_HEIGHT::, floor($slot/::SLOTS_X::)*::SLOT_HEIGHT::)';
-				texSize = 'vec2(::SLOT_WIDTH::, ::SLOT_HEIGHT::)';
+				texSizeW = '::SLOT_WIDTH::';
+				texSizeH = '::SLOT_HEIGHT::';
+				texPosX  = ((texPosX != "0.0") ? '$texPosX + ' : "") + 'mod($slot, ::SLOTS_X::) * $texSizeW';
+				texPosY  = ((texPosY != "0.0") ? '$texPosY + ' : "") + 'floor($slot/::SLOTS_X::) * $texSizeH';
 			}
+			
+			var texX = "vTexX";
+			if (v.exists("texX")) texX += v.get("texX");
+			else if (default_texX != "") texX += default_texX;
+			else texX = "";
+			if (texX != "") texPosX = ((texPosX != "0.0") ? '$texPosX + ' : "") + texX;
+			
+			
+			var texY = "vTexY";
+			if (v.exists("texY")) texY += v.get("texY");
+			else if (default_texY != "") texY += default_texY;
+			else texY = "";
+			if (texY != "") texPosY = ((texPosY != "0.0") ? '$texPosY + ' : "") + texY;
+			
+			var texW = "vTexW";
+			if (v.exists("texW")) texW += v.get("texW");
+			else if (default_texW != "") texW += default_texW;
+			else texW = "";
+			if (texW != "") texSizeW = texW;
+			
+			var texH = "vTexH";
+			if (v.exists("texH")) texH += v.get("texH");
+			else if (default_texH != "") texH += default_texH;
+			else texH = "";
+			if (texH != "") texSizeH = texH;
+			
 			
 			var tile = "vTile";
 			if (v.exists("texTile")) tile += v.get("texTile");
-			else if (default_slot != "") slot += default_slot;
+			else if (default_tile != "") tile += default_tile;
 			else tile = "";
 			if (tile != "") {
-				texPos  += '+ vec2( mod($tile, ::TILES_Y::)*::TILE_HEIGHT::, floor($tile/::TILES_X::)*::TILE_HEIGHT::)'; 
-				texSize = 'vec2(::TILE_WIDTH::, ::TILE_HEIGHT::)';
+				texSizeW = '$texSizeW / ::TILES_X::';
+				texSizeH = '$texSizeH / ::TILES_Y::';
+				texPosX  = ((texPosX != "0.0") ? '$texPosX + ' : "") + 'mod($tile, ::TILES_X::) * $texSizeW';
+				texPosY  = ((texPosY != "0.0") ? '$texPosY + ' : "") + 'floor($tile/::TILES_X::) * $texSizeH';
 			}
-						
+			
+			var texPos = (texPosX != "0.0" || texPosY != "0.0") ? '+ vec2($texPosX, $texPosY)' : "";
 			glConf.ELEMENT_LAYERS.push({
 				UNIT:unit,
-				TEXCOORD:'(vTexCoord * $texSize  $texPos) / vec2(::TEXTURE_WIDTH::, ::TEXTURE_HEIGHT::)',
+				TEXCOORD:'(vTexCoord * vec2($texSizeW, $texSizeH) $texPos) / vec2(::TEXTURE_WIDTH::, ::TEXTURE_HEIGHT::)',
 				if_ELEMENT_LAYER:'::if (LAYER ${(name == "__default__") ? ">" : "="}= $layer)::',
 				end_ELEMENT_LAYER:"::end::"
 			});

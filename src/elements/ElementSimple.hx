@@ -30,12 +30,8 @@ class ElementSimple implements Element
 	// texture padding from left, right, top or bottom inside Texture, Slots or Tile  
 	@texX("color") public var tx:Int;
 	@texY("color") public var ty:Int;
-	@texW("color") public var tw:Int;
-	@texH("color") public var th:Int;
-	/*@texLeft("color") public var texLeft:Int;
-	@texTop("color") public var texTop:Int;
-	@texRight("color") public var texRight:Int;
-	@texBottom("color") public var texBottom:Int;*/
+	@texW("color") public var tw:Int=256;
+	//@texH("color") public var th:Int=512;
 	
 	//TODO:
 	//@texOffsetX("color") public var txOffset:Int;
