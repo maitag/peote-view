@@ -750,8 +750,7 @@ class ElementImpl
 			else if (default_texX != "") texX += default_texX;
 			else texX = "";
 			if (texX != "") texPosX = ((texPosX != "0.0") ? '$texPosX + ' : "") + texX;
-			
-			
+						
 			var texY = "vTexY";
 			if (v.exists("texY")) texY += v.get("texY");
 			else if (default_texY != "") texY += default_texY;
@@ -1278,39 +1277,39 @@ class ElementImpl
 				
 				// SLOTS
 				for (k in 0...conf.texSlot.length) {
-					if (conf.texSlot[k].isAnim && conf.texSlot[k].isStart) { exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texSlot[k].name+"Start"}) ); i+=2; }
-					if (!conf.texSlot[k].isAnim && conf.texSlot[k].isStart){ exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texSlot[k].name}) ); i+=2; }
-					if (conf.texSlot[k].isAnim && conf.texSlot[k].isEnd)   { exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texSlot[k].name+"End"}) ); i+=2; }
+					if (conf.texSlot[k].isAnim && conf.texSlot[k].isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texSlot[k].name+"Start"}) ); i+=2; }
+					if (!conf.texSlot[k].isAnim && conf.texSlot[k].isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texSlot[k].name}) ); i+=2; }
+					if (conf.texSlot[k].isAnim && conf.texSlot[k].isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texSlot[k].name+"End"}) ); i+=2; }
 				}
 				// TILES
 				for (k in 0...conf.texTile.length) {
-					if (conf.texTile[k].isAnim && conf.texTile[k].isStart) { exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texTile[k].name+"Start"}) ); i+=2; }
-					if (!conf.texTile[k].isAnim && conf.texTile[k].isStart){ exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texTile[k].name}) ); i+=2; }
-					if (conf.texTile[k].isAnim && conf.texTile[k].isEnd)   { exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texTile[k].name+"End"}) ); i+=2; }
+					if (conf.texTile[k].isAnim && conf.texTile[k].isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texTile[k].name+"Start"}) ); i+=2; }
+					if (!conf.texTile[k].isAnim && conf.texTile[k].isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texTile[k].name}) ); i+=2; }
+					if (conf.texTile[k].isAnim && conf.texTile[k].isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texTile[k].name+"End"}) ); i+=2; }
 				}
 				// TEXX
 				for (k in 0...conf.texX.length) {
-					if (conf.texX[k].isAnim && conf.texX[k].isStart) { exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texX[k].name+"Start"}) ); i+=2; }
-					if (!conf.texX[k].isAnim && conf.texX[k].isStart){ exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texX[k].name}) ); i+=2; }
-					if (conf.texX[k].isAnim && conf.texX[k].isEnd)   { exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texX[k].name+"End"}) ); i+=2; }
+					if (conf.texX[k].isAnim && conf.texX[k].isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texX[k].name+"Start"}) ); i+=2; }
+					if (!conf.texX[k].isAnim && conf.texX[k].isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texX[k].name}) ); i+=2; }
+					if (conf.texX[k].isAnim && conf.texX[k].isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texX[k].name+"End"}) ); i+=2; }
 				}
 				// TEXY
 				for (k in 0...conf.texY.length) {
-					if (conf.texY[k].isAnim && conf.texY[k].isStart) { exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texY[k].name+"Start"}) ); i+=2; }
-					if (!conf.texY[k].isAnim && conf.texY[k].isStart){ exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texY[k].name}) ); i+=2; }
-					if (conf.texY[k].isAnim && conf.texY[k].isEnd)   { exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texY[k].name+"End"}) ); i+=2; }
+					if (conf.texY[k].isAnim && conf.texY[k].isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texY[k].name+"Start"}) ); i+=2; }
+					if (!conf.texY[k].isAnim && conf.texY[k].isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texY[k].name}) ); i+=2; }
+					if (conf.texY[k].isAnim && conf.texY[k].isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texY[k].name+"End"}) ); i+=2; }
 				}
 				// TEXW
 				for (k in 0...conf.texW.length) {
-					if (conf.texW[k].isAnim && conf.texW[k].isStart) { exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texW[k].name+"Start"}) ); i+=2; }
-					if (!conf.texW[k].isAnim && conf.texW[k].isStart){ exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texW[k].name}) ); i+=2; }
-					if (conf.texW[k].isAnim && conf.texW[k].isEnd)   { exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texW[k].name+"End"}) ); i+=2; }
+					if (conf.texW[k].isAnim && conf.texW[k].isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texW[k].name+"Start"}) ); i+=2; }
+					if (!conf.texW[k].isAnim && conf.texW[k].isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texW[k].name}) ); i+=2; }
+					if (conf.texW[k].isAnim && conf.texW[k].isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texW[k].name+"End"}) ); i+=2; }
 				}
 				// TEXH
 				for (k in 0...conf.texH.length) {
-					if (conf.texH[k].isAnim && conf.texH[k].isStart) { exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texH[k].name+"Start"}) ); i+=2; }
-					if (!conf.texH[k].isAnim && conf.texH[k].isStart){ exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texH[k].name}) ); i+=2; }
-					if (conf.texH[k].isAnim && conf.texH[k].isEnd)   { exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texH[k].name+"End"}) ); i+=2; }
+					if (conf.texH[k].isAnim && conf.texH[k].isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texH[k].name+"Start"}) ); i+=2; }
+					if (!conf.texH[k].isAnim && conf.texH[k].isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texH[k].name}) ); i+=2; }
+					if (conf.texH[k].isAnim && conf.texH[k].isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texH[k].name+"End"}) ); i+=2; }
 				}
 				
 				// ----------------- Bytes --------------------------------
