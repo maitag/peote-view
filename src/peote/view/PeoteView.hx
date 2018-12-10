@@ -7,6 +7,7 @@ import peote.view.utils.Background;
 import peote.view.utils.GLTool;
 import peote.view.utils.RenderList;
 import peote.view.utils.RenderListItem;
+import peote.view.utils.TexUtils;
 
 import peote.view.PeoteGL.GLTexture;
 import peote.view.PeoteGL.GLFramebuffer;
@@ -214,7 +215,7 @@ class PeoteView
 	{
 		// TODO: another Function to call onClick eventhandler of all pickable 
 		
-		fb_texture = Texture.createEmptyTexture(gl, 1, 1);
+		fb_texture = TexUtils.createEmptyTexture(gl, 1, 1);
 		framebuffer = GLTool.createFramebuffer(gl);
 		
 		var picked = new lime.utils.UInt8Array(4); // TODO: for multitouch pick the whole view (width*height*4)

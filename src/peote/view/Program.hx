@@ -26,7 +26,7 @@ class Program
 	public var alphaEnabled:Bool;
 	public var zIndexEnabled:Bool;
 	
-	public var colorFormula = "c * c0";
+	public var colorFormula = "c * c0"; // TODO: more colors and colors for custom fragmentshader-code
 	
 	var display:Display = null;
 	var gl:PeoteGL = null;
@@ -285,7 +285,6 @@ class Program
 										SLOTS_X:String, SLOTS_Y:String, SLOT_WIDTH:String, SLOT_HEIGHT:String,
 										SLOTS_WIDTH:String, SLOTS_HEIGHT:String,
 										TILES_X:String, TILES_Y:String,
-										//TILE_WIDTH:String, TILE_HEIGHT:String,
 										TEXTURE_WIDTH:String, TEXTURE_HEIGHT:String,
 										FIRST:Bool, LAST:Bool}>();
 				var textures = textureLayers.get(layer);
@@ -301,8 +300,6 @@ class Program
 						SLOTS_HEIGHT: Std.int(textures[i].slotsY * textures[i].slotHeight) + ".0",
 						TILES_X: textures[i].tilesX + ".0",
 						TILES_Y: textures[i].tilesY + ".0",
-						//TILE_WIDTH: Std.int( textures[i].slotWidth / textures[i].tilesX) + ".0",
-						//TILE_HEIGHT:Std.int( textures[i].slotHeight/ textures[i].tilesY) + ".0",
 						TEXTURE_WIDTH: textures[i].width + ".0",
 						TEXTURE_HEIGHT:textures[i].height + ".0",
 						FIRST:((i == 0) ? true : false), LAST:((i == textures.length - 1) ? true : false)
@@ -312,7 +309,6 @@ class Program
 				glShaderConfig.TEXTURES.push({LAYER:layer, UNITS:units});
 			}
 		}
-
 		
 		if (gl != null) reCreateProgram(); // recompile shaders
 			
