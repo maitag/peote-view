@@ -1,5 +1,5 @@
 package;
-#if sampleTextures
+#if sampleTextureSimple
 import haxe.Timer;
 
 import lime.ui.Window;
@@ -18,7 +18,7 @@ import peote.view.Texture;
 
 import elements.ElementSimple;
 
-class Textures
+class TextureSimple
 {
 	var peoteView:PeoteView;
 	var element:ElementSimple;
@@ -58,7 +58,7 @@ class Textures
 			//program.removeTextureLayer(ElementSimple.LAYER_COLOR);
 			
 			//program.addTexture(texture, ElementSimple.LAYER_COLOR);
-			//program.addTexture(texture); // automatic to Layer 0
+			//program.addTexture(texture); // automatic to first Layer_CUSTOM_0
 			
 			//program.removeTexture(texture, ElementSimple.LAYER_COLOR); // remove only from Layer
 			//program.removeTexture(texture); // remove from all Layers
@@ -74,6 +74,17 @@ class Textures
 		//peoteView.render();
 		
 	}
+	public function loadImage(texture:Texture, filename:String, slot:Int=0):Void {
+		trace('load image $filename');
+		var future = Image.loadFromFile(filename);
+		future.onProgress (function (a:Int,b:Int) trace ('...loading image $a/$b'));
+		future.onError (function (msg:String) trace ("Error: "+msg));
+		future.onComplete (function (image:Image) {
+			trace('loading $filename complete');
+			texture.setImage(image, slot);
+		});		
+	}
+	
 	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
 	{
 		element.x += 100;

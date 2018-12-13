@@ -17,24 +17,19 @@ class ElementSimple implements Element
 		
 	@zIndex public var z:Int = 0;
 
-	//@texUnit() public var unit:Int;  // unit for all other Layers (max 255)
-	@texUnit("color") public var unitColor:Int=0;  //  unit for "color" Layers only
-	@texUnit("alpha","mask") public var unitAlphaMask:Int;  //  unit for "alpha" and "mask" Layers
+	@texUnit public var unit:Int;  // unit (index of texture-array while set a TextureLayer)
 
-	// what texture-slot to use
-	@texSlot("color") public var slot:Int;  // unsigned 2 bytes integer
+	// what slot inside a Texture to use (texture can store many images)
+	@texSlot public var slot:Int;  // unsigned 2 bytes integer
 
 	// manual texture coordinates inside a slot (or inside all slots if no slot available)
 	@texX("color") public var tx:Int;
 	@texY("color") public var ty:Int;
 	//@texW("color") public var tw:Int=512;
-	//@texH("color") public var th:Int=512;
-	
+	//@texH("color") public var th:Int=512;	
 
 	// tiles the slot or manual texture-coordinate into sub-slots
 	@texTile() public var tile:Int;  // unsigned 2 bytes integer
-	@texTile("color", "mask") public var tileColor:Int;  // unsigned 2 bytes integer
-
 
 	//TODO: let the texture shift inside slot/texCoords/tile area
 	//@texOffsetX("color") public var txOffset:Int;

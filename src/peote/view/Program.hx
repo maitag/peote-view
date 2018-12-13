@@ -26,7 +26,7 @@ class Program
 	public var alphaEnabled:Bool;
 	public var zIndexEnabled:Bool;
 	
-	public var colorFormula = "c * c0"; // TODO: more colors and colors for custom fragmentshader-code
+	public var colorFormula = "c * t0"; // TODO: generate default formula by Element-macro
 	
 	var display:Display = null;
 	var gl:PeoteGL = null;
@@ -194,13 +194,16 @@ class Program
 		if (textureUnits == null) throw("Error, textures needs array of textures");
 		if (textureUnits.length == 0) throw("Error, array needs at least 1 texture");
 		var i = textureUnits.length;
-		while (i-- > 0) if (textureUnits.indexOf(textureUnits[i]) != i) throw("Error, textureLayer can not contain same texture twice.");		
+		while (i-- > 0)
+			if (textureUnits[i] == null) throw("Error, texture is null.");
+			else if (textureUnits.indexOf(textureUnits[i]) != i) throw("Error, textureLayer can not contain same texture twice.");		
 		textureLayers.set(layer, textureUnits);
 		if (update) updateTextures();
 	}
 	
 	public function addTexture(texture:Texture, layer:Null<Int>=null, update:Bool = true):Void {
-		trace("add texture to layer "+ layer);
+		trace("add texture to layer " + layer);
+		if (texture == null) throw("Error, texture is null.");
 		if (layer == null) layer = buffer.getMaxTextureLayer();
 		var textures:Array<Texture> = textureLayers.get(layer);
 		if (textures != null) {
@@ -222,6 +225,7 @@ class Program
 	
 	public function removeTexture(texture:Texture, layer:Null<Int>=null, update:Bool = true):Void {
 		trace("remove texture from layer");
+		if (texture == null) throw("Error, texture is null.");
 		if (layer == null)
 			for (l in textureLayers.keys()) {
 				var textures:Array<Texture> = textureLayers.get(l);

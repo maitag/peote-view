@@ -424,7 +424,7 @@ class ElementImpl
 			posY :{ vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },		
 			sizeX:{ vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },
 			sizeY:{ vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },
-			color:{ vStart:0xFF000000, vEnd:0xFF000000, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },			
+			color:{ vStart:0xFF0000FF, vEnd:0xFF0000FF, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },			
 			pivotX:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },			
 			pivotY:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },			
 			rotation:{ vStart:0.0, vEnd:0.0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },			
@@ -650,7 +650,7 @@ class ElementImpl
 				start = '$start + ($end - $start) * time' + timers.indexOf(conf.color.time);
 			}
 			glConf.CALC_COLOR = 'vColor = $start;';
-			glConf.FRAGMENT_CALC_COLOR = "vColor"; // TODO: methods for texel-recoloring
+			glConf.FRAGMENT_CALC_COLOR = "vColor";
 		} else glConf.FRAGMENT_CALC_COLOR = color2vec4(conf.color.vStart);
 		
 		//TODO make that packs all units, slots and tiles together into many aUnitSlotTile vec4 attributes --------- 

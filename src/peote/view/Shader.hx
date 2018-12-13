@@ -161,10 +161,10 @@ class Shader
 				// ------------- LAYER ::LAYER:: --------------
 				::foreach ELEMENT_LAYERS::
 				::if_ELEMENT_LAYER::
-				vec4 c::LAYER::;
+				vec4 t::LAYER::;
 				::foreach UNITS::
 				::if !FIRST ::else ::end::::if !LAST ::if (::UNIT:: < ::UNIT_VALUE::)::end::
-					c::LAYER:: = texture::if !isES3::2D::end::(::TEXTURE::, ::TEXCOORD::);
+					t::LAYER:: = texture::if !isES3::2D::end::(::TEXTURE::, ::TEXCOORD::);
 				::end::
 				::end_ELEMENT_LAYER::
 				::end::

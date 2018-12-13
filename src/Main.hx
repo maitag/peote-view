@@ -1,6 +1,5 @@
 package;
 
-import ElementInherit;
 import lime.app.Application;
 import lime.graphics.RenderContext;
 import lime.ui.MouseButton;
@@ -13,8 +12,10 @@ import lime.ui.KeyModifier;
 typedef Sample = Test;
 #elseif sampleDepthBlend
 typedef Sample = DepthBlend;
-#elseif sampleTextures
-typedef Sample = Textures;
+#elseif sampleTextureSimple
+typedef Sample = TextureSimple;
+#elseif sampleTextureSlotTiles
+typedef Sample = TextureSlotTiles;
 #elseif sampleMultiTextures
 typedef Sample = MultiTextures;
 #elseif sampleMultidisplay
