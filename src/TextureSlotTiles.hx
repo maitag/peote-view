@@ -25,6 +25,9 @@ class Elem implements Element
 	@sizeX public var w:Int=100;
 	@sizeY public var h:Int=100;
 	
+	// unit (index of texture-array while set a TextureLayer)
+	@texUnit() public var unit:Int;
+
 	// what texture-slot to use
 	@texSlot public var slot:Int;  // unsigned 2 bytes integer
 
@@ -55,11 +58,13 @@ class Elem implements Element
 class TextureSlotTiles
 {
 	var peoteView:PeoteView;
-	var element:Elem;
+	var element0:Elem;
+	var element1:Elem;
 	var buffer:Buffer<Elem>;
 	var display:Display;
 	var program:Program;
-	var texture:Texture;
+	var texture0:Texture;
+	var texture1:Texture;
 	
 	public function new(window:Window)
 	{	
@@ -73,19 +78,37 @@ class TextureSlotTiles
 			
 			display.addProgram(program);    // programm to display
 
-			texture = new Texture(400, 300, 10);
+			texture0 = new Texture(400, 300, 4);
 
-			loadImage(texture, "assets/images/test0.png", 0);
-			loadImage(texture, "assets/images/test1.png", 1);
-			loadImage(texture, "assets/images/test2.png", 2);
-			loadImage(texture, "assets/images/test3.png", 3);
+			loadImage(texture0, "assets/images/test0.png", 0);
+			loadImage(texture0, "assets/images/test1.png", 1);
+			loadImage(texture0, "assets/images/test2.png", 2);
+			loadImage(texture0, "assets/images/test3.png", 3);
 			
 			program.colorFormula = 't${Elem.LAYER_CUSTOM_0}';
-			program.addTexture(texture);
+			program.addTexture(texture0);
 			program.updateTextures();
 			
-			element  = new Elem(0, 0, 200, 150);
-			buffer.addElement(element);     // element to buffer
+			element0  = new Elem(0, 0, 200, 150);
+			element0.slot = 0;
+			buffer.addElement(element0);     // element to buffer
+			
+			texture1 = new Texture(512, 512, 3);
+			texture1.tilesX = texture1.tilesY = 16;
+			
+			loadImage(texture1, "assets/images/peote_font_green.png", 0);
+			loadImage(texture1, "assets/images/peote_tiles.png", 1);
+			loadImage(texture1, "assets/images/peote_tiles_bunnys.png", 2);
+			
+			program.colorFormula = 't${Elem.LAYER_CUSTOM_0}';
+			program.addTexture(texture1);
+			program.updateTextures();
+			
+			element1  = new Elem(0, 150, 200, 200);
+			element1.unit = 1;
+			element1.slot = 0;
+			element1.tile = 1;
+			buffer.addElement(element1);     // element to buffer
 			
 		}
 		catch (msg:String) {trace("ERROR", msg); }
@@ -107,17 +130,23 @@ class TextureSlotTiles
 	
 	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
 	{
-		element.x += 100;
-		buffer.updateElement(element);		
+		element0.x += 100;
+		buffer.updateElement(element0);		
 	}
 
 	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
 	{
-		switch (keyCode) {
-			case KeyCode.NUMBER_0: element.slot = 0; buffer.updateElement(element);
-			case KeyCode.NUMBER_1: element.slot = 1; buffer.updateElement(element);
-			case KeyCode.NUMBER_2: element.slot = 2; buffer.updateElement(element);
-			case KeyCode.NUMBER_3: element.slot = 3; buffer.updateElement(element);
+		// This did not work on NEKO if there are more then 5 switch-cases!!!
+		// switch (keyCode) {
+		
+		// so for neko it needs Std.int(keyCode)
+		switch (Std.int(keyCode)) {
+			case KeyCode.NUMBER_1: element0.slot = (element0.slot !=0 ) ? element0.slot-1 : 3 ; buffer.updateElement(element0);
+			case KeyCode.NUMBER_2: element0.slot = (element0.slot+1) % 4; buffer.updateElement(element0);
+			case KeyCode.NUMBER_3: element1.slot = (element1.slot !=0 ) ? element1.slot-1 : 2 ; buffer.updateElement(element1);
+			case KeyCode.NUMBER_4: element1.slot = (element1.slot+1) % 3; buffer.updateElement(element1);
+			case KeyCode.NUMBER_5: element1.tile = (element1.tile !=0 ) ? element1.tile-1 : 31 ; buffer.updateElement(element1);
+			case KeyCode.NUMBER_6: element1.tile = (element1.tile+1) % 32; buffer.updateElement(element1);
 			default:
 		}
 	}
