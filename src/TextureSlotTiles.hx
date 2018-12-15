@@ -136,10 +136,10 @@ class TextureSlotTiles
 
 	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
 	{
+		trace(Type.typeof(keyCode), Type.typeof(KeyCode.NUMBER_1));
 		// This did not work on NEKO if there are more then 5 switch-cases!!!
-		// switch (keyCode) {
-		
-		// so for neko it needs Std.int(keyCode)
+		//switch (keyCode) {
+		// neko needs Std.int(keyCode) !!!
 		switch (Std.int(keyCode)) {
 			case KeyCode.NUMBER_1: element0.slot = (element0.slot !=0 ) ? element0.slot-1 : 3 ; buffer.updateElement(element0);
 			case KeyCode.NUMBER_2: element0.slot = (element0.slot+1) % 4; buffer.updateElement(element0);

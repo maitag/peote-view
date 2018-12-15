@@ -211,7 +211,7 @@ class PeoteView
 	// ------------------------------------------------------------------------------
 	var framebuffer:GLFramebuffer = null;
 	var fb_texture:GLTexture;
-	public inline function getElementAt(mouseX:Int, mouseY:Int, display:Display, program:Program):Int
+	public function getElementAt(mouseX:Int, mouseY:Int, display:Display, program:Program):Int
 	{
 		// TODO: another Function to call onClick eventhandler of all pickable 
 		

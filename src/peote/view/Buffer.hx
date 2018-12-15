@@ -214,7 +214,7 @@ class $className implements BufferInterface
         Updates all changes of an element to the rendering process.
         @param  element Element instance to update
     **/
-	public inline function updateElement(element: $elementType):Void
+	public function updateElement(element: $elementType):Void
 	{
 		if (peote.view.PeoteGL.Version.isINSTANCED)
 			element.writeBytesInstanced(_bytes);
