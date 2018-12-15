@@ -38,7 +38,8 @@ class Elem implements Element
 	//@texH public var th:Int=512;
 	
 	// tiles the slot or manual texture-coordinate into sub-slots
-	@texTile() public var tile:Int;  // unsigned 2 bytes integer
+	@texTile() @anim("Tile") @time("Tile")
+	public var tile:Int;  // unsigned 2 bytes integer
 
 	//TODO: let the texture shift inside slot/texCoords/tile area
 	//@texOffsetX("color") public var txOffset:Int;
@@ -60,6 +61,7 @@ class TextureSlotTiles
 	var peoteView:PeoteView;
 	var element0:Elem;
 	var element1:Elem;
+	var element2:Elem;
 	var buffer:Buffer<Elem>;
 	var display:Display;
 	var program:Program;
@@ -70,7 +72,7 @@ class TextureSlotTiles
 	{	
 		try {
 			peoteView = new PeoteView(window.context, window.width, window.height);
-			display   = new Display(10,10, window.width-20, window.height-20, Color.GREEN);
+			display   = new Display(10,10, window.width-20, window.height-20, Color.BLUE);
 			peoteView.addDisplay(display);  // display to peoteView
 			
 			buffer  = new Buffer<Elem>(100);
@@ -110,6 +112,15 @@ class TextureSlotTiles
 			element1.tile = 1;
 			buffer.addElement(element1);     // element to buffer
 			
+			// Animated Tile
+			element2  = new Elem(0, 350, 200, 200);
+			element2.unit = 1;
+			element2.slot = 0;
+			element2.animTile(0, 255);
+			element2.timeTile(0, 30);
+			buffer.addElement(element2);     // element to buffer
+			
+			peoteView.start();
 		}
 		catch (msg:String) {trace("ERROR", msg); }
 	
@@ -136,7 +147,7 @@ class TextureSlotTiles
 
 	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
 	{
-		trace(Type.typeof(keyCode), Type.typeof(KeyCode.NUMBER_1));
+		//trace(Type.typeof(keyCode), Type.typeof(KeyCode.NUMBER_1));
 		// This did not work on NEKO if there are more then 5 switch-cases!!!
 		//switch (keyCode) {
 		// neko needs Std.int(keyCode) !!!
@@ -145,8 +156,8 @@ class TextureSlotTiles
 			case KeyCode.NUMBER_2: element0.slot = (element0.slot+1) % 4; buffer.updateElement(element0);
 			case KeyCode.NUMBER_3: element1.slot = (element1.slot !=0 ) ? element1.slot-1 : 2 ; buffer.updateElement(element1);
 			case KeyCode.NUMBER_4: element1.slot = (element1.slot+1) % 3; buffer.updateElement(element1);
-			case KeyCode.NUMBER_5: element1.tile = (element1.tile !=0 ) ? element1.tile-1 : 31 ; buffer.updateElement(element1);
-			case KeyCode.NUMBER_6: element1.tile = (element1.tile+1) % 32; buffer.updateElement(element1);
+			case KeyCode.NUMBER_5: element1.tile = (element1.tileStart !=0 ) ? element1.tileStart-1 : 31 ; buffer.updateElement(element1);
+			case KeyCode.NUMBER_6: element1.tile = (element1.tileStart+1) % 32; buffer.updateElement(element1);
 			default:
 		}
 	}

@@ -741,8 +741,8 @@ class ElementImpl
 			if (slot != "") {
 				texSizeW = '::SLOT_WIDTH::';
 				texSizeH = '::SLOT_HEIGHT::';
-				texPosX  = ((texPosX != "0.0") ? '$texPosX + ' : "") + 'mod($slot, ::SLOTS_X::) * $texSizeW';
-				texPosY  = ((texPosY != "0.0") ? '$texPosY + ' : "") + 'floor($slot/::SLOTS_X::) * $texSizeH';
+				texPosX  = ((texPosX != "0.0") ? '$texPosX + ' : "") + 'mod(floor($slot), ::SLOTS_X::) * $texSizeW';
+				texPosY  = ((texPosY != "0.0") ? '$texPosY + ' : "") + 'floor(floor($slot)/::SLOTS_X::) * $texSizeH';
 			}
 			
 			var texX = "vTexX";
@@ -777,8 +777,8 @@ class ElementImpl
 			if (tile != "") {
 				texSizeW = '$texSizeW / ::TILES_X::';
 				texSizeH = '$texSizeH / ::TILES_Y::';
-				texPosX  = ((texPosX != "0.0") ? '$texPosX + ' : "") + 'mod($tile, ::TILES_X::) * $texSizeW';
-				texPosY  = ((texPosY != "0.0") ? '$texPosY + ' : "") + 'floor($tile/::TILES_X::) * $texSizeH';
+				texPosX  = ((texPosX != "0.0") ? '$texPosX + ' : "") + 'mod(floor($tile), ::TILES_X::) * $texSizeW';
+				texPosY  = ((texPosY != "0.0") ? '$texPosY + ' : "") + 'floor(floor($tile)/::TILES_X::) * $texSizeH';
 			}
 			
 			var texPos = (texPosX != "0.0" || texPosY != "0.0") ? '+ vec2($texPosX, $texPosY)' : "";
