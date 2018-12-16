@@ -26,7 +26,7 @@ class Program
 	public var alphaEnabled:Bool;
 	public var zIndexEnabled:Bool;
 	
-	public var colorFormula = "c * t0"; // TODO: generate default formula by Element-macro
+	public var colorFormula = "c0 * t0"; // TODO: generate default formula by Element-macro
 	
 	var display:Display = null;
 	var gl:PeoteGL = null;
@@ -46,7 +46,7 @@ class Program
 		VAROUT: "varying",
 		hasTEXTURES: false,
 		FRAGMENT_PROGRAM_UNIFORMS:"",
-		FRAGMENT_CALC_LAYER:"c",
+		FRAGMENT_CALC_LAYER:"c0",
 		TEXTURES:[],
 	};
 	
@@ -272,7 +272,7 @@ class Program
 		
 		if (activeTextures.length == 0) {
 			glShaderConfig.hasTEXTURES = false;
-			glShaderConfig.FRAGMENT_CALC_LAYER = "c";
+			glShaderConfig.FRAGMENT_CALC_LAYER = "c0";
 		}
 		else {
 			glShaderConfig.hasTEXTURES = true;

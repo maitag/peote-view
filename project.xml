@@ -7,7 +7,7 @@
 	
 	
 	<app main="Main" path="bin" file="Main" />
-	<haxedef name="sampleTextureSlotTiles" />
+	<haxedef name="sampleMultiTextures" />
 	<!-- sampleTest, sampleTextureSimple, sampleTextureSlotTiles, sampleMultiTextures, sampleDepthBlend, sampleBunnyMark, sampleMultidisplay,
 		sampleMultibuffer, sampleAnimation, sampleElementInherit, sampleGLPicking... -->
 	<define name="bunnies" value="400000" />

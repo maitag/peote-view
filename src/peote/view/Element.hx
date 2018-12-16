@@ -19,7 +19,6 @@ typedef ConfParam =
 	posY :ConfSubParam,
 	sizeX:ConfSubParam,
 	sizeY:ConfSubParam,
-	color:ConfSubParam,
 	pivotX:ConfSubParam,
 	pivotY:ConfSubParam,
 	rotation:ConfSubParam,
@@ -38,6 +37,8 @@ typedef ConfParam =
 	texW:Array<ConfSubParam>,
 	texHDefault:ConfSubParam,
 	texH:Array<ConfSubParam>,
+	colorDefault:ConfSubParam,
+	color:Array<ConfSubParam>,
 }
 typedef ConfSubParam =
 {
@@ -126,7 +127,7 @@ class ElementImpl
 		else return null;
 	}
 	
-	static inline function getMetaTexParams(f:Field, s:String):Null<Array<String>> {
+	static inline function getAllMetaParams(f:Field, s:String):Null<Array<String>> {
 		var pa:Null<Array<Expr>> = null;
 		var found = false;
 		for (m in f.meta) if (m.name == s || m.name == ':$s') { pa = m.params; found = true; break; }
@@ -353,25 +354,39 @@ class ElementImpl
 		//trace(confItem);
 	}
 	
-	static function checkMetasLayered(meta:String, f:Field, expectedType:ComplexType, type:ComplexType, val:Expr, d:ConfSubParam, confItem:Array<ConfSubParam>, getter:String, setter:String):Bool
+	static function checkTexLayerMetas(meta:String, f:Field, expectedType:ComplexType, type:ComplexType, val:Expr, d:ConfSubParam, confItem:Array<ConfSubParam>, getter:String, setter:String):Bool
 	{
-		var metas:Array<String> = getMetaTexParams(f, meta);
+		var metas:Array<String> = getAllMetaParams(f, meta);
 		if (metas == null) return false;
 		if (metas.length == 0) metas.push("__default__");
 		for (name in metas) {
-			var layer = confLayer.get(name);
+			var layer = confTextureLayer.get(name);
 			if (layer != null) {
-				if (layer.exists(meta)) throw Context.error('Error: layer $name is already used for $meta', f.pos);
+				if (layer.exists(meta)) throw Context.error('Error: texture layer $name is already used for @$meta', f.pos);
 				layer.set(meta, confItem.length);
 			} else {
 				layer = new StringMap<Int>();
 				if (name != "__default__") layer.set("layer", maxLayer++);
 				layer.set(meta, confItem.length );
-				confLayer.set(name, layer);
+				confTextureLayer.set(name, layer);
 			}
 		}
 		var c = { vStart:d.vStart, vEnd:d.vEnd, n:d.n, isAnim:d.isAnim, name:d.name, isStart:d.isStart, isEnd:d.isEnd, time:d.time };
-		checkMetas(f, macro:Int, type, val, c , getter, setter);
+		checkMetas(f, expectedType, type, val, c , getter, setter);
+		confItem.push(c);
+		return true;
+	}
+	
+	static function checkColorLayerMetas(meta:String, f:Field, expectedType:ComplexType, type:ComplexType, val:Expr, d:ConfSubParam, confItem:Array<ConfSubParam>, getter:String, setter:String):Bool
+	{
+		var metas:Array<String> = getAllMetaParams(f, meta);
+		if (metas == null) return false;
+		if (metas.length == 0) metas.push("__default__");
+		var name = metas[0];
+		if (confColorLayer.indexOf(name) >= 0) throw Context.error('Error: color layer $name is already used for @$meta', f.pos);
+		confColorLayer.push(name);
+		var c = { vStart:d.vStart, vEnd:d.vEnd, n:d.n, isAnim:d.isAnim, name:d.name, isStart:d.isStart, isEnd:d.isEnd, time:d.time };
+		checkMetas(f, expectedType, type, val, c , getter, setter);
 		confItem.push(c);
 		return true;
 	}
@@ -382,19 +397,19 @@ class ElementImpl
 		else if ( hasMeta(f, "posY")  ) checkMetas(f, macro:Int, type, val, conf.posY, getter, setter);
 		else if ( hasMeta(f, "sizeX") ) checkMetas(f, macro:Int, type, val, conf.sizeX, getter, setter);
 		else if ( hasMeta(f, "sizeY") ) checkMetas(f, macro:Int, type, val, conf.sizeY, getter, setter);
-		else if ( hasMeta(f, "color") ) checkMetas(f, macro:Color, type, val, conf.color, getter, setter);
 		else if ( hasMeta(f, "pivotX") ) checkMetas(f, macro:Int, type, val, conf.pivotX, getter, setter);
 		else if ( hasMeta(f, "pivotY") ) checkMetas(f, macro:Int, type, val, conf.pivotY, getter, setter);
 		else if ( hasMeta(f, "rotation") ) checkMetas(f, macro:Float, type, val, conf.rotation, getter, setter);
 		else if ( hasMeta(f, "zIndex") ) checkMetas(f, macro:Int, type, val, conf.zIndex, getter, setter);
 		// texture layer attributes
-		else if ( checkMetasLayered("texUnit", f, macro:Int, type, val, conf.texUnitDefault, conf.texUnit, getter, setter) ) {}
-		else if ( checkMetasLayered("texSlot", f, macro:Int, type, val, conf.texSlotDefault, conf.texSlot, getter, setter) ) {}
-		else if ( checkMetasLayered("texTile", f, macro:Int, type, val, conf.texTileDefault, conf.texTile, getter, setter) ) {}
-		else if ( checkMetasLayered("texX",    f, macro:Int, type, val, conf.texXDefault, conf.texX, getter, setter) ) {}
-		else if ( checkMetasLayered("texY",    f, macro:Int, type, val, conf.texYDefault, conf.texY, getter, setter) ) {}
-		else if ( checkMetasLayered("texW",    f, macro:Int, type, val, conf.texWDefault, conf.texW, getter, setter) ) {}
-		else if ( checkMetasLayered("texH",    f, macro:Int, type, val, conf.texHDefault, conf.texH, getter, setter) ) {}
+		else if ( checkTexLayerMetas("texUnit", f, macro:Int, type, val, conf.texUnitDefault, conf.texUnit, getter, setter) ) {}
+		else if ( checkTexLayerMetas("texSlot", f, macro:Int, type, val, conf.texSlotDefault, conf.texSlot, getter, setter) ) {}
+		else if ( checkTexLayerMetas("texTile", f, macro:Int, type, val, conf.texTileDefault, conf.texTile, getter, setter) ) {}
+		else if ( checkTexLayerMetas("texX",    f, macro:Int, type, val, conf.texXDefault, conf.texX, getter, setter) ) {}
+		else if ( checkTexLayerMetas("texY",    f, macro:Int, type, val, conf.texYDefault, conf.texY, getter, setter) ) {}
+		else if ( checkTexLayerMetas("texW",    f, macro:Int, type, val, conf.texWDefault, conf.texW, getter, setter) ) {}
+		else if ( checkTexLayerMetas("texH",    f, macro:Int, type, val, conf.texHDefault, conf.texH, getter, setter) ) {}
+		else if ( checkColorLayerMetas("color",   f, macro:Color, type, val, conf.colorDefault, conf.color, getter, setter) ) {}
 	}
 	
 
@@ -413,7 +428,8 @@ class ElementImpl
 	static var glConf:GLConfParam;
 	
 	static var maxLayer:Int = 0;
-	static var confLayer = new StringMap<StringMap<Int>>();
+	static var confTextureLayer = new StringMap<StringMap<Int>>();
+	static var confColorLayer = new Array<String>();
 	
 	//static var isChild:Bool = false;
 	// -------------------------------------- BUILD -------------------------------------------------
@@ -424,7 +440,6 @@ class ElementImpl
 			posY :{ vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },		
 			sizeX:{ vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },
 			sizeY:{ vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },
-			color:{ vStart:0xFF0000FF, vEnd:0xFF0000FF, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },			
 			pivotX:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },			
 			pivotY:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },			
 			rotation:{ vStart:0.0, vEnd:0.0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },			
@@ -436,6 +451,7 @@ class ElementImpl
 			texYDefault:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" }, texY:[],
 			texWDefault:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" }, texW:[],
 			texHDefault:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" }, texH:[],
+			colorDefault:{ vStart:0xFF0000FF, vEnd:0xFF0000FF, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" }, color:[],
 		};
 		glConf = {
 			isPICK:false,
@@ -499,13 +515,14 @@ class ElementImpl
 		if (n > 0) glConf.ATTRIB_ROTZ = '::IN:: ${ (n==1) ? "float" : "vec"+n } aRotZ;';
 		
 		// color
-		if (conf.color.name != "") {
-			if (conf.color.isStart) glConf.ATTRIB_COLOR  = '::IN:: vec4 aColorStart;';
-			if (conf.color.isEnd)   glConf.ATTRIB_COLOR += '::IN:: vec4 aColorEnd;';
-			glConf.OUT_COLOR = "::if isES3::flat::end:: ::VAROUT:: vec4 vColor;";
-			glConf.IN_COLOR  = "::if isES3::flat::end:: ::VARIN::  vec4 vColor;";
+		for (k in 0...conf.color.length) {
+			if (conf.color[k].isStart) glConf.ATTRIB_COLOR += '::IN:: vec4 aColorStart${k};';
+			if (conf.color[k].isEnd)   glConf.ATTRIB_COLOR += '::IN:: vec4 aColorEnd${k};';
+			if (conf.color[k].n > 0) {
+				glConf.OUT_COLOR += '::if isES3::flat::end:: ::VAROUT:: vec4 vColor${k};';
+				glConf.IN_COLOR  += '::if isES3::flat::end:: ::VARIN::  vec4 vColor${k};';
+			}
 		}
-		
 		//TODO: better pack the attributes here ------------------------- 
 		// units
 		for (k in 0...conf.texUnit.length) {
@@ -643,17 +660,23 @@ class ElementImpl
 		glConf.CALC_POS  = "vec2 pos  = size + " + pack2in1("aPos" , conf.posX,  conf.posY ) + ";";
 
 		// color
-		if (conf.color.name != "") {
-			var start = (conf.color.isStart) ? "aColorStart.wzyx" : color2vec4(conf.color.vStart);
-			if (conf.color.isAnim) {
-				var end = (conf.color.isEnd) ? "aColorEnd.wzyx" : color2vec4(conf.color.vEnd);
-				start = '$start + ($end - $start) * time' + timers.indexOf(conf.color.time);
+		// TODO: need this or better set via prorgam-template if there is no texture?
+		if (conf.color.length == 0) glConf.FRAGMENT_CALC_COLOR += 'vec4 c0 = ${color2vec4(conf.colorDefault.vStart)};';
+		else 
+			for (k in 0...conf.color.length) {
+				var start = (conf.color[k].isStart) ? 'aColorStart${k}.wzyx' : color2vec4(conf.color[k].vStart);
+				if (conf.color[k].isAnim) {
+					var end = (conf.color[k].isEnd) ? 'aColorEnd${k}.wzyx' : color2vec4(conf.color[k].vEnd);
+					start = '$start + ($end - $start) * time' + timers.indexOf(conf.color[k].time);
+				}
+				if (conf.color[k].n > 0 || conf.color[k].isAnim) {
+					glConf.CALC_COLOR += 'vColor${k} = $start;';
+					glConf.FRAGMENT_CALC_COLOR += 'vec4 c${k} = vColor${k};';
+				} else
+					glConf.FRAGMENT_CALC_COLOR += 'vec4 c${k} = $start;';
 			}
-			glConf.CALC_COLOR = 'vColor = $start;';
-			glConf.FRAGMENT_CALC_COLOR = "vColor";
-		} else glConf.FRAGMENT_CALC_COLOR = color2vec4(conf.color.vStart);
 		
-		//TODO make that packs all units, slots and tiles together into many aUnitSlotTile vec4 attributes --------- 
+		// ------- TODO make that packs all units, slots and tiles together into many aUnitSlotTile vec4 attributes --------- 
 		function packTex(name:String, confItems:Array<ConfSubParam>, index:Int):String {
 			name += index;
 			var confItem:ConfSubParam = confItems[index];
@@ -697,6 +720,8 @@ class ElementImpl
 		// default texcoords
 		glConf.CALC_TEXCOORD  = "vTexCoord = aPosition;";
 		
+		// TODO: colors
+		
 		// for each texture layers
 		var default_unit = "";
 		var default_slot = "";
@@ -705,8 +730,8 @@ class ElementImpl
 		var default_texY = "";
 		var default_texW = "";
 		var default_texH = "";
-		if (confLayer.exists("__default__")) {
-			var defaultLayer = confLayer.get("__default__");
+		if (confTextureLayer.exists("__default__")) {
+			var defaultLayer = confTextureLayer.get("__default__");
 			if (defaultLayer.exists("texUnit")) default_unit += defaultLayer.get("texUnit");
 			if (defaultLayer.exists("texSlot")) default_slot += defaultLayer.get("texSlot");
 			if (defaultLayer.exists("texTile")) default_tile += defaultLayer.get("texTile");
@@ -715,12 +740,12 @@ class ElementImpl
 			if (defaultLayer.exists("texW")) default_texW += defaultLayer.get("texW");
 			if (defaultLayer.exists("texH")) default_texH += defaultLayer.get("texH");
 		} else {
-			confLayer.set("__default__",new StringMap<Int>());
+			confTextureLayer.set("__default__",new StringMap<Int>());
 		}
 		
-		for (name in confLayer.keys()) {
-			trace(name, confLayer.get(name));
-			var v:StringMap<Int> = confLayer.get(name);
+		for (name in confTextureLayer.keys()) {
+			trace(name, confTextureLayer.get(name));
+			var v:StringMap<Int> = confTextureLayer.get(name);
 			
 			var layer = (name == "__default__") ? maxLayer : v.get("layer");
 			
@@ -911,9 +936,9 @@ class ElementImpl
 			genVar(macro:Int, conf.pivotY.name+"Start", conf.pivotY.vStart, !conf.pivotY.isStart);
 			genVar(macro:Int, conf.pivotY.name+"End",   conf.pivotY.vEnd,   !conf.pivotY.isEnd);
 		}		
-		if (conf.color.isAnim) {		
-			genVar(macro:Color, conf.color.name+"Start", conf.color.vStart, !conf.color.isStart);
-			genVar(macro:Color, conf.color.name+"End",   conf.color.vEnd,   !conf.color.isEnd);
+		for (c in conf.color) if (c.isAnim) {
+			genVar(macro:Color, c.name+"Start", c.vStart, !c.isStart);
+			genVar(macro:Color, c.name+"End",   c.vEnd,   !c.isEnd);
 		}
 		for (c in conf.texUnit) if (c.isAnim) {		
 			genVar(macro:Int, c.name+"Start", c.vStart, !c.isStart);
@@ -949,11 +974,11 @@ class ElementImpl
 		
 		var buff_size_instanced:Int = Std.int(timers.length * 8
 			+ 4 * (conf.rotation.n + conf.zIndex.n)
-			+ 4 *  conf.color.n
 			+ 2 * (conf.posX.n  + conf.posY.n)
 			+ 2 * (conf.sizeX.n + conf.sizeY.n)
 			+ 2 * (conf.pivotX.n + conf.pivotY.n)
 		);
+		for (c in conf.color) buff_size_instanced += Std.int(c.n * 4);
 		for (c in conf.texUnit) buff_size_instanced += Std.int(c.n);
 		for (c in conf.texSlot) buff_size_instanced += Std.int(c.n * 2);
 		for (c in conf.texTile) buff_size_instanced += Std.int(c.n * 2);
@@ -988,7 +1013,7 @@ class ElementImpl
 			name:  "ALPHA_ENABLED",
 			meta:  allowForBuffer,
 			access:  [Access.APrivate, Access.AStatic, Access.AInline],
-			kind: FieldType.FVar(macro:Bool, macro $v{(conf.color.name != "")}), 
+			kind: FieldType.FVar(macro:Bool, macro $v{(conf.color.length > 0)}), 
 			pos: Context.currentPos(),
 		});
 		fields.push({
@@ -1081,21 +1106,23 @@ class ElementImpl
 				pos: Context.currentPos(),
 			});
 		}
-		if (conf.color.isStart) {
-			fields.push({
-				name:  "aCOLORSTART",
-				access:  [Access.APrivate, Access.AStatic, Access.AInline],
-				kind: FieldType.FVar(macro:Int, macro $v{attrNumber++}), 
-				pos: Context.currentPos(),
-			});
-		}	
-		if (conf.color.isEnd) {
-			fields.push({
-				name:  "aCOLOREND",
-				access:  [Access.APrivate, Access.AStatic, Access.AInline],
-				kind: FieldType.FVar(macro:Int, macro $v{attrNumber++}), 
-				pos: Context.currentPos(),
-			});
+		for (k in 0...conf.color.length) {
+			if (conf.color[k].isStart) {
+				fields.push({
+					name:  "aCOLORSTART"+k,
+					access:  [Access.APrivate, Access.AStatic, Access.AInline],
+					kind: FieldType.FVar(macro:Int, macro $v{attrNumber++}), 
+					pos: Context.currentPos(),
+				});
+			}
+			if (conf.color[k].isEnd) {
+				fields.push({
+					name:  "aCOLOREND"+k,
+					access:  [Access.APrivate, Access.AStatic, Access.AInline],
+					kind: FieldType.FVar(macro:Int, macro $v{attrNumber++}), 
+					pos: Context.currentPos(),
+				});
+			}
 		}
 		for (k in 0...conf.texUnit.length) {
 			if (conf.texUnit[k].n > 0) {
@@ -1228,10 +1255,11 @@ class ElementImpl
 			{
 				// -------------- setInt32 ------------------------------
 				// COLOR
-				if (conf.color.isAnim && conf.color.isStart) { exprBlock.push( macro bytes.setInt32(bytePos + $v{i}, $i{conf.color.name+"Start"}) ); i+=4; }
-				if (!conf.color.isAnim && conf.color.isStart){ exprBlock.push( macro bytes.setInt32(bytePos + $v{i}, $i{conf.color.name}) ); i+=4; }
-				if (conf.color.isAnim && conf.color.isEnd)   { exprBlock.push( macro bytes.setInt32(bytePos + $v{i}, $i{conf.color.name+"End"}) ); i+=4; }
-				
+				for (k in 0...conf.color.length) {
+					if (conf.color[k].isAnim && conf.color[k].isStart) { exprBlock.push( macro bytes.setInt32(bytePos + $v{i}, $i{conf.color[k].name+"Start"}) ); i+=4; }
+					if (!conf.color[k].isAnim && conf.color[k].isStart){ exprBlock.push( macro bytes.setInt32(bytePos + $v{i}, $i{conf.color[k].name}) ); i+=4; }
+					if (conf.color[k].isAnim && conf.color[k].isEnd)   { exprBlock.push( macro bytes.setInt32(bytePos + $v{i}, $i{conf.color[k].name+"End"}) ); i+=4; }
+				}
 				// -------------- setFloat (32) ------------------------------
 				// TIMERS
 				for (k in 0...timers.length) {
@@ -1379,9 +1407,11 @@ class ElementImpl
 		if (conf.sizeX.n + conf.sizeY.n > 0 ) exprBlock.push( macro gl.bindAttribLocation(glProgram, aSIZE, "aSize") );
 		if (conf.pivotX.n + conf.pivotY.n > 0 ) exprBlock.push( macro gl.bindAttribLocation(glProgram, aPIVOT, "aPivot") );
 		if (conf.rotation.n + conf.zIndex.n > 0 ) exprBlock.push( macro gl.bindAttribLocation(glProgram, aROTZ, "aRotZ") );
-		if (conf.color.isStart) exprBlock.push( macro gl.bindAttribLocation(glProgram, aCOLORSTART, "aColorStart") );
-		if (conf.color.isEnd)   exprBlock.push( macro gl.bindAttribLocation(glProgram, aCOLOREND,   "aColorEnd") );
 		for (k in 0...Std.int((timers.length+1) / 2)) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTIME" + k}, $v{"aTime"+k} ) );
+		for (k in 0...conf.color.length) {
+			if (conf.color[k].isStart) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aCOLORSTART"+k}, $v{"aColorStart"+k} ) );
+			if (conf.color[k].isEnd)   exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aCOLOREND"  +k}, $v{"aColorEnd"  +k} ) );
+		}
 		for (k in 0...conf.texUnit.length) if (conf.texUnit[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aUNIT"+k}, $v{"aUnit"+k} ) );
 		for (k in 0...conf.texSlot.length) if (conf.texSlot[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aSLOT"+k}, $v{"aSLOT"+k} ) );
 		for (k in 0...conf.texTile.length) if (conf.texTile[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTILE"+k}, $v{"aTILE"+k} ) );
@@ -1420,15 +1450,17 @@ class ElementImpl
 			exprBlock.push( macro gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer) );
 			
 			// COLOR
-			if (conf.color.isStart) {
-				exprBlock.push( macro gl.enableVertexAttribArray (aCOLORSTART) );
-				exprBlock.push( macro gl.vertexAttribPointer(aCOLORSTART, 4, gl.UNSIGNED_BYTE, true, $v{stride}, $v{i} ) ); i += 4;
-				if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor(aCOLORSTART, 1) );			
-			}			
-			if (conf.color.isEnd) {
-				exprBlock.push( macro gl.enableVertexAttribArray (aCOLOREND) );
-				exprBlock.push( macro gl.vertexAttribPointer(aCOLOREND, 4, gl.UNSIGNED_BYTE, true, $v{stride}, $v{i} ) ); i += 4;
-				if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor(aCOLOREND, 1) );			
+			for (k in 0...conf.color.length) {
+				if (conf.color[k].isStart) {
+					exprBlock.push( macro gl.enableVertexAttribArray ($i{"aCOLORSTART"+k}) );
+					exprBlock.push( macro gl.vertexAttribPointer($i{"aCOLORSTART"+k}, 4, gl.UNSIGNED_BYTE, true, $v{stride}, $v{i} ) ); i += 4;
+					if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{"aCOLORSTART"+k}, 1) );			
+				}			
+				if (conf.color[k].isEnd) {
+					exprBlock.push( macro gl.enableVertexAttribArray ($i{"aCOLOREND"+k}) );
+					exprBlock.push( macro gl.vertexAttribPointer($i{"aCOLOREND"+k}, 4, gl.UNSIGNED_BYTE, true, $v{stride}, $v{i} ) ); i += 4;
+					if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{"aCOLOREND"+k}, 1) );			
+				}
 			}
 			// TIMERS
 			for (k in 0...Std.int((timers.length+1) / 2) ) {
@@ -1572,9 +1604,11 @@ class ElementImpl
 		if (conf.sizeX.n + conf.sizeY.n > 0 ) exprBlock.push( macro gl.disableVertexAttribArray (aSIZE) );
 		if (conf.pivotX.n + conf.pivotY.n > 0 ) exprBlock.push( macro gl.disableVertexAttribArray (aPIVOT) );
 		if (conf.rotation.n + conf.zIndex.n > 0 ) exprBlock.push( macro gl.disableVertexAttribArray (aROTZ) );
-		if (conf.color.isStart) exprBlock.push( macro gl.disableVertexAttribArray (aCOLORSTART) );
-		if (conf.color.isEnd)   exprBlock.push( macro gl.disableVertexAttribArray (aCOLOREND) );
 		for (k in 0...Std.int((timers.length+1) / 2)) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTIME"+k}) );
+		for (k in 0...conf.color.length) {
+			if (conf.color[k].isStart) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aCOLORSTART"+k}) );
+			if (conf.color[k].isEnd)   exprBlock.push( macro gl.disableVertexAttribArray ($i{"aCOLOREND"  +k}) );
+		}
 		for (k in 0...conf.texUnit.length) if (conf.texUnit[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aUNIT"+k}) );
 		for (k in 0...conf.texSlot.length) if (conf.texSlot[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aSLOT"+k}) );
 		for (k in 0...conf.texTile.length) if (conf.texTile[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTILE"+k}) );

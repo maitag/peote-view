@@ -26,6 +26,7 @@ class Elem implements Element
 	@sizeY public var h:Int=100;
 	
 	@color public var c:Color = 0xff0000ff;
+	@color("shift") public var c1:Color = 0xff0000ff;
 	// TODO: make more colors available for program.colorFormula
 	// @color("shift") var shiftColor:Color;
 		
@@ -52,6 +53,10 @@ class Elem implements Element
 	//@texOffsetX("color") public var txOffset:Int;
 	//@texOffsetY("color") public var tyOffset:Int;
 	
+	//TODO:generate
+	static inline var TEXTURE_LAYER:String = ",color,alpha,mask";
+	static inline var COLOR_LAYER:String = ",shift";
+	public var colorFormula:String = "alpha * (c0 * color+shift)"; // default will be a color-vektor
 	
 	public function new(positionX:Int=0, positionY:Int=0, width:Int=100, height:Int=100, c:Int=0xFF0000FF )
 	{
@@ -101,7 +106,7 @@ class MultiTextures
 			
 			// c is default color
 			// texture-layer colors: t0 - ElementSimple.LAYER_COLOR, t1 - ElementSimple.LAYER_ALPHA ...
-			program.colorFormula = 'c * t${Elem.LAYER_COLOR}';
+			program.colorFormula = 'c0 * t${Elem.LAYER_COLOR}';
 					
 			program.updateTextures(); // updates gl-textures and also rebuilds the shadercode
 			

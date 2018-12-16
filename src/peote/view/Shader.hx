@@ -36,9 +36,9 @@ class Shader
 	::ATTRIB_POS::
 	::ATTRIB_SIZE::
 	::ATTRIB_TIME::
-	::ATTRIB_COLOR::
 	::ATTRIB_ROTZ::
 	::ATTRIB_PIVOT::
+	::ATTRIB_COLOR::
 	::ATTRIB_UNIT::
 	::ATTRIB_SLOT::
 	::ATTRIB_TILE::
@@ -54,6 +54,7 @@ class Shader
 	
 	// Varyings ---------------------------
 	::OUT_COLOR::
+	
 	::if hasTEXTURES::
 		::OUT_TEXCOORD::
 		::OUT_UNIT::
@@ -134,6 +135,7 @@ class Shader
 	::FRAGMENT_PROGRAM_UNIFORMS::
 	
 	::IN_COLOR::
+	
 	::if hasTEXTURES::
 		::IN_TEXCOORD::
 		::IN_UNIT::
@@ -154,7 +156,7 @@ class Shader
 	
 	void main(void)
 	{	
-		vec4 c = ::FRAGMENT_CALC_COLOR::;
+		::FRAGMENT_CALC_COLOR::
 		
 		::if hasTEXTURES::
 			::foreach TEXTURES::
