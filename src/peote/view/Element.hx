@@ -815,13 +815,16 @@ class ElementImpl
 			});
 			// create static vars
 			fields.push({
-				name:  "LAYER_" + ( (name != "__default__") ? name.toUpperCase() : "CUSTOM_0" ),
+				name:  "TEXTURE_" + ( (name != "__default__") ? name.toUpperCase() : "CUSTOM_0" ),
 				access:  [Access.APublic, Access.AStatic, Access.AInline],
 				kind: FieldType.FVar(macro:Int, macro $v{layer}), 
 				pos: Context.currentPos(),
 			});
 			debugLastField(fields);
 		}
+		
+		// TODO: all texture-layer names inside a static string for progam
+		// TODO: all color-layer names inside a static string for progam
 				
 		// ---------------------- generate helper vars and functions ---------------------------
 		debug("__generate vars and functions__");

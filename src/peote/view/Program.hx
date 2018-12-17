@@ -188,8 +188,17 @@ class Program
 	var uOFFSET:GLUniformLocation;
 	var uTIME:GLUniformLocation;
 	
-	public function setTextureLayer(textureUnits:Array<Texture>, layer:Null<Int>=null, update:Bool = true):Void {
-		trace("set texture layer");
+	// set a texture-layer
+	public function setTexture(texture:Texture, layer:Null<Int> = null, update:Bool = true):Void {
+		// TODO: Layer to a strict string identifier
+		textureLayers.set(layer, [texture]);
+		if (update) updateTextures();
+	}
+	
+	// to switch between textures via unit-attribute
+	public function setTextures(textureUnits:Array<Texture>, layer:Null<Int>=null, update:Bool = true):Void {
+		// TODO: Layer to a strict string identifier
+		trace("(re)set texture-units of a layer");
 		if (layer == null) layer = buffer.getMaxTextureLayer();
 		if (textureUnits == null) throw("Error, textures needs array of textures");
 		if (textureUnits.length == 0) throw("Error, array needs at least 1 texture");
@@ -201,10 +210,12 @@ class Program
 		if (update) updateTextures();
 	}
 	
+	// add a texture to textuer-units
 	public function addTexture(texture:Texture, layer:Null<Int>=null, update:Bool = true):Void {
+		// TODO: Layer to a strict string identifier
 		trace("add texture to layer " + layer);
 		if (texture == null) throw("Error, texture is null.");
-		if (layer == null) layer = buffer.getMaxTextureLayer();
+		if (layer == null) layer = buffer.getMaxTextureLayer();     // <-------- TODO: layer should allways to be known! (if not -> custom identifier to use inside Formula!)
 		var textures:Array<Texture> = textureLayers.get(layer);
 		if (textures != null) {
 			if (textures.indexOf(texture) >= 0) throw("Error, textureLayer already contains this texture.");
@@ -217,14 +228,16 @@ class Program
 		if (update) updateTextures();
 	}
 	
-	public function removeTextureLayer(layer:Int, update:Bool = true):Void {
-		trace("remove texture layer");
+	public function removeTextures(layer:Int, update:Bool = true):Void {
+		// TODO: Layer to a strict string identifier
+		trace("remove all textures from a layer");
 		textureLayers.remove(layer);
 		if (update) updateTextures();
 	}
 	
 	public function removeTexture(texture:Texture, layer:Null<Int>=null, update:Bool = true):Void {
-		trace("remove texture from layer");
+		// TODO: Layer to a strict string identifier
+		trace("remove texture from textureUnits of a layer or of all layers");
 		if (texture == null) throw("Error, texture is null.");
 		if (layer == null)
 			for (l in textureLayers.keys()) {
@@ -236,6 +249,8 @@ class Program
 		else textureLayers.get(layer).remove(texture);
 		if (update) updateTextures();
 	}
+	
+	// ------------------------------------
 	
 	public function updateTextures():Void {
 		trace("update Textures");
@@ -319,16 +334,16 @@ class Program
 	}
 	
 	
-	public function setTextureUnit(texture:Texture, unit:Int):Void {
-		trace("set texture unit to " + unit);
+	public function setActiveTextureGlIndex(texture:Texture, index:Int):Void {
+		trace("set texture index to " + index);
 		var oldUnit:Int = -1;
 		var j:Int = -1;
 		for (i in 0...activeTextures.length) {
 			if (activeTextures[i] == texture) {
 				oldUnit = activeUnits[i];
-				activeUnits[i] = unit;
+				activeUnits[i] = index;
 			}
-			else if (unit == activeUnits[i]) j = i;
+			else if (index == activeUnits[i]) j = i;
 		}
 		if (oldUnit == -1) throw("Error, texture is not in use, try setTextureLayer(layer, [texture]) before setting unit-number manual");
 		if (j != -1) activeUnits[j] = oldUnit;

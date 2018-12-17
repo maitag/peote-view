@@ -53,7 +53,7 @@ class TextureSimple
 			//texture = new Texture(image.width, image.height);
 			texture.setImage(image);
 			
-			program.setTextureLayer([texture], ElementSimple.LAYER_COLOR);
+			program.setTextures([texture], ElementSimple.LAYER_COLOR);
 			//program.setTextureLayer( [texture], ElementSimple.LAYER_CUSTOM_0);
 			//program.removeTextureLayer(ElementSimple.LAYER_COLOR);
 			
@@ -63,7 +63,7 @@ class TextureSimple
 			//program.removeTexture(texture, ElementSimple.LAYER_COLOR); // remove only from Layer
 			//program.removeTexture(texture); // remove from all Layers
 			
-			program.setTextureUnit(texture, 2);
+			program.setActiveTextureGlIndex(texture, 2);
 			element.w = image.width;
 			element.h = image.height;
 			buffer.updateElement(element);
@@ -95,10 +95,10 @@ class TextureSimple
 	{
 		switch (keyCode) {
 			case KeyCode.L:
-				if (program.hasTexture(texture,ElementSimple.LAYER_COLOR)) program.removeTextureLayer(ElementSimple.LAYER_COLOR);
+				if (program.hasTexture(texture,ElementSimple.LAYER_COLOR)) program.removeTextures(ElementSimple.LAYER_COLOR);
 				else {
-					program.setTextureLayer([texture], ElementSimple.LAYER_COLOR);
-					program.setTextureUnit(texture, 3);
+					program.setTextures([texture], ElementSimple.LAYER_COLOR);
+					program.setActiveTextureGlIndex(texture, 3);
 				}
 			case KeyCode.T:
 				if (program.hasTexture(texture)) program.removeTexture(texture);

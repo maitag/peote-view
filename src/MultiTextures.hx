@@ -25,28 +25,28 @@ class Elem implements Element
 	@sizeX public var w:Int=100;
 	@sizeY public var h:Int=100;
 	
-	@color public var c:Color = 0xff0000ff;
+	@color public var c:Color = 0xff0000ff; // same like @color("color")
 	@color("shift") public var c1:Color = 0xff0000ff;
 	// TODO: make more colors available for program.colorFormula
 	// @color("shift") var shiftColor:Color;
 		
 	//@texUnit() public var unit:Int;  // unit for all other Layers (max 255)
-	@texUnit("color") public var unitColor:Int=0;  //  unit for "color" Layers only
+	@texUnit("base") public var unitColor:Int=0;  //  unit for "color" Layers only
 	@texUnit("alpha","mask") public var unitAlphaMask:Int;  //  unit for "alpha" and "mask" Layers
 
 	// what texture-slot to use
-	@texSlot("color") public var slot:Int;  // unsigned 2 bytes integer
+	@texSlot("base") public var slot:Int;  // unsigned 2 bytes integer
 
 	// manual texture coordinates inside a slot (or inside all slots if no slot available)
-	@texX("color") public var tx:Int;
-	@texY("color") public var ty:Int;
+	@texX("base") public var tx:Int;
+	@texY("base") public var ty:Int;
 	//@texW("color") public var tw:Int=512;
 	//@texH("color") public var th:Int=512;
 	
 
 	// tiles the slot or manual texture-coordinate into sub-slots
 	@texTile() public var tile:Int;  // unsigned 2 bytes integer
-	@texTile("color", "mask") public var tileColor:Int;  // unsigned 2 bytes integer
+	@texTile("base", "mask") public var tileColor:Int;  // unsigned 2 bytes integer
 
 
 	//TODO: let the texture shift inside slot/texCoords/tile area
@@ -54,9 +54,9 @@ class Elem implements Element
 	//@texOffsetY("color") public var tyOffset:Int;
 	
 	//TODO:generate
-	static inline var TEXTURE_LAYER:String = ",color,alpha,mask";
-	static inline var COLOR_LAYER:String = ",shift";
-	public var colorFormula:String = "alpha * (c0 * color+shift)"; // default will be a color-vektor
+	static inline var TEXTURE_LAYER:String = "base,alpha,mask";
+	static inline var COLOR_LAYER:String = "shift";
+	public var colorFormula:String = "alpha * (c0 * base+shift)"; // default will be a color-vektor
 	
 	public function new(positionX:Int=0, positionY:Int=0, width:Int=100, height:Int=100, c:Int=0xFF0000FF )
 	{
@@ -99,15 +99,16 @@ class MultiTextures
 			texture1 = new Texture(512, 512);
 			texture2 = new Texture(512, 512);
 			
-			program.setTextureLayer([texture0, texture1, texture2], Elem.LAYER_COLOR, false);
-			program.setTextureLayer([texture0, texture1], Elem.LAYER_ALPHA, false);
-			program.setTextureLayer([texture1], Elem.LAYER_MASK, false);
-			program.setTextureLayer([texture2], Elem.LAYER_CUSTOM_0 + 1, false);
+			program.setTextures([texture0, texture1, texture2], Elem.TEXTURE_BASE, false);
+			program.setTextures([texture0, texture1], Elem.TEXTURE_ALPHA, false);
+			program.setTextures([texture1], Elem.TEXTURE_MASK, false);
+			program.setTextures([texture2], Elem.TEXTURE_CUSTOM_0 + 1, false);
 			
 			// c is default color
-			// texture-layer colors: t0 - ElementSimple.LAYER_COLOR, t1 - ElementSimple.LAYER_ALPHA ...
-			program.colorFormula = 'c0 * t${Elem.LAYER_COLOR}';
-					
+			// texture-layer colors: t0 - ElementSimple.TEXTURE_BASE, t1 - ElementSimple.TEXTURE_ALPHA ...
+			program.colorFormula = 'c0 * t${Elem.TEXTURE_BASE}';
+			// TODO: better go with String-Identifiers: "color * (shift+base) * alpha"
+						
 			program.updateTextures(); // updates gl-textures and also rebuilds the shadercode
 			
 			
