@@ -31,8 +31,8 @@ class Elem implements Element
 	// @color("shift") var shiftColor:Color;
 		
 	//@texUnit() public var unit:Int;  // unit for all other Layers (max 255)
-	@texUnit("base") public var unitColor:Int=0;  //  unit for "color" Layers only
-	@texUnit("alpha","mask") public var unitAlphaMask:Int;  //  unit for "alpha" and "mask" Layers
+	@texUnit("base") public var unitColor:Int=0;  //  unit for "base" Layer only
+	@texUnit("alpha","mask") public var unitAlphaMask:Int;  //  unit for "alpha" and "mask" Layers only
 
 	// what texture-slot to use
 	@texSlot("base") public var slot:Int;  // unsigned 2 bytes integer
@@ -45,18 +45,16 @@ class Elem implements Element
 	
 
 	// tiles the slot or manual texture-coordinate into sub-slots
-	@texTile() public var tile:Int;  // unsigned 2 bytes integer
-	@texTile("base", "mask") public var tileColor:Int;  // unsigned 2 bytes integer
+	@texTile() public var tile:Int;  // for all other Layers
+	@texTile("base", "mask") public var tileColor:Int;  // for "alpha" and "mask" Layers only
 
 
 	//TODO: let the texture shift inside slot/texCoords/tile area
-	//@texOffsetX("color") public var txOffset:Int;
-	//@texOffsetY("color") public var tyOffset:Int;
+	//@texOffsetX("base") public var txOffset:Int;
+	//@texOffsetY("base") public var tyOffset:Int;
 	
 	//TODO:generate
-	static inline var TEXTURE_LAYER:String = "base,alpha,mask";
-	static inline var COLOR_LAYER:String = "shift";
-	public var colorFormula:String = "alpha * (c0 * base+shift)"; // default will be a color-vektor
+	public var colorFormula:String = "alpha * (color * base+shift)"; // default will be a color-vektor
 	
 	public function new(positionX:Int=0, positionY:Int=0, width:Int=100, height:Int=100, c:Int=0xFF0000FF )
 	{
@@ -99,14 +97,14 @@ class MultiTextures
 			texture1 = new Texture(512, 512);
 			texture2 = new Texture(512, 512);
 			
-			program.setTextures([texture0, texture1, texture2], Elem.TEXTURE_BASE, false);
-			program.setTextures([texture0, texture1], Elem.TEXTURE_ALPHA, false);
-			program.setTextures([texture1], Elem.TEXTURE_MASK, false);
-			program.setTextures([texture2], Elem.TEXTURE_CUSTOM_0 + 1, false);
+			program.setMultiTexture([texture0, texture1, texture2], Elem.TEXTURE_BASE, false);
+			program.setMultiTexture([texture0, texture1],           Elem.TEXTURE_ALPHA, false);
+			program.setTexture(texture1, Elem.TEXTURE_MASK, false);
+			program.setTexture(texture2, "custom", false);
 			
 			// c is default color
 			// texture-layer colors: t0 - ElementSimple.TEXTURE_BASE, t1 - ElementSimple.TEXTURE_ALPHA ...
-			program.colorFormula = 'c0 * t${Elem.TEXTURE_BASE}';
+			program.colorFormula = 'c0 * t0';
 			// TODO: better go with String-Identifiers: "color * (shift+base) * alpha"
 						
 			program.updateTextures(); // updates gl-textures and also rebuilds the shadercode

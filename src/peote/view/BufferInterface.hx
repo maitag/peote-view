@@ -11,7 +11,8 @@ interface BufferInterface
 	
 	private function getVertexShader():String;
 	private function getFragmentShader():String;
-	private function getMaxTextureLayer():Int;
+	private function getTextureIdentifiers():Array<String>;
+	private function getColorIdentifiers():Array<String>;
 	private function hasAlpha():Bool;
 	private function hasZindex():Bool;
 	

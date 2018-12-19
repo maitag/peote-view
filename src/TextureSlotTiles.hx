@@ -88,8 +88,8 @@ class TextureSlotTiles
 			loadImage(texture0, "assets/images/test2.png", 2);
 			loadImage(texture0, "assets/images/test3.png", 3);
 			
-			program.colorFormula = 't${Elem.LAYER_CUSTOM_0}';
-			program.addTexture(texture0);
+			program.colorFormula = 't0';
+			program.addTexture(texture0, "custom");
 			program.updateTextures();
 			
 			element0  = new Elem(0, 0, 200, 150);
@@ -103,8 +103,7 @@ class TextureSlotTiles
 			loadImage(texture1, "assets/images/peote_tiles.png", 1);
 			loadImage(texture1, "assets/images/peote_tiles_bunnys.png", 2);
 			
-			program.colorFormula = 't${Elem.LAYER_CUSTOM_0}';
-			program.addTexture(texture1);
+			program.addTexture(texture1, "custom");
 			program.updateTextures();
 			
 			element1  = new Elem(0, 150, 200, 200);

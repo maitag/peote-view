@@ -278,7 +278,8 @@ class $className implements BufferInterface
 	
 	private inline function getVertexShader():String return $p{elemField}.vertexShader;
 	private inline function getFragmentShader():String return $p{elemField}.fragmentShader;
-	private inline function getMaxTextureLayer():Int return $p{elemField}.TEXTURE_CUSTOM_0;
+	private inline function getTextureIdentifiers():Array<String> return ($p{elemField}.TEXTURE_IDENTIFIERS == "") ? [] : $p{elemField}.TEXTURE_IDENTIFIERS.split(",");
+	private inline function getColorIdentifiers():Array<String> return ($p{elemField}.TEXTURE_IDENTIFIERS == "") ? [] :  $p{elemField}.COLOR_IDENTIFIERS.split(",");
 	private inline function hasAlpha():Bool return $p{elemField}.ALPHA_ENABLED;
 	private inline function hasZindex():Bool return $p{elemField}.ZINDEX_ENABLED;
 

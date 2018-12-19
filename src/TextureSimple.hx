@@ -53,17 +53,10 @@ class TextureSimple
 			//texture = new Texture(image.width, image.height);
 			texture.setImage(image);
 			
-			program.setTextures([texture], ElementSimple.LAYER_COLOR);
-			//program.setTextureLayer( [texture], ElementSimple.LAYER_CUSTOM_0);
-			//program.removeTextureLayer(ElementSimple.LAYER_COLOR);
-			
-			//program.addTexture(texture, ElementSimple.LAYER_COLOR);
-			//program.addTexture(texture); // automatic to first Layer_CUSTOM_0
-			
-			//program.removeTexture(texture, ElementSimple.LAYER_COLOR); // remove only from Layer
-			//program.removeTexture(texture); // remove from all Layers
+			program.setTexture(texture, "custom");
 			
 			program.setActiveTextureGlIndex(texture, 2);
+			
 			element.w = image.width;
 			element.h = image.height;
 			buffer.updateElement(element);
@@ -95,14 +88,14 @@ class TextureSimple
 	{
 		switch (keyCode) {
 			case KeyCode.L:
-				if (program.hasTexture(texture,ElementSimple.LAYER_COLOR)) program.removeTextures(ElementSimple.LAYER_COLOR);
+				if (program.hasTexture(texture, "custom")) program.removeAllTexture("custom");
 				else {
-					program.setTextures([texture], ElementSimple.LAYER_COLOR);
+					program.setMultiTexture([texture], "custom");
 					program.setActiveTextureGlIndex(texture, 3);
 				}
 			case KeyCode.T:
-				if (program.hasTexture(texture)) program.removeTexture(texture);
-				else program.addTexture(texture,ElementSimple.LAYER_COLOR);
+				if (program.hasTexture(texture)) program.removeTexture(texture, "custom");
+				else program.addTexture(texture, "custom");
 			default:
 		}
 	}

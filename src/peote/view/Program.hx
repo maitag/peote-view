@@ -55,11 +55,17 @@ class Program
 	var activeTextures = new Array<Texture>();
 	var activeUnits = new Array<Int>();
 
+	var textureIdentifiers = new Array<String>();
+	var customTextureIdentifiers = new Array<String>();
+	var colorIdentifiers = new Array<String>();
+
 	public function new(buffer:BufferInterface) 
 	{
 		this.buffer = buffer;
 		alphaEnabled = buffer.hasAlpha();
 		zIndexEnabled = buffer.hasZindex();		
+		textureIdentifiers = buffer.getTextureIdentifiers();
+		colorIdentifiers = buffer.getColorIdentifiers();
 	}
 	
  	private inline function isIn(display:Display):Bool
@@ -188,20 +194,36 @@ class Program
 	var uOFFSET:GLUniformLocation;
 	var uTIME:GLUniformLocation;
 	
+	private function getTextureIndexByIdentifier(identifier:String, addNew:Bool=true):Int {
+		// TODO: checkIdentifier(identifier);
+		var layer = textureIdentifiers.indexOf(identifier);
+		if (layer < 0) {
+			layer = customTextureIdentifiers.indexOf(identifier);
+			if (layer < 0) {
+				if (addNew) {
+					trace('adding custom texture layer "$identifier"');
+					layer = textureIdentifiers.length + customTextureIdentifiers.length;
+					customTextureIdentifiers.push(identifier); // adds a custom identifier
+				}
+			}	
+		}
+		return layer;
+	}
+	
 	// set a texture-layer
-	public function setTexture(texture:Texture, layer:Null<Int> = null, update:Bool = true):Void {
-		// TODO: Layer to a strict string identifier
+	public function setTexture(texture:Texture, identifier:String, update:Bool = true):Void {
+		trace("(re)set texture of a layer");
+		var layer = getTextureIndexByIdentifier(identifier);
 		textureLayers.set(layer, [texture]);
 		if (update) updateTextures();
 	}
 	
-	// to switch between textures via unit-attribute
-	public function setTextures(textureUnits:Array<Texture>, layer:Null<Int>=null, update:Bool = true):Void {
-		// TODO: Layer to a strict string identifier
+	// multiple textures per layer (to switch between them via unit-attribute)
+	public function setMultiTexture(textureUnits:Array<Texture>, identifier:String, update:Bool = true):Void {
 		trace("(re)set texture-units of a layer");
-		if (layer == null) layer = buffer.getMaxTextureLayer();
-		if (textureUnits == null) throw("Error, textures needs array of textures");
-		if (textureUnits.length == 0) throw("Error, array needs at least 1 texture");
+		var layer = getTextureIndexByIdentifier(identifier);
+		if (textureUnits == null) throw("Error, textureUnits need to be an array of textures");
+		if (textureUnits.length == 0) throw("Error, textureUnits needs at least 1 texture");
 		var i = textureUnits.length;
 		while (i-- > 0)
 			if (textureUnits[i] == null) throw("Error, texture is null.");
@@ -211,11 +233,10 @@ class Program
 	}
 	
 	// add a texture to textuer-units
-	public function addTexture(texture:Texture, layer:Null<Int>=null, update:Bool = true):Void {
-		// TODO: Layer to a strict string identifier
-		trace("add texture to layer " + layer);
+	public function addTexture(texture:Texture, identifier:String, update:Bool = true):Void {
+		trace("add texture into units of " + identifier);
+		var layer = getTextureIndexByIdentifier(identifier);
 		if (texture == null) throw("Error, texture is null.");
-		if (layer == null) layer = buffer.getMaxTextureLayer();     // <-------- TODO: layer should allways to be known! (if not -> custom identifier to use inside Formula!)
 		var textures:Array<Texture> = textureLayers.get(layer);
 		if (textures != null) {
 			if (textures.indexOf(texture) >= 0) throw("Error, textureLayer already contains this texture.");
@@ -228,26 +249,42 @@ class Program
 		if (update) updateTextures();
 	}
 	
-	public function removeTextures(layer:Int, update:Bool = true):Void {
-		// TODO: Layer to a strict string identifier
-		trace("remove all textures from a layer");
-		textureLayers.remove(layer);
+	public function removeTexture(texture:Texture, identifier:String, update:Bool = true):Void {
+		trace("remove texture from textureUnits of a layer");
+		var layer = getTextureIndexByIdentifier(identifier, false);
+		if (layer < 0) throw('Error, textureLayer "$identifier" did not exists.');
+		if (texture == null) throw("Error, texture is null.");
+		textureLayers.get(layer).remove(texture);
+		if (textureLayers.get(layer).length == 0) {
+			textureLayers.remove(layer);
+			customTextureIdentifiers.remove(identifier);
+		}
 		if (update) updateTextures();
 	}
 	
-	public function removeTexture(texture:Texture, layer:Null<Int>=null, update:Bool = true):Void {
-		// TODO: Layer to a strict string identifier
-		trace("remove texture from textureUnits of a layer or of all layers");
-		if (texture == null) throw("Error, texture is null.");
-		if (layer == null)
-			for (l in textureLayers.keys()) {
-				var textures:Array<Texture> = textureLayers.get(l);
-				textures.remove(texture);
-				if (textures.length == 0) textureLayers.remove(l);
-				else textureLayers.set(l, textures );
-			}
-		else textureLayers.get(layer).remove(texture);
+	public function removeAllTexture(identifier:String, update:Bool = true):Void {
+		trace("remove all textures from a layer");
+		var layer = getTextureIndexByIdentifier(identifier, false);
+		if (layer < 0) throw('Error, textureLayer "$identifier" did not exists.');
+		textureLayers.remove(layer);
+		customTextureIdentifiers.remove(identifier);
 		if (update) updateTextures();
+	}
+	
+	// TODO: replaceTexture(textureToReplace:Texture, newTexture:Texture)
+	
+ 	public function hasTexture(texture:Texture, identifier:Null<String>=null):Bool
+	{
+		if (texture == null) throw("Error, texture is null.");
+		if (identifier == null) {
+			for (t in activeTextures) if (t == texture) return true;
+		}
+		else {
+			var textures = textureLayers.get(getTextureIndexByIdentifier(identifier, false));
+			if (textures != null)
+				if (textures.indexOf(texture) >= 0 ) return true;
+		}
+		return false;
 	}
 	
 	// ------------------------------------
@@ -287,11 +324,11 @@ class Program
 		
 		if (activeTextures.length == 0) {
 			glShaderConfig.hasTEXTURES = false;
-			glShaderConfig.FRAGMENT_CALC_LAYER = "c0";
+			glShaderConfig.FRAGMENT_CALC_LAYER = "c0"; // TODO
 		}
 		else {
 			glShaderConfig.hasTEXTURES = true;
-			glShaderConfig.FRAGMENT_CALC_LAYER = colorFormula;
+			glShaderConfig.FRAGMENT_CALC_LAYER = colorFormula;  // TODO
 			
 			glShaderConfig.FRAGMENT_PROGRAM_UNIFORMS = "";
 			for (i in 0...activeTextures.length)
@@ -351,19 +388,6 @@ class Program
 		// update textureList units
 		j = 0;
 		for (t in textureList) t.unit = activeUnits[j++];
-	}
-	
- 	public function hasTexture(texture:Texture, layer:Null<Int>=null):Bool
-	{
-		if (layer == null) {
-			for (t in activeTextures) if (t == texture) return true;
-		}
-		else {
-			var textures = textureLayers.get(layer);
-			if (textures != null)
-				if (textures.indexOf(texture) >= 0 ) return true;
-		}
-		return false;
 	}
 	
 	// ------------------------------------------------------------------------------

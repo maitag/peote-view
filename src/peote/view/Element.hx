@@ -360,13 +360,17 @@ class ElementImpl
 		if (metas == null) return false;
 		if (metas.length == 0) metas.push("__default__");
 		for (name in metas) {
+			if (colorIdentifiers.indexOf(name) >= 0) throw Context.error('Error: "$name" is already used for a @color identifier', f.pos);
 			var layer = confTextureLayer.get(name);
 			if (layer != null) {
-				if (layer.exists(meta)) throw Context.error('Error: texture layer $name is already used for @$meta', f.pos);
+				if (layer.exists(meta)) throw Context.error('Error: "$name" is already used as identifier for @$meta', f.pos);
 				layer.set(meta, confItem.length);
 			} else {
 				layer = new StringMap<Int>();
-				if (name != "__default__") layer.set("layer", maxLayer++);
+				if (name != "__default__") {
+					textureIdentifiers[maxLayer] = name;
+					layer.set("layer", maxLayer++);
+				}
 				layer.set(meta, confItem.length );
 				confTextureLayer.set(name, layer);
 			}
@@ -381,10 +385,11 @@ class ElementImpl
 	{
 		var metas:Array<String> = getAllMetaParams(f, meta);
 		if (metas == null) return false;
-		if (metas.length == 0) metas.push("__default__");
+		if (metas.length == 0) metas.push("color");
 		var name = metas[0];
-		if (confColorLayer.indexOf(name) >= 0) throw Context.error('Error: color layer $name is already used for @$meta', f.pos);
-		confColorLayer.push(name);
+		if (colorIdentifiers.indexOf(name) >= 0) throw Context.error('Error: "$name" is already used for a @color identifier', f.pos);
+		if (confTextureLayer.exists(name)) throw Context.error('Error: "$name" is already used as identifier for a texture-layer', f.pos);
+		colorIdentifiers.push(name);
 		var c = { vStart:d.vStart, vEnd:d.vEnd, n:d.n, isAnim:d.isAnim, name:d.name, isStart:d.isStart, isEnd:d.isEnd, time:d.time };
 		checkMetas(f, expectedType, type, val, c , getter, setter);
 		confItem.push(c);
@@ -429,7 +434,8 @@ class ElementImpl
 	
 	static var maxLayer:Int = 0;
 	static var confTextureLayer = new StringMap<StringMap<Int>>();
-	static var confColorLayer = new Array<String>();
+	static var textureIdentifiers = new Array<String>();
+	static var colorIdentifiers = new Array<String>();
 	
 	//static var isChild:Bool = false;
 	// -------------------------------------- BUILD -------------------------------------------------
@@ -813,18 +819,41 @@ class ElementImpl
 				if_ELEMENT_LAYER:'::if (LAYER ${(name == "__default__") ? ">" : "="}= $layer)::',
 				end_ELEMENT_LAYER:"::end::"
 			});
-			// create static vars
-			fields.push({
-				name:  "TEXTURE_" + ( (name != "__default__") ? name.toUpperCase() : "CUSTOM_0" ),
-				access:  [Access.APublic, Access.AStatic, Access.AInline],
-				kind: FieldType.FVar(macro:Int, macro $v{layer}), 
-				pos: Context.currentPos(),
-			});
+			// create static vars for texture identifiers
+			if (name != "__default__")
+				fields.push({
+					name:  "TEXTURE_" + name.toUpperCase(),
+					access:  [Access.APublic, Access.AStatic, Access.AInline],
+					kind: FieldType.FVar(macro:String, macro $v{name}), 
+					pos: Context.currentPos(),
+				});
 			debugLastField(fields);
 		}
 		
-		// TODO: all texture-layer names inside a static string for progam
-		// TODO: all color-layer names inside a static string for progam
+		for (name in colorIdentifiers) // create static vars for color identifiers
+			fields.push({
+				name:  "COLOR_" + name.toUpperCase(),
+				access:  [Access.APublic, Access.AStatic, Access.AInline],
+				kind: FieldType.FVar(macro:String, macro $v{name}), 
+				pos: Context.currentPos(),
+			});					
+		
+		// put all texture identifiers inside a static string for progam
+		trace(textureIdentifiers);
+		fields.push({
+			name:  "TEXTURE_IDENTIFIERS",
+			access:  [Access.APublic, Access.AStatic, Access.AInline],
+			kind: FieldType.FVar(macro:String, macro $v{textureIdentifiers.join(",")}), 
+			pos: Context.currentPos(),
+		});
+		// TODO: all color identifiers inside a static string for progam
+		trace(colorIdentifiers);
+		fields.push({
+			name:  "COLOR_IDENTIFIERS",
+			access:  [Access.APublic, Access.AStatic, Access.AInline],
+			kind: FieldType.FVar(macro:String, macro $v{colorIdentifiers.join(",")}), 
+			pos: Context.currentPos(),
+		});
 				
 		// ---------------------- generate helper vars and functions ---------------------------
 		debug("__generate vars and functions__");
