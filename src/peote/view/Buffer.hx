@@ -278,8 +278,10 @@ class $className implements BufferInterface
 	
 	private inline function getVertexShader():String return $p{elemField}.vertexShader;
 	private inline function getFragmentShader():String return $p{elemField}.fragmentShader;
-	private inline function getTextureIdentifiers():Array<String> return ($p{elemField}.TEXTURE_IDENTIFIERS == "") ? [] : $p{elemField}.TEXTURE_IDENTIFIERS.split(",");
-	private inline function getColorIdentifiers():Array<String> return ($p{elemField}.TEXTURE_IDENTIFIERS == "") ? [] :  $p{elemField}.COLOR_IDENTIFIERS.split(",");
+	private inline function getTextureIdentifiers():Array<String> return ($p{elemField}.IDENTIFIERS_TEXTURE == "") ? [] : $p{elemField}.IDENTIFIERS_TEXTURE.split(",");
+	private inline function getColorIdentifiers():Array<String> return ($p{elemField}.IDENTIFIERS_COLOR == "") ? [] :  $p{elemField}.IDENTIFIERS_COLOR.split(",");
+	private inline function getDefaultTextureColors():haxe.ds.StringMap<peote.view.Color> return $p{elemField}.DEFAULT_TEXTURE_COLORS;
+	private inline function getDefaultColorFormula():String return $p{elemField}.DEFAULT_COLOR_FORMULA;
 	private inline function hasAlpha():Bool return $p{elemField}.ALPHA_ENABLED;
 	private inline function hasZindex():Bool return $p{elemField}.ZINDEX_ENABLED;
 
@@ -299,7 +301,7 @@ class $className implements BufferInterface
 		return null;//TODO
 	}
 
-	private inline function render(peoteView:PeoteView, display:Display, program:Program)
+	private inline function render(peoteView:peote.view.PeoteView, display:peote.view.Display, program:peote.view.Program)
 	{		
 		//trace("        ---buffer.render---");
 		#if peoteview_queueGLbuffering

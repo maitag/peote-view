@@ -13,10 +13,12 @@ interface BufferInterface
 	private function getFragmentShader():String;
 	private function getTextureIdentifiers():Array<String>;
 	private function getColorIdentifiers():Array<String>;
+	private function getDefaultTextureColors():haxe.ds.StringMap<peote.view.Color>;
+	private function getDefaultColorFormula():String;
 	private function hasAlpha():Bool;
 	private function hasZindex():Bool;
 	
 	private function bindAttribLocations(gl: peote.view.PeoteGL, glProgram:lime.graphics.opengl.GLProgram):Void;
 	
-	private function render(peoteView:PeoteView, display:Display, program:Program):Void;
+	private function render(peoteView:peote.view.PeoteView, display:peote.view.Display, program:peote.view.Program):Void;
 }

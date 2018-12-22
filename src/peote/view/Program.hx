@@ -1,6 +1,7 @@
 package peote.view;
 
 import haxe.ds.IntMap;
+import haxe.ds.StringMap;
 import peote.view.PeoteGL.GLProgram;
 import peote.view.PeoteGL.GLShader;
 import peote.view.PeoteGL.GLUniformLocation;
@@ -26,8 +27,6 @@ class Program
 	public var alphaEnabled:Bool;
 	public var zIndexEnabled:Bool;
 	
-	public var colorFormula = "c0 * t0"; // TODO: generate default formula by Element-macro
-	
 	var display:Display = null;
 	var gl:PeoteGL = null;
 
@@ -46,7 +45,7 @@ class Program
 		VAROUT: "varying",
 		hasTEXTURES: false,
 		FRAGMENT_PROGRAM_UNIFORMS:"",
-		FRAGMENT_CALC_LAYER:"c0",
+		FRAGMENT_CALC_LAYER:"",
 		TEXTURES:[],
 	};
 	
@@ -55,17 +54,27 @@ class Program
 	var activeTextures = new Array<Texture>();
 	var activeUnits = new Array<Int>();
 
-	var textureIdentifiers = new Array<String>();
+	var colorIdentifiers:Array<String>;
+
+	var textureIdentifiers:Array<String>;
 	var customTextureIdentifiers = new Array<String>();
-	var colorIdentifiers = new Array<String>();
+	
+	var defaultTextureColors:StringMap<Color>;
+	var defaultColorFormula:String;
+	var colorFormula = "";
+	
 
 	public function new(buffer:BufferInterface) 
 	{
 		this.buffer = buffer;
 		alphaEnabled = buffer.hasAlpha();
 		zIndexEnabled = buffer.hasZindex();		
-		textureIdentifiers = buffer.getTextureIdentifiers();
 		colorIdentifiers = buffer.getColorIdentifiers();
+		textureIdentifiers = buffer.getTextureIdentifiers();
+		defaultTextureColors = buffer.getDefaultTextureColors();
+		defaultColorFormula = buffer.getDefaultColorFormula();
+		trace("defaultColorFormula = ", defaultColorFormula);
+		parseColorFormula();
 	}
 	
  	private inline function isIn(display:Display):Bool
@@ -194,7 +203,76 @@ class Program
 	var uOFFSET:GLUniformLocation;
 	var uTIME:GLUniformLocation;
 	
-	private function getTextureIndexByIdentifier(identifier:String, addNew:Bool=true):Int {
+	private function parseColorFormula():Void {
+		var formula:String;
+		
+		if (colorFormula != "") formula = colorFormula;
+		else if (defaultColorFormula != "") formula = defaultColorFormula;
+		else {
+			var col = colorIdentifiers.copy();
+			var tex = new Array<String>();
+			/*for (layer in textureLayers.keys().sort())
+				if (layer < textureIdentifiers.length) tex.push(textureIdentifiers[layer]);
+				else  tex.push( customTextureIdentifiers[layer-textureIdentifiers.length] );
+			*/
+			for (i in 0...textureIdentifiers.length) 
+				if (textureLayers.exists(i)) tex.push(textureIdentifiers[i]);
+			for (i in 0...customTextureIdentifiers.length)
+				if (textureLayers.exists(textureIdentifiers.length+i)) tex.push(customTextureIdentifiers[i]);
+			tex = tex.map(function(a) {return 'clamp($a,0.0,$a.a)';});
+			
+			var coltex = new Array<String>();
+			for (i in 0...Std.int(Math.max(col.length, tex.length))) {
+				if (i < col.length && i < tex.length) coltex.push( col[i]+"*"+tex[i] );
+				else if (i < col.length) coltex.push( col[i] );
+				else coltex.push(tex[i]);
+			}
+			
+			if (coltex.length == 0) formula = Color.RED.toGLSL();
+			else if (coltex.length == 1) formula = coltex[0];
+			else {
+				//add
+				formula = coltex.join(" + "); //formula = "clamp(" + coltex.join(" + ") + ", 0.0, 1.0)";
+				//mix
+				/*var s:String = Std.string(1 / coltex.length);
+				s = (s.indexOf(".") != -1 || s.indexOf("e-") != -1) ? s : s + ".0";
+				formula = coltex.map(function(a) {return '$a*$s';}).join(" + ");
+				*/
+			}
+		}
+		
+		for (i in 0...colorIdentifiers.length) {
+			var regexp = new EReg('(.*?\\b)${colorIdentifiers[i]}(\\b.*?)', "g");
+			formula = regexp.replace( formula, '$1' + "c" + i +'$2' );
+		}
+		for (i in 0...textureIdentifiers.length) {
+			var regexp = new EReg('(.*?\\b)${textureIdentifiers[i]}(\\b.*?)', "g");
+			if (textureLayers.exists(i))
+				formula = regexp.replace( formula, '$1' + "t" + i +'$2' );
+		}
+		for (i in 0...customTextureIdentifiers.length) {
+			var regexp = new EReg('(.*?\\b)${customTextureIdentifiers[i]}(\\b.*?)', "g");
+			if (textureLayers.exists(textureIdentifiers.length+i))
+				formula = regexp.replace( formula, '$1' + "t"+(textureIdentifiers.length+i) +'$2' );
+		}
+		
+		for (name in defaultTextureColors.keys()) {
+			var regexp = new EReg('(.*?\\b)${name}(\\b.*?)', "g");
+			formula = regexp.replace( formula, '$1' + defaultTextureColors.get(name).toGLSL() + '$2' );
+		}
+		
+		glShaderConfig.FRAGMENT_CALC_LAYER = formula;
+	}
+	
+	public function setDefaultTextureColors(defaults:StringMap<Color>):Void {
+		for (name in defaults.keys()) defaultTextureColors.set(name, defaults.get(name));
+	}
+	
+	public function setColorFormula(formula:String, update:Bool = false):Void {
+		colorFormula = formula;
+	}
+	
+	private function getTextureIndexByIdentifier(identifier:String, addNew:Bool = true):Int {
 		// TODO: checkIdentifier(identifier);
 		var layer = textureIdentifiers.indexOf(identifier);
 		if (layer < 0) {
@@ -211,7 +289,7 @@ class Program
 	}
 	
 	// set a texture-layer
-	public function setTexture(texture:Texture, identifier:String, update:Bool = true):Void {
+	public function setTexture(texture:Texture, identifier:String, update:Bool = false):Void {
 		trace("(re)set texture of a layer");
 		var layer = getTextureIndexByIdentifier(identifier);
 		textureLayers.set(layer, [texture]);
@@ -219,7 +297,7 @@ class Program
 	}
 	
 	// multiple textures per layer (to switch between them via unit-attribute)
-	public function setMultiTexture(textureUnits:Array<Texture>, identifier:String, update:Bool = true):Void {
+	public function setMultiTexture(textureUnits:Array<Texture>, identifier:String, update:Bool = false):Void {
 		trace("(re)set texture-units of a layer");
 		var layer = getTextureIndexByIdentifier(identifier);
 		if (textureUnits == null) throw("Error, textureUnits need to be an array of textures");
@@ -233,7 +311,7 @@ class Program
 	}
 	
 	// add a texture to textuer-units
-	public function addTexture(texture:Texture, identifier:String, update:Bool = true):Void {
+	public function addTexture(texture:Texture, identifier:String, update:Bool = false):Void {
 		trace("add texture into units of " + identifier);
 		var layer = getTextureIndexByIdentifier(identifier);
 		if (texture == null) throw("Error, texture is null.");
@@ -249,7 +327,7 @@ class Program
 		if (update) updateTextures();
 	}
 	
-	public function removeTexture(texture:Texture, identifier:String, update:Bool = true):Void {
+	public function removeTexture(texture:Texture, identifier:String, update:Bool = false):Void {
 		trace("remove texture from textureUnits of a layer");
 		var layer = getTextureIndexByIdentifier(identifier, false);
 		if (layer < 0) throw('Error, textureLayer "$identifier" did not exists.');
@@ -262,7 +340,7 @@ class Program
 		if (update) updateTextures();
 	}
 	
-	public function removeAllTexture(identifier:String, update:Bool = true):Void {
+	public function removeAllTexture(identifier:String, update:Bool = false):Void {
 		trace("remove all textures from a layer");
 		var layer = getTextureIndexByIdentifier(identifier, false);
 		if (layer < 0) throw('Error, textureLayer "$identifier" did not exists.');
@@ -322,13 +400,15 @@ class Program
 		// -----------
 		trace("textureLayers", [for (layer in textureLayers.keys()) layer]);
 		
+		parseColorFormula();
+		
 		if (activeTextures.length == 0) {
 			glShaderConfig.hasTEXTURES = false;
-			glShaderConfig.FRAGMENT_CALC_LAYER = "c0"; // TODO
+			//glShaderConfig.FRAGMENT_CALC_LAYER = "c0"; // TODO
 		}
 		else {
 			glShaderConfig.hasTEXTURES = true;
-			glShaderConfig.FRAGMENT_CALC_LAYER = colorFormula;  // TODO
+			//glShaderConfig.FRAGMENT_CALC_LAYER = colorFormula;  // TODO
 			
 			glShaderConfig.FRAGMENT_PROGRAM_UNIFORMS = "";
 			for (i in 0...activeTextures.length)

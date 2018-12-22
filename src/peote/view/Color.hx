@@ -46,23 +46,34 @@ abstract Color(Int) from Int to Int
 	public static inline function random():Color {
 		return (Std.int(Math.random()*256) << 24) | Std.random(0x1000000);
 	}
+	
 	public inline function randomize() {
 		this = random();
 	}
 
-	public static inline var BLACK   :Int = 0x000000ff;
-    public static inline var RED     :Int = 0xff0000ff;
-    public static inline var GREEN   :Int = 0x00ff00ff;
-    public static inline var YELLOW  :Int = 0xffff00ff;
-    public static inline var BLUE    :Int = 0x0000ffff;
-    public static inline var MAGENTA :Int = 0xff00ffff;
-    public static inline var CYAN    :Int = 0x00ffffff;
-    public static inline var WHITE   :Int = 0xffffffff;
-    public static inline var GREY1   :Int = 0x222222ff;
-    public static inline var GREY2   :Int = 0x444444ff;
-    public static inline var GREY3   :Int = 0x666666ff;
-    public static inline var GREY4   :Int = 0x888888ff;
-    public static inline var GREY5   :Int = 0xaaaaaaff;
-    public static inline var GREY6   :Int = 0xccccccff;
-    public static inline var GREY7   :Int = 0xeeeeeeff;
+	inline function toFloatString(value:Dynamic):String {
+		var s:String = Std.string(value);
+		return (s.indexOf(".") != -1 || s.indexOf("e-") != -1) ? s : s + ".0";
+	}	
+	public inline function toGLSL():String {
+		return 'vec4(${toFloatString(r/255)}, ${toFloatString(g/255)},' + 
+		           ' ${toFloatString(b/255)}, ${toFloatString(a/255)})';
+	}
+	
+	                   // TODO: Int to Color ?
+	public static inline var BLACK   :Color = 0x000000ff;
+    public static inline var RED     :Color = 0xff0000ff;
+    public static inline var GREEN   :Color = 0x00ff00ff;
+    public static inline var YELLOW  :Color = 0xffff00ff;
+    public static inline var BLUE    :Color = 0x0000ffff;
+    public static inline var MAGENTA :Color = 0xff00ffff;
+    public static inline var CYAN    :Color = 0x00ffffff;
+    public static inline var WHITE   :Color = 0xffffffff;
+    public static inline var GREY1   :Color = 0x222222ff;
+    public static inline var GREY2   :Color = 0x444444ff;
+    public static inline var GREY3   :Color = 0x666666ff;
+    public static inline var GREY4   :Color = 0x888888ff;
+    public static inline var GREY5   :Color = 0xaaaaaaff;
+    public static inline var GREY6   :Color = 0xccccccff;
+    public static inline var GREY7   :Color = 0xeeeeeeff;
 }

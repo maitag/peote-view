@@ -174,7 +174,7 @@ class Shader
 		::end::
 		
 		// calc final color from all layers
-		vec4 color = ::FRAGMENT_CALC_LAYER::; // TODO: set per progam
+		vec4 color = ::FRAGMENT_CALC_LAYER::;
 		
 		if (color.a == 0.0) discard; // TODO: set per progam
 		

@@ -126,7 +126,7 @@ class ElementImpl
 		}
 		else return null;
 	}
-	
+		
 	static inline function getAllMetaParams(f:Field, s:String):Null<Array<String>> {
 		var pa:Null<Array<Expr>> = null;
 		var found = false;
@@ -482,6 +482,8 @@ class ElementImpl
 		fields = Context.getBuildFields();
 		
 		var hasNoNew:Bool = true;		
+		var hasNoDefaultTextureColors:Bool = true;		
+		var hasNoDefaultColorFormula:Bool = true;		
 		var classname:String = Context.getLocalClass().get().name;
 		//var classpackage = Context.getLocalClass().get().pack;
 		
@@ -494,6 +496,16 @@ class ElementImpl
 		{	
 			fieldnames.push(f.name);
 			if (f.name == "new") hasNoNew = false;
+			else if (f.name == "DEFAULT_TEXTURE_COLORS") {
+				hasNoDefaultTextureColors = false;
+				f.meta = allowForBuffer;
+				f.access = [Access.APrivate, Access.AStatic];				
+			}
+			else if (f.name == "DEFAULT_COLOR_FORMULA") {
+				hasNoDefaultColorFormula = false;
+				f.meta = allowForBuffer;
+				f.access = [Access.APrivate, Access.AStatic, Access.AInline];				
+			}
 			else switch (f.kind)
 			{	
 				case FVar(type, val)                 : configure(f, type, val);
@@ -666,9 +678,8 @@ class ElementImpl
 		glConf.CALC_POS  = "vec2 pos  = size + " + pack2in1("aPos" , conf.posX,  conf.posY ) + ";";
 
 		// color
-		// TODO: need this or better set via prorgam-template if there is no texture?
-		if (conf.color.length == 0) glConf.FRAGMENT_CALC_COLOR += 'vec4 c0 = ${color2vec4(conf.colorDefault.vStart)};';
-		else 
+		//if (conf.color.length == 0) glConf.FRAGMENT_CALC_COLOR += 'vec4 c0 = ${color2vec4(conf.colorDefault.vStart)};';
+		//else 
 			for (k in 0...conf.color.length) {
 				var start = (conf.color[k].isStart) ? 'aColorStart${k}.wzyx' : color2vec4(conf.color[k].vStart);
 				if (conf.color[k].isAnim) {
@@ -839,22 +850,49 @@ class ElementImpl
 			});					
 		
 		// put all texture identifiers inside a static string for progam
-		trace(textureIdentifiers);
+		// trace("textureIdentifiers:",textureIdentifiers);
 		fields.push({
-			name:  "TEXTURE_IDENTIFIERS",
-			access:  [Access.APublic, Access.AStatic, Access.AInline],
+			name:  "IDENTIFIERS_TEXTURE",
+			meta:  allowForBuffer,
+			access:  [Access.APrivate, Access.AStatic, Access.AInline],
 			kind: FieldType.FVar(macro:String, macro $v{textureIdentifiers.join(",")}), 
 			pos: Context.currentPos(),
 		});
 		// TODO: all color identifiers inside a static string for progam
-		trace(colorIdentifiers);
+		// trace("colorIdentifiers", colorIdentifiers);
 		fields.push({
-			name:  "COLOR_IDENTIFIERS",
-			access:  [Access.APublic, Access.AStatic, Access.AInline],
+			name:  "IDENTIFIERS_COLOR",
+			meta:  allowForBuffer,
+			access:  [Access.APrivate, Access.AStatic, Access.AInline],
 			kind: FieldType.FVar(macro:String, macro $v{colorIdentifiers.join(",")}), 
 			pos: Context.currentPos(),
 		});
-				
+		
+		// set default texture colors (for formula)
+		if (hasNoDefaultTextureColors) {
+			fields.push({
+				name:  "DEFAULT_TEXTURE_COLORS",
+				meta:  allowForBuffer,
+				access:  [Access.APrivate, Access.AStatic],
+				kind: FieldType.FVar(macro:haxe.ds.StringMap<Color>, macro new haxe.ds.StringMap<Color>()),
+				pos: Context.currentPos(),
+			});
+		}
+		
+		// set default color formula
+		if (hasNoDefaultColorFormula) {
+			//var colorFormula:String = (colorIdentifiers.length>0) ? colorIdentifiers.join("*") : color2vec4(conf.colorDefault.vStart);
+			//var colorFormula:String = colorIdentifiers.join("*");
+			fields.push({
+				name:  "DEFAULT_COLOR_FORMULA",
+				meta:  allowForBuffer,
+				access:  [Access.APrivate, Access.AStatic, Access.AInline],
+				//kind: FieldType.FVar(macro:String, macro $v{colorFormula}), 
+				kind: FieldType.FVar(macro:String, macro $v{""}), 
+				pos: Context.currentPos(),
+			});
+		}
+		
 		// ---------------------- generate helper vars and functions ---------------------------
 		debug("__generate vars and functions__");
 		

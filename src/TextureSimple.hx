@@ -54,8 +54,10 @@ class TextureSimple
 			texture.setImage(image);
 			
 			program.setTexture(texture, "custom");
+			program.updateTextures();
 			
-			program.setActiveTextureGlIndex(texture, 2);
+			program.setActiveTextureGlIndex(texture, 2);// only after update
+
 			
 			element.w = image.width;
 			element.h = image.height;
