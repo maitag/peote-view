@@ -26,9 +26,9 @@ class Elem implements Element
 	@sizeX public var w:Int=100;
 	@sizeY public var h:Int=100;
 	
-	@color public var c:Color = 0xff0000ff; // same like @color("color")
-	@color("shift") public var c1:Color = 0x0000ffff;
-	@color("add")   public var c2:Color = 0x0000ffff;
+	@color("colred")   public var c0:Color = 0xff0000ff;
+	@color("colgreen") public var c1:Color = 0x00ff00ff;
+	@color("colblue")  public var c2:Color = 0x0000ffff;
 		
 	//@texUnit() public var unit:Int;  // unit for all other Layers (max 255)
 	@texUnit("base") public var unitColor:Int=0;  //  unit for "base" Layer only
@@ -64,14 +64,14 @@ class Elem implements Element
 	];*/
 	// formula (glsl) to combine colors with textures
 	//var DEFAULT_COLOR_FORMULA = "alpha * (color * base + shift)";
+	// default is alpha-over:  mix( mix( c0*t0, c1*t1 , (c1*t1).a ) ...)) * cn1 + cn2 * cn3 + cn4 * ...
 	
-	public function new(positionX:Int=0, positionY:Int=0, width:Int=100, height:Int=100, c:Int=0xFF0000FF )
+	public function new(positionX:Int=0, positionY:Int=0, width:Int=100, height:Int=100)
 	{
 		this.x = positionX;
 		this.y = positionY;
 		this.w = width;
 		this.h = height;
-		//this.c = c;
 	}
 
 
@@ -93,7 +93,7 @@ class MultiTextures
 	{
 		try {
 			peoteView = new PeoteView(window.context, window.width, window.height);
-			display   = new Display(10,10, window.width-20, window.height-20, Color.GREEN);
+			display   = new Display(10, 10, window.width - 20, window.height - 20, Color.YELLOW);
 			peoteView.addDisplay(display);  // display to peoteView
 			
 			buffer  = new Buffer<Elem>(100);

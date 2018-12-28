@@ -204,7 +204,7 @@ class Program
 	var uTIME:GLUniformLocation;
 	
 	private function parseColorFormula():Void {
-		var formula:String;
+		var formula:String = "";
 		
 		if (colorFormula != "") formula = colorFormula;
 		else if (defaultColorFormula != "") formula = defaultColorFormula;
@@ -219,26 +219,43 @@ class Program
 				if (textureLayers.exists(i)) tex.push(textureIdentifiers[i]);
 			for (i in 0...customTextureIdentifiers.length)
 				if (textureLayers.exists(textureIdentifiers.length+i)) tex.push(customTextureIdentifiers[i]);
-			tex = tex.map(function(a) {return 'clamp($a,0.0,$a.a)';});
 			
+			/*tex = tex.map(function(a) {return 'clamp($a,0.0,$a.a)';});
 			var coltex = new Array<String>();
 			for (i in 0...Std.int(Math.max(col.length, tex.length))) {
 				if (i < col.length && i < tex.length) coltex.push( col[i]+"*"+tex[i] );
 				else if (i < col.length) coltex.push( col[i] );
 				else coltex.push(tex[i]);
 			}
-			
 			if (coltex.length == 0) formula = Color.RED.toGLSL();
 			else if (coltex.length == 1) formula = coltex[0];
 			else {
 				//add
 				formula = coltex.join(" + "); //formula = "clamp(" + coltex.join(" + ") + ", 0.0, 1.0)";
 				//mix
-				/*var s:String = Std.string(1 / coltex.length);
-				s = (s.indexOf(".") != -1 || s.indexOf("e-") != -1) ? s : s + ".0";
-				formula = coltex.map(function(a) {return '$a*$s';}).join(" + ");
-				*/
+				//var s:String = Std.string(1 / coltex.length);
+				//s = (s.indexOf(".") != -1 || s.indexOf("e-") != -1) ? s : s + ".0";
+				//formula = coltex.map(function(a) {return '$a*$s';}).join(" + ");
+			}*/
+			
+			// mix(mix(...))*restColor
+			if (col.length + tex.length == 0) formula = Color.RED.toGLSL();
+			else {
+				if (tex.length > 0) {
+					formula = tex.shift();
+					if (col.length > 0) formula = '${col.shift()} * $formula';
+				}
+				for (t in tex) {
+					if (col.length > 0) t = '${col.shift()} * $t ';
+					formula = 'mix( $formula, $t, ($t).a )';
+				}
+				// if more colors than textures add/multiply the Rest
+				while (col.length > 0) {
+					formula += ((formula != "") ? "*": "") + col.shift();
+					if (col.length > 0) formula = '($formula + ${col.shift()})';					
+				}				
 			}
+			
 		}
 		
 		for (i in 0...colorIdentifiers.length) {
