@@ -42,7 +42,9 @@ class PeoteView
 			texture.updated = false;
 			// TODO: should it update ALL other textures the program is in use?
 			// ..maybe program as param here and then set all glStateTexture of that program ?
-			//glStateTexture = new Vector<GLTexture>(maxTextureImageUnits); return false;// or clear full?			
+			#if html5 //TODO
+			glStateTexture = new Vector<GLTexture>(maxTextureImageUnits); return false;// or clear full?			
+			#end
 			return true;
 		}
 		if (glStateTexture.get(activeTextureUnit) != texture.glTexture) {

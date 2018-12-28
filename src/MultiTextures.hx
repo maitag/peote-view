@@ -29,8 +29,6 @@ class Elem implements Element
 	@color public var c:Color = 0xff0000ff; // same like @color("color")
 	@color("shift") public var c1:Color = 0x0000ffff;
 	@color("add")   public var c2:Color = 0x0000ffff;
-	// TODO: make more colors available for program.colorFormula
-	// @color("shift") var shiftColor:Color;
 		
 	//@texUnit() public var unit:Int;  // unit for all other Layers (max 255)
 	@texUnit("base") public var unitColor:Int=0;  //  unit for "base" Layer only
@@ -48,7 +46,7 @@ class Elem implements Element
 
 	// tiles the slot or manual texture-coordinate into sub-slots
 	@texTile() public var tile:Int;  // for all other Layers
-	@texTile("base", "mask") public var tileColor:Int;  // for "alpha" and "mask" Layers only
+	@texTile("base", "mask") public var tileBaseMask:Int;  // for "alpha" and "mask" Layers only
 
 
 	//TODO: let the texture shift inside slot/texCoords/tile area
@@ -108,17 +106,13 @@ class MultiTextures
 			texture1 = new Texture(512, 512);
 			texture2 = new Texture(512, 512);
 			
-			program.setMultiTexture([texture0, texture1, texture2], Elem.TEXTURE_BASE);
-			//program.setMultiTexture([texture0, texture1],           Elem.TEXTURE_ALPHA);
-			program.setTexture(texture1, Elem.TEXTURE_MASK);
-			program.setTexture(texture2, "custom");
+			program.setMultiTexture([texture0, texture1, texture2], Elem.TEXTURE_BASE, false);
+			//program.setMultiTexture([texture0, texture1],           Elem.TEXTURE_ALPHA, false);
+			program.setTexture(texture1, Elem.TEXTURE_MASK, false);
+			program.setTexture(texture2, "custom", false);
 			
-			// c is default color
-			// texture-layer colors: t0 - ElementSimple.TEXTURE_BASE, t1 - ElementSimple.TEXTURE_ALPHA ...
 			/*
-			program.colorFormula = 'c0 * t0';
-			
-			// TODO: better go with String-Identifiers: "color * (shift+base) * alpha"
+			// compositing multiple textures per fragment-shader
 			program.setDefaultTextureColors([
 				"base"   => 0x11111111,
 				Elem.TEXTURE_ALPHA => 0x22222222,

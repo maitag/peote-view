@@ -496,12 +496,12 @@ class ElementImpl
 		{	
 			fieldnames.push(f.name);
 			if (f.name == "new") hasNoNew = false;
-			else if (f.name == "DEFAULT_TEXTURE_COLORS") {
+			else if (f.name == "DEFAULT_TEXTURE_COLORS") { // TODO: make all new identifiers also static for .TEXTURE_...
 				hasNoDefaultTextureColors = false;
 				f.meta = allowForBuffer;
-				f.access = [Access.APrivate, Access.AStatic];				
+				f.access = [Access.APrivate, Access.AStatic];
 			}
-			else if (f.name == "DEFAULT_COLOR_FORMULA") {
+			else if (f.name == "DEFAULT_COLOR_FORMULA") { // TODO: check Formula
 				hasNoDefaultColorFormula = false;
 				f.meta = allowForBuffer;
 				f.access = [Access.APrivate, Access.AStatic, Access.AInline];				
@@ -924,8 +924,8 @@ class ElementImpl
 					kind: FFun({
 						args:[ {name:"startTime", type:macro:Float},{name:"duration", type:macro:Float} ],
 						expr:  macro {
-							$i{"time" + t + "Start"} = startTime;
-							$i{"time" + t + "Duration"} = duration;
+							$i{name + "Start"} = startTime;
+							$i{name + "Duration"} = duration;
 						},
 						ret: null
 					})
@@ -1333,8 +1333,8 @@ class ElementImpl
 				// -------------- setFloat (32) ------------------------------
 				// TIMERS
 				for (k in 0...timers.length) {
-					exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{"time"+timers[k]+"Start"}) ); i+=4;
-					exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{"time"+timers[k]+"Duration"}) ); i+=4;
+					exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{camelCase("time",timers[k])+"Start"}) ); i+=4;
+					exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{camelCase("time",timers[k])+"Duration"}) ); i+=4;
 				}
 				// ROTZ
 				if (conf.rotation.isAnim && conf.rotation.isStart) { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{conf.rotation.name+"Start"}/180*Math.PI) ); i+=4; }

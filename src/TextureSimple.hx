@@ -54,7 +54,7 @@ class TextureSimple
 			texture.setImage(image);
 			
 			program.setTexture(texture, "custom");
-			program.updateTextures();
+			//program.updateTextures();
 			
 			program.setActiveTextureGlIndex(texture, 2);// only after update
 
@@ -97,7 +97,7 @@ class TextureSimple
 				}
 			case KeyCode.T:
 				if (program.hasTexture(texture)) program.removeTexture(texture, "custom");
-				else program.addTexture(texture, "custom");
+				else program.setTexture(texture, "custom");
 			default:
 		}
 	}
