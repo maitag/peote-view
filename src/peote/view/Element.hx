@@ -476,8 +476,8 @@ class ElementImpl
 		fields = Context.getBuildFields();
 		
 		var hasNoNew:Bool = true;		
-		var hasNoDefaultColorVars:Bool = true;		
 		var hasNoDefaultColorFormula:Bool = true;		
+		var hasNoDefaultFormulaVars:Bool = true;		
 		var classname:String = Context.getLocalClass().get().name;
 		//var classpackage = Context.getLocalClass().get().pack;
 		
@@ -490,15 +490,15 @@ class ElementImpl
 		{	
 			fieldnames.push(f.name);
 			if (f.name == "new") hasNoNew = false;
-			else if (f.name == "DEFAULT_TEXTURE_COLORS") { // TODO: make all new identifiers also static for .TEXTURE_...
-				hasNoDefaultColorVars = false;
-				f.meta = allowForBuffer;
-				f.access = [Access.APrivate, Access.AStatic];
-			}
 			else if (f.name == "DEFAULT_COLOR_FORMULA") { // TODO: check Formula
 				hasNoDefaultColorFormula = false;
 				f.meta = allowForBuffer;
 				f.access = [Access.APrivate, Access.AStatic, Access.AInline];				
+			}
+			else if (f.name == "DEFAULT_FORMULA_VARS") { // TODO: make all new identifiers also static for .TEXTURE_...
+				hasNoDefaultFormulaVars = false; trace("HAS NOOOOOOOOOOOOOOOOO DEFAULT_FORMULA_VARS");
+				f.meta = allowForBuffer;
+				f.access = [Access.APrivate, Access.AStatic];
 			}
 			else switch (f.kind)
 			{	
@@ -862,16 +862,6 @@ class ElementImpl
 			pos: Context.currentPos(),
 		});
 		
-		// set default texture colors (for formula)
-		if (hasNoDefaultColorVars) {
-			fields.push({
-				name:  "DEFAULT_COLOR_VARS",
-				meta:  allowForBuffer,
-				access:  [Access.APrivate, Access.AStatic],
-				kind: FieldType.FVar(macro:haxe.ds.StringMap<Color>, macro new haxe.ds.StringMap<Color>()),
-				pos: Context.currentPos(),
-			});
-		}
 		// set default color formula
 		if (hasNoDefaultColorFormula) {
 			fields.push({
@@ -879,6 +869,16 @@ class ElementImpl
 				meta:  allowForBuffer,
 				access:  [Access.APrivate, Access.AStatic, Access.AInline],
 				kind: FieldType.FVar(macro:String, macro $v{""}), 
+				pos: Context.currentPos(),
+			});
+		}
+		// set default texture colors (for formula)
+		if (hasNoDefaultFormulaVars) {
+			fields.push({
+				name:  "DEFAULT_FORMULA_VARS",
+				meta:  allowForBuffer,
+				access:  [Access.APrivate, Access.AStatic],
+				kind: FieldType.FVar(macro:haxe.ds.StringMap<Color>, macro new haxe.ds.StringMap<Color>()),
 				pos: Context.currentPos(),
 			});
 		}

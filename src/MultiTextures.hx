@@ -58,7 +58,7 @@ class Elem implements Element
 
 	// give texture, color or custom-to-use identifiers a default value ( if there is no texture set for )
 	/*
-	var DEFAULT_COLOR_VARS = [
+	var DEFAULT_FORMULA_VARS = [
 		"color"  => 0xffffffff, // not need here
 		"shift"  => 0x00000000, // not need here
 		"base"  => 0xff0000ff,

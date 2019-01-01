@@ -60,7 +60,7 @@ class Program
 	var textureIdentifiers:Array<String>;
 	var customTextureIdentifiers = new Array<String>();
 	
-	var defaultColorVars:StringMap<Color>;
+	var defaultFormulaVars:StringMap<Color>;
 	var defaultColorFormula:String;
 	var colorFormula = "";
 	
@@ -69,12 +69,16 @@ class Program
 	{
 		this.buffer = buffer;
 		alphaEnabled = buffer.hasAlpha();
-		zIndexEnabled = buffer.hasZindex();		
+		zIndexEnabled = buffer.hasZindex();
+		
 		colorIdentifiers = buffer.getColorIdentifiers();
 		textureIdentifiers = buffer.getTextureIdentifiers();
-		defaultColorVars = buffer.getDefaultColorVars();
+		
 		defaultColorFormula = buffer.getDefaultColorFormula();
 		trace("defaultColorFormula = ", defaultColorFormula);
+		defaultFormulaVars = buffer.getDefaultFormulaVars();
+		trace("defaultFormulaVars = ", defaultFormulaVars);
+		
 		parseColorFormula();
 	}
 	
@@ -90,7 +94,7 @@ class Program
 		else
 		{	
 			// if added to another one remove it frome there first
-			if (this.display != null) this.display.removeProgram(this);
+			if (this.display != null) this.display.removeProgram(this);        // <--------------- TODO: allow multiple displays !!!
 			
 			this.display = display;
 			
@@ -258,31 +262,28 @@ class Program
 			}
 			
 		}
-		
 		for (i in 0...colorIdentifiers.length) {
 			var regexp = new EReg('(.*?\\b)${colorIdentifiers[i]}(\\b.*?)', "g");
-			regexp.match(formula);
-			if (regexp.matched(1).substr(-1,1) != ".")
-				formula = regexp.replace( formula, '$1' + "c" + i +'$2' );
+			if (regexp.match(formula))
+				if (regexp.matched(1).substr(-1,1) != ".")
+					formula = regexp.replace( formula, '$1' + "c" + i +'$2' );
 		}
 		for (i in 0...textureIdentifiers.length) {
 			var regexp = new EReg('(.*?\\b)${textureIdentifiers[i]}(\\b.*?)', "g");
-			regexp.match(formula);
-			if (textureLayers.exists(i) && regexp.matched(1).substr(-1,1) != ".")
-				formula = regexp.replace( formula, '$1' + "t" + i +'$2' );
+			if (regexp.match(formula))
+				if (textureLayers.exists(i) && regexp.matched(1).substr(-1,1) != ".")
+					formula = regexp.replace( formula, '$1' + "t" + i +'$2' );
 		}
 		for (i in 0...customTextureIdentifiers.length) {
 			var regexp = new EReg('(.*?\\b)${customTextureIdentifiers[i]}(\\b.*?)', "g");
-			regexp.match(formula);
-			if (textureLayers.exists(textureIdentifiers.length+i) && regexp.matched(1).substr(-1,1) != ".")
-				formula = regexp.replace( formula, '$1' + "t"+(textureIdentifiers.length+i) +'$2' );
+			if (regexp.match(formula))
+				if (textureLayers.exists(textureIdentifiers.length+i) && regexp.matched(1).substr(-1,1) != ".")
+					formula = regexp.replace( formula, '$1' + "t"+(textureIdentifiers.length+i) +'$2' );
 		}
-		
-		for (name in defaultColorVars.keys()) {
-			var regexp = new EReg('(.*?\\b)${name}(\\b.*?)', "g");
-			regexp.match(formula);
-			if (regexp.matched(1).substr(-1,1) != ".")
-				formula = regexp.replace( formula, '$1' + defaultColorVars.get(name).toGLSL() + '$2' );
+		// fill the REST with default values:
+		for (name in defaultFormulaVars.keys()) {
+			var regexp = new EReg('(.*?\\b)${name}(.[rgbaxyz]+)?(\\b.*?)', "g");
+			formula = regexp.replace( formula, '$1' + defaultFormulaVars.get(name).toGLSL('$2') + '$3' );
 		}
 		
 		glShaderConfig.FRAGMENT_CALC_LAYER = formula;
@@ -293,7 +294,7 @@ class Program
 		if (varDefaults != null)
 			for (name in varDefaults.keys()) {
 				if (Util.isWrongIdentifier(name)) throw('Error: "$name" is not an identifier, please use only letters/numbers or "_" (starting with a letter)');
-				defaultColorVars.set(name, varDefaults.get(name));
+				defaultFormulaVars.set(name, varDefaults.get(name));
 			}
 		if (autoUpdateTextures) updateTextures();
 	}
