@@ -56,15 +56,14 @@ class Elem implements Element
 	// formula (glsl) to combine colors with textures
 	// var DEFAULT_COLOR_FORMULA = "alpha * (color * base + shift)";  // default is alpha-over:  mix( mix( c0*t0, c1*t1 , (c1*t1).a ) ...)) * cn1 + cn2 * cn3 + cn4 * ...
 
-	// give texture, color or custom-to-use identifiers a default value ( if there is no texture set for )
-	/*
+	// give texture, texturelayer- or custom-to-use identifiers a default value ( if there is no texture set for )
+	
 	var DEFAULT_FORMULA_VARS = [
-		"color"  => 0xffffffff, // not need here
-		"shift"  => 0x00000000, // not need here
 		"base"  => 0xff0000ff,
 		"alpha" => 0x00ff00ff,
 		"mask"  => 0x0000ffff,
-	];*/
+		"own"  => 0x0000ffff,
+	];
 	
 	public function new(positionX:Int=0, positionY:Int=0, width:Int=100, height:Int=100)
 	{
@@ -106,20 +105,20 @@ class MultiTextures
 			texture1 = new Texture(512, 512);
 			texture2 = new Texture(512, 512);
 			
-			program.setMultiTexture([texture0, texture1, texture2], Elem.TEXTURE_BASE, false);
-			//program.setMultiTexture([texture0, texture1],           Elem.TEXTURE_ALPHA, false);
-			program.setTexture(texture1, Elem.TEXTURE_MASK, false);
+			program.setMultiTexture([texture0, texture1, texture2], Elem.TEXTURE_base, false);
+			//program.setMultiTexture([texture0, texture1],           Elem.TEXTURE_alpha, false);
+			program.setTexture(texture1, Elem.TEXTURE_mask, false);
 			program.setTexture(texture2, "custom", false);
 			
 			/*
 			// compositing multiple textures per fragment-shader
 			program.setColorFormula(
-				'custom + custom.a * color * mask * (shift+base) * ${Elem.TEXTURE_ALPHA}',
+				'custom + custom.a * color * mask * (shift+base) * ${Elem.TEXTURE_alpha}',
 				[
 					"custom"   => 0x44444444,
 					"base"   => 0x11111111,
-					Elem.TEXTURE_ALPHA => 0x22222222,
-					Elem.TEXTURE_MASK => 0x33333333,
+					Elem.TEXTURE_alpha => 0x22222222,
+					Elem.TEXTURE_mask => 0x33333333,
 				]
 			);
 			*/

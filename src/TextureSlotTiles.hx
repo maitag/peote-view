@@ -29,7 +29,7 @@ class Elem implements Element
 	@texUnit() public var unit:Int;
 
 	// what texture-slot to use
-	@texSlot  @anim("Slot") @time("Slot")
+	@texSlot  @anim("Slot")
 	public var slot:Int;  // unsigned 2 bytes integer
 
 	// manual texture coordinates inside a slot (or inside all slots if no slot available)
@@ -39,7 +39,7 @@ class Elem implements Element
 	//@texH public var th:Int=512;
 	
 	// tiles the slot or manual texture-coordinate into sub-slots
-	@texTile() @anim("Tile") @time("Tile")
+	@texTile() @anim("Tile")
 	public var tile:Int;  // unsigned 2 bytes integer
 
 	//TODO: let the texture shift inside slot/texCoords/tile area

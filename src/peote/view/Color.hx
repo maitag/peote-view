@@ -1,4 +1,5 @@
 package peote.view;
+import peote.view.utils.Util;
 
 abstract Color(Int) from Int to Int
 {
@@ -51,16 +52,13 @@ abstract Color(Int) from Int to Int
 		this = random();
 	}
 
-	inline function toFloatString(value:Dynamic):String {
-		var s:String = Std.string(value);
-		return (s.indexOf(".") != -1 || s.indexOf("e-") != -1) ? s : s + ".0";
-	}	
-	public inline function toGLSL(swizzle:String = ""):String {
+	public inline function toGLSL():String {
+	//public inline function toGLSL(swizzle:String = ""):String {
 		
 		//TODO: swizzle out to other kind of vector
 		
-		return 'vec4(${toFloatString(r/255)}, ${toFloatString(g/255)},' + 
-		           ' ${toFloatString(b/255)}, ${toFloatString(a/255)})';
+		return 'vec4(${Util.toFloatString(r/255)}, ${Util.toFloatString(g/255)},' + 
+		           ' ${Util.toFloatString(b/255)}, ${Util.toFloatString(a/255)})';
 	}
 	
 	                   // TODO: Int to Color ?

@@ -477,7 +477,8 @@ class ElementImpl
 		
 		var hasNoNew:Bool = true;		
 		var hasNoDefaultColorFormula:Bool = true;		
-		var hasNoDefaultFormulaVars:Bool = true;		
+		var hasNoDefaultFormulaVars:Bool = true;
+		var defaultFormulaVars = new Array<String>();
 		var classname:String = Context.getLocalClass().get().name;
 		//var classpackage = Context.getLocalClass().get().pack;
 		
@@ -495,10 +496,28 @@ class ElementImpl
 				f.meta = allowForBuffer;
 				f.access = [Access.APrivate, Access.AStatic, Access.AInline];				
 			}
-			else if (f.name == "DEFAULT_FORMULA_VARS") { // TODO: make all new identifiers also static for .TEXTURE_...
-				hasNoDefaultFormulaVars = false; trace("HAS NOOOOOOOOOOOOOOOOO DEFAULT_FORMULA_VARS");
+			else if (f.name == "DEFAULT_FORMULA_VARS") {
+				hasNoDefaultFormulaVars = false;
 				f.meta = allowForBuffer;
 				f.access = [Access.APrivate, Access.AStatic];
+				// collect identifiers here to make all new identifiers also static for .TEXTURE_...
+				switch(f.kind) {
+					case FVar(_, val):
+						switch(val.expr) {
+							case EArrayDecl(arr):
+								for (a in arr)
+									switch(a.expr) {
+										case EBinop(OpArrow, e1, _):
+											switch(e1.expr) {
+												case EConst(CString(identifier)): defaultFormulaVars.push(identifier);
+												default:
+											}
+										default:
+									}
+							default:
+						}
+					default:
+				}
 			}
 			else switch (f.kind)
 			{	
@@ -755,7 +774,7 @@ class ElementImpl
 		}
 		
 		for (name in confTextureLayer.keys()) {
-			trace(name, confTextureLayer.get(name));
+			//trace(name, confTextureLayer.get(name));
 			var v:StringMap<Int> = confTextureLayer.get(name);
 			
 			var layer = (name == "__default__") ? maxLayer : v.get("layer");
@@ -825,19 +844,32 @@ class ElementImpl
 				end_ELEMENT_LAYER:"::end::"
 			});
 			// create static vars for texture identifiers
-			if (name != "__default__")
+			if (name != "__default__") {
 				fields.push({
-					name:  "TEXTURE_" + name.toUpperCase(),
+					name:  "TEXTURE_" + name, //name.toUpperCase(),
 					access:  [Access.APublic, Access.AStatic, Access.AInline],
 					kind: FieldType.FVar(macro:String, macro $v{name}), 
 					pos: Context.currentPos(),
 				});
-			debugLastField(fields);
+				debugLastField(fields);
+			}
+		}
+		// create static vars for texture identifiers that is additional inside DEFAULT_FORMULA_VARS
+		for (name in defaultFormulaVars) {
+			if (!confTextureLayer.exists(name)) {
+				fields.push({
+					name:  "TEXTURE_" + name, //name.toUpperCase(),
+					access:  [Access.APublic, Access.AStatic, Access.AInline],
+					kind: FieldType.FVar(macro:String, macro $v{name}), 
+					pos: Context.currentPos(),
+				});
+				debugLastField(fields);				
+			}
 		}
 		
 		for (name in colorIdentifiers) // create static vars for color identifiers
 			fields.push({
-				name:  "COLOR_" + name.toUpperCase(),
+				name:  "COLOR_" + name, //.toUpperCase(),
 				access:  [Access.APublic, Access.AStatic, Access.AInline],
 				kind: FieldType.FVar(macro:String, macro $v{name}), 
 				pos: Context.currentPos(),
@@ -1048,8 +1080,8 @@ class ElementImpl
 		for (c in conf.texH) buff_size_instanced += Std.int(c.n * 2);
 		
 		var buff_size:Int = buff_size_instanced +2;
-		trace("buff_size_instanced", buff_size_instanced);
-		trace("buff_size", buff_size);
+		//trace("buff_size_instanced", buff_size_instanced);
+		//trace("buff_size", buff_size);
 		
 		var fillStride:Int = buff_size % 4;
 		if (fillStride != 0) fillStride = 4 - fillStride;
@@ -1058,8 +1090,8 @@ class ElementImpl
 		
 		buff_size += fillStride;
 		buff_size_instanced += fillStride_instanced;
-		trace("fillStride_instanced",fillStride_instanced, "buff_size_instanced", buff_size_instanced);
-		trace("fillStride",fillStride, "buff_size", buff_size);
+		//trace("fillStride_instanced",fillStride_instanced, "buff_size_instanced", buff_size_instanced);
+		//trace("fillStride",fillStride, "buff_size", buff_size);
 		
 		// ---------------------- constants and switches -----------------------------------
 		fields.push({

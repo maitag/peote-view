@@ -27,6 +27,7 @@ class Program
 {
 	public var alphaEnabled:Bool;
 	public var zIndexEnabled:Bool;
+	public var autoUpdateTextures:Bool = true;
 	
 	var display:Display = null;
 	var gl:PeoteGL = null;
@@ -282,21 +283,26 @@ class Program
 		}
 		// fill the REST with default values:
 		for (name in defaultFormulaVars.keys()) {
-			var regexp = new EReg('(.*?\\b)${name}(.[rgbaxyz]+)?(\\b.*?)', "g");
-			formula = regexp.replace( formula, '$1' + defaultFormulaVars.get(name).toGLSL('$2') + '$3' );
+			//var regexp = new EReg('(.*?\\b)${name}(.[rgbaxyz]+)?(\\b.*?)', "g");
+			var regexp = new EReg('(.*?\\b)${name}(\\b.*?)', "g");
+			if (regexp.match(formula))
+				if (regexp.matched(1).substr(-1,1) != ".")
+						formula = regexp.replace( formula, '$1' + defaultFormulaVars.get(name).toGLSL() + '$2' );
+			//formula = regexp.replace( formula, '$1' + defaultFormulaVars.get(name).toGLSL('$2') + '$3' );
 		}
 		
 		glShaderConfig.FRAGMENT_CALC_LAYER = formula;
 	}
 	
-	public function setColorFormula(formula:String, varDefaults:StringMap<Color>=null, autoUpdateTextures:Bool = true):Void {
+	public function setColorFormula(formula:String, varDefaults:StringMap<Color>=null, ?autoUpdateTextures:Null<Bool>):Void {
 		colorFormula = formula;
 		if (varDefaults != null)
 			for (name in varDefaults.keys()) {
 				if (Util.isWrongIdentifier(name)) throw('Error: "$name" is not an identifier, please use only letters/numbers or "_" (starting with a letter)');
 				defaultFormulaVars.set(name, varDefaults.get(name));
 			}
-		if (autoUpdateTextures) updateTextures();
+		if (autoUpdateTextures != null) if (autoUpdateTextures) updateTextures();
+		else if (this.autoUpdateTextures) updateTextures();
 	}
 	
 	function getTextureIndexByIdentifier(identifier:String, addNew:Bool = true):Int {
@@ -316,15 +322,16 @@ class Program
 	}
 	
 	// set a texture-layer
-	public function setTexture(texture:Texture, identifier:String, autoUpdateTextures:Bool = true):Void {
+	public function setTexture(texture:Texture, identifier:String, ?autoUpdateTextures:Null<Bool>):Void {
 		trace("(re)set texture of a layer");
 		var layer = getTextureIndexByIdentifier(identifier);
 		textureLayers.set(layer, [texture]);
-		if (autoUpdateTextures) updateTextures();
+		if (autoUpdateTextures != null) if (autoUpdateTextures) updateTextures();
+		else if (this.autoUpdateTextures) updateTextures();
 	}
 	
 	// multiple textures per layer (to switch between them via unit-attribute)
-	public function setMultiTexture(textureUnits:Array<Texture>, identifier:String, autoUpdateTextures:Bool = true):Void {
+	public function setMultiTexture(textureUnits:Array<Texture>, identifier:String, ?autoUpdateTextures:Null<Bool>):Void {
 		trace("(re)set texture-units of a layer");
 		var layer = getTextureIndexByIdentifier(identifier);
 		if (textureUnits == null) throw("Error, textureUnits need to be an array of textures");
@@ -334,11 +341,12 @@ class Program
 			if (textureUnits[i] == null) throw("Error, texture is null.");
 			else if (textureUnits.indexOf(textureUnits[i]) != i) throw("Error, textureLayer can not contain same texture twice.");		
 		textureLayers.set(layer, textureUnits);
-		if (autoUpdateTextures) updateTextures();
+		if (autoUpdateTextures != null) if (autoUpdateTextures) updateTextures();
+		else if (this.autoUpdateTextures) updateTextures();
 	}
 	
 	// add a texture to textuer-units
-	public function addTexture(texture:Texture, identifier:String, autoUpdateTextures:Bool = true):Void {
+	public function addTexture(texture:Texture, identifier:String, ?autoUpdateTextures:Null<Bool>):Void {
 		trace("add texture into units of " + identifier);
 		var layer = getTextureIndexByIdentifier(identifier);
 		if (texture == null) throw("Error, texture is null.");
@@ -351,10 +359,11 @@ class Program
 			}
 		}
 		else textureLayers.set(layer, [texture]);
-		if (autoUpdateTextures) updateTextures();
+		if (autoUpdateTextures != null) if (autoUpdateTextures) updateTextures();
+		else if (this.autoUpdateTextures) updateTextures();
 	}
 	
-	public function removeTexture(texture:Texture, identifier:String, autoUpdateTextures:Bool = true):Void {
+	public function removeTexture(texture:Texture, identifier:String, ?autoUpdateTextures:Null<Bool>):Void {
 		trace("remove texture from textureUnits of a layer");
 		var layer = getTextureIndexByIdentifier(identifier, false);
 		if (layer < 0) throw('Error, textureLayer "$identifier" did not exists.');
@@ -364,16 +373,18 @@ class Program
 			textureLayers.remove(layer);
 			customTextureIdentifiers.remove(identifier);
 		}
-		if (autoUpdateTextures) updateTextures();
+		if (autoUpdateTextures != null) if (autoUpdateTextures) updateTextures();
+		else if (this.autoUpdateTextures) updateTextures();
 	}
 	
-	public function removeAllTexture(identifier:String, autoUpdateTextures:Bool = true):Void {
+	public function removeAllTexture(identifier:String, ?autoUpdateTextures:Null<Bool>):Void {
 		trace("remove all textures from a layer");
 		var layer = getTextureIndexByIdentifier(identifier, false);
 		if (layer < 0) throw('Error, textureLayer "$identifier" did not exists.');
 		textureLayers.remove(layer);
 		customTextureIdentifiers.remove(identifier);
-		if (autoUpdateTextures) updateTextures();
+		if (autoUpdateTextures != null) if (autoUpdateTextures) updateTextures();
+		else if (this.autoUpdateTextures) updateTextures();
 	}
 	
 	// TODO: replaceTexture(textureToReplace:Texture, newTexture:Texture)
