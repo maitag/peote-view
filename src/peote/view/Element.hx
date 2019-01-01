@@ -13,6 +13,8 @@ import haxe.macro.Context;
 import haxe.macro.ExprTools;
 import haxe.macro.Printer;
 
+import peote.view.utils.Util;
+
 typedef ConfParam =
 {
 	posX :ConfSubParam,
@@ -76,6 +78,7 @@ class ElementImpl
 		trace(new Printer().printField(fields[fields.length - 1]));
 		#end
 	}
+	
 	/*
 	static var rComments:EReg = new EReg("//.*?$","gm");
 	static var rEmptylines:EReg = new EReg("([ \t]*\r?\n)+", "g");
@@ -86,18 +89,6 @@ class ElementImpl
 		//var s = rStartspaces.replace(rEmptylines.replace(rComments.replace(template.execute(glConf), ""), "\n"), "");
 		var s = template.execute(glConf);
 		return s;
-	}
-	
-	static inline function camelCase(a:String, b:String):String return a + b.substr(0, 1).toUpperCase() + b.substr(1);
-	
-	static inline function toFloatString(value:Dynamic):String {
-		var s:String = Std.string(value);
-		return (s.indexOf(".") != -1 || s.indexOf("e-") != -1) ? s : s + ".0";
-	}
-	
-	static inline function color2vec4(c:UInt):String {
-		return 'vec4(${toFloatString(((c & 0xFF000000)>>24)/255)}, ${toFloatString(((c & 0x00FF0000)>>16)/255)},' + 
-		            ' ${toFloatString(((c & 0x0000FF00)>>8)/255)}, ${toFloatString((c & 0x000000FF)/255)})';
 	}
 	
 	static function hasMeta(f:Field, s:String):Bool {
@@ -198,7 +189,7 @@ class ElementImpl
 	{
 		var param:String = getMetaParam(f, "set");
 		if (param != null) {
-			param = camelCase("set", param);
+			param = Util.camelCase("set", param);
 			var v = setFun.get(param);
 			if (v == null) {
 				v = {args:[], expr:[]};
@@ -220,7 +211,7 @@ class ElementImpl
 	{
 		var param:String = getMetaParam(f, "anim");
 		if (param != null) {
-			param = camelCase("anim", param);
+			param = Util.camelCase("anim", param);
 			var v = animFun.get(param);
 			if (v == null) {
 				v = {argsStart:[], argsEnd:[], exprStart:[], exprEnd:[]};
@@ -361,6 +352,7 @@ class ElementImpl
 		if (metas.length == 0) metas.push("__default__");
 		for (name in metas) {
 			if (colorIdentifiers.indexOf(name) >= 0) throw Context.error('Error: "$name" is already used for a @color identifier', f.pos);
+			if (name != "__default__" && Util.isWrongIdentifier(name)) throw Context.error('Error: "$name" is not an identifier, please use only letters/numbers or "_" (starting with a letter)', f.pos);
 			var layer = confTextureLayer.get(name);
 			if (layer != null) {
 				if (layer.exists(meta)) throw Context.error('Error: "$name" is already used as identifier for @$meta', f.pos);
@@ -385,8 +377,10 @@ class ElementImpl
 	{
 		var metas:Array<String> = getAllMetaParams(f, meta);
 		if (metas == null) return false;
+		if (metas.length > 1) throw Context.error('Error: @color attributes needs only 1 identifier for use in colorFormula (default is allways "color")', f.pos);
 		if (metas.length == 0) metas.push("color");
 		var name = metas[0];
+		if (Util.isWrongIdentifier(name)) throw Context.error('Error: "$name" is not an identifier, please use only letters/numbers or "_" (starting with a letter)', f.pos);
 		if (colorIdentifiers.indexOf(name) >= 0) throw Context.error('Error: "$name" is already used for a @color identifier', f.pos);
 		if (confTextureLayer.exists(name)) throw Context.error('Error: "$name" is already used as identifier for a texture-layer', f.pos);
 		colorIdentifiers.push(name);
@@ -482,7 +476,7 @@ class ElementImpl
 		fields = Context.getBuildFields();
 		
 		var hasNoNew:Bool = true;		
-		var hasNoDefaultTextureColors:Bool = true;		
+		var hasNoDefaultColorVars:Bool = true;		
 		var hasNoDefaultColorFormula:Bool = true;		
 		var classname:String = Context.getLocalClass().get().name;
 		//var classpackage = Context.getLocalClass().get().pack;
@@ -497,7 +491,7 @@ class ElementImpl
 			fieldnames.push(f.name);
 			if (f.name == "new") hasNoNew = false;
 			else if (f.name == "DEFAULT_TEXTURE_COLORS") { // TODO: make all new identifiers also static for .TEXTURE_...
-				hasNoDefaultTextureColors = false;
+				hasNoDefaultColorVars = false;
 				f.meta = allowForBuffer;
 				f.access = [Access.APrivate, Access.AStatic];
 			}
@@ -624,22 +618,22 @@ class ElementImpl
 			var n:Int = x.n + y.n;
 			if (x.isStart && !y.isStart) {
 				if (n > 1) { start += ".x"; end += ".y"; }
-				start = 'vec2( $start, ${toFloatString(y.vStart)} )';
+				start = 'vec2( $start, ${Util.toFloatString(y.vStart)} )';
 			}
 			else if (!x.isStart && y.isStart) {
 				if (n > 1) { start += ".x"; end += ".y"; }
-				start = 'vec2( ${toFloatString(x.vStart)}, $start )';
+				start = 'vec2( ${Util.toFloatString(x.vStart)}, $start )';
 			}
 			else if (!x.isStart && !y.isStart)
-				start= 'vec2( ${toFloatString(x.vStart)}, ${toFloatString(y.vStart)} )';
+				start= 'vec2( ${Util.toFloatString(x.vStart)}, ${Util.toFloatString(y.vStart)} )';
 			else if (n > 2) {
 				start += ".xy"; end += ".z";
 			}
 			// ANIM
 			if (x.isAnim || y.isAnim) {
-				if (x.isEnd && !y.isEnd)       end = 'vec2( $end, ${toFloatString(y.vEnd)} )';
-				else if (!x.isEnd && y.isEnd)  end = 'vec2( ${toFloatString(x.vEnd)}, $end )';
-				else if (!x.isEnd && !y.isEnd) end = 'vec2( ${toFloatString(x.vEnd)}, ${toFloatString(y.vEnd)} )';
+				if (x.isEnd && !y.isEnd)       end = 'vec2( $end, ${Util.toFloatString(y.vEnd)} )';
+				else if (!x.isEnd && y.isEnd)  end = 'vec2( ${Util.toFloatString(x.vEnd)}, $end )';
+				else if (!x.isEnd && !y.isEnd) end = 'vec2( ${Util.toFloatString(x.vEnd)}, ${Util.toFloatString(y.vEnd)} )';
 				else {
 					if      (end == name+".y") end += "z";
 					else if (end == name+".z") end += "w";
@@ -672,7 +666,7 @@ class ElementImpl
 			}
 			else glConf.CALC_ROTZ += ' size = size * $rotationmatrix;';
 		}
-		if (conf.zIndex.name != "") glConf.ZINDEX = "rotZ.y" else glConf.ZINDEX = toFloatString(conf.zIndex.vStart);
+		if (conf.zIndex.name != "") glConf.ZINDEX = "rotZ.y" else glConf.ZINDEX = Util.toFloatString(conf.zIndex.vStart);
 		
 		// pos
 		glConf.CALC_POS  = "vec2 pos  = size + " + pack2in1("aPos" , conf.posX,  conf.posY ) + ";";
@@ -681,9 +675,9 @@ class ElementImpl
 		//if (conf.color.length == 0) glConf.FRAGMENT_CALC_COLOR += 'vec4 c0 = ${color2vec4(conf.colorDefault.vStart)};';
 		//else 
 			for (k in 0...conf.color.length) {
-				var start = (conf.color[k].isStart) ? 'aColorStart${k}.wzyx' : color2vec4(conf.color[k].vStart);
+				var start = (conf.color[k].isStart) ? 'aColorStart${k}.wzyx' : Util.color2vec4(conf.color[k].vStart);
 				if (conf.color[k].isAnim) {
-					var end = (conf.color[k].isEnd) ? 'aColorEnd${k}.wzyx' : color2vec4(conf.color[k].vEnd);
+					var end = (conf.color[k].isEnd) ? 'aColorEnd${k}.wzyx' : Util.color2vec4(conf.color[k].vEnd);
 					start = '$start + ($end - $start) * time' + timers.indexOf(conf.color[k].time);
 				}
 				if (conf.color[k].n > 0 || conf.color[k].isAnim) {
@@ -697,9 +691,9 @@ class ElementImpl
 		function packTex(name:String, confItems:Array<ConfSubParam>, index:Int):String {
 			name += index;
 			var confItem:ConfSubParam = confItems[index];
-			var start = (confItem.isStart) ? name : toFloatString(confItem.vStart);
+			var start = (confItem.isStart) ? name : Util.toFloatString(confItem.vStart);
 			if (confItem.isAnim) {
-				var end = (confItem.isEnd) ? name : toFloatString(confItem.vEnd);				
+				var end = (confItem.isEnd) ? name : Util.toFloatString(confItem.vEnd);				
 				if (confItem.isStart && confItem.isEnd) { start += ".x"; end += ".y"; }
 				else if (confItem.isEnd) { end += ".x"; }
 				start = '$start + ($end - $start) * time' + timers.indexOf(confItem.time);
@@ -858,7 +852,7 @@ class ElementImpl
 			kind: FieldType.FVar(macro:String, macro $v{textureIdentifiers.join(",")}), 
 			pos: Context.currentPos(),
 		});
-		// TODO: all color identifiers inside a static string for progam
+		// put all color identifiers inside a static string for progam
 		// trace("colorIdentifiers", colorIdentifiers);
 		fields.push({
 			name:  "IDENTIFIERS_COLOR",
@@ -869,25 +863,21 @@ class ElementImpl
 		});
 		
 		// set default texture colors (for formula)
-		if (hasNoDefaultTextureColors) {
+		if (hasNoDefaultColorVars) {
 			fields.push({
-				name:  "DEFAULT_TEXTURE_COLORS",
+				name:  "DEFAULT_COLOR_VARS",
 				meta:  allowForBuffer,
 				access:  [Access.APrivate, Access.AStatic],
 				kind: FieldType.FVar(macro:haxe.ds.StringMap<Color>, macro new haxe.ds.StringMap<Color>()),
 				pos: Context.currentPos(),
 			});
 		}
-		
 		// set default color formula
 		if (hasNoDefaultColorFormula) {
-			//var colorFormula:String = (colorIdentifiers.length>0) ? colorIdentifiers.join("*") : color2vec4(conf.colorDefault.vStart);
-			//var colorFormula:String = colorIdentifiers.join("*");
 			fields.push({
 				name:  "DEFAULT_COLOR_FORMULA",
 				meta:  allowForBuffer,
 				access:  [Access.APrivate, Access.AStatic, Access.AInline],
-				//kind: FieldType.FVar(macro:String, macro $v{colorFormula}), 
 				kind: FieldType.FVar(macro:String, macro $v{""}), 
 				pos: Context.currentPos(),
 			});
@@ -913,7 +903,7 @@ class ElementImpl
 		}
 		
 		for (t in timers) {
-			var name = camelCase("time", t);
+			var name = Util.camelCase("time", t);
 			genVar(macro:Float, name + "Start",    0.0);
 			genVar(macro:Float, name + "Duration", 0.0);
 			if (fieldnames.indexOf(name) == -1) {
@@ -1333,8 +1323,8 @@ class ElementImpl
 				// -------------- setFloat (32) ------------------------------
 				// TIMERS
 				for (k in 0...timers.length) {
-					exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{camelCase("time",timers[k])+"Start"}) ); i+=4;
-					exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{camelCase("time",timers[k])+"Duration"}) ); i+=4;
+					exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{Util.camelCase("time",timers[k])+"Start"}) ); i+=4;
+					exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{Util.camelCase("time",timers[k])+"Duration"}) ); i+=4;
 				}
 				// ROTZ
 				if (conf.rotation.isAnim && conf.rotation.isStart) { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{conf.rotation.name+"Start"}/180*Math.PI) ); i+=4; }

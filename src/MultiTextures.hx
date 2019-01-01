@@ -53,18 +53,18 @@ class Elem implements Element
 	//@texOffsetX("base") public var txOffset:Int;
 	//@texOffsetY("base") public var tyOffset:Int;
 	
-	// give the texture identifiers a default value ( if there is no texture set for )
+	// formula (glsl) to combine colors with textures
+	// var DEFAULT_COLOR_FORMULA = "alpha * (color * base + shift)";  // default is alpha-over:  mix( mix( c0*t0, c1*t1 , (c1*t1).a ) ...)) * cn1 + cn2 * cn3 + cn4 * ...
+
+	// give texture, color or custom-to-use identifiers a default value ( if there is no texture set for )
 	/*
-	var DEFAULT_TEXTURE_COLORS = [
+	var DEFAULT_COLOR_VARS = [
 		"color"  => 0xffffffff, // not need here
 		"shift"  => 0x00000000, // not need here
 		"base"  => 0xff0000ff,
 		"alpha" => 0x00ff00ff,
 		"mask"  => 0x0000ffff,
 	];*/
-	// formula (glsl) to combine colors with textures
-	//var DEFAULT_COLOR_FORMULA = "alpha * (color * base + shift)";
-	// default is alpha-over:  mix( mix( c0*t0, c1*t1 , (c1*t1).a ) ...)) * cn1 + cn2 * cn3 + cn4 * ...
 	
 	public function new(positionX:Int=0, positionY:Int=0, width:Int=100, height:Int=100)
 	{
@@ -113,13 +113,15 @@ class MultiTextures
 			
 			/*
 			// compositing multiple textures per fragment-shader
-			program.setDefaultTextureColors([
-				"base"   => 0x11111111,
-				Elem.TEXTURE_ALPHA => 0x22222222,
-				Elem.TEXTURE_MASK => 0x33333333,
-				"custom"   => 0x44444444,
-			]);
-			program.setColorFormula('custom + custom.a * color * mask * (shift+base) * ${Elem.TEXTURE_ALPHA}');
+			program.setColorFormula(
+				'custom + custom.a * color * mask * (shift+base) * ${Elem.TEXTURE_ALPHA}',
+				[
+					"custom"   => 0x44444444,
+					"base"   => 0x11111111,
+					Elem.TEXTURE_ALPHA => 0x22222222,
+					Elem.TEXTURE_MASK => 0x33333333,
+				]
+			);
 			*/
 			
 			program.updateTextures(); // updates gl-textures and also rebuilds the shadercode

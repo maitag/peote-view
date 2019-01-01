@@ -13,7 +13,7 @@ interface BufferInterface
 	private function getFragmentShader():String;
 	private function getTextureIdentifiers():Array<String>;
 	private function getColorIdentifiers():Array<String>;
-	private function getDefaultTextureColors():haxe.ds.StringMap<peote.view.Color>;
+	private function getDefaultColorVars():haxe.ds.StringMap<peote.view.Color>;
 	private function getDefaultColorFormula():String;
 	private function hasAlpha():Bool;
 	private function hasZindex():Bool;

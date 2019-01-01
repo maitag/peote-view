@@ -6,6 +6,7 @@ import peote.view.PeoteGL.GLProgram;
 import peote.view.PeoteGL.GLShader;
 import peote.view.PeoteGL.GLUniformLocation;
 
+import peote.view.utils.Util;
 import peote.view.utils.GLTool;
 import peote.view.utils.RenderList;
 import peote.view.utils.RenderListItem;
@@ -59,7 +60,7 @@ class Program
 	var textureIdentifiers:Array<String>;
 	var customTextureIdentifiers = new Array<String>();
 	
-	var defaultTextureColors:StringMap<Color>;
+	var defaultColorVars:StringMap<Color>;
 	var defaultColorFormula:String;
 	var colorFormula = "";
 	
@@ -71,7 +72,7 @@ class Program
 		zIndexEnabled = buffer.hasZindex();		
 		colorIdentifiers = buffer.getColorIdentifiers();
 		textureIdentifiers = buffer.getTextureIdentifiers();
-		defaultTextureColors = buffer.getDefaultTextureColors();
+		defaultColorVars = buffer.getDefaultColorVars();
 		defaultColorFormula = buffer.getDefaultColorFormula();
 		trace("defaultColorFormula = ", defaultColorFormula);
 		parseColorFormula();
@@ -260,44 +261,50 @@ class Program
 		
 		for (i in 0...colorIdentifiers.length) {
 			var regexp = new EReg('(.*?\\b)${colorIdentifiers[i]}(\\b.*?)', "g");
-			formula = regexp.replace( formula, '$1' + "c" + i +'$2' );
+			regexp.match(formula);
+			if (regexp.matched(1).substr(-1,1) != ".")
+				formula = regexp.replace( formula, '$1' + "c" + i +'$2' );
 		}
 		for (i in 0...textureIdentifiers.length) {
 			var regexp = new EReg('(.*?\\b)${textureIdentifiers[i]}(\\b.*?)', "g");
-			if (textureLayers.exists(i))
+			regexp.match(formula);
+			if (textureLayers.exists(i) && regexp.matched(1).substr(-1,1) != ".")
 				formula = regexp.replace( formula, '$1' + "t" + i +'$2' );
 		}
 		for (i in 0...customTextureIdentifiers.length) {
 			var regexp = new EReg('(.*?\\b)${customTextureIdentifiers[i]}(\\b.*?)', "g");
-			if (textureLayers.exists(textureIdentifiers.length+i))
+			regexp.match(formula);
+			if (textureLayers.exists(textureIdentifiers.length+i) && regexp.matched(1).substr(-1,1) != ".")
 				formula = regexp.replace( formula, '$1' + "t"+(textureIdentifiers.length+i) +'$2' );
 		}
 		
-		for (name in defaultTextureColors.keys()) {
+		for (name in defaultColorVars.keys()) {
 			var regexp = new EReg('(.*?\\b)${name}(\\b.*?)', "g");
-			formula = regexp.replace( formula, '$1' + defaultTextureColors.get(name).toGLSL() + '$2' );
+			regexp.match(formula);
+			if (regexp.matched(1).substr(-1,1) != ".")
+				formula = regexp.replace( formula, '$1' + defaultColorVars.get(name).toGLSL() + '$2' );
 		}
 		
 		glShaderConfig.FRAGMENT_CALC_LAYER = formula;
 	}
 	
-	public function setDefaultTextureColors(defaults:StringMap<Color>, autoUpdateTextures:Bool = true):Void {
-		for (name in defaults.keys()) defaultTextureColors.set(name, defaults.get(name));
-		if (autoUpdateTextures) updateTextures();
-	}
-	
-	public function setColorFormula(formula:String, autoUpdateTextures:Bool = true):Void {
+	public function setColorFormula(formula:String, varDefaults:StringMap<Color>=null, autoUpdateTextures:Bool = true):Void {
 		colorFormula = formula;
+		if (varDefaults != null)
+			for (name in varDefaults.keys()) {
+				if (Util.isWrongIdentifier(name)) throw('Error: "$name" is not an identifier, please use only letters/numbers or "_" (starting with a letter)');
+				defaultColorVars.set(name, varDefaults.get(name));
+			}
 		if (autoUpdateTextures) updateTextures();
 	}
 	
 	function getTextureIndexByIdentifier(identifier:String, addNew:Bool = true):Int {
-		// TODO: checkIdentifier(identifier);
 		var layer = textureIdentifiers.indexOf(identifier);
 		if (layer < 0) {
 			layer = customTextureIdentifiers.indexOf(identifier);
 			if (layer < 0) {
 				if (addNew) {
+					if (Util.isWrongIdentifier(identifier)) throw('Error: "$identifier" is not an identifier, please use only letters/numbers or "_" (starting with a letter)');
 					trace('adding custom texture layer "$identifier"');
 					layer = textureIdentifiers.length + customTextureIdentifiers.length;
 					customTextureIdentifiers.push(identifier); // adds a custom identifier
