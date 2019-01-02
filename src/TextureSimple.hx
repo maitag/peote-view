@@ -15,14 +15,45 @@ import peote.view.Buffer;
 import peote.view.Program;
 import peote.view.Color;
 import peote.view.Texture;
+import peote.view.Element;
 
-import elements.ElementSimple;
+class Elem implements Element
+{
+	@posX public var x:Int=0; // signed 2 bytes integer
+	@posY public var y:Int=0; // signed 2 bytes integer
+	
+	@sizeX public var w:Int=100;
+	@sizeY public var h:Int=100;
+	
+	@texSlot var slot:Int = 1;
+	
+	@color public var c:Color = 0xff0000ff;
+		
+	@zIndex public var z:Int = 0;	
+	
+	//TODO: let the texture shift inside slot/texCoords/tile area
+	@texOffsetX @texRepeat public var txOffset:Int;
+	@texOffsetY public var tyOffset:Int;
+	@texOffsetW public var twOffset:Int;
+	@texOffsetH public var thOffset:Int;
+
+	public function new(positionX:Int=0, positionY:Int=0, width:Int=100, height:Int=100, c:Int=0xFF0000FF )
+	{
+		this.x = positionX;
+		this.y = positionY;
+		this.w = width;
+		this.h = height;
+		this.c = c;
+	}
+
+
+}
 
 class TextureSimple
 {
 	var peoteView:PeoteView;
-	var element:ElementSimple;
-	var buffer:Buffer<ElementSimple>;
+	var element:Elem;
+	var buffer:Buffer<Elem>;
 	var display:Display;
 	var program:Program;
 	var texture:Texture;
@@ -33,15 +64,15 @@ class TextureSimple
 		display   = new Display(10,10, window.width-20, window.height-20, Color.GREEN);
 		peoteView.addDisplay(display);  // display to peoteView
 		
-		buffer  = new Buffer<ElementSimple>(100);
+		buffer  = new Buffer<Elem>(100);
 		program = new Program(buffer);
 		
-		texture = new Texture(512, 512);
+		texture = new Texture(512, 512, 2);
 		//program.setTextureLayer(0, [texture]);
 		
 		display.addProgram(program);    // programm to display
 
-		element  = new ElementSimple(10, 10);
+		element  = new Elem(10, 10);
 		buffer.addElement(element);     // element to buffer
 		
 		var future = Image.loadFromFile("assets/images/peote_tiles.png");
@@ -51,8 +82,10 @@ class TextureSimple
 			trace("loading complete");
 			
 			//texture = new Texture(image.width, image.height);
-			texture.setImage(image);
+			texture.setImage(image,0);
+			texture.setImage(image.clone(),1); // TODO: throw Error if same image inside multi slot
 			
+			//program.autoUpdateTextures = false;
 			program.setTexture(texture, "custom");
 			//program.updateTextures();
 			

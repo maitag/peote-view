@@ -840,6 +840,11 @@ class ElementImpl
 			glConf.ELEMENT_LAYERS.push({
 				UNIT:unit,
 				TEXCOORD:'(vTexCoord * vec2($texSizeW, $texSizeH) $texPos) / vec2(::TEXTURE_WIDTH::, ::TEXTURE_HEIGHT::)',
+				
+				//TEXCOORD:'(clamp(vec2($texSizeW, $texSizeH)/vec2(256.0, 256.0) * (vTexCoord * vec2($texSizeW, $texSizeH) - vec2(256.0,0.0) ),vec2(0.0, 0.0) ,vec2($texSizeW, $texSizeH)) $texPos) / vec2(::TEXTURE_WIDTH::, ::TEXTURE_HEIGHT::)',
+				// repeat texture if clamped
+				//TEXCOORD:'(mod(vec2($texSizeW, $texSizeH)/vec2(256.0, 256.0) * (vTexCoord * vec2($texSizeW, $texSizeH) - vec2(256.0,0.0) ), vec2($texSizeW, $texSizeH)) $texPos) / vec2(::TEXTURE_WIDTH::, ::TEXTURE_HEIGHT::)',
+
 				if_ELEMENT_LAYER:'::if (LAYER ${(name == "__default__") ? ">" : "="}= $layer)::',
 				end_ELEMENT_LAYER:"::end::"
 			});

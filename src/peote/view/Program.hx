@@ -217,32 +217,10 @@ class Program
 		else {
 			var col = colorIdentifiers.copy();
 			var tex = new Array<String>();
-			/*for (layer in textureLayers.keys().sort())
-				if (layer < textureIdentifiers.length) tex.push(textureIdentifiers[layer]);
-				else  tex.push( customTextureIdentifiers[layer-textureIdentifiers.length] );
-			*/
 			for (i in 0...textureIdentifiers.length) 
 				if (textureLayers.exists(i)) tex.push(textureIdentifiers[i]);
 			for (i in 0...customTextureIdentifiers.length)
 				if (textureLayers.exists(textureIdentifiers.length+i)) tex.push(customTextureIdentifiers[i]);
-			
-			/*tex = tex.map(function(a) {return 'clamp($a,0.0,$a.a)';});
-			var coltex = new Array<String>();
-			for (i in 0...Std.int(Math.max(col.length, tex.length))) {
-				if (i < col.length && i < tex.length) coltex.push( col[i]+"*"+tex[i] );
-				else if (i < col.length) coltex.push( col[i] );
-				else coltex.push(tex[i]);
-			}
-			if (coltex.length == 0) formula = Color.RED.toGLSL();
-			else if (coltex.length == 1) formula = coltex[0];
-			else {
-				//add
-				formula = coltex.join(" + "); //formula = "clamp(" + coltex.join(" + ") + ", 0.0, 1.0)";
-				//mix
-				//var s:String = Std.string(1 / coltex.length);
-				//s = (s.indexOf(".") != -1 || s.indexOf("e-") != -1) ? s : s + ".0";
-				//formula = coltex.map(function(a) {return '$a*$s';}).join(" + ");
-			}*/
 			
 			// mix(mix(...))*restColor
 			if (col.length + tex.length == 0) formula = Color.RED.toGLSL();
@@ -301,7 +279,7 @@ class Program
 				if (Util.isWrongIdentifier(name)) throw('Error: "$name" is not an identifier, please use only letters/numbers or "_" (starting with a letter)');
 				defaultFormulaVars.set(name, varDefaults.get(name));
 			}
-		if (autoUpdateTextures != null) if (autoUpdateTextures) updateTextures();
+		if (autoUpdateTextures != null) { if (autoUpdateTextures) updateTextures(); }
 		else if (this.autoUpdateTextures) updateTextures();
 	}
 	
@@ -326,7 +304,7 @@ class Program
 		trace("(re)set texture of a layer");
 		var layer = getTextureIndexByIdentifier(identifier);
 		textureLayers.set(layer, [texture]);
-		if (autoUpdateTextures != null) if (autoUpdateTextures) updateTextures();
+		if (autoUpdateTextures != null) { if (autoUpdateTextures) updateTextures(); }
 		else if (this.autoUpdateTextures) updateTextures();
 	}
 	
@@ -341,7 +319,7 @@ class Program
 			if (textureUnits[i] == null) throw("Error, texture is null.");
 			else if (textureUnits.indexOf(textureUnits[i]) != i) throw("Error, textureLayer can not contain same texture twice.");		
 		textureLayers.set(layer, textureUnits);
-		if (autoUpdateTextures != null) if (autoUpdateTextures) updateTextures();
+		if (autoUpdateTextures != null) { if (autoUpdateTextures) updateTextures(); }
 		else if (this.autoUpdateTextures) updateTextures();
 	}
 	
@@ -359,7 +337,7 @@ class Program
 			}
 		}
 		else textureLayers.set(layer, [texture]);
-		if (autoUpdateTextures != null) if (autoUpdateTextures) updateTextures();
+		if (autoUpdateTextures != null) { if (autoUpdateTextures) updateTextures(); }
 		else if (this.autoUpdateTextures) updateTextures();
 	}
 	
@@ -373,7 +351,7 @@ class Program
 			textureLayers.remove(layer);
 			customTextureIdentifiers.remove(identifier);
 		}
-		if (autoUpdateTextures != null) if (autoUpdateTextures) updateTextures();
+		if (autoUpdateTextures != null) { if (autoUpdateTextures) updateTextures(); }
 		else if (this.autoUpdateTextures) updateTextures();
 	}
 	
@@ -383,7 +361,7 @@ class Program
 		if (layer < 0) throw('Error, textureLayer "$identifier" did not exists.');
 		textureLayers.remove(layer);
 		customTextureIdentifiers.remove(identifier);
-		if (autoUpdateTextures != null) if (autoUpdateTextures) updateTextures();
+		if (autoUpdateTextures != null) { if (autoUpdateTextures) updateTextures(); }
 		else if (this.autoUpdateTextures) updateTextures();
 	}
 	
