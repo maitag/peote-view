@@ -117,6 +117,37 @@ class ElementImpl
 		else return null;
 	}
 		
+	static inline function getTimeMetaParams(f:Field, s:String):Null<Array<String>> {
+		var pa:Null<Array<Expr>> = null;
+		var found = false;
+		for (m in f.meta) if (m.name == s || m.name == ':$s') { pa = m.params; found = true; break; }
+		if (found) {
+			var types = ["default", "constant", "repeat", "pingpong"];
+			var ret = new Array<String>();
+			if (pa != null)
+				for (p in pa)
+					switch (p.expr) {
+						case EConst(CString(value)): ret.push(value);
+						//case EConst(CInt(value)): ret.push(value);
+						default:
+					}
+			if (ret.length == 0) ret.push("");
+			else if (ret[0] != "") {
+				if (types.indexOf(ret[0].toLowerCase()) >= 0) ret.unshift("");
+				else {
+					ret[0] = Util.camelCase("", ret[0]);
+					if (Util.isWrongIdentifier(ret[0])) throw Context.error('Error: "${ret[0]}" is not an identifier, please use only letters/numbers or "_" (starting with a letter)', f.pos);
+				}
+			}
+			if (ret.length == 1) ret.push("default");
+			ret[1] = ret[1].toLowerCase();
+			if (types.indexOf(ret[1]) == -1) throw Context.error('Error: unknown time interpolation type "${ret[1]}". Possible values are "${types.join(",")}"', f.pos);
+			if (ret.length > 2) throw Context.error('Error: to much parameter', f.pos);
+			return ret;
+		}
+		else return null;
+	}
+	
 	static inline function getAllMetaParams(f:Field, s:String):Null<Array<String>> {
 		var pa:Null<Array<Expr>> = null;
 		var found = false;
@@ -284,12 +315,17 @@ class ElementImpl
 			f.kind = FieldType.FVar( type, macro $v{defaultVal} );
 		}
 		
-		var param = getMetaParam(f, "time");
-		if (param == null) param = getMetaParam(f, "anim"); // if no @time exists, use @anim instead
-		if (param != null) {
+		var param:String;
+		var timeparam = getTimeMetaParams(f, "time");
+		if (timeparam == null) timeparam = getTimeMetaParams(f, "anim"); // if no @time exists, use @anim instead
+		if (timeparam != null) {
 			confItem.isAnim = true;
-			if (timers.indexOf(param) == -1) timers.push( param );
-			confItem.time = param;
+			if (timers.indexOf(timeparam[0]) == -1) {
+				timers.push( timeparam[0] );
+				timerTypes.push( timeparam[1] );
+			} else if (timeparam[1] != "default") timerTypes[timers.indexOf(timeparam[0])] = timeparam[1];
+			confItem.time = timeparam[0];
+			
 			param = getMetaParam(f, "constStart");
 			if (param != null) {
 				if (param == "") confItem.vStart = defaultVal;
@@ -421,6 +457,7 @@ class ElementImpl
 	static var setterFun:Array<Dynamic>;
 	
 	static var timers:Array<String>;
+	static var timerTypes:Array<String>;
 	
 	static var fieldnames:Array<String>;	
 	static var fields:Array<Field>;
@@ -429,36 +466,37 @@ class ElementImpl
 	static var glConf:GLConfParam;
 	
 	static var maxLayer:Int = 0;
-	static var confTextureLayer = new StringMap<StringMap<Int>>();
-	static var textureIdentifiers = new Array<String>();
-	static var colorIdentifiers = new Array<String>();
+	static var confTextureLayer:StringMap<StringMap<Int>>;
+	static var textureIdentifiers:Array<String>;
+	static var colorIdentifiers:Array<String>;
 	
 	//static var isChild:Bool = false;
 	// -------------------------------------- BUILD -------------------------------------------------
 	public static function build()
 	{
 		conf = {
-			posX :{ vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },
-			posY :{ vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },		
-			sizeX:{ vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },
-			sizeY:{ vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },
-			pivotX:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },			
-			pivotY:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },			
-			rotation:{ vStart:0.0, vEnd:0.0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },			
-			zIndex:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" },			
-			texUnitDefault:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" }, texUnit:[],
-			texSlotDefault:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" }, texSlot:[],
-			texTileDefault:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" }, texTile:[],
-			texXDefault:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" }, texX:[],
-			texYDefault:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" }, texY:[],
-			texWDefault:{ vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" }, texW:[],
-			texHDefault:{ vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" }, texH:[],
-			texPosXDefault:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" }, texPosX:[],
-			texPosYDefault:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" }, texPosY:[],
-			texSizeXDefault:{ vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" }, texSizeX:[],
-			texSizeYDefault:{ vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" }, texSizeY:[],
-			colorDefault:{ vStart:0xFF0000FF, vEnd:0xFF0000FF, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" }, color:[],
+			posX :{ vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-" },
+			posY :{ vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-" },		
+			sizeX:{ vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-" },
+			sizeY:{ vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-" },
+			pivotX:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-" },			
+			pivotY:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-" },			
+			rotation:{ vStart:0.0, vEnd:0.0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-" },			
+			zIndex:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-" },			
+			texUnitDefault:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-" }, texUnit:[],
+			texSlotDefault:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-" }, texSlot:[],
+			texTileDefault:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-" }, texTile:[],
+			texXDefault:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-" }, texX:[],
+			texYDefault:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-" }, texY:[],
+			texWDefault:{ vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-" }, texW:[],
+			texHDefault:{ vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-" }, texH:[],
+			texPosXDefault:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-" }, texPosX:[],
+			texPosYDefault:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-" }, texPosY:[],
+			texSizeXDefault:{ vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-" }, texSizeX:[],
+			texSizeYDefault:{ vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-" }, texSizeY:[],
+			colorDefault:{ vStart:0xFF0000FF, vEnd:0xFF0000FF, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-" }, color:[],
 		};
+		
 		glConf = {
 			isPICK:false,
 			UNIFORM_TIME:"",
@@ -476,15 +514,21 @@ class ElementImpl
 			CALC_TEXX:"", CALC_TEXY:"", CALC_TEXW:"", CALC_TEXH:"", 
 			CALC_TEXPOSX:"", CALC_TEXPOSY:"", CALC_TEXSIZEX:"", CALC_TEXSIZEY:"", 
 			ELEMENT_LAYERS:[],
-		};		
+		};
+		
 		setFun  = new StringMap<Dynamic>();
 		animFun = new StringMap<Dynamic>();
 		getterFun = new Array<Dynamic>();
 		setterFun = new Array<Dynamic>();
 		timers = new Array<String>();
+		timerTypes = new Array<String>();
 		fieldnames = new Array<String>();	
-		fields = Context.getBuildFields();
+		confTextureLayer = new StringMap<StringMap<Int>>();
+		textureIdentifiers = new Array<String>();
+		colorIdentifiers = new Array<String>();
 		
+		fields = Context.getBuildFields();
+
 		var hasNoNew:Bool = true;		
 		var hasNoDefaultColorFormula:Bool = true;		
 		var hasNoDefaultFormulaVars:Bool = true;
@@ -519,7 +563,9 @@ class ElementImpl
 									switch(a.expr) {
 										case EBinop(OpArrow, e1, _):
 											switch(e1.expr) {
-												case EConst(CString(identifier)): defaultFormulaVars.push(identifier);
+												case EConst(CString(identifier)):
+													if (Util.isWrongIdentifier(identifier)) throw Context.error('Error: "$identifier" is not an identifier, please use only letters/numbers or "_" (starting with a letter)', f.pos);
+													defaultFormulaVars.push(identifier);
 												default:
 											}
 										default:
@@ -672,8 +718,15 @@ class ElementImpl
 		for (i in 0...timers.length) {
 			var t:String = "" + Std.int(i / 2);
 			var d:String = "" + Std.int(i / 2);
-			if (i % 2 == 0) { t += ".x"; d += ".y"; } else { t += ".z"; d += ".w"; } 
-			glConf.CALC_TIME += 'float time$i = clamp( (uTime - aTime$t) / aTime$d, 0.0, 1.0); ';
+			if (i % 2 == 0) { t += ".x"; d += ".y"; } else { t += ".z"; d += ".w"; }
+			if (timerTypes[i] == "constant")
+				glConf.CALC_TIME += 'float time$i = (uTime - aTime$t) / max(aTime$d, 0.000001); ';
+			else if (timerTypes[i] == "repeat")
+				glConf.CALC_TIME += 'float time$i = fract( (uTime - aTime$t) / max(aTime$d, 0.000001) ); ';
+			else if (timerTypes[i] == "pingpong")
+				glConf.CALC_TIME += 'float time$i = 1.0 - abs(mix( -1.0, 1.0, fract((uTime - aTime$t) / max(aTime$d * 2.0, 0.000001)))); ';
+			else
+				glConf.CALC_TIME += 'float time$i = clamp( (uTime - aTime$t) / aTime$d, 0.0, 1.0); ';
 		}
 		if (timers.length > 0) glConf.UNIFORM_TIME = "uniform float uTime;";
 		
