@@ -25,18 +25,25 @@ class Elem implements Element
 	@sizeX public var w:Int=100;
 	@sizeY public var h:Int=100;
 	
-	@texSlot var slot:Int = 1;
+	@texSlot var slot:Int = 0;
 	
 	@color public var c:Color = 0xff0000ff;
 		
 	@zIndex public var z:Int = 0;	
 	
-	//TODO: let the texture shift inside slot/texCoords/tile area
-	@texOffsetX @texRepeat public var txOffset:Int;
-	@texOffsetY public var tyOffset:Int;
-	@texOffsetW public var twOffset:Int;
-	@texOffsetH public var thOffset:Int;
-
+	// manual texture coordinates inside a slot (or inside all slots if no slot available)
+	@texX() public var tx:Int=32;
+	@texY() public var ty:Int=0;
+	@texW() public var tw:Int=256;
+	@texH() public var th:Int=256;
+	
+	//let the texture shift/resize inside slot/texCoords/tile area of Element
+	@texPosX public var txOffset:Int = 16;  // TODO: @option("repeat") per layer
+	@texPosY public var tyOffset:Int = 16;
+	@texSizeX public var twOffset:Int = 128;
+	@texSizeY public var thOffset:Int = 128;
+	
+	
 	public function new(positionX:Int=0, positionY:Int=0, width:Int=100, height:Int=100, c:Int=0xFF0000FF )
 	{
 		this.x = positionX;
@@ -72,7 +79,7 @@ class TextureSimple
 		
 		display.addProgram(program);    // programm to display
 
-		element  = new Elem(10, 10);
+		element  = new Elem(0, 0);
 		buffer.addElement(element);     // element to buffer
 		
 		var future = Image.loadFromFile("assets/images/peote_tiles.png");

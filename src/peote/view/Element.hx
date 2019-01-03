@@ -25,22 +25,18 @@ typedef ConfParam =
 	pivotY:ConfSubParam,
 	rotation:ConfSubParam,
 	zIndex:ConfSubParam,
-	texUnitDefault:ConfSubParam,
-	texUnit:Array<ConfSubParam>,
-	texSlotDefault:ConfSubParam,
-	texSlot:Array<ConfSubParam>,
-	texTileDefault:ConfSubParam,
-	texTile:Array<ConfSubParam>,
-	texXDefault:ConfSubParam,
-	texX:Array<ConfSubParam>,
-	texYDefault:ConfSubParam,
-	texY:Array<ConfSubParam>,
-	texWDefault:ConfSubParam,
-	texW:Array<ConfSubParam>,
-	texHDefault:ConfSubParam,
-	texH:Array<ConfSubParam>,
-	colorDefault:ConfSubParam,
-	color:Array<ConfSubParam>,
+	texUnitDefault:ConfSubParam, texUnit:Array<ConfSubParam>,
+	texSlotDefault:ConfSubParam, texSlot:Array<ConfSubParam>,
+	texTileDefault:ConfSubParam, texTile:Array<ConfSubParam>,
+	texXDefault:ConfSubParam, texX:Array<ConfSubParam>,
+	texYDefault:ConfSubParam, texY:Array<ConfSubParam>,
+	texWDefault:ConfSubParam, texW:Array<ConfSubParam>,
+	texHDefault:ConfSubParam, texH:Array<ConfSubParam>,
+	texPosXDefault:ConfSubParam, texPosX:Array<ConfSubParam>,
+	texPosYDefault:ConfSubParam, texPosY:Array<ConfSubParam>,
+	texSizeXDefault:ConfSubParam, texSizeX:Array<ConfSubParam>,
+	texSizeYDefault:ConfSubParam, texSizeY:Array<ConfSubParam>,
+	colorDefault:ConfSubParam, color:Array<ConfSubParam>,
 }
 typedef ConfSubParam =
 {
@@ -53,13 +49,16 @@ typedef GLConfParam =
 			ATTRIB_TIME:String, ATTRIB_SIZE:String, ATTRIB_POS:String, ATTRIB_COLOR:String, ATTRIB_ROTZ:String, ATTRIB_PIVOT:String,
 			ATTRIB_UNIT:String, ATTRIB_SLOT:String, ATTRIB_TILE:String,
 			ATTRIB_TEXX:String, ATTRIB_TEXY:String, ATTRIB_TEXW:String, ATTRIB_TEXH:String,
+			ATTRIB_TEXPOSX:String, ATTRIB_TEXPOSY:String,ATTRIB_TEXSIZEX:String, ATTRIB_TEXSIZEY:String,
 			OUT_COLOR:String, IN_COLOR:String, OUT_TEXCOORD:String, IN_TEXCOORD:String, ZINDEX:String,
 			OUT_UNIT:String, IN_UNIT:String, OUT_SLOT:String, IN_SLOT:String, OUT_TILE:String, IN_TILE:String, 
 			OUT_TEXX:String, IN_TEXX:String, OUT_TEXY:String, IN_TEXY:String, OUT_TEXW:String, IN_TEXW:String, OUT_TEXH:String, IN_TEXH:String, 
+			OUT_TEXPOSX:String, IN_TEXPOSX:String, OUT_TEXPOSY:String, IN_TEXPOSY:String, OUT_TEXSIZEX:String, IN_TEXSIZEX:String, OUT_TEXSIZEY:String, IN_TEXSIZEY:String,
 			FRAGMENT_CALC_COLOR:String,
 			CALC_TIME:String, CALC_SIZE:String, CALC_POS:String, CALC_COLOR:String, CALC_ROTZ:String, CALC_PIVOT:String, CALC_TEXCOORD:String,
 			CALC_UNIT:String, CALC_SLOT:String, CALC_TILE:String,
 			CALC_TEXX:String, CALC_TEXY:String, CALC_TEXW:String, CALC_TEXH:String,
+			CALC_TEXPOSX:String, CALC_TEXPOSY:String, CALC_TEXSIZEX:String, CALC_TEXSIZEY:String,
 			ELEMENT_LAYERS:Array<{UNIT:String, end_ELEMENT_LAYER:String, if_ELEMENT_LAYER:String, TEXCOORD:String}>,
 };
 
@@ -408,9 +407,12 @@ class ElementImpl
 		else if ( checkTexLayerMetas("texY",    f, macro:Int, type, val, conf.texYDefault, conf.texY, getter, setter) ) {}
 		else if ( checkTexLayerMetas("texW",    f, macro:Int, type, val, conf.texWDefault, conf.texW, getter, setter) ) {}
 		else if ( checkTexLayerMetas("texH",    f, macro:Int, type, val, conf.texHDefault, conf.texH, getter, setter) ) {}
+		else if ( checkTexLayerMetas("texPosX", f, macro:Int, type, val, conf.texPosXDefault,  conf.texPosX, getter, setter) ) {}
+		else if ( checkTexLayerMetas("texPosY", f, macro:Int, type, val, conf.texPosYDefault,  conf.texPosY, getter, setter) ) {}
+		else if ( checkTexLayerMetas("texSizeX",f, macro:Int, type, val, conf.texSizeXDefault, conf.texSizeX, getter, setter) ) {}
+		else if ( checkTexLayerMetas("texSizeY",f, macro:Int, type, val, conf.texSizeYDefault, conf.texSizeY, getter, setter) ) {}
 		else if ( checkColorLayerMetas("color",   f, macro:Color, type, val, conf.colorDefault, conf.color, getter, setter) ) {}
 	}
-	
 
 	static var setFun :StringMap<Dynamic>;
 	static var animFun:StringMap<Dynamic>;
@@ -449,8 +451,12 @@ class ElementImpl
 			texTileDefault:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" }, texTile:[],
 			texXDefault:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" }, texX:[],
 			texYDefault:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" }, texY:[],
-			texWDefault:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" }, texW:[],
-			texHDefault:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" }, texH:[],
+			texWDefault:{ vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" }, texW:[],
+			texHDefault:{ vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" }, texH:[],
+			texPosXDefault:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" }, texPosX:[],
+			texPosYDefault:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" }, texPosY:[],
+			texSizeXDefault:{ vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" }, texSizeX:[],
+			texSizeYDefault:{ vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" }, texSizeY:[],
 			colorDefault:{ vStart:0xFF0000FF, vEnd:0xFF0000FF, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "" }, color:[],
 		};
 		glConf = {
@@ -459,12 +465,16 @@ class ElementImpl
 			ATTRIB_TIME:"", ATTRIB_SIZE:"", ATTRIB_POS:"", ATTRIB_COLOR:"", ATTRIB_ROTZ:"", ATTRIB_PIVOT:"",
 			ATTRIB_UNIT:"", ATTRIB_SLOT:"", ATTRIB_TILE:"",
 			ATTRIB_TEXX:"", ATTRIB_TEXY:"", ATTRIB_TEXW:"", ATTRIB_TEXH:"",
+			ATTRIB_TEXPOSX:"", ATTRIB_TEXPOSY:"", ATTRIB_TEXSIZEX:"", ATTRIB_TEXSIZEY:"",
 			OUT_COLOR:"", IN_COLOR:"", OUT_TEXCOORD:"", IN_TEXCOORD:"", ZINDEX:"",
 			OUT_UNIT:"", IN_UNIT:"", OUT_SLOT:"", IN_SLOT:"", OUT_TILE:"", IN_TILE:"", 
 			OUT_TEXX:"", IN_TEXX:"", OUT_TEXY:"", IN_TEXY:"", OUT_TEXW:"", IN_TEXW:"", OUT_TEXH:"", IN_TEXH:"", 
+			OUT_TEXPOSX:"", IN_TEXPOSX:"", OUT_TEXPOSY:"", IN_TEXPOSY:"", OUT_TEXSIZEX:"", IN_TEXSIZEX:"", OUT_TEXSIZEY:"", IN_TEXSIZEY:"", 
 			FRAGMENT_CALC_COLOR:"",
 			CALC_TIME:"", CALC_SIZE:"", CALC_POS:"", CALC_COLOR:"", CALC_ROTZ:"", CALC_PIVOT:"", CALC_TEXCOORD:"",
-			CALC_UNIT:"", CALC_SLOT:"", CALC_TILE:"", CALC_TEXX:"", CALC_TEXY:"", CALC_TEXW:"", CALC_TEXH:"", 
+			CALC_UNIT:"", CALC_SLOT:"", CALC_TILE:"",
+			CALC_TEXX:"", CALC_TEXY:"", CALC_TEXW:"", CALC_TEXH:"", 
+			CALC_TEXPOSX:"", CALC_TEXPOSY:"", CALC_TEXSIZEX:"", CALC_TEXSIZEY:"", 
 			ELEMENT_LAYERS:[],
 		};		
 		setFun  = new StringMap<Dynamic>();
@@ -618,6 +628,42 @@ class ElementImpl
 			glConf.OUT_TEXH += '::if isES3::flat::end:: ::VAROUT:: float vTexH${k};';
 			glConf.IN_TEXH  += '::if isES3::flat::end:: ::VARIN::  float vTexH${k};';
 		}
+		// texPosX
+		for (k in 0...conf.texPosX.length) {
+			if (conf.texPosX[k].n > 0) {
+				var type:String = (conf.texPosX[k].n == 1) ? "float" : "vec2";
+				glConf.ATTRIB_TEXPOSX += '::IN:: $type aTexPosX${k};';
+			}
+			glConf.OUT_TEXPOSX += '::if isES3::flat::end:: ::VAROUT:: float vTexPosX${k};';
+			glConf.IN_TEXPOSX  += '::if isES3::flat::end:: ::VARIN::  float vTexPosX${k};';
+		}
+		// texPosY
+		for (k in 0...conf.texPosY.length) {
+			if (conf.texPosY[k].n > 0) {
+				var type:String = (conf.texPosY[k].n == 1) ? "float" : "vec2";
+				glConf.ATTRIB_TEXPOSY += '::IN:: $type aTexPosY${k};';
+			}
+			glConf.OUT_TEXPOSY += '::if isES3::flat::end:: ::VAROUT:: float vTexPosY${k};';
+			glConf.IN_TEXPOSY  += '::if isES3::flat::end:: ::VARIN::  float vTexPosY${k};';
+		}
+		// texSizeX
+		for (k in 0...conf.texSizeX.length) {
+			if (conf.texSizeX[k].n > 0) {
+				var type:String = (conf.texSizeX[k].n == 1) ? "float" : "vec2";
+				glConf.ATTRIB_TEXSIZEX += '::IN:: $type aTexSizeX${k};';
+			}
+			glConf.OUT_TEXSIZEX += '::if isES3::flat::end:: ::VAROUT:: float vTexSizeX${k};';
+			glConf.IN_TEXSIZEX  += '::if isES3::flat::end:: ::VARIN::  float vTexSizeX${k};';
+		}
+		// texSizeY
+		for (k in 0...conf.texSizeY.length) {
+			if (conf.texSizeY[k].n > 0) {
+				var type:String = (conf.texSizeY[k].n == 1) ? "float" : "vec2";
+				glConf.ATTRIB_TEXSIZEY += '::IN:: $type aTexSizeY${k};';
+			}
+			glConf.OUT_TEXSIZEY += '::if isES3::flat::end:: ::VAROUT:: float vTexSizeY${k};';
+			glConf.IN_TEXSIZEY  += '::if isES3::flat::end:: ::VARIN::  float vTexSizeY${k};';
+		}
 		
 		glConf.OUT_TEXCOORD = "::VAROUT:: vec2 vTexCoord;";
 		glConf.IN_TEXCOORD  = "::VARIN::  vec2 vTexCoord;";
@@ -691,20 +737,18 @@ class ElementImpl
 		glConf.CALC_POS  = "vec2 pos  = size + " + pack2in1("aPos" , conf.posX,  conf.posY ) + ";";
 
 		// color
-		//if (conf.color.length == 0) glConf.FRAGMENT_CALC_COLOR += 'vec4 c0 = ${color2vec4(conf.colorDefault.vStart)};';
-		//else 
-			for (k in 0...conf.color.length) {
-				var start = (conf.color[k].isStart) ? 'aColorStart${k}.wzyx' : Util.color2vec4(conf.color[k].vStart);
-				if (conf.color[k].isAnim) {
-					var end = (conf.color[k].isEnd) ? 'aColorEnd${k}.wzyx' : Util.color2vec4(conf.color[k].vEnd);
-					start = '$start + ($end - $start) * time' + timers.indexOf(conf.color[k].time);
-				}
-				if (conf.color[k].n > 0 || conf.color[k].isAnim) {
-					glConf.CALC_COLOR += 'vColor${k} = $start;';
-					glConf.FRAGMENT_CALC_COLOR += 'vec4 c${k} = vColor${k};';
-				} else
-					glConf.FRAGMENT_CALC_COLOR += 'vec4 c${k} = $start;';
+		for (k in 0...conf.color.length) {
+			var start = (conf.color[k].isStart) ? 'aColorStart${k}.wzyx' : Util.color2vec4(conf.color[k].vStart);
+			if (conf.color[k].isAnim) {
+				var end = (conf.color[k].isEnd) ? 'aColorEnd${k}.wzyx' : Util.color2vec4(conf.color[k].vEnd);
+				start = '$start + ($end - $start) * time' + timers.indexOf(conf.color[k].time);
 			}
+			if (conf.color[k].n > 0 || conf.color[k].isAnim) {
+				glConf.CALC_COLOR += 'vColor${k} = $start;';
+				glConf.FRAGMENT_CALC_COLOR += 'vec4 c${k} = vColor${k};';
+			} else
+				glConf.FRAGMENT_CALC_COLOR += 'vec4 c${k} = $start;';
+		}
 		
 		// ------- TODO make that packs all units, slots and tiles together into many aUnitSlotTile vec4 attributes --------- 
 		function packTex(name:String, confItems:Array<ConfSubParam>, index:Int):String {
@@ -747,106 +791,106 @@ class ElementImpl
 		for (k in 0...conf.texH.length) {
 			glConf.CALC_TEXH += 'vTexH$k = ' + packTex("aTexH", conf.texH, k) + ";";
 		}
+		// texPosX
+		for (k in 0...conf.texPosX.length) {
+			glConf.CALC_TEXPOSX += 'vTexPosX$k = ' + packTex("aTexPosX", conf.texPosX, k) + ";";
+		}
+		// texPosY
+		for (k in 0...conf.texPosY.length) {
+			glConf.CALC_TEXPOSY += 'vTexPosY$k = ' + packTex("aTexPosY", conf.texPosY, k) + ";";
+		}
+		// texSizeX
+		for (k in 0...conf.texSizeX.length) {
+			glConf.CALC_TEXSIZEX += 'vTexSizeX$k = ' + packTex("aTexSizeX", conf.texSizeX, k) + ";";
+		}
+		// texSizeY
+		for (k in 0...conf.texSizeY.length) {
+			glConf.CALC_TEXSIZEY += 'vTexSizeY$k = ' + packTex("aTexSizeY", conf.texSizeY, k) + ";";
+		}
 		// default texcoords
 		glConf.CALC_TEXCOORD  = "vTexCoord = aPosition;";
 		
-		// TODO: colors
+		// texture layers
+		if (!confTextureLayer.exists("__default__")) confTextureLayer.set("__default__",new StringMap<Int>());
 		
-		// for each texture layers
-		var default_unit = "";
-		var default_slot = "";
-		var default_tile = "";
-		var default_texX = "";
-		var default_texY = "";
-		var default_texW = "";
-		var default_texH = "";
-		if (confTextureLayer.exists("__default__")) {
-			var defaultLayer = confTextureLayer.get("__default__");
-			if (defaultLayer.exists("texUnit")) default_unit += defaultLayer.get("texUnit");
-			if (defaultLayer.exists("texSlot")) default_slot += defaultLayer.get("texSlot");
-			if (defaultLayer.exists("texTile")) default_tile += defaultLayer.get("texTile");
-			if (defaultLayer.exists("texX")) default_texX += defaultLayer.get("texX");
-			if (defaultLayer.exists("texY")) default_texY += defaultLayer.get("texY");
-			if (defaultLayer.exists("texW")) default_texW += defaultLayer.get("texW");
-			if (defaultLayer.exists("texH")) default_texH += defaultLayer.get("texH");
-		} else {
-			confTextureLayer.set("__default__",new StringMap<Int>());
+		var resolveVaryingName = function(varyingName:String, name:String, v:StringMap<Int>, dv:StringMap<Int>, d:String=""):String {
+			if (v.exists(name)) varyingName += v.get(name);
+			else if (dv.exists(name)) varyingName += dv.get(name);
+			else varyingName = d;
+			return(varyingName);
 		}
 		
+		var dv = confTextureLayer.get("__default__");
 		for (name in confTextureLayer.keys()) {
 			//trace(name, confTextureLayer.get(name));
 			var v:StringMap<Int> = confTextureLayer.get(name);
 			
 			var layer = (name == "__default__") ? maxLayer : v.get("layer");
 			
-			var unit = "vUnit";
-			if (v.exists("texUnit")) unit += v.get("texUnit");
-			else if (default_unit != "") unit += default_unit;
-			else unit = "0.0";
+			var unit = resolveVaryingName("vUnit", "texUnit", v, dv, "0.0");
 			
-			var texPosX  = "0.0";
-			var texPosY  = "0.0";
-			var texSizeW = "::SLOTS_WIDTH::";
-			var texSizeH = "::SLOTS_HEIGHT::";
+			var x  = "0.0";
+			var y  = "0.0";
+			var w = "::SLOTS_WIDTH::";
+			var h = "::SLOTS_HEIGHT::";
 
-			var slot = "vSlot";
-			if (v.exists("texSlot")) slot += v.get("texSlot");
-			else if (default_slot != "") slot += default_slot;
-			else slot = "";
+			var slot = resolveVaryingName("vSlot", "texSlot", v, dv);
 			if (slot != "") {
-				texSizeW = '::SLOT_WIDTH::';
-				texSizeH = '::SLOT_HEIGHT::';
-				texPosX  = ((texPosX != "0.0") ? '$texPosX + ' : "") + 'mod(floor($slot), ::SLOTS_X::) * $texSizeW';
-				texPosY  = ((texPosY != "0.0") ? '$texPosY + ' : "") + 'floor(floor($slot)/::SLOTS_X::) * $texSizeH';
+				w = '::SLOT_WIDTH::';
+				h = '::SLOT_HEIGHT::';
+				x  = 'mod(floor($slot), ::SLOTS_X::) * $w';
+				y  = 'floor(floor($slot)/::SLOTS_X::) * $h';
 			}
 			
-			var texX = "vTexX";
-			if (v.exists("texX")) texX += v.get("texX");
-			else if (default_texX != "") texX += default_texX;
-			else texX = "";
-			if (texX != "") texPosX = ((texPosX != "0.0") ? '$texPosX + ' : "") + texX;
+			var texX = resolveVaryingName("vTexX", "texX", v, dv);
+			if (texX != "") x = ((x != "0.0") ? '$x + ' : "") + texX;
 						
-			var texY = "vTexY";
-			if (v.exists("texY")) texY += v.get("texY");
-			else if (default_texY != "") texY += default_texY;
-			else texY = "";
-			if (texY != "") texPosY = ((texPosY != "0.0") ? '$texPosY + ' : "") + texY;
+			var texY = resolveVaryingName("vTexY", "texY", v, dv);
+			if (texY != "") y = ((y != "0.0") ? '$y + ' : "") + texY;
 			
-			var texW = "vTexW";
-			if (v.exists("texW")) texW += v.get("texW");
-			else if (default_texW != "") texW += default_texW;
-			else texW = "";
-			if (texW != "") texSizeW = texW;
+			var texW = resolveVaryingName("vTexW", "texW", v, dv);
+			if (texW != "") w = texW;
 			
-			var texH = "vTexH";
-			if (v.exists("texH")) texH += v.get("texH");
-			else if (default_texH != "") texH += default_texH;
-			else texH = "";
-			if (texH != "") texSizeH = texH;
+			var texH = resolveVaryingName("vTexH", "texH", v, dv);
+			if (texH != "") h = texH;
 			
-			
-			var tile = "vTile";
-			if (v.exists("texTile")) tile += v.get("texTile");
-			else if (default_tile != "") tile += default_tile;
-			else tile = "";
+			var tile = resolveVaryingName("vTile", "texTile", v, dv);
 			if (tile != "") {
-				texSizeW = '$texSizeW / ::TILES_X::';
-				texSizeH = '$texSizeH / ::TILES_Y::';
-				texPosX  = ((texPosX != "0.0") ? '$texPosX + ' : "") + 'mod(floor($tile), ::TILES_X::) * $texSizeW';
-				texPosY  = ((texPosY != "0.0") ? '$texPosY + ' : "") + 'floor(floor($tile)/::TILES_X::) * $texSizeH';
+				w = '$w / ::TILES_X::';
+				h = '$h / ::TILES_Y::';
+				x  = ((x != "0.0") ? '$x + ' : "") + 'mod(floor($tile), ::TILES_X::) * $w';
+				y  = ((y != "0.0") ? '$y + ' : "") + 'floor(floor($tile)/::TILES_X::) * $h';
 			}
 			
-			var texPos = (texPosX != "0.0" || texPosY != "0.0") ? '+ vec2($texPosX, $texPosY)' : "";
+			var texCoord = 'vTexCoord * vec2($w, $h)';
+			
+			var texPosX  = resolveVaryingName("vTexPosX" , "texPosX" , v, dv, "0.0");
+			var texPosY  = resolveVaryingName("vTexPosY" , "texPosY" , v, dv, "0.0");
+			
+			if (texPosX != "0.0" || texPosY != "0.0") texCoord = '($texCoord - vec2($texPosX, $texPosY))';
+			
+			var texSizeX = resolveVaryingName("vTexSizeX", "texSizeX", v, dv, '$w');
+			var texSizeY = resolveVaryingName("vTexSizeY", "texSizeY", v, dv, '$h');
+			
+			if (texSizeX != '$w' || texSizeY != '$h') texCoord = 'vec2($w, $h) / vec2($texSizeX, $texSizeY) * $texCoord';
+			
+			if (texPosX != "0.0" || texPosY != "0.0" || texSizeX != '$w' || texSizeY != '$h') {
+				var repeatX = false; var repeatY = false;
+				//if (repeatX || repeatY) texCoord = 'mod( $texCoord, vec2(${(repeatX) ? w : "0.0"}, ${(repeatY) ? h : "0.0"}) )';
+				if (repeatX && repeatY) texCoord = 'mod($texCoord, vec2($w, $h))';
+				else if (repeatX) texCoord = 'vec2( mod(($texCoord).x, $w), ($texCoord).y )';
+				else if (repeatY) texCoord = 'vec2( ($texCoord).x, mod(($texCoord).y, $h) )';
+				texCoord = 'clamp($texCoord, vec2(0.0, 0.0), vec2($w, $h))';
+			}
+			
+			
+			if (x != "0.0" || y != "0.0") texCoord = '($texCoord + vec2($x, $y))';
+			
 			glConf.ELEMENT_LAYERS.push({
-				UNIT:unit,
-				TEXCOORD:'(vTexCoord * vec2($texSizeW, $texSizeH) $texPos) / vec2(::TEXTURE_WIDTH::, ::TEXTURE_HEIGHT::)',
-				
-				//TEXCOORD:'(clamp(vec2($texSizeW, $texSizeH)/vec2(256.0, 256.0) * (vTexCoord * vec2($texSizeW, $texSizeH) - vec2(256.0,0.0) ),vec2(0.0, 0.0) ,vec2($texSizeW, $texSizeH)) $texPos) / vec2(::TEXTURE_WIDTH::, ::TEXTURE_HEIGHT::)',
-				// repeat texture if clamped
-				//TEXCOORD:'(mod(vec2($texSizeW, $texSizeH)/vec2(256.0, 256.0) * (vTexCoord * vec2($texSizeW, $texSizeH) - vec2(256.0,0.0) ), vec2($texSizeW, $texSizeH)) $texPos) / vec2(::TEXTURE_WIDTH::, ::TEXTURE_HEIGHT::)',
-
-				if_ELEMENT_LAYER:'::if (LAYER ${(name == "__default__") ? ">" : "="}= $layer)::',
-				end_ELEMENT_LAYER:"::end::"
+				UNIT: unit,
+				TEXCOORD: '$texCoord / vec2(::TEXTURE_WIDTH::, ::TEXTURE_HEIGHT::)',
+				if_ELEMENT_LAYER:  '::if (LAYER ${(name == "__default__") ? ">" : "="}= $layer)::',
+				end_ELEMENT_LAYER: "::end::"
 			});
 			// create static vars for texture identifiers
 			if (name != "__default__") {
@@ -1065,6 +1109,22 @@ class ElementImpl
 			genVar(macro:Int, c.name+"Start", c.vStart, !c.isStart);
 			genVar(macro:Int, c.name+"End",   c.vEnd,   !c.isEnd);
 		}
+		for (c in conf.texPosX) if (c.isAnim) {		
+			genVar(macro:Int, c.name+"Start", c.vStart, !c.isStart);
+			genVar(macro:Int, c.name+"End",   c.vEnd,   !c.isEnd);
+		}
+		for (c in conf.texPosY) if (c.isAnim) {		
+			genVar(macro:Int, c.name+"Start", c.vStart, !c.isStart);
+			genVar(macro:Int, c.name+"End",   c.vEnd,   !c.isEnd);
+		}
+		for (c in conf.texSizeX) if (c.isAnim) {		
+			genVar(macro:Int, c.name+"Start", c.vStart, !c.isStart);
+			genVar(macro:Int, c.name+"End",   c.vEnd,   !c.isEnd);
+		}
+		for (c in conf.texSizeY) if (c.isAnim) {		
+			genVar(macro:Int, c.name+"Start", c.vStart, !c.isStart);
+			genVar(macro:Int, c.name+"End",   c.vEnd,   !c.isEnd);
+		}
 		
 		// ------------------------- calc buffer size ----------------------------------------		
 		var vertex_count:Int = 6;
@@ -1083,6 +1143,10 @@ class ElementImpl
 		for (c in conf.texY) buff_size_instanced += Std.int(c.n * 2);
 		for (c in conf.texW) buff_size_instanced += Std.int(c.n * 2);
 		for (c in conf.texH) buff_size_instanced += Std.int(c.n * 2);
+		for (c in conf.texPosX) buff_size_instanced += Std.int(c.n * 2);
+		for (c in conf.texPosY) buff_size_instanced += Std.int(c.n * 2);
+		for (c in conf.texSizeX) buff_size_instanced += Std.int(c.n * 2);
+		for (c in conf.texSizeY) buff_size_instanced += Std.int(c.n * 2);
 		
 		var buff_size:Int = buff_size_instanced +2;
 		//trace("buff_size_instanced", buff_size_instanced);
@@ -1291,6 +1355,46 @@ class ElementImpl
 				});
 			}			
 		}
+		for (k in 0...conf.texPosX.length) {
+			if (conf.texPosX[k].n > 0) {
+				fields.push({
+					name:  "aTEXPOSX"+k,
+					access:  [Access.APrivate, Access.AStatic, Access.AInline],
+					kind: FieldType.FVar(macro:Int, macro $v{attrNumber++}), 
+					pos: Context.currentPos(),
+				});
+			}			
+		}
+		for (k in 0...conf.texPosY.length) {
+			if (conf.texPosY[k].n > 0) {
+				fields.push({
+					name:  "aTEXPOSY"+k,
+					access:  [Access.APrivate, Access.AStatic, Access.AInline],
+					kind: FieldType.FVar(macro:Int, macro $v{attrNumber++}), 
+					pos: Context.currentPos(),
+				});
+			}			
+		}
+		for (k in 0...conf.texSizeX.length) {
+			if (conf.texSizeX[k].n > 0) {
+				fields.push({
+					name:  "aTEXSIZEX"+k,
+					access:  [Access.APrivate, Access.AStatic, Access.AInline],
+					kind: FieldType.FVar(macro:Int, macro $v{attrNumber++}), 
+					pos: Context.currentPos(),
+				});
+			}			
+		}
+		for (k in 0...conf.texSizeY.length) {
+			if (conf.texSizeY[k].n > 0) {
+				fields.push({
+					name:  "aTEXSIZEY"+k,
+					access:  [Access.APrivate, Access.AStatic, Access.AInline],
+					kind: FieldType.FVar(macro:Int, macro $v{attrNumber++}), 
+					pos: Context.currentPos(),
+				});
+			}			
+		}
 		debug("Number of vertex attributes:"+attrNumber);
 		if (attrNumber >= 16) debug("WARNING: more then 16 vertex attributes not supported on most devices.");
 
@@ -1436,6 +1540,30 @@ class ElementImpl
 					if (!conf.texH[k].isAnim && conf.texH[k].isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texH[k].name}) ); i+=2; }
 					if (conf.texH[k].isAnim && conf.texH[k].isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texH[k].name+"End"}) ); i+=2; }
 				}
+				// TEXPOSX
+				for (k in 0...conf.texPosX.length) {
+					if (conf.texPosX[k].isAnim && conf.texPosX[k].isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texPosX[k].name+"Start"}) ); i+=2; }
+					if (!conf.texPosX[k].isAnim && conf.texPosX[k].isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texPosX[k].name}) ); i+=2; }
+					if (conf.texPosX[k].isAnim && conf.texPosX[k].isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texPosX[k].name+"End"}) ); i+=2; }
+				}
+				// TEXPOSY
+				for (k in 0...conf.texPosY.length) {
+					if (conf.texPosY[k].isAnim && conf.texPosY[k].isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texPosY[k].name+"Start"}) ); i+=2; }
+					if (!conf.texPosY[k].isAnim && conf.texPosY[k].isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texPosY[k].name}) ); i+=2; }
+					if (conf.texPosY[k].isAnim && conf.texPosY[k].isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texPosY[k].name+"End"}) ); i+=2; }
+				}
+				// TEXSIZEX
+				for (k in 0...conf.texSizeX.length) {
+					if (conf.texSizeX[k].isAnim && conf.texSizeX[k].isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texSizeX[k].name+"Start"}) ); i+=2; }
+					if (!conf.texSizeX[k].isAnim && conf.texSizeX[k].isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texSizeX[k].name}) ); i+=2; }
+					if (conf.texSizeX[k].isAnim && conf.texSizeX[k].isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texSizeX[k].name+"End"}) ); i+=2; }
+				}
+				// TEXSIZEY
+				for (k in 0...conf.texSizeY.length) {
+					if (conf.texSizeY[k].isAnim && conf.texSizeY[k].isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texSizeY[k].name+"Start"}) ); i+=2; }
+					if (!conf.texSizeY[k].isAnim && conf.texSizeY[k].isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texSizeY[k].name}) ); i+=2; }
+					if (conf.texSizeY[k].isAnim && conf.texSizeY[k].isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texSizeY[k].name+"End"}) ); i+=2; }
+				}
 				
 				// ----------------- Bytes --------------------------------
 				// UNITS
@@ -1516,6 +1644,10 @@ class ElementImpl
 		for (k in 0...conf.texY.length) if (conf.texY[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTEXY"+k}, $v{"aTEXY"+k} ) );
 		for (k in 0...conf.texW.length) if (conf.texW[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTEXW"+k}, $v{"aTEXW"+k} ) );
 		for (k in 0...conf.texH.length) if (conf.texH[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTEXH"+k}, $v{"aTEXH"+k} ) );
+		for (k in 0...conf.texPosX.length) if (conf.texPosX[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTEXPOSX"+k}, $v{"aTEXPOSX"+k} ) );
+		for (k in 0...conf.texPosY.length) if (conf.texPosY[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTEXPOSY"+k}, $v{"aTEXPOSY"+k} ) );
+		for (k in 0...conf.texSizeX.length) if (conf.texSizeX[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTEXSIZEX"+k}, $v{"aTEXSIZEX"+k} ) );
+		for (k in 0...conf.texSizeY.length) if (conf.texSizeY[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTEXSIZEY"+k}, $v{"aTEXSIZEY"+k} ) );
 		
 		fields.push({
 			name: "bindAttribLocations",
@@ -1653,6 +1785,42 @@ class ElementImpl
 					if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{"aTEXH"+k}, 1) );
 				}
 			}
+			// TEXPOSX
+			for (k in 0...conf.texPosX.length) {
+				n = conf.texPosX[k].n;
+				if (n > 0 ) {
+					exprBlock.push( macro gl.enableVertexAttribArray ($i{"aTEXPOSX"+k}) );
+					exprBlock.push( macro gl.vertexAttribPointer($i{"aTEXPOSX"+k}, $v{n}, gl.SHORT, false, $v{stride}, $v{i} ) ); i += n * 2;
+					if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{"aTEXPOSX"+k}, 1) );
+				}
+			}
+			// TEXPOSY
+			for (k in 0...conf.texPosY.length) {
+				n = conf.texPosY[k].n;
+				if (n > 0 ) {
+					exprBlock.push( macro gl.enableVertexAttribArray ($i{"aTEXPOSY"+k}) );
+					exprBlock.push( macro gl.vertexAttribPointer($i{"aTEXPOSY"+k}, $v{n}, gl.SHORT, false, $v{stride}, $v{i} ) ); i += n * 2;
+					if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{"aTEXPOSY"+k}, 1) );
+				}
+			}
+			// TEXSIZEX
+			for (k in 0...conf.texSizeX.length) {
+				n = conf.texSizeX[k].n;
+				if (n > 0 ) {
+					exprBlock.push( macro gl.enableVertexAttribArray ($i{"aTEXSIZEX"+k}) );
+					exprBlock.push( macro gl.vertexAttribPointer($i{"aTEXSIZEX"+k}, $v{n}, gl.SHORT, false, $v{stride}, $v{i} ) ); i += n * 2;
+					if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{"aTEXSIZEX"+k}, 1) );
+				}
+			}
+			// TEXSIZEY
+			for (k in 0...conf.texSizeY.length) {
+				n = conf.texSizeY[k].n;
+				if (n > 0 ) {
+					exprBlock.push( macro gl.enableVertexAttribArray ($i{"aTEXSIZEY"+k}) );
+					exprBlock.push( macro gl.vertexAttribPointer($i{"aTEXSIZEY"+k}, $v{n}, gl.SHORT, false, $v{stride}, $v{i} ) ); i += n * 2;
+					if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{"aTEXSIZEY"+k}, 1) );
+				}
+			}
 			// UNIT
 			for (k in 0...conf.texUnit.length) {
 				n = conf.texUnit[k].n;
@@ -1713,6 +1881,10 @@ class ElementImpl
 		for (k in 0...conf.texY.length) if (conf.texY[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTEXY"+k}) );
 		for (k in 0...conf.texW.length) if (conf.texW[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTEXW"+k}) );
 		for (k in 0...conf.texH.length) if (conf.texH[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTEXH"+k}) );
+		for (k in 0...conf.texPosX.length) if (conf.texPosX[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTEXPOSX"+k}) );
+		for (k in 0...conf.texPosY.length) if (conf.texPosY[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTEXPOSY"+k}) );
+		for (k in 0...conf.texSizeX.length) if (conf.texSizeX[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTEXSIZEX"+k}) );
+		for (k in 0...conf.texSizeY.length) if (conf.texSizeY[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTEXSIZEY"+k}) );
 			
 		fields.push({
 			name: "disableVertexAttrib",
