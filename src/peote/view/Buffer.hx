@@ -130,15 +130,16 @@ class $className implements BufferInterface
 		_gl.bufferData (_gl.ARRAY_BUFFER, _bytes.length, _bytes, _gl.STREAM_DRAW);
 		_gl.bindBuffer (_gl.ARRAY_BUFFER, null);
 		
-		if (peote.view.PeoteGL.Version.isINSTANCED) {
+		if (peote.view.PeoteGL.Version.isINSTANCED) { // init and update instance buffer
 			_glInstanceBuffer = _gl.createBuffer();
-			_glVAO = _gl.createVertexArray();
-			
-			// update instance buffer
 			$p{elemField}.updateInstanceGLBuffer(_gl, _glInstanceBuffer);
-			// init VAO 
+		}
+		if (peote.view.PeoteGL.Version.isVAO) { // init VAO 		
+			_glVAO = _gl.createVertexArray();
 			_gl.bindVertexArray(_glVAO);
-			$p{elemField}.enableVertexAttribInstanced(_gl, _glBuffer, _glInstanceBuffer);
+			if (peote.view.PeoteGL.Version.isINSTANCED)
+				$p{elemField}.enableVertexAttribInstanced(_gl, _glBuffer, _glInstanceBuffer);
+			else $p{elemField}.enableVertexAttrib(_gl, _glBuffer);
 			_gl.bindVertexArray(null);
 		}
 	}
@@ -156,10 +157,8 @@ class $className implements BufferInterface
 	{
 		trace("delete GlBuffer");
 		_gl.deleteBuffer(_glBuffer);
-		if (peote.view.PeoteGL.Version.isINSTANCED) {
-			_gl.deleteBuffer(_glInstanceBuffer);
-			_gl.deleteVertexArray(_glVAO);
-		}
+		if (peote.view.PeoteGL.Version.isINSTANCED)	_gl.deleteBuffer(_glInstanceBuffer);
+		if (peote.view.PeoteGL.Version.isVAO) _gl.deleteVertexArray(_glVAO);
 	}
 	
 	inline function updateGLBuffer():Void
@@ -182,16 +181,6 @@ class $className implements BufferInterface
 		//_gl.bufferSubData(_gl.ARRAY_BUFFER, 0, _elemBuffSize*_maxElements, new peote.view.PeoteGL.BytePointer(_bytes) );
 		
 		_gl.bindBuffer (_gl.ARRAY_BUFFER, null);
-		
-		/*
-		if (peote.view.PeoteGL.Version.isINSTANCED) {
-			// instance buffer
-			$p{elemField}.updateInstanceGLBuffer(_gl, _glInstanceBuffer);
-			// init VAO 
-			_gl.bindVertexArray(_glVAO);
-			$p{elemField}.enableVertexAttribInstanced(_gl, _glBuffer, _glInstanceBuffer);
-			_gl.bindVertexArray(null);
-		}*/
 	}
 	
 	/**
@@ -289,7 +278,9 @@ class $className implements BufferInterface
 
 	private inline function bindAttribLocations(gl: peote.view.PeoteGL, glProgram: peote.view.PeoteGL.GLProgram):Void
 	{
-		$p{elemField}.bindAttribLocations(gl, glProgram);
+		if (peote.view.PeoteGL.Version.isINSTANCED)
+			$p{elemField}.bindAttribLocationsInstanced(gl, glProgram);
+		else $p{elemField}.bindAttribLocations(gl, glProgram);
 	}
 	
 	/**
@@ -323,21 +314,30 @@ class $className implements BufferInterface
 		}
 		#end
 		
+		//var t = haxe.Timer.stamp();
 		if (peote.view.PeoteGL.Version.isINSTANCED) {
-			// $p{elemField}.enableVertexAttribInstanced(_gl, _glBuffer, _glInstanceBuffer);
-			_gl.bindVertexArray(_glVAO); // use VAO
+			if (peote.view.PeoteGL.Version.isVAO) _gl.bindVertexArray(_glVAO);
+			else $p{elemField}.enableVertexAttribInstanced(_gl, _glBuffer, _glInstanceBuffer);
+			
 			_gl.drawArraysInstanced (_gl.TRIANGLE_STRIP,  0, $p{elemField}.VERTEX_COUNT, _maxElements);
-			_gl.bindVertexArray(null);
-			// $p{elemField}.disableVertexAttrib(_gl); _gl.bindBuffer (_gl.ARRAY_BUFFER, null);
-		} else {
-			$p{elemField}.enableVertexAttrib(_gl, _glBuffer);
-			//var t = haxe.Timer.stamp();
-			_gl.drawArrays (_gl.TRIANGLE_STRIP,  0, _maxElements * $p{elemField}.VERTEX_COUNT);
-			//trace("render time:"+(haxe.Timer.stamp()-t));
-			$p{elemField}.disableVertexAttrib(_gl);
-			_gl.bindBuffer (_gl.ARRAY_BUFFER, null);
+			
+			if (peote.view.PeoteGL.Version.isVAO) _gl.bindVertexArray(null);
+			else $p{elemField}.disableVertexAttribInstanced(_gl);
+			
+			_gl.bindBuffer (_gl.ARRAY_BUFFER, null); // TODO: check if this is obsolete on all platforms !
 		}
-		
+		else {
+			if (peote.view.PeoteGL.Version.isVAO) _gl.bindVertexArray(_glVAO);
+			else $p{elemField}.enableVertexAttrib(_gl, _glBuffer);
+			
+			_gl.drawArrays (_gl.TRIANGLE_STRIP,  0, _maxElements * $p{elemField}.VERTEX_COUNT);
+			
+			if (peote.view.PeoteGL.Version.isVAO) _gl.bindVertexArray(null);
+			else $p{elemField}.disableVertexAttrib(_gl);
+			
+			_gl.bindBuffer (_gl.ARRAY_BUFFER, null); // TODO: check if this is obsolete on all platforms !
+		}
+		//trace("render time:"+(haxe.Timer.stamp()-t));
 	}
 
 	

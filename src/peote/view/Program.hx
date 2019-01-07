@@ -39,7 +39,7 @@ class Program
 	var buffer:BufferInterface; // TODO: make public with getter/setter
 	
 	var glShaderConfig = {
-		isPICK:false,
+		isPICKING: false,
 		isES3: false,
 		isINSTANCED: false,
 		isUBO: false,
@@ -179,6 +179,7 @@ class Program
 
 		gl.attachShader(glProgram, glVertexShader);
 		gl.attachShader(glProgram, glFragmentShader);
+		
 		
 		buffer.bindAttribLocations(gl, glProgram);
 				

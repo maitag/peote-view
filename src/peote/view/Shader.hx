@@ -33,6 +33,12 @@ class Shader
 	// Attributes -------------------------
 	::IN:: vec2 aPosition;
 	
+	::if isPICKING::
+		::if !isINSTANCED::
+			::IN:: vec4 aElement;
+		::end::
+	::end::
+	
 	::ATTRIB_POS::
 	::ATTRIB_SIZE::
 	::ATTRIB_TIME::
@@ -51,12 +57,18 @@ class Shader
 	::ATTRIB_TEXSIZEX::
 	::ATTRIB_TEXSIZEY::
 		
-	//aElement
-	
 	// custom Attributes --
 	//aCustom0
 	
 	// Varyings ---------------------------
+	::if isPICKING::
+		::if isINSTANCED::
+			flat ::VAROUT:: int vElement;
+		::else::
+			::VAROUT:: vec4 vElement;
+		::end::
+	::end::
+	
 	::OUT_COLOR::
 	
 	::if hasTEXTURES::
@@ -74,7 +86,6 @@ class Shader
 		::OUT_TEXSIZEY::
 	::end::
 
-	// PICKING  ::if isES3:: flat out int instanceID; ::end::
 	
 	void main(void) {
 		::CALC_TIME::		
@@ -98,7 +109,13 @@ class Shader
 			::CALC_TEXSIZEY::
 		::end::
 		
-		// PICKING instanceID = gl_InstanceID;
+		::if isPICKING::
+			::if isINSTANCED::
+				vElement = gl_InstanceID;
+			::else::
+				vElement = aElement;
+			::end::
+		::end::
 		
 		float zoom = uZoom ::if isUBO:: * uViewZoom ::end::;
 		float width = uResolution.x;
@@ -146,6 +163,15 @@ class Shader
 	
 	::FRAGMENT_PROGRAM_UNIFORMS::
 	
+	// Varyings ---------------------------
+	::if isPICKING::
+		::if isINSTANCED::
+			flat ::VARIN:: int vElement;
+		::else::
+			::VARIN:: vec4 vElement;
+		::end::
+	::end::
+	
 	::IN_COLOR::
 	
 	::if hasTEXTURES::
@@ -163,18 +189,13 @@ class Shader
 		::IN_TEXSIZEY::
 	::end::
 	
-	//TODO
-	::if isPICK::
-		::if isINSTANCED::
-		//flat in int instanceID;
-		// PICKING out int color;
-		::else::
-			varying vec4 elemColor;
-		::end::
-	::end::
 	
 	::if isES3::
-	out vec4 Color;
+		::if (isPICKING && isINSTANCED)::
+			out int Color;
+		::else::
+			out vec4 Color;
+		::end::
 	::end::
 
 	
@@ -202,16 +223,18 @@ class Shader
 		
 		if (col.a == 0.0) discard; // TODO: set per progam
 		
-		::if isPICK:: 
-		col = instanceID;
+		::if isPICKING:: 
+		
+			::if !isES3::gl_Frag::end::Color = vElement; // vec4(vElement.r, vElement.g, vElement.b, 1.0);
+		
+		::else::
+		
+			::if !isES3::gl_Frag::end::Color = col;
+			
+			// TODO: check this fix for problem on old FF if alpha goes zero
+			::if !isES3::gl_Frag::end::Color.w = clamp(::if !isES3::gl_Frag::end::Color.w, 0.003, 1.0);
+		
 		::end::
-		
-		::if !isES3::gl_Frag::end::Color = col;
-		
-		// TODO: check this fix for problem on old FF if alpha goes zero
-		::if !isES3::gl_Frag::end::Color.w = clamp(::if !isES3::gl_Frag::end::Color.w, 0.003, 1.0);
-		
-		// PICKING ::if isES3::color::else::gl_FragColor::end:: =  instanceID*50;
 	}
 	";
 

@@ -144,12 +144,18 @@ class Version {
 		#else 
 			static inline var isINSTANCED = false;
 		#end
+		#if peoteview_vertexarrayobjects
+			static inline var isVAO = true;
+		#else 
+			static inline var isVAO = false;
+		#end
 		
 	#elseif peoteview_es2  // force compiling without runtimecheck for UBOs/InstanceDrawing
 	
 		static inline var isES3 = false;
 		static inline var isUBO = false;
 		static inline var isINSTANCED = false;
+		static inline var isVAO = false;
 		
 	#else // check at runtime (depends on available es-version) 
 
@@ -160,6 +166,9 @@ class Version {
 			#end
 			#if peoteview_instancedrawing
 				isINSTANCED = b;
+			#end
+			#if peoteview_vertexarrayobjects
+				isVAO = b;
 			#end
 			return isES3 = b;
 		}
@@ -174,5 +183,11 @@ class Version {
 		#else
 			static inline var isINSTANCED = false; // force compiling without runtimecheck for InstanceDrawing
 		#end
+		#if peoteview_vertexarrayobjects
+			static var isVAO = false;  // is set at runtime throught isES3
+		#else
+			static inline var isVAO = false; // force compiling without runtimecheck for vertex array objects
+		#end
+		
 	#end	
 }

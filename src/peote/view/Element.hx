@@ -1237,7 +1237,7 @@ class ElementImpl
 		for (c in conf.texSizeY) buff_size_instanced += Std.int(c.n * 2);
 		
 		var buff_size:Int = buff_size_instanced + 2;
-		//if (options.picking) buff_size += 4; // add elementId for picking
+		if (options.picking) buff_size += 4; // add size of elementId for picking
 		
 		//trace("buff_size_instanced", buff_size_instanced);
 		//trace("buff_size", buff_size);
@@ -1324,7 +1324,7 @@ class ElementImpl
 		var attrNumber = 0;
 		if (options.picking)
 			fields.push({
-				name:  "aELEMENTID",
+				name:  "aELEMENT",
 				access:  [Access.APrivate, Access.AStatic, Access.AInline], // <-- for opengl-picking
 				kind: FieldType.FVar(macro:Int, macro $v{attrNumber++}), 
 				pos: Context.currentPos(),
@@ -1561,8 +1561,7 @@ class ElementImpl
 				// -------------- setInt32 ------------------------------
 				// PICKING-ID
 				if (verts != null && options.picking) {
-					// TODO
-					//exprBlock.push( macro bytes.setInt32(bytePos + $v{i},  Std.int(element.bytePos/(BUFF_SIZE * VERTEX_COUNT)) ) ); i+=4;
+					exprBlock.push( macro bytes.setInt32(bytePos + $v{i},  Std.int(1+bytePos/($v{buff_size*vertex_count})) ) ); i+=4;
 				}
 				
 				// COLOR
@@ -1737,28 +1736,31 @@ class ElementImpl
 		});
 		
 		// ------------------ bind vertex attributes to program ----------------------------------
-		var exprBlock = [ macro gl.bindAttribLocation(glProgram, aPOSITION, "aPosition") ];
-		if (conf.posX.n  + conf.posY.n  > 0 ) exprBlock.push( macro gl.bindAttribLocation(glProgram, aPOS,  "aPos" ) );
-		if (conf.sizeX.n + conf.sizeY.n > 0 ) exprBlock.push( macro gl.bindAttribLocation(glProgram, aSIZE, "aSize") );
-		if (conf.pivotX.n + conf.pivotY.n > 0 ) exprBlock.push( macro gl.bindAttribLocation(glProgram, aPIVOT, "aPivot") );
-		if (conf.rotation.n + conf.zIndex.n > 0 ) exprBlock.push( macro gl.bindAttribLocation(glProgram, aROTZ, "aRotZ") );
-		for (k in 0...Std.int((timers.length+1) / 2)) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTIME" + k}, $v{"aTime"+k} ) );
-		for (k in 0...conf.color.length) {
-			if (conf.color[k].isStart) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aCOLORSTART"+k}, $v{"aColorStart"+k} ) );
-			if (conf.color[k].isEnd)   exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aCOLOREND"  +k}, $v{"aColorEnd"  +k} ) );
+		function enableVertexAttribExpr(isInstanced:Bool=false):Array<Expr> {
+			var exprBlock = [ macro gl.bindAttribLocation(glProgram, aPOSITION, "aPosition") ];
+			if (!isInstanced && options.picking) exprBlock.push( macro gl.bindAttribLocation(glProgram, aELEMENT,  "aElement" ) );
+			if (conf.posX.n  + conf.posY.n  > 0 ) exprBlock.push( macro gl.bindAttribLocation(glProgram, aPOS,  "aPos" ) );
+			if (conf.sizeX.n + conf.sizeY.n > 0 ) exprBlock.push( macro gl.bindAttribLocation(glProgram, aSIZE, "aSize") );
+			if (conf.pivotX.n + conf.pivotY.n > 0 ) exprBlock.push( macro gl.bindAttribLocation(glProgram, aPIVOT, "aPivot") );
+			if (conf.rotation.n + conf.zIndex.n > 0 ) exprBlock.push( macro gl.bindAttribLocation(glProgram, aROTZ, "aRotZ") );
+			for (k in 0...Std.int((timers.length+1) / 2)) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTIME" + k}, $v{"aTime"+k} ) );
+			for (k in 0...conf.color.length) {
+				if (conf.color[k].isStart) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aCOLORSTART"+k}, $v{"aColorStart"+k} ) );
+				if (conf.color[k].isEnd)   exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aCOLOREND"  +k}, $v{"aColorEnd"  +k} ) );
+			}
+			for (k in 0...conf.texUnit.length) if (conf.texUnit[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aUNIT"+k}, $v{"aUnit"+k} ) );
+			for (k in 0...conf.texSlot.length) if (conf.texSlot[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aSLOT"+k}, $v{"aSLOT"+k} ) );
+			for (k in 0...conf.texTile.length) if (conf.texTile[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTILE"+k}, $v{"aTILE"+k} ) );
+			for (k in 0...conf.texX.length) if (conf.texX[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTEXX"+k}, $v{"aTEXX"+k} ) );
+			for (k in 0...conf.texY.length) if (conf.texY[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTEXY"+k}, $v{"aTEXY"+k} ) );
+			for (k in 0...conf.texW.length) if (conf.texW[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTEXW"+k}, $v{"aTEXW"+k} ) );
+			for (k in 0...conf.texH.length) if (conf.texH[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTEXH"+k}, $v{"aTEXH"+k} ) );
+			for (k in 0...conf.texPosX.length) if (conf.texPosX[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTEXPOSX"+k}, $v{"aTEXPOSX"+k} ) );
+			for (k in 0...conf.texPosY.length) if (conf.texPosY[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTEXPOSY"+k}, $v{"aTEXPOSY"+k} ) );
+			for (k in 0...conf.texSizeX.length) if (conf.texSizeX[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTEXSIZEX"+k}, $v{"aTEXSIZEX"+k} ) );
+			for (k in 0...conf.texSizeY.length) if (conf.texSizeY[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTEXSIZEY"+k}, $v{"aTEXSIZEY"+k} ) );
+			return exprBlock;
 		}
-		for (k in 0...conf.texUnit.length) if (conf.texUnit[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aUNIT"+k}, $v{"aUnit"+k} ) );
-		for (k in 0...conf.texSlot.length) if (conf.texSlot[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aSLOT"+k}, $v{"aSLOT"+k} ) );
-		for (k in 0...conf.texTile.length) if (conf.texTile[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTILE"+k}, $v{"aTILE"+k} ) );
-		for (k in 0...conf.texX.length) if (conf.texX[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTEXX"+k}, $v{"aTEXX"+k} ) );
-		for (k in 0...conf.texY.length) if (conf.texY[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTEXY"+k}, $v{"aTEXY"+k} ) );
-		for (k in 0...conf.texW.length) if (conf.texW[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTEXW"+k}, $v{"aTEXW"+k} ) );
-		for (k in 0...conf.texH.length) if (conf.texH[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTEXH"+k}, $v{"aTEXH"+k} ) );
-		for (k in 0...conf.texPosX.length) if (conf.texPosX[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTEXPOSX"+k}, $v{"aTEXPOSX"+k} ) );
-		for (k in 0...conf.texPosY.length) if (conf.texPosY[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTEXPOSY"+k}, $v{"aTEXPOSY"+k} ) );
-		for (k in 0...conf.texSizeX.length) if (conf.texSizeX[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTEXSIZEX"+k}, $v{"aTEXSIZEX"+k} ) );
-		for (k in 0...conf.texSizeY.length) if (conf.texSizeY[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTEXSIZEY"+k}, $v{"aTEXSIZEY"+k} ) );
-		
 		fields.push({
 			name: "bindAttribLocations",
 			meta: allowForBuffer,
@@ -1768,7 +1770,21 @@ class ElementImpl
 				args:[ {name:"gl", type:macro:peote.view.PeoteGL},
 				       {name:"glProgram", type:macro:peote.view.PeoteGL.GLProgram}
 				],
-				expr: macro $b{exprBlock},
+				expr: macro $b{ enableVertexAttribExpr() },
+				ret: null
+			})
+		});
+		
+		fields.push({
+			name: "bindAttribLocationsInstanced",
+			meta: allowForBuffer,
+			access: [Access.APrivate, Access.AStatic, Access.AInline],
+			pos: Context.currentPos(),
+			kind: FFun({
+				args:[ {name:"gl", type:macro:peote.view.PeoteGL},
+				       {name:"glProgram", type:macro:peote.view.PeoteGL.GLProgram}
+				],
+				expr: macro $b{ enableVertexAttribExpr(true) },
 				ret: null
 			})
 		});
@@ -1790,9 +1806,8 @@ class ElementImpl
 			
 			// PICKING ID
 			if (!isInstanced && options.picking) {
-				// TODO:
-				//exprBlock.push( macro gl.enableVertexAttribArray ($i{"aELEMENTID"}) );
-				//exprBlock.push( macro gl.vertexAttribPointer($i{"aELEMENTID"}, 4, gl.UNSIGNED_BYTE, true, $v{stride}, $v{i} ) ); i += 4;
+				exprBlock.push( macro gl.enableVertexAttribArray (aELEMENT) );
+				exprBlock.push( macro gl.vertexAttribPointer(aELEMENT, 4, gl.UNSIGNED_BYTE, true, $v{stride}, $v{i} ) ); i += 4;
 			}
 			// COLOR
 			for (k in 0...conf.color.length) {
@@ -1980,32 +1995,47 @@ class ElementImpl
 		});
 		// trace(new Printer().printField(fields[fields.length-1])); //debug
 		// -------------------------
-		exprBlock = [ macro gl.disableVertexAttribArray (aPOSITION) ];
-		if (options.picking) {
-				// TODO: exprBlock.push( macro gl.disableVertexAttribArray (aELEMENTID ) )
+		function disableVertexAttribExpr(isInstanced:Bool=false):Array<Expr> {
+			var exprBlock = [ macro gl.disableVertexAttribArray (aPOSITION) ];
+			if (!isInstanced && options.picking) {
+					exprBlock.push( macro gl.disableVertexAttribArray (aELEMENT) );
+			}
+			if (conf.posX.n  + conf.posY.n  > 0 ) exprBlock.push( macro gl.disableVertexAttribArray (aPOS) );
+			if (conf.sizeX.n + conf.sizeY.n > 0 ) exprBlock.push( macro gl.disableVertexAttribArray (aSIZE) );
+			if (conf.pivotX.n + conf.pivotY.n > 0 ) exprBlock.push( macro gl.disableVertexAttribArray (aPIVOT) );
+			if (conf.rotation.n + conf.zIndex.n > 0 ) exprBlock.push( macro gl.disableVertexAttribArray (aROTZ) );
+			for (k in 0...Std.int((timers.length+1) / 2)) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTIME"+k}) );
+			for (k in 0...conf.color.length) {
+				if (conf.color[k].isStart) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aCOLORSTART"+k}) );
+				if (conf.color[k].isEnd)   exprBlock.push( macro gl.disableVertexAttribArray ($i{"aCOLOREND"  +k}) );
+			}
+			for (k in 0...conf.texUnit.length) if (conf.texUnit[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aUNIT"+k}) );
+			for (k in 0...conf.texSlot.length) if (conf.texSlot[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aSLOT"+k}) );
+			for (k in 0...conf.texTile.length) if (conf.texTile[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTILE"+k}) );
+			for (k in 0...conf.texX.length) if (conf.texX[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTEXX"+k}) );
+			for (k in 0...conf.texY.length) if (conf.texY[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTEXY"+k}) );
+			for (k in 0...conf.texW.length) if (conf.texW[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTEXW"+k}) );
+			for (k in 0...conf.texH.length) if (conf.texH[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTEXH"+k}) );
+			for (k in 0...conf.texPosX.length) if (conf.texPosX[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTEXPOSX"+k}) );
+			for (k in 0...conf.texPosY.length) if (conf.texPosY[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTEXPOSY"+k}) );
+			for (k in 0...conf.texSizeX.length) if (conf.texSizeX[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTEXSIZEX"+k}) );
+			for (k in 0...conf.texSizeY.length) if (conf.texSizeY[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTEXSIZEY"+k}) );
+			return exprBlock;
 		}
-		if (conf.posX.n  + conf.posY.n  > 0 ) exprBlock.push( macro gl.disableVertexAttribArray (aPOS ) );
-		if (conf.sizeX.n + conf.sizeY.n > 0 ) exprBlock.push( macro gl.disableVertexAttribArray (aSIZE) );
-		if (conf.pivotX.n + conf.pivotY.n > 0 ) exprBlock.push( macro gl.disableVertexAttribArray (aPIVOT) );
-		if (conf.rotation.n + conf.zIndex.n > 0 ) exprBlock.push( macro gl.disableVertexAttribArray (aROTZ) );
-		for (k in 0...Std.int((timers.length+1) / 2)) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTIME"+k}) );
-		for (k in 0...conf.color.length) {
-			if (conf.color[k].isStart) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aCOLORSTART"+k}) );
-			if (conf.color[k].isEnd)   exprBlock.push( macro gl.disableVertexAttribArray ($i{"aCOLOREND"  +k}) );
-		}
-		for (k in 0...conf.texUnit.length) if (conf.texUnit[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aUNIT"+k}) );
-		for (k in 0...conf.texSlot.length) if (conf.texSlot[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aSLOT"+k}) );
-		for (k in 0...conf.texTile.length) if (conf.texTile[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTILE"+k}) );
-		for (k in 0...conf.texX.length) if (conf.texX[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTEXX"+k}) );
-		for (k in 0...conf.texY.length) if (conf.texY[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTEXY"+k}) );
-		for (k in 0...conf.texW.length) if (conf.texW[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTEXW"+k}) );
-		for (k in 0...conf.texH.length) if (conf.texH[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTEXH"+k}) );
-		for (k in 0...conf.texPosX.length) if (conf.texPosX[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTEXPOSX"+k}) );
-		for (k in 0...conf.texPosY.length) if (conf.texPosY[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTEXPOSY"+k}) );
-		for (k in 0...conf.texSizeX.length) if (conf.texSizeX[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTEXSIZEX"+k}) );
-		for (k in 0...conf.texSizeY.length) if (conf.texSizeY[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTEXSIZEY"+k}) );
 		
-		// TODO: check also if there is need of additional "disableVertexAttribInstanced" (without that picking)
+		fields.push({
+			name: "disableVertexAttribInstanced",
+			meta: allowForBuffer,
+			access: [Access.APrivate, Access.AStatic, Access.AInline],
+			pos: Context.currentPos(),
+			kind: FFun({
+				args:[ {name:"gl", type:macro:peote.view.PeoteGL}
+				],
+				expr: macro $b{ disableVertexAttribExpr(true) },
+				ret: null
+			})
+		});
+		// trace(new Printer().printField(fields[fields.length-1])); //debug
 		fields.push({
 			name: "disableVertexAttrib",
 			meta: allowForBuffer,
@@ -2014,7 +2044,7 @@ class ElementImpl
 			kind: FFun({
 				args:[ {name:"gl", type:macro:peote.view.PeoteGL}
 				],
-				expr: macro $b{exprBlock},
+				expr: macro $b{ disableVertexAttribExpr() },
 				ret: null
 			})
 		});
