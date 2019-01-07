@@ -39,6 +39,7 @@ class Program
 	var buffer:BufferInterface; // TODO: make public with getter/setter
 	
 	var glShaderConfig = {
+		isPICK:false,
 		isES3: false,
 		isINSTANCED: false,
 		isUBO: false,

@@ -163,10 +163,18 @@ class Shader
 		::IN_TEXSIZEY::
 	::end::
 	
+	//TODO
+	::if isPICK::
+		::if isINSTANCED::
+		//flat in int instanceID;
+		// PICKING out int color;
+		::else::
+			varying vec4 elemColor;
+		::end::
+	::end::
+	
 	::if isES3::
-	//flat in int instanceID;
 	out vec4 Color;
-	// PICKING out int color;
 	::end::
 
 	
@@ -190,11 +198,15 @@ class Shader
 		::end::
 		
 		// calc final color from all layers
-		vec4 color = ::FRAGMENT_CALC_LAYER::;
+		vec4 col = ::FRAGMENT_CALC_LAYER::;
 		
-		if (color.a == 0.0) discard; // TODO: set per progam
+		if (col.a == 0.0) discard; // TODO: set per progam
 		
-		::if !isES3::gl_Frag::end::Color = color;
+		::if isPICK:: 
+		col = instanceID;
+		::end::
+		
+		::if !isES3::gl_Frag::end::Color = col;
 		
 		// TODO: check this fix for problem on old FF if alpha goes zero
 		::if !isES3::gl_Frag::end::Color.w = clamp(::if !isES3::gl_Frag::end::Color.w, 0.003, 1.0);

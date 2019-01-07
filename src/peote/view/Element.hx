@@ -44,8 +44,7 @@ typedef ConfSubParam =
 }
 
 typedef GLConfParam =
-{			isPICK:Bool,
-			UNIFORM_TIME:String,
+{			UNIFORM_TIME:String,
 			ATTRIB_TIME:String, ATTRIB_SIZE:String, ATTRIB_POS:String, ATTRIB_COLOR:String, ATTRIB_ROTZ:String, ATTRIB_PIVOT:String,
 			ATTRIB_UNIT:String, ATTRIB_SLOT:String, ATTRIB_TILE:String,
 			ATTRIB_TEXX:String, ATTRIB_TEXY:String, ATTRIB_TEXW:String, ATTRIB_TEXH:String,
@@ -498,7 +497,6 @@ class ElementImpl
 		};
 		
 		glConf = {
-			isPICK:false,
 			UNIFORM_TIME:"",
 			ATTRIB_TIME:"", ATTRIB_SIZE:"", ATTRIB_POS:"", ATTRIB_COLOR:"", ATTRIB_ROTZ:"", ATTRIB_PIVOT:"",
 			ATTRIB_UNIT:"", ATTRIB_SLOT:"", ATTRIB_TILE:"",
@@ -515,6 +513,8 @@ class ElementImpl
 			CALC_TEXPOSX:"", CALC_TEXPOSY:"", CALC_TEXSIZEX:"", CALC_TEXSIZEY:"", 
 			ELEMENT_LAYERS:[],
 		};
+		
+		var options = { picking:false, texRepeatX:false, texRepeatY:false };
 		
 		setFun  = new StringMap<Dynamic>();
 		animFun = new StringMap<Dynamic>();
@@ -543,7 +543,6 @@ class ElementImpl
 		
 		for (f in fields)
 		{	
-			fieldnames.push(f.name);
 			if (f.name == "new") hasNoNew = false;
 			else if (f.name == "DEFAULT_COLOR_FORMULA") { // TODO: check Formula
 				hasNoDefaultColorFormula = false;
@@ -566,7 +565,7 @@ class ElementImpl
 												case EConst(CString(identifier)):
 													if (Util.isWrongIdentifier(identifier)) throw Context.error('Error: "$identifier" is not an identifier, please use only letters/numbers or "_" (starting with a letter)', f.pos);
 													defaultFormulaVars.push(identifier);
-												default:
+												default: // TODO: errorhandling if there is no value of type color or int
 											}
 										default:
 									}
@@ -575,11 +574,47 @@ class ElementImpl
 					default:
 				}
 			}
-			else switch (f.kind)
-			{	
-				case FVar(type, val)                 : configure(f, type, val);
-				case FProp(getter, setter, type, val): configure(f, type, val, getter, setter);
-				default: //trace(f.kind);
+			else if (f.name == "OPTIONS") {
+				f.meta = allowForBuffer;
+				f.access = [Access.APrivate, Access.AStatic];
+				switch(f.kind) {
+					case FVar(_, val):
+						switch(val.expr) {
+							case EObjectDecl(obj):
+								var vBool:Null<Bool> = null;
+								var vInt:Null<Int> = null;
+								var vString:Null<String> = null;
+								for (o in obj) {
+									//trace(o.expr.expr);
+									switch(o.expr.expr) {
+										case EConst(CIdent(value)):  vBool = (value == "true") ? true : false;
+										case EConst(CInt(value)):    vInt  = Std.parseInt(value);
+										case EConst(CString(value)): vString = value;
+										default: throw Context.error('Error: "${o.field}" has invalid type', f.pos);
+									}
+									var checkErr = function(v:Null<Dynamic>, expType:String) {
+										if (v==null) throw Context.error('Error: "${o.field}" should be of type $expType', f.pos);
+									}
+									switch (o.field) {
+										case ("picking"):      checkErr(vBool, "Bool"); options.picking    = vBool;
+										case ("texRepeatX"):   checkErr(vBool, "Bool"); options.texRepeatX = vBool;
+										case ("texRepeatY"):   checkErr(vBool, "Bool"); options.texRepeatY = vBool;
+										default: throw Context.error('Error: "${o.field}" is not a valid option', f.pos);
+									}
+								}
+							default:
+						}
+					default:
+				}
+			}
+			else {
+				fieldnames.push(f.name);
+				switch (f.kind)
+				{	
+					case FVar(type, val)                 : configure(f, type, val);
+					case FProp(getter, setter, type, val): configure(f, type, val, getter, setter);
+					default: //trace(f.kind);
+				}
 			}
 		}
 		
@@ -928,11 +963,9 @@ class ElementImpl
 			if (texSizeX != '$w' || texSizeY != '$h') texCoord = 'vec2($w, $h) / vec2($texSizeX, $texSizeY) * $texCoord';
 			
 			if (texPosX != "0.0" || texPosY != "0.0" || texSizeX != '$w' || texSizeY != '$h') {
-				var repeatX = false; var repeatY = false;
-				//if (repeatX || repeatY) texCoord = 'mod( $texCoord, vec2(${(repeatX) ? w : "0.0"}, ${(repeatY) ? h : "0.0"}) )';
-				if (repeatX && repeatY) texCoord = 'mod($texCoord, vec2($w, $h))';
-				else if (repeatX) texCoord = 'vec2( mod(($texCoord).x, $w), ($texCoord).y )';
-				else if (repeatY) texCoord = 'vec2( ($texCoord).x, mod(($texCoord).y, $h) )';
+				if (options.texRepeatX && options.texRepeatY) texCoord = 'mod($texCoord, vec2($w, $h))';
+				else if (options.texRepeatX) texCoord = 'vec2( mod(($texCoord).x, $w), ($texCoord).y )';
+				else if (options.texRepeatY) texCoord = 'vec2( ($texCoord).x, mod(($texCoord).y, $h) )';
 				texCoord = 'clamp($texCoord, vec2(0.0, 0.0), vec2($w, $h))';
 			}
 			
@@ -1016,6 +1049,7 @@ class ElementImpl
 				pos: Context.currentPos(),
 			});
 		}
+		
 		
 		// ---------------------- generate helper vars and functions ---------------------------
 		debug("__generate vars and functions__");
@@ -1182,7 +1216,8 @@ class ElementImpl
 		// ------------------------- calc buffer size ----------------------------------------		
 		var vertex_count:Int = 6;
 		
-		var buff_size_instanced:Int = Std.int(timers.length * 8
+		var buff_size_instanced:Int = Std.int(
+			timers.length * 8
 			+ 4 * (conf.rotation.n + conf.zIndex.n)
 			+ 2 * (conf.posX.n  + conf.posY.n)
 			+ 2 * (conf.sizeX.n + conf.sizeY.n)
@@ -1201,7 +1236,9 @@ class ElementImpl
 		for (c in conf.texSizeX) buff_size_instanced += Std.int(c.n * 2);
 		for (c in conf.texSizeY) buff_size_instanced += Std.int(c.n * 2);
 		
-		var buff_size:Int = buff_size_instanced +2;
+		var buff_size:Int = buff_size_instanced + 2;
+		//if (options.picking) buff_size += 4; // add elementId for picking
+		
 		//trace("buff_size_instanced", buff_size_instanced);
 		//trace("buff_size", buff_size);
 		
@@ -1235,6 +1272,13 @@ class ElementImpl
 			meta:  allowForBuffer,
 			access:  [Access.APrivate, Access.AStatic, Access.AInline],
 			kind: FieldType.FVar(macro:Bool, macro $v{(conf.zIndex.name != "")}), 
+			pos: Context.currentPos(),
+		});
+		fields.push({
+			name:  "PICKING_ENABLED",
+			meta:  allowForBuffer,
+			access:  [Access.APrivate, Access.AStatic, Access.AInline],
+			kind: FieldType.FVar(macro:Bool, macro $v{options.picking}),
 			pos: Context.currentPos(),
 		});
 		// ---------------------- vertex count and bufsize -----------------------------------
@@ -1278,6 +1322,13 @@ class ElementImpl
 		
 		// ---------------------- vertex attribute bindings ----------------------------------
 		var attrNumber = 0;
+		if (options.picking)
+			fields.push({
+				name:  "aELEMENTID",
+				access:  [Access.APrivate, Access.AStatic, Access.AInline], // <-- for opengl-picking
+				kind: FieldType.FVar(macro:Int, macro $v{attrNumber++}), 
+				pos: Context.currentPos(),
+			});
 		fields.push({
 			name:  "aPOSITION",
 			access:  [Access.APrivate, Access.AStatic, Access.AInline],
@@ -1500,7 +1551,7 @@ class ElementImpl
 		});
 		
 		// ----------------------------- writeBytes -----------------------------------------
-		function writeBytesExpr(verts:Array<Array<Int>>=null):Array<Expr> {
+		function writeBytesExpr(verts:Array<Array<Int>> = null):Array<Expr> {
 			var i:Int = 0;
 			var exprBlock = new Array<Expr>();
 			var len = 1;
@@ -1508,6 +1559,12 @@ class ElementImpl
 			for (j in 0...len)
 			{
 				// -------------- setInt32 ------------------------------
+				// PICKING-ID
+				if (verts != null && options.picking) {
+					// TODO
+					//exprBlock.push( macro bytes.setInt32(bytePos + $v{i},  Std.int(element.bytePos/(BUFF_SIZE * VERTEX_COUNT)) ) ); i+=4;
+				}
+				
 				// COLOR
 				for (k in 0...conf.color.length) {
 					if (conf.color[k].isAnim && conf.color[k].isStart) { exprBlock.push( macro bytes.setInt32(bytePos + $v{i}, $i{conf.color[k].name+"Start"}) ); i+=4; }
@@ -1728,9 +1785,15 @@ class ElementImpl
 				exprBlock.push( macro gl.vertexAttribPointer(aPOSITION, 2, gl.UNSIGNED_BYTE, false, 2, 0 ) );
 				stride = buff_size_instanced;
 			}
-
+			
 			exprBlock.push( macro gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer) );
 			
+			// PICKING ID
+			if (!isInstanced && options.picking) {
+				// TODO:
+				//exprBlock.push( macro gl.enableVertexAttribArray ($i{"aELEMENTID"}) );
+				//exprBlock.push( macro gl.vertexAttribPointer($i{"aELEMENTID"}, 4, gl.UNSIGNED_BYTE, true, $v{stride}, $v{i} ) ); i += 4;
+			}
 			// COLOR
 			for (k in 0...conf.color.length) {
 				if (conf.color[k].isStart) {
@@ -1918,6 +1981,9 @@ class ElementImpl
 		// trace(new Printer().printField(fields[fields.length-1])); //debug
 		// -------------------------
 		exprBlock = [ macro gl.disableVertexAttribArray (aPOSITION) ];
+		if (options.picking) {
+				// TODO: exprBlock.push( macro gl.disableVertexAttribArray (aELEMENTID ) )
+		}
 		if (conf.posX.n  + conf.posY.n  > 0 ) exprBlock.push( macro gl.disableVertexAttribArray (aPOS ) );
 		if (conf.sizeX.n + conf.sizeY.n > 0 ) exprBlock.push( macro gl.disableVertexAttribArray (aSIZE) );
 		if (conf.pivotX.n + conf.pivotY.n > 0 ) exprBlock.push( macro gl.disableVertexAttribArray (aPIVOT) );
@@ -1938,7 +2004,8 @@ class ElementImpl
 		for (k in 0...conf.texPosY.length) if (conf.texPosY[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTEXPOSY"+k}) );
 		for (k in 0...conf.texSizeX.length) if (conf.texSizeX[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTEXSIZEX"+k}) );
 		for (k in 0...conf.texSizeY.length) if (conf.texSizeY[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTEXSIZEY"+k}) );
-			
+		
+		// TODO: check also if there is need of additional "disableVertexAttribInstanced" (without that picking)
 		fields.push({
 			name: "disableVertexAttrib",
 			meta: allowForBuffer,

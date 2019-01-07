@@ -231,6 +231,7 @@ class $className implements BufferInterface
 	public inline function _updateElement(element: $elementType):Void
 	{	
 		//trace("Buffer.updateElement at position" + element.bytePos);
+		if (element.bytePos == -1) throw ("Error, Element is not added to Buffer");		
 		if (_gl != null) element.updateGLBuffer(_gl, _glBuffer, _elemBuffSize);
 	}
 	
@@ -247,7 +248,7 @@ class $className implements BufferInterface
 			_elements.set(_maxElements++, element);
 			updateElement(element);		
 		} 
-		else throw("Error: Element is already inside Buffer");
+		else throw("Error: Element is already inside a Buffer");
 	}
 		
 	/**
@@ -268,7 +269,7 @@ class $className implements BufferInterface
 			else _maxElements--;
 			element.bytePos = -1;			
 		}
-		else throw("Error: Element is not inside Buffer");
+		else throw("Error: Element is not inside a Buffer");
 	}
 
 	// TODO: if alpha + zIndex this will be needed 
@@ -284,6 +285,7 @@ class $className implements BufferInterface
 	private inline function getDefaultFormulaVars():haxe.ds.StringMap<peote.view.Color> return $p{elemField}.DEFAULT_FORMULA_VARS;
 	private inline function hasAlpha():Bool return $p{elemField}.ALPHA_ENABLED;
 	private inline function hasZindex():Bool return $p{elemField}.ZINDEX_ENABLED;
+	private inline function hasPicking():Bool return $p{elemField}.PICKING_ENABLED;
 
 	private inline function bindAttribLocations(gl: peote.view.PeoteGL, glProgram: peote.view.PeoteGL.GLProgram):Void
 	{
