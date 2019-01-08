@@ -151,22 +151,22 @@ class Display
 	// ------------------------------------------------------------------------------
 	// ----------------------------- Render -----------------------------------------
 	// ------------------------------------------------------------------------------
-	private inline function glScissor(gl:PeoteGL, width:Int, height:Int, zoom:Float, xOffset:Float, yOffset:Float):Void
-	{
+	private inline function glScissor(gl:PeoteGL, w:Int, h:Int, xOffset:Float, yOffset:Float, zoom:Float):Void
+	{	
 		var sx:Int = Math.floor((x + xOffset) * zoom);
 		var sy:Int = Math.floor((y + yOffset) * zoom);
-		var sw:Int = Math.floor(this.width  * zoom);
-		var sh:Int = Math.floor(this.height * zoom);
+		var sw:Int = Math.floor(width  * zoom);
+		var sh:Int = Math.floor(height * zoom);
 		
 		if (sx < 0) sw += sx;
-		sx = Std.int( Math.max(0, Math.min(width, sx)) );
-		sw = Std.int( Math.max(0, Math.min(width-sx, sw)) );
+		sx = Std.int( Math.max(0, Math.min(w, sx)) );
+		sw = Std.int( Math.max(0, Math.min(w-sx, sw)) );
 		
 		if (sy < 0) sh += sy;
-		sy = Std.int( Math.max(0, Math.min(height, sy)) );
-		sh = Std.int( Math.max(0, Math.min(height-sy, sh)) );
+		sy = Std.int( Math.max(0, Math.min(h, sy)) );
+		sh = Std.int( Math.max(0, Math.min(h-sy, sh)) );
 
-		gl.scissor(sx, height - sh - sy, sw, sh);
+		gl.scissor(sx, h - sh - sy, sw, sh);
 	}
 	
 	var programListItem:RenderListItem<Program>;
@@ -174,7 +174,7 @@ class Display
 	private inline function render(peoteView:PeoteView):Void
 	{	
 		//trace("  ---display.render---");
-		glScissor(peoteView.gl, peoteView.width, peoteView.height, peoteView.zoom, peoteView.xOffset, peoteView.yOffset);
+		glScissor(peoteView.gl, peoteView.width, peoteView.height, peoteView.xOffset, peoteView.yOffset, peoteView.zoom);
 		
 		if (backgroundEnabled) {
 			peoteView.setGLDepth(backgroundDepth);
@@ -188,7 +188,6 @@ class Display
 			programListItem.value.render(peoteView, this);			
 			programListItem = programListItem.next;
 		}
-		
 	}
 	
 	// ------------------------------------------------------------------------------
@@ -196,10 +195,11 @@ class Display
 	// ------------------------------------------------------------------------------
 	private function pick( mouseX:Int, mouseY:Int, peoteView:PeoteView, program:Program):Void
 	{
-		glScissor(peoteView.gl, 1, 1, peoteView.zoom, peoteView.xOffset, peoteView.yOffset);
-		// TODO
-		
-		program.pick( mouseX, mouseY, peoteView, this);
+		var xOff:Float = peoteView.xOffset * (peoteView.zoom-1)/peoteView.zoom - (mouseX - peoteView.xOffset) / peoteView.zoom;
+		var yOff:Float = peoteView.yOffset * (peoteView.zoom-1)/peoteView.zoom - (mouseY - peoteView.yOffset) / peoteView.zoom;
+
+		glScissor(peoteView.gl, 1, 1, xOff, yOff, peoteView.zoom);
+		program.pick( xOff, yOff, peoteView, this);
 	}
 
 }

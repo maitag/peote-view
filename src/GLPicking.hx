@@ -29,7 +29,7 @@ class Elem implements Element
 		
 	@zIndex public var z:Int = 0;	
 	
-	public function new(positionX:Int=0, positionY:Int=0, width:Int=100, height:Int=100, c:Int=0xFF0000FF )
+	public function new(positionX:Int=0, positionY:Int=0, width:Int=100, height:Int=100, c:Int=0xff0000ff )
 	{
 		this.x = positionX;
 		this.y = positionY;
@@ -48,22 +48,30 @@ class GLPicking
 
 	var element:Elem;
 	var buffer:Buffer<Elem>;
+	var displayLeft:Display;
+	var displayRight:Display; 
 	var programLeft:Program;
 	var programRight:Program; 
 	
 	public function new(window:Window)
 	{	
 
-		peoteView = new PeoteView(window.context, window.width, window.height, Color.GREY1);
-		var displayLeft  = new Display(10, 10, 280, 280, Color.BLUE);
-		var displayRight = new Display(300, 10, 280, 280, Color.YELLOW);
+		//peoteView = new PeoteView(window.context, window.width, window.height, Color.GREY1);
+		peoteView = new PeoteView(window.context, window.width, window.height, Color.GREEN);
+		
+		displayLeft  = new Display(0, 0, 280, 280, Color.BLUE);
+		displayRight = new Display(300, 0, 280, 280, Color.YELLOW);
+		
+		peoteView.zoom = 1.0;
+		peoteView.xOffset = 0;
+		peoteView.yOffset = 0;
 		
 		peoteView.addDisplay(displayLeft);
 		peoteView.addDisplay(displayRight);
 		
 		buffer   = new Buffer<Elem>(100);
 
-		element  = new Elem(20, 20);
+		element  = new Elem(0, 0);
 		buffer.addElement(element);
 
 		
@@ -77,7 +85,7 @@ class GLPicking
 		
 		var timer = new Timer(60);
 		timer.run =  function() {
-			element.x++; buffer.updateElement(element);
+			//element.x++; buffer.updateElement(element);
 			if (element.x > 170) timer.stop();
 		};
 		
@@ -89,12 +97,47 @@ class GLPicking
 		// TODO
 		// TODO
 		// TODO
-		var pickedElement = buffer.pickElementAt(Std.int(x), Std.int(y), programLeft);
-		if (pickedElement != null) pickedElement.y += 100;
+		//var pickedElement = buffer.pickElementAt(Std.int(x), Std.int(y), programLeft);
+		var pickedElement = peoteView.getElementAt(Std.int(x), Std.int(y), displayLeft, programLeft);
+		trace(pickedElement);
+		//if (pickedElement != null) pickedElement.y += 100;
 	}
 	
 	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
 	{
+		var steps = 10;
+		var esteps = element.w;
+		switch (keyCode) {
+			case KeyCode.LEFT:
+					if (modifier.ctrlKey) {element.x-=esteps; buffer.updateElement(element);}
+					else if (modifier.shiftKey) displayLeft.xOffset-=steps;
+					else if (modifier.altKey) displayRight.xOffset-=steps;
+					else peoteView.xOffset-=steps;
+			case KeyCode.RIGHT:
+					if (modifier.ctrlKey) {element.x+=esteps; buffer.updateElement(element);}
+					else if (modifier.shiftKey) displayLeft.xOffset+=steps;
+					else if (modifier.altKey) displayRight.xOffset+=steps;
+					else peoteView.xOffset+=steps;
+			case KeyCode.UP:
+					if (modifier.ctrlKey) {element.y-=esteps; buffer.updateElement(element);}
+					else if (modifier.shiftKey) displayLeft.yOffset-=steps;
+					else if (modifier.altKey) displayRight.yOffset-=steps;
+					else peoteView.yOffset-=steps;
+			case KeyCode.DOWN:
+					if (modifier.ctrlKey) {element.y+=esteps; buffer.updateElement(element);}
+					else if (modifier.shiftKey) displayLeft.yOffset+=steps;
+					else if (modifier.altKey) displayRight.yOffset+=steps;
+					else peoteView.yOffset+=steps;
+			case KeyCode.NUMPAD_PLUS:
+					if (modifier.shiftKey) displayLeft.zoom+=0.25;
+					else if (modifier.altKey) displayRight.zoom+=0.25;
+					else peoteView.zoom+=0.25;
+			case KeyCode.NUMPAD_MINUS:
+					if (modifier.shiftKey) displayLeft.zoom-=0.25;
+					else if (modifier.altKey) displayRight.zoom-=0.25;
+					else peoteView.zoom-=0.25;
+			default:
+		}
 		
 	}
 	public function update(deltaTime:Int):Void {}

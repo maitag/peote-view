@@ -493,11 +493,7 @@ class Program
 	// ------------------------------------------------------------------------------
 	var textureListItem:RenderListItem<ActiveTexture>;
 
-	private inline function render(peoteView:PeoteView, display:Display)
-	{	
-		//trace("    ---program.render---");
-		gl.useProgram(glProgram); // ------ Shader Program
-		
+	private inline function render_activeTextureUnits(peoteView:PeoteView):Void {
 		// Texture Units
 		textureListItem = textureList.first;
 		while (textureListItem != null)
@@ -513,7 +509,15 @@ class Program
 			}
 			gl.uniform1i (textureListItem.value.uniformLoc, textureListItem.value.unit); // optimizing: later in this.uniformBuffer for isUBO
 			textureListItem = textureListItem.next;
-		}
+		}		
+	}
+	
+	private inline function render(peoteView:PeoteView, display:Display)
+	{	
+		//trace("    ---program.render---");
+		gl.useProgram(glProgram); // ------ Shader Program
+		
+		render_activeTextureUnits(peoteView);
 		
 		// TODO: own uniforms for every Program
 		if (PeoteGL.Version.isUBO)
@@ -529,7 +533,7 @@ class Program
 			gl.uniform2f (uRESOLUTION, peoteView.width, peoteView.height);
 			gl.uniform1f (uZOOM, peoteView.zoom * display.zoom);
 			gl.uniform2f (uOFFSET, (display.x + display.xOffset + peoteView.xOffset) / display.zoom, 
-											 (display.y + display.yOffset + peoteView.yOffset) / display.zoom);
+			                       (display.y + display.yOffset + peoteView.yOffset) / display.zoom);
 		}
 		
 		gl.uniform1f (uTIME, peoteView.time);
@@ -543,12 +547,27 @@ class Program
 	// ------------------------------------------------------------------------------
 	// ------------------------ OPENGL PICKING -------------------------------------- 
 	// ------------------------------------------------------------------------------
-	private inline function pick( mouseX:Int, mouseY:Int, peoteView:PeoteView, display:Display):Void
+	private inline function pick( xOff:Float, yOff:Float, peoteView:PeoteView, display:Display):Void
 	{
 		// TODO
 		// gl.useProgram(glProgramPick);
-		// TODO -> translate peoteview relative to zoom and mouseposition before rendreing
-		// no changes for the uniform-buffers for the picking-shader
+		gl.useProgram(glProgram); // ------ Shader Program
+		
+		render_activeTextureUnits(peoteView);
+		
+		// TODO: NO UBOs for PICKING-SHADER!
+		gl.uniform2f (uRESOLUTION, 1, 1);
+		gl.uniform1f (uZOOM, peoteView.zoom * display.zoom);
+		gl.uniform2f (uOFFSET, (display.x + display.xOffset + xOff) / display.zoom,
+		                       (display.y + display.yOffset + yOff) / display.zoom);
+		
+		gl.uniform1f (uTIME, peoteView.time);
+		
+		peoteView.setGLDepth(zIndexEnabled);
+		peoteView.setGLAlpha(false);
+		
+		buffer.render(peoteView, display, this);
+		gl.useProgram (null);		
 	}
 	
 }

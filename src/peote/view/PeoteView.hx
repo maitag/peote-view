@@ -233,9 +233,9 @@ class PeoteView
 		// read picked pixel (element-number)
 		if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE) {
 			
-			//GL.bindTexture (GL.TEXTURE_2D, fb_texture);
-			gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, picked);
-			//GL.bindTexture (GL.TEXTURE_2D, null);
+			//gl.bindTexture (gl.TEXTURE_2D, fb_texture);
+			gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, picked); // TODO: instanced need maybe other values
+			//gl.bindTexture (gl.TEXTURE_2D, null);
 		}
 		else trace("PICKING ERROR: Framebuffer not complete");
 		
@@ -243,7 +243,6 @@ class PeoteView
 		
 		return(picked[3]<<24 | picked[2]<<16 | picked[1]<<8 | picked[0] - 1);
 	}
-	
 	// ------------------------------------------------------------------------------
 	private inline function initGLViewport(w:Int, h:Int):Void
 	{
@@ -293,8 +292,8 @@ class PeoteView
 	public function render():Void
 	{	
 		//trace("===peoteView.render===");
-
 		initGLViewport(width, height);
+		
 		
 		displayListItem = displayList.first;
 		while (displayListItem != null)
