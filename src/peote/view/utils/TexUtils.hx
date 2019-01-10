@@ -76,6 +76,24 @@ class TexUtils
 		gl.bindTexture(gl.TEXTURE_2D, null);		
 		return glTexture;
 	}
+	
+	public static function createPickingDepthTexture(gl:PeoteGL):GLTexture
+	{
+		var glTexture:GLTexture = gl.createTexture();
+		gl.bindTexture(gl.TEXTURE_2D, glTexture);
+		
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT24, 1, 1, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, 0);
+		
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST); // <- bilinear 
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+		
+		// firefox needs this texture wrapping for gl.texSubImage2D if imagesize is non power of 2 
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+		gl.bindTexture(gl.TEXTURE_2D, null);		
+		return glTexture;
+	}
 
 	public static function optimalTextureSize(imageSlots:Int, slotWidth:Int, slotHeight:Int, maxTextureSize:Int):Dynamic
     {

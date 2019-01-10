@@ -56,44 +56,46 @@ class GLPicking
 	
 	public function new(window:Window)
 	{	
+		try {
+			//peoteView = new PeoteView(window.context, window.width, window.height, Color.GREY1);
+			peoteView = new PeoteView(window.context, window.width, window.height, Color.GREEN);
+			
+			displayLeft  = new Display(0, 0, 280, 280, Color.BLUE);
+			displayRight = new Display(300, 0, 280, 280, Color.YELLOW);
+			
+			peoteView.zoom = 1.0;
+			peoteView.xOffset = 0;
+			peoteView.yOffset = 0;
+			
+			peoteView.addDisplay(displayLeft);
+			peoteView.addDisplay(displayRight);
+			
+			buffer   = new Buffer<Elem>(100);
 
-		//peoteView = new PeoteView(window.context, window.width, window.height, Color.GREY1);
-		peoteView = new PeoteView(window.context, window.width, window.height, Color.GREEN);
-		
-		displayLeft  = new Display(0, 0, 280, 280, Color.BLUE);
-		displayRight = new Display(300, 0, 280, 280, Color.YELLOW);
-		
-		peoteView.zoom = 1.0;
-		peoteView.xOffset = 0;
-		peoteView.yOffset = 0;
-		
-		peoteView.addDisplay(displayLeft);
-		peoteView.addDisplay(displayRight);
-		
-		buffer   = new Buffer<Elem>(100);
+			element[0]  = new Elem(0, 0, 100, 100, Color.RED);
+			element[0].z = 2;
+			buffer.addElement(element[0]);
+			
+			element[1]  = new Elem(80, 80, 100, 100, Color.CYAN);
+			element[1].z = 1;
+			buffer.addElement(element[1]);
 
-		element[0]  = new Elem(0, 0, 100, 100, Color.RED);
-		element[0].z = 2;
-		buffer.addElement(element[0]);
-		
-		element[1]  = new Elem(80, 80, 100, 100, Color.CYAN);
-		element[1].z = 1;
-		buffer.addElement(element[1]);
-
-		
-		programLeft  = new Program(buffer);
-		programRight = new Program(buffer);
-		
-		displayLeft.addProgram(programLeft);
-		displayRight.addProgram(programRight);
-		
-		
-		
-		var timer = new Timer(60);
-		timer.run =  function() {
-			//element2.x++; buffer.updateElement(element);
-			if (element[0].x > 170) timer.stop();
-		};
+			
+			programLeft  = new Program(buffer);
+			programRight = new Program(buffer);
+			
+			displayLeft.addProgram(programLeft);
+			displayRight.addProgram(programRight);
+			
+			
+			
+			var timer = new Timer(60);
+			timer.run =  function() {
+				//element2.x++; buffer.updateElement(element);
+				if (element[0].x > 170) timer.stop();
+			};
+		}
+		catch (msg:String) {trace("ERROR", msg); }
 		
 		
 	}

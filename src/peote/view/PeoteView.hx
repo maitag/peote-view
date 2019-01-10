@@ -215,24 +215,46 @@ class PeoteView
 	// ------------------------------------------------------------------------------
 	var pickFB:GLFramebuffer;
 	var pickTexture:GLTexture;
+	var pickDepthTexture:GLTexture;
 	var pickInt32:lime.utils.Int32Array;
 	var pickUInt8:lime.utils.UInt8Array;
+	var pickHasDepth:Bool = true;
 	
-	private inline function initGlPicking()
+	private inline function initGlPicking() // TODO: refactor more into GLTool!
 	{
 		if (peote.view.PeoteGL.Version.isINSTANCED) {
 			pickInt32 = new lime.utils.Int32Array(4);
-			pickTexture = TexUtils.createPickingTexture(gl,true);
+			pickTexture = TexUtils.createPickingTexture(gl, true); // RGBA32I
 		} else {
 			pickUInt8  = new lime.utils.UInt8Array(4);
-			pickTexture = TexUtils.createPickingTexture(gl);
+			pickTexture = TexUtils.createPickingTexture(gl); // RGBA
 		}
 		
-		pickFB = GLTool.createFramebuffer(gl);	
+		// TODO better check gl-error here -> var err; while ((err = gl.getError()) != gl.NO_ERROR) trace(err);
+		pickDepthTexture = TexUtils.createPickingDepthTexture(gl);
 		
+		pickFB = GLTool.createFramebuffer(gl); 
 		gl.bindFramebuffer(gl.FRAMEBUFFER, pickFB);
-		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, pickTexture, 0); // CHECK: also need inside getElementAt?
+		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, pickTexture, 0);
+		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, pickDepthTexture, 0);
+			
+		if (!PeoteGL.Version.isES3) // check only for es2 if it supports depth-test
+			if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE) { // depth-test did not work with webgl1 (neko/cpp is ok!)
+				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+				trace("Can not bind depth texture to FB for gl-picking");
+				pickHasDepth = false;
+				pickDepthTexture = null;
+				gl.deleteFramebuffer(pickFB);
+				
+				pickFB = GLTool.createFramebuffer(gl); 
+				gl.bindFramebuffer(gl.FRAMEBUFFER, pickFB);
+				gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, pickTexture, 0);
+				
+				if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE)
+					throw("Error: opengl-Picking - Framebuffer not complete!");
+			}
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		
 		// CHECK LATER: this works only with es3.0 ->  gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
 	}
 	
@@ -245,17 +267,19 @@ class PeoteView
 		gl.viewport (0, 0, 1, 1); gl.scissor(0, 0, 1, 1); gl.enable(gl.SCISSOR_TEST);	
 		if (peote.view.PeoteGL.Version.isINSTANCED) {
 			gl.clearBufferiv(gl.COLOR, 0, [0, 0, 0, 0]); // only the first value is the UInt32 value that clears the texture
+			gl.clear(gl.DEPTH_BUFFER_BIT);
 		}
 		else {
 			gl.clearColor(0.0, 0.0, 0.0, 0.0);
 			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 		}
 		
-		// TODO: extra depth buffer
-		gl.depthFunc(gl.LEQUAL);
+		if (pickHasDepth) gl.depthFunc(gl.LEQUAL);
 		
-		// render with picking shader
-		display.pick(mouseX, mouseY, this, program);
+		// TODO: to wrap around webgl1 ( or do fetch all stacked Elements! )
+		// put in a loop here ( in every pass render only up to the last found element )
+
+		display.pick(mouseX, mouseY, this, program); // render with picking shader
 		
 		// read picked pixel (element-number)
 		if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE) {
@@ -285,7 +309,7 @@ class PeoteView
 		//gl.clearDepthf(1.0);
 		
 		// Optimize: only clear depth if is in use somewhere (depthON state!)
-		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); //gl.STENCIL_BUFFER_BIT);
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 		
 		// TODO: set only if program added or background need it
 		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
