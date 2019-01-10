@@ -146,6 +146,8 @@ class PeoteView
 		trace("precision range low max", gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.LOW_FLOAT).rangeMax);
 		*/
 		
+		initGlPicking();
+		
 		background = new Background(gl);
 		
 		displayList = new RenderList<Display>(new Map<Display,RenderListItem<Display>>());
@@ -211,37 +213,64 @@ class PeoteView
 	// ------------------------------------------------------------------------------
 	// ----------------------------- Render -----------------------------------------
 	// ------------------------------------------------------------------------------
-	var framebuffer:GLFramebuffer = null;
-	var fb_texture:GLTexture;
+	var pickFB:GLFramebuffer;
+	var pickTexture:GLTexture;
+	var pickUInt32:lime.utils.UInt32Array;
+	var pickUInt8:lime.utils.UInt8Array;
+	
+	private inline function initGlPicking()
+	{
+		if (peote.view.PeoteGL.Version.isINSTANCED) {
+			pickUInt32 = new lime.utils.UInt32Array(1);
+			pickTexture = TexUtils.createPickingTexture(gl,true);
+		} else {
+			pickUInt8  = new lime.utils.UInt8Array(4);
+			pickTexture = TexUtils.createPickingTexture(gl);
+		}
+		
+		pickFB = GLTool.createFramebuffer(gl);	
+		
+		gl.bindFramebuffer(gl.FRAMEBUFFER, pickFB);
+		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, pickTexture, 0); // CHECK: also need inside getElementAt?
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+	}
+	
+	// TODO: another Function to call onClick eventhandler of all pickable 
 	public function getElementAt(mouseX:Int, mouseY:Int, display:Display, program:Program):Int
 	{
-		// TODO: another Function to call onClick eventhandler of all pickable 
+		gl.bindFramebuffer(gl.FRAMEBUFFER, pickFB);
 		
-		fb_texture = TexUtils.createEmptyTexture(gl, 1, 1);
-		framebuffer = GLTool.createFramebuffer(gl);
+		//gl.drawBuffers([gl.COLOR_ATTACHMENT0]); // <- only es3.0
 		
-		var picked = new lime.utils.UInt8Array(4); // TODO: for multitouch pick the whole view (width*height*4)
-		
-		// render to framebuffer
-		gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
-		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, fb_texture, 0);
-
-		initGLViewport(1, 1);
+		// ------------
+		gl.viewport (0, 0, 1, 1); gl.scissor(0, 0, 1, 1); gl.enable(gl.SCISSOR_TEST);	
+		if (peote.view.PeoteGL.Version.isINSTANCED) {
+			gl.clearBufferuiv(gl.COLOR, 0, [0, 0, 0, 0]); // only the first value is the UInt32 value that clears the texture
+		}
+		else {
+			gl.clearColor(0.0, 0.0, 0.0, 0.0);
+			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+		}
+		gl.depthFunc(gl.LEQUAL);
+		// ------------
 		
 		display.pick(mouseX, mouseY, this, program);
 		
 		// read picked pixel (element-number)
 		if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE) {
-			
-			//gl.bindTexture (gl.TEXTURE_2D, fb_texture);
-			gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, picked); // TODO: instanced need maybe other values
-			//gl.bindTexture (gl.TEXTURE_2D, null);
+			if (peote.view.PeoteGL.Version.isINSTANCED) {
+				gl.readPixels(0, 0, 1, 1, gl.RED_INTEGER, gl.UNSIGNED_INT, pickUInt32);
+				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+				return pickUInt32[0] - 1;
+			}
+			else {
+				gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pickUInt8);
+				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+				return pickUInt8[3] << 24 | pickUInt8[2] << 16 | pickUInt8[1] << 8 | pickUInt8[0] - 1;
+			}
 		}
-		else trace("PICKING ERROR: Framebuffer not complete");
-		
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		
-		return(picked[3]<<24 | picked[2]<<16 | picked[1]<<8 | picked[0] - 1);
+		else throw("Error: opengl-Picking - Framebuffer not complete!");
+		return -2;
 	}
 	// ------------------------------------------------------------------------------
 	private inline function initGLViewport(w:Int, h:Int):Void

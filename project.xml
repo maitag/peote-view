@@ -7,7 +7,7 @@
 	
 	
 	<app main="Main" path="bin" file="Main" />
-	<haxedef name="sampleAnimation" />
+	<haxedef name="sampleGLPicking" />
 	<!-- sampleTest, sampleTextureSimple, sampleTextureSlotTiles, sampleMultiTextures, sampleDepthBlend, sampleBunnyMark, sampleMultidisplay,
 		sampleMultibuffer, sampleAnimation, sampleElementInherit, sampleGLPicking... -->
 	<define name="bunnies" value="400000" />
@@ -40,6 +40,7 @@
 	<!-- use special gl-features for optimization (if supported by opengl-es version) -->
 	<haxedef name="peoteview_uniformbuffers" />
 	<haxedef name="peoteview_instancedrawing" />
+	<haxedef name="peoteview_vertexarrayobjects" />
 
 
 	<haxedef name="peoteview_debug_macro" />

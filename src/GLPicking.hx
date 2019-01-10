@@ -46,7 +46,8 @@ class GLPicking
 {
 	var peoteView:PeoteView;
 
-	var element:Elem;
+	var element = new Array<Elem>();
+	
 	var buffer:Buffer<Elem>;
 	var displayLeft:Display;
 	var displayRight:Display; 
@@ -71,8 +72,13 @@ class GLPicking
 		
 		buffer   = new Buffer<Elem>(100);
 
-		element  = new Elem(0, 0);
-		buffer.addElement(element);
+		element[0]  = new Elem(0, 0, 100, 100, Color.RED);
+		element[0].z = 2;
+		buffer.addElement(element[0]);
+		
+		element[1]  = new Elem(80, 80, 100, 100, Color.CYAN);
+		element[1].z = 1;
+		buffer.addElement(element[1]);
 
 		
 		programLeft  = new Program(buffer);
@@ -85,8 +91,8 @@ class GLPicking
 		
 		var timer = new Timer(60);
 		timer.run =  function() {
-			//element.x++; buffer.updateElement(element);
-			if (element.x > 170) timer.stop();
+			//element2.x++; buffer.updateElement(element);
+			if (element[0].x > 170) timer.stop();
 		};
 		
 		
@@ -94,10 +100,6 @@ class GLPicking
 
 	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
 	{
-		// TODO
-		// TODO
-		// TODO
-		//var pickedElement = buffer.pickElementAt(Std.int(x), Std.int(y), programLeft);
 		var pickedElement = peoteView.getElementAt(Std.int(x), Std.int(y), displayLeft, programLeft);
 		trace(pickedElement);
 		//if (pickedElement != null) pickedElement.y += 100;
@@ -106,25 +108,25 @@ class GLPicking
 	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
 	{
 		var steps = 10;
-		var esteps = element.w;
+		var esteps = 10;
 		switch (keyCode) {
 			case KeyCode.LEFT:
-					if (modifier.ctrlKey) {element.x-=esteps; buffer.updateElement(element);}
+					if (modifier.ctrlKey) {element[0].x-=esteps; buffer.updateElement(element[0]);}
 					else if (modifier.shiftKey) displayLeft.xOffset-=steps;
 					else if (modifier.altKey) displayRight.xOffset-=steps;
 					else peoteView.xOffset-=steps;
 			case KeyCode.RIGHT:
-					if (modifier.ctrlKey) {element.x+=esteps; buffer.updateElement(element);}
+					if (modifier.ctrlKey) {element[0].x+=esteps; buffer.updateElement(element[0]);}
 					else if (modifier.shiftKey) displayLeft.xOffset+=steps;
 					else if (modifier.altKey) displayRight.xOffset+=steps;
 					else peoteView.xOffset+=steps;
 			case KeyCode.UP:
-					if (modifier.ctrlKey) {element.y-=esteps; buffer.updateElement(element);}
+					if (modifier.ctrlKey) {element[0].y-=esteps; buffer.updateElement(element[0]);}
 					else if (modifier.shiftKey) displayLeft.yOffset-=steps;
 					else if (modifier.altKey) displayRight.yOffset-=steps;
 					else peoteView.yOffset-=steps;
 			case KeyCode.DOWN:
-					if (modifier.ctrlKey) {element.y+=esteps; buffer.updateElement(element);}
+					if (modifier.ctrlKey) {element[0].y+=esteps; buffer.updateElement(element[0]);}
 					else if (modifier.shiftKey) displayLeft.yOffset+=steps;
 					else if (modifier.altKey) displayRight.yOffset+=steps;
 					else peoteView.yOffset+=steps;

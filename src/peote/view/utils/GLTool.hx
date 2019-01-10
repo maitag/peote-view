@@ -13,10 +13,14 @@ class GLTool
 		return (gl.createFramebuffer());
 	}
 	
-	static public inline function compileGLShader(gl:PeoteGL, type:Int, shaderSrc:String):GLShader
+	static public inline function compileGLShader(gl:PeoteGL, type:Int, shaderSrc:String, debug:Bool = false):GLShader
 	{
-		//trace('compile ${(type==gl.VERTEX_SHADER) ? "vertex":"fragment"} shader');
-		//trace("\n"+shaderSrc);
+		#if peoteview_debug_shader
+		if (debug) {
+			trace('------ ${(type==gl.VERTEX_SHADER) ? "vertex":"fragment"} shader ------');
+			trace("\n"+shaderSrc);
+		}
+		#end		
 		var glShader:GLShader = gl.createShader(type);
 		gl.shaderSource(glShader, shaderSrc);
 		gl.compileShader(glShader);

@@ -8,7 +8,7 @@ class Shader
 	::if isES3::#version 300 es::end::
 	
 	// Uniforms -------------------------
-	::if isUBO::
+	::if (!isPICKING && isUBO)::
 	//layout(std140) uniform uboView
 	uniform uboView
 	{
@@ -111,21 +111,22 @@ class Shader
 		
 		::if isPICKING::
 			::if isINSTANCED::
-				vElement = gl_InstanceID;
+				vElement = gl_InstanceID + 1;
 			::else::
 				vElement = aElement;
 			::end::
 		::end::
 		
-		float zoom = uZoom ::if isUBO:: * uViewZoom ::end::;
 		float width = uResolution.x;
 		float height = uResolution.y;
-		::if isUBO::
+		::if (!isPICKING && isUBO)::
 		float deltaX = (uOffset.x  + uViewOffset.x) / uZoom;
 		float deltaY = (uOffset.y  + uViewOffset.y) / uZoom;
+		float zoom = uZoom * uViewZoom;
 		::else::
 		float deltaX = uOffset.x;
 		float deltaY = uOffset.y;
+		float zoom = uZoom;
 		::end::
 		
 		//float right = width-deltaX*zoom;

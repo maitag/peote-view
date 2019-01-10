@@ -6,7 +6,7 @@ class TexUtils
 {
 
 	public static function createEmptyTexture(gl:PeoteGL, width:Int, height:Int, colorChannels:Int = 4,
-	                                                 createMipmaps:Bool=false, magFilter:Int=0, minFilter:Int=0):GLTexture
+	                                          createMipmaps:Bool=false, magFilter:Int=0, minFilter:Int=0):GLTexture
 	{
 		// TODO: colorchannels !
 		
@@ -55,6 +55,24 @@ class TexUtils
 		//peoteView.glStateTexture.set(gl.getInteger(gl.ACTIVE_TEXTURE), null); // TODO: check with multiwindows (gl.getInteger did not work on html5)
 		gl.bindTexture(gl.TEXTURE_2D, null);
 		
+		return glTexture;
+	}
+
+	public static function createPickingTexture(gl:PeoteGL, isR32UI:Bool=false):GLTexture
+	{
+		var glTexture:GLTexture = gl.createTexture();
+		gl.bindTexture(gl.TEXTURE_2D, glTexture);
+		
+		if (isR32UI) gl.texImage2D(gl.TEXTURE_2D, 0, gl.R32UI, 1, 1, 0, gl.RED_INTEGER, gl.UNSIGNED_INT,  0);
+		else         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA,  1, 1, 0, gl.RGBA,        gl.UNSIGNED_BYTE, 0);
+		
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST); // <- bilinear 
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+		// firefox needs this texture wrapping for gl.texSubImage2D if imagesize is non power of 2 
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+		gl.bindTexture(gl.TEXTURE_2D, null);		
 		return glTexture;
 	}
 

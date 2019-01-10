@@ -33,8 +33,11 @@ class Program
 	var gl:PeoteGL = null;
 
 	var glProgram:GLProgram = null;
+	var glProgramPicking:GLProgram = null;
 	var glVertexShader:GLShader = null;
 	var glFragmentShader:GLShader = null;
+	var glVertexShaderPicking:GLShader = null;
+	var glFragmentShaderPicking:GLShader = null;
 	
 	var buffer:BufferInterface; // TODO: make public with getter/setter
 	
@@ -145,71 +148,100 @@ class Program
 	private inline function clearOldGLContext() 
 	{
 		trace("Program clearOldGLContext");
-		
-		gl.deleteShader(glVertexShader);
-		gl.deleteShader(glFragmentShader);
-		gl.deleteProgram(glProgram);
-		
+		deleteProgram();
 		buffer.deleteGLBuffer();
 		for (t in activeTextures) t.clearOldGLContext();
 	}
 
-	private function reCreateProgram():Void 
+	private inline function reCreateProgram():Void 
+	{
+		deleteProgram();
+		createProgram();
+	}
+	
+	private inline function deleteProgram()
 	{
 		gl.deleteShader(glVertexShader);
 		gl.deleteShader(glFragmentShader);
 		gl.deleteProgram(glProgram);
-		createProgram();
+		if (buffer.hasPicking()) {
+			gl.deleteShader(glVertexShaderPicking);
+			gl.deleteShader(glFragmentShaderPicking);
+			gl.deleteProgram(glProgramPicking);	
+		}
 	}
 	
-	private function createProgram():Void  // TODO: do not compile twice if same program is used inside multiple displays
+	private inline function createProgram() {
+		createProg();
+		if (buffer.hasPicking()) createProg(true);		
+	}
+	
+	private function createProg(isPicking:Bool = false):Void  // TODO: do not compile twice if same program is used inside multiple displays
 	{
-		trace("create Program");
+		trace("create GL-Program" + ((isPicking) ? " for opengl-picking" : ""));
+		glShaderConfig.isPICKING = (isPicking) ? true : false;
 		
-		#if peoteview_debug_shader
-		trace("\n"+GLTool.parseShader(buffer.getVertexShader(), glShaderConfig));
-		#end
-		glVertexShader   = GLTool.compileGLShader(gl, gl.VERTEX_SHADER,   GLTool.parseShader(buffer.getVertexShader(), glShaderConfig) );
-		#if peoteview_debug_shader
-		trace("\n"+GLTool.parseShader(buffer.getFragmentShader(), glShaderConfig));
-		#end
-		glFragmentShader = GLTool.compileGLShader(gl, gl.FRAGMENT_SHADER, GLTool.parseShader(buffer.getFragmentShader(), glShaderConfig) );
+		var glVShader = GLTool.compileGLShader(gl, gl.VERTEX_SHADER,   GLTool.parseShader(buffer.getVertexShader(),   glShaderConfig), true );
+		var glFShader = GLTool.compileGLShader(gl, gl.FRAGMENT_SHADER, GLTool.parseShader(buffer.getFragmentShader(), glShaderConfig), true );
 
-		glProgram = gl.createProgram();
+		var glProg = gl.createProgram();
 
-		gl.attachShader(glProgram, glVertexShader);
-		gl.attachShader(glProgram, glFragmentShader);
+		gl.attachShader(glProg, glVShader);
+		gl.attachShader(glProg, glFShader);
 		
-		
-		buffer.bindAttribLocations(gl, glProgram);
+		buffer.bindAttribLocations(gl, glProg);
 				
 		textureList.clear(); // maybe optimize later with own single-linked list here!
 
-		GLTool.linkGLProgram(gl, glProgram);
+		GLTool.linkGLProgram(gl, glProg);
 		
 		// create textureList with new unitormlocations
 		for (i in 0...activeTextures.length) {
-			textureList.add(new ActiveTexture(activeUnits[i], activeTextures[i], gl.getUniformLocation(glProgram, "uTexture" + i)), null, false );
+			textureList.add(new ActiveTexture(activeUnits[i], activeTextures[i], gl.getUniformLocation(glProg, "uTexture" + i)), null, false );
 		}
 		
-		if (PeoteGL.Version.isUBO)
+		if ( !isPicking && PeoteGL.Version.isUBO)
 		{
-			display.peoteView.uniformBuffer.bindToProgram(gl, glProgram, "uboView", 0);
-			display.uniformBuffer.bindToProgram(gl, glProgram, "uboDisplay", 1);
+			display.peoteView.uniformBuffer.bindToProgram(gl, glProg, "uboView", 0);
+			display.uniformBuffer.bindToProgram(gl, glProg, "uboDisplay", 1);
 		}
 		else
-		{
-			uRESOLUTION = gl.getUniformLocation(glProgram, "uResolution");
-			uZOOM = gl.getUniformLocation(glProgram, "uZoom");
-			uOFFSET = gl.getUniformLocation(glProgram, "uOffset");
+		{	// Try to optimize here to let use picking shader the same vars
+			if ( !isPicking ) {
+				uRESOLUTION = gl.getUniformLocation(glProg, "uResolution");
+				uZOOM = gl.getUniformLocation(glProg, "uZoom");
+				uOFFSET = gl.getUniformLocation(glProg, "uOffset");
+			} else {
+				uRESOLUTION_PICK = gl.getUniformLocation(glProg, "uResolution");
+				uZOOM_PICK = gl.getUniformLocation(glProg, "uZoom");
+				uOFFSET_PICK = gl.getUniformLocation(glProg, "uOffset");
+			}
 		}
-		uTIME = gl.getUniformLocation(glProgram, "uTime");
+		if ( !isPicking )
+			uTIME = gl.getUniformLocation(glProg, "uTime");
+		else uTIME_PICK = gl.getUniformLocation(glProg, "uTime");
+		
+		if (!isPicking) {
+			glProgram = glProg;
+			glVertexShader = glVShader;
+			glFragmentShader  = glFShader;
+		} else {
+			glProgramPicking = glProg;
+			glVertexShaderPicking = glVShader;
+			glFragmentShaderPicking  = glFShader;
+		}
+		
 	}
 	
 	var uRESOLUTION:GLUniformLocation;
 	var uZOOM:GLUniformLocation;
 	var uOFFSET:GLUniformLocation;
 	var uTIME:GLUniformLocation;
+	// TODO: optimize here (or all with typedef {uRESOLUTION:GLUniformLocation ...} )
+	var uRESOLUTION_PICK:GLUniformLocation;
+	var uZOOM_PICK:GLUniformLocation;
+	var uOFFSET_PICK:GLUniformLocation;
+	var uTIME_PICK:GLUniformLocation;
 	
 	private function parseColorFormula():Void {
 		var formula:String = "";
@@ -549,19 +581,17 @@ class Program
 	// ------------------------------------------------------------------------------
 	private inline function pick( xOff:Float, yOff:Float, peoteView:PeoteView, display:Display):Void
 	{
-		// TODO
-		// gl.useProgram(glProgramPick);
-		gl.useProgram(glProgram); // ------ Shader Program
+		gl.useProgram(glProgramPicking); // ------ Shader Program
 		
 		render_activeTextureUnits(peoteView);
 		
-		// TODO: NO UBOs for PICKING-SHADER!
-		gl.uniform2f (uRESOLUTION, 1, 1);
-		gl.uniform1f (uZOOM, peoteView.zoom * display.zoom);
-		gl.uniform2f (uOFFSET, (display.x + display.xOffset + xOff) / display.zoom,
+		// No view/display UBOs for PICKING-SHADER!
+		gl.uniform2f (uRESOLUTION_PICK, 1, 1);
+		gl.uniform1f (uZOOM_PICK, peoteView.zoom * display.zoom);
+		gl.uniform2f (uOFFSET_PICK, (display.x + display.xOffset + xOff) / display.zoom,
 		                       (display.y + display.yOffset + yOff) / display.zoom);
 		
-		gl.uniform1f (uTIME, peoteView.time);
+		gl.uniform1f (uTIME_PICK, peoteView.time);
 		
 		peoteView.setGLDepth(zIndexEnabled);
 		peoteView.setGLAlpha(false);
