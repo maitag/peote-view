@@ -215,13 +215,13 @@ class PeoteView
 	// ------------------------------------------------------------------------------
 	var pickFB:GLFramebuffer;
 	var pickTexture:GLTexture;
-	var pickUInt32:lime.utils.UInt32Array;
+	var pickInt32:lime.utils.Int32Array;
 	var pickUInt8:lime.utils.UInt8Array;
 	
 	private inline function initGlPicking()
 	{
 		if (peote.view.PeoteGL.Version.isINSTANCED) {
-			pickUInt32 = new lime.utils.UInt32Array(1);
+			pickInt32 = new lime.utils.Int32Array(4);
 			pickTexture = TexUtils.createPickingTexture(gl,true);
 		} else {
 			pickUInt8  = new lime.utils.UInt8Array(4);
@@ -233,6 +233,7 @@ class PeoteView
 		gl.bindFramebuffer(gl.FRAMEBUFFER, pickFB);
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, pickTexture, 0); // CHECK: also need inside getElementAt?
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		// CHECK LATER: this works only with es3.0 ->  gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
 	}
 	
 	// TODO: another Function to call onClick eventhandler of all pickable 
@@ -240,28 +241,28 @@ class PeoteView
 	{
 		gl.bindFramebuffer(gl.FRAMEBUFFER, pickFB);
 		
-		//gl.drawBuffers([gl.COLOR_ATTACHMENT0]); // <- only es3.0
-		
-		// ------------
+		// clear framebuffer
 		gl.viewport (0, 0, 1, 1); gl.scissor(0, 0, 1, 1); gl.enable(gl.SCISSOR_TEST);	
 		if (peote.view.PeoteGL.Version.isINSTANCED) {
-			gl.clearBufferuiv(gl.COLOR, 0, [0, 0, 0, 0]); // only the first value is the UInt32 value that clears the texture
+			gl.clearBufferiv(gl.COLOR, 0, [0, 0, 0, 0]); // only the first value is the UInt32 value that clears the texture
 		}
 		else {
 			gl.clearColor(0.0, 0.0, 0.0, 0.0);
 			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 		}
-		gl.depthFunc(gl.LEQUAL);
-		// ------------
 		
+		// TODO: extra depth buffer
+		gl.depthFunc(gl.LEQUAL);
+		
+		// render with picking shader
 		display.pick(mouseX, mouseY, this, program);
 		
 		// read picked pixel (element-number)
 		if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE) {
 			if (peote.view.PeoteGL.Version.isINSTANCED) {
-				gl.readPixels(0, 0, 1, 1, gl.RED_INTEGER, gl.UNSIGNED_INT, pickUInt32);
+				gl.readPixels(0, 0, 1, 1, gl.RGBA_INTEGER, gl.INT, pickInt32);
 				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-				return pickUInt32[0] - 1;
+				return pickInt32[0] - 1;
 			}
 			else {
 				gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pickUInt8);

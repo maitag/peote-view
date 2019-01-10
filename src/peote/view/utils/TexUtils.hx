@@ -58,16 +58,17 @@ class TexUtils
 		return glTexture;
 	}
 
-	public static function createPickingTexture(gl:PeoteGL, isR32UI:Bool=false):GLTexture
+	public static function createPickingTexture(gl:PeoteGL, isRGBA32I:Bool=false):GLTexture
 	{
 		var glTexture:GLTexture = gl.createTexture();
 		gl.bindTexture(gl.TEXTURE_2D, glTexture);
 		
-		if (isR32UI) gl.texImage2D(gl.TEXTURE_2D, 0, gl.R32UI, 1, 1, 0, gl.RED_INTEGER, gl.UNSIGNED_INT,  0);
-		else         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA,  1, 1, 0, gl.RGBA,        gl.UNSIGNED_BYTE, 0);
+		if (isRGBA32I) gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32I, 1, 1, 0, gl.RGBA_INTEGER, gl.INT,           0);
+		else           gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA,    1, 1, 0, gl.RGBA,         gl.UNSIGNED_BYTE, 0);
 		
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST); // <- bilinear 
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+		
 		// firefox needs this texture wrapping for gl.texSubImage2D if imagesize is non power of 2 
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
