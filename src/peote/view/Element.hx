@@ -1322,13 +1322,6 @@ class ElementImpl
 		
 		// ---------------------- vertex attribute bindings ----------------------------------
 		var attrNumber = 0;
-		if (options.picking)
-			fields.push({
-				name:  "aELEMENT",
-				access:  [Access.APrivate, Access.AStatic, Access.AInline], // <-- for opengl-picking
-				kind: FieldType.FVar(macro:Int, macro $v{attrNumber++}), 
-				pos: Context.currentPos(),
-			});
 		fields.push({
 			name:  "aPOSITION",
 			access:  [Access.APrivate, Access.AStatic, Access.AInline],
@@ -1499,6 +1492,13 @@ class ElementImpl
 				});
 			}			
 		}
+		if (options.picking)
+			fields.push({
+				name:  "aELEMENT",
+				access:  [Access.APrivate, Access.AStatic, Access.AInline], // <-- for opengl-picking
+				kind: FieldType.FVar(macro:Int, macro $v{attrNumber++}), 
+				pos: Context.currentPos(),
+			});
 		debug("Number of vertex attributes:"+attrNumber);
 		if (attrNumber >= 16) debug("WARNING: more then 16 vertex attributes not supported on most devices.");
 
