@@ -147,6 +147,8 @@ class TextureSlotTiles
 		});		
 	}
 	
+	public function onPreloadComplete ():Void { trace("preload complete"); }
+
 	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
 	{
 		element0.x += 100;

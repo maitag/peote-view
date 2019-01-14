@@ -61,6 +61,8 @@ class Multidisplay
 		
 	}
 
+	public function onPreloadComplete ():Void { trace("preload complete"); }
+
 	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
 	{
 		

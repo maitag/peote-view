@@ -29,8 +29,8 @@ class TexUtils
 		// minification filter:
 		if (createMipmaps)
 		{
-			//GL.hint(GL.GENERATE_MIPMAP_HINT, GL.NICEST);
-			//GL.hint(GL.GENERATE_MIPMAP_HINT, GL.FASTEST);
+			//gl.hint(gl.GENERATE_MIPMAP_HINT, gl.NICEST);
+			//gl.hint(gl.GENERATE_MIPMAP_HINT, gl.FASTEST);
 			switch (minFilter) {
 				default:gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST); //bilinear
 				case 1: gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);  //trilinear
@@ -50,8 +50,6 @@ class TexUtils
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
-		if (createMipmaps) gl.generateMipmap(gl.TEXTURE_2D);
-		
 		//peoteView.glStateTexture.set(gl.getInteger(gl.ACTIVE_TEXTURE), null); // TODO: check with multiwindows (gl.getInteger did not work on html5)
 		gl.bindTexture(gl.TEXTURE_2D, null);
 		

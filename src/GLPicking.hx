@@ -7,6 +7,7 @@ import lime.ui.Window;
 import lime.ui.KeyCode;
 import lime.ui.KeyModifier;
 import lime.ui.MouseButton;
+import lime.utils.Assets;
 
 import peote.view.PeoteGL;
 import peote.view.PeoteView;
@@ -15,7 +16,7 @@ import peote.view.Buffer;
 import peote.view.Program;
 import peote.view.Color;
 import peote.view.Element;
-//import peote.view.Texture;
+import peote.view.Texture;
 
 class Elem implements Element
 {
@@ -76,7 +77,7 @@ class GLPicking
 			element[0].z = 2;
 			buffer.addElement(element[0]);
 			
-			element[1]  = new Elem(80, 80, 100, 100, Color.CYAN);
+			element[1]  = new Elem(40, 40, 100, 100, Color.CYAN);
 			element[1].z = 1;
 			buffer.addElement(element[1]);
 
@@ -98,6 +99,13 @@ class GLPicking
 		catch (msg:String) {trace("ERROR", msg); }
 		
 		
+	}
+	
+	public function onPreloadComplete ():Void {
+		trace("preload complete");
+		var texture = new Texture(26, 37);
+		texture.setImage(Assets.getImage("assets/images/wabbit_alpha.png"));
+		programLeft.setTexture(texture, "custom");
 	}
 
 	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
@@ -140,6 +148,15 @@ class GLPicking
 					if (modifier.shiftKey) displayLeft.zoom-=0.25;
 					else if (modifier.altKey) displayRight.zoom-=0.25;
 					else peoteView.zoom-=0.25;
+			case KeyCode.Z:
+					if (element[0].z == 2) {
+						element[0].z = 1;
+						element[1].z = 2;
+					} else {
+						element[0].z = 2;
+						element[1].z = 1;
+					}
+					buffer.update();
 			default:
 		}
 		

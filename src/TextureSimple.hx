@@ -109,15 +109,8 @@ class TextureSimple
 		//peoteView.render();
 		
 	}
-	public function loadImage(texture:Texture, filename:String, slot:Int=0):Void {
-		trace('load image $filename');
-		var future = Image.loadFromFile(filename);
-		future.onProgress (function (a:Int,b:Int) trace ('...loading image $a/$b'));
-		future.onError (function (msg:String) trace ("Error: "+msg));
-		future.onComplete (function (image:Image) {
-			trace('loading $filename complete');
-			texture.setImage(image, slot);
-		});		
+	public function onPreloadComplete ():Void {
+		// texture.setImage(Assets.getImage("assets/images/wabbit_alpha.png"));
 	}
 	
 	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void

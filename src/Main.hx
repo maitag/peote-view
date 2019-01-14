@@ -18,6 +18,8 @@ typedef Sample = TextureSimple;
 typedef Sample = TextureSlotTiles;
 #elseif sampleMultiTextures
 typedef Sample = MultiTextures;
+#elseif sampleTextureMipmapFilter
+typedef Sample = TextureMipmapFilter;
 #elseif sampleMultidisplay
 typedef Sample = Multidisplay;
 #elseif sampleMultibuffer
@@ -68,13 +70,17 @@ class Main extends Application
 		if (renderTest) test.render();
 	}
 	
-	public override function update (deltaTime:Int):Void
+	public override function update(deltaTime:Int):Void
 	{
 		if (renderTest) test.update(deltaTime);
 	}
 
 	// ------------------------------------------------------------
 	// ----------- EVENT HANDLER ----------------------------------
+	public override function onPreloadComplete ():Void {
+		if (renderTest) test.onPreloadComplete();
+	}
+	
 	public override function onWindowResize (width:Int, height:Int):Void
 	{
 		if (renderTest) test.resize(width, height);

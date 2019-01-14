@@ -19,14 +19,22 @@ import peote.view.Element;
 
 class Bunny implements Element
 {
-	public var x:Float=0;
-	public var y:Float=0;
 	@posX public var xi:Int=0;
 	@posY public var yi:Int=0;
 	@sizeX @const public var w:Int=26;
 	@sizeY @const public var h:Int=37;
 	
-	@color @const public var c:Color = 0xffffffff;
+	public var x(default, set):Float=0;
+	inline function set_x(a):Float {
+		xi = Std.int(x);
+		return x=a;
+	}
+	
+	public var y(default, set):Float=0;
+	inline function set_y(a):Float {
+		yi = Std.int(y);
+		return y=a;
+	}
 	
 	public var speedX:Float;
 	public var speedY:Float;
@@ -98,7 +106,7 @@ class BunnyMark
 			isStart = true;
 		});
 	}
-	
+		
 	private function addBunny():Void
 	{
 		if (bunnies.length >= maxBunnies) return; // no more then buffersize, TODO -> automatic grow/shrink buffersize
@@ -148,9 +156,6 @@ class BunnyMark
 				bunny.y = minY;
 				
 			}
-			bunny.xi = Std.int(bunny.x);
-			bunny.yi = Std.int(bunny.y);
-			//buffer.updateElement(bunny);
 		}
 		
 		if (addingBunnies) {
@@ -197,6 +202,8 @@ class BunnyMark
 	{
 		peoteView.resize(width, height);
 	}
+	
+	public function onPreloadComplete ():Void { trace("preload complete"); }
 
 }
 

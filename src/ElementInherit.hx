@@ -79,6 +79,9 @@ class ElementInherit
 		
 		
 	}
+	
+	public function onPreloadComplete ():Void { trace("preload complete"); }
+	
 	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
 	{
 			element.x += 100;

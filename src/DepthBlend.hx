@@ -1,5 +1,6 @@
 package;
-import peote.view.Color;
+import lime.math.Rectangle;
+import lime.math.Vector2;
 
 #if sampleDepthBlend
 import haxe.Timer;
@@ -8,15 +9,18 @@ import lime.ui.Window;
 import lime.ui.KeyCode;
 import lime.ui.KeyModifier;
 import lime.ui.MouseButton;
+import lime.graphics.Image;
 
 import peote.view.PeoteGL;
 import peote.view.PeoteView;
 import peote.view.Display;
 import peote.view.Buffer;
 import peote.view.Program;
-//import peote.view.Texture;
+import peote.view.Color;
+import peote.view.Texture;
 
 import elements.ElementSimple;
+import lime.utils.Assets;
 
 class DepthBlend 
 {
@@ -42,6 +46,10 @@ class DepthBlend
 
 		peoteView = new PeoteView(window.context, window.width, window.height);
 		
+		//var texture = new Texture(26, 37);
+		//texture.setImage(Assets.getImage("assets/images/wabbit_alpha.png"));
+		
+		
 		displayL  = new Display(0, 0, 400, 400);
 		displayL.color = Color.GREY3;
 		bufferL  = new Buffer<ElementSimple>(100);
@@ -56,8 +64,8 @@ class DepthBlend
 		displayR.addProgram(programR);
 		peoteView.addDisplay(displayR);
 		
-		element1 = new ElementSimple(100, 100, 100, 100, 0xFF0000FF); element1.z = ElementSimple.MAX_ZINDEX;
-		element2 = new ElementSimple(150, 150, 100, 100, 0x00FF0055); element2.z = ElementSimple.MAX_ZINDEX;
+		element1 = new ElementSimple(100, 100, 100, 100, 0xFF0000ff); element1.z = ElementSimple.MAX_ZINDEX;
+		element2 = new ElementSimple(130, 130, 100, 100, 0x0000ffff); element2.z = ElementSimple.MAX_ZINDEX;
 		bufferL.addElement(element1);
 		bufferL.addElement(element2);
 		
@@ -68,6 +76,15 @@ class DepthBlend
 		
 		activeElement = element1;
 	}
+	
+	public function onPreloadComplete ():Void {
+		trace("preload complete");
+		var texture = new Texture(32, 32);
+		var image = new Image(null, 0, 0, 32, 32);
+		image.copyPixels(Assets.getImage("assets/images/peote_tiles.png"), new Rectangle(128+32, 0, 32, 32), new Vector2(0, 0));
+		texture.setImage(image);
+		programL.setTexture(texture, "custom");
+	}
 
 	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
 	{
@@ -76,9 +93,14 @@ class DepthBlend
 		bufferL.update(); bufferR.update();
 	}
 	
+	var discardValue = 0.0;
 	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
 	{
 		switch (keyCode) {
+			case KeyCode.D: 
+				discardValue+= 0.1;
+				if (discardValue > 1.0) discardValue = 0.0;
+				if (discardValue > 0.9) programL.discardAtAlpha(); else programL.discardAtAlpha(discardValue);
 			case KeyCode.A: displayR.backgroundAlpha = !displayR.backgroundAlpha;
 			case KeyCode.B: displayR.backgroundEnabled = !displayR.backgroundEnabled;
 			case KeyCode.X: programL.alphaEnabled = !programL.alphaEnabled;
@@ -113,5 +135,6 @@ class DepthBlend
 		peoteView.resize(width, height);
 	}
 
+	
 }
 #end

@@ -118,7 +118,7 @@ class Texture
 		                   slotWidth * (imgProp.imageSlot % slotsX),
 		                   slotHeight * Math.floor(imgProp.imageSlot / slotsX),
 		                   image.width, image.height, //slotWidth, slotHeight,
-		                   image, false );		
+		                   image, createMipmaps );		
 		
 		// to reset peoteView.glStateTexture
 		updated = true;

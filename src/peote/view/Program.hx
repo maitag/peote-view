@@ -53,6 +53,8 @@ class Program
 		FRAGMENT_PROGRAM_UNIFORMS:"",
 		FRAGMENT_CALC_LAYER:"",
 		TEXTURES:[],
+		isDISCARD: true,
+		DISCARD: "0.0",
 	};
 	
 	var textureList = new RenderList<ActiveTexture>(new Map<ActiveTexture,RenderListItem<ActiveTexture>>());
@@ -333,13 +335,24 @@ class Program
 		return layer;
 	}
 	
+	// discard pixels with alpha lower then 
+	public function discardAtAlpha(?atAlphaValue:Null<Float>, ?autoUpdateTextures:Null<Bool>) {
+		if (atAlphaValue == null) {
+			glShaderConfig.isDISCARD = false;
+		}
+		else {
+			glShaderConfig.isDISCARD = true;
+			glShaderConfig.DISCARD = Util.toFloatString(atAlphaValue);
+		}
+		checkAutoUpdate(autoUpdateTextures);
+	}
+	
 	// set a texture-layer
 	public function setTexture(texture:Texture, identifier:String, ?autoUpdateTextures:Null<Bool>):Void {
 		trace("(re)set texture of a layer");
 		var layer = getTextureIndexByIdentifier(identifier);
 		textureLayers.set(layer, [texture]);
-		if (autoUpdateTextures != null) { if (autoUpdateTextures) updateTextures(); }
-		else if (this.autoUpdateTextures) updateTextures();
+		checkAutoUpdate(autoUpdateTextures);
 	}
 	
 	// multiple textures per layer (to switch between them via unit-attribute)
@@ -353,8 +366,7 @@ class Program
 			if (textureUnits[i] == null) throw("Error, texture is null.");
 			else if (textureUnits.indexOf(textureUnits[i]) != i) throw("Error, textureLayer can not contain same texture twice.");		
 		textureLayers.set(layer, textureUnits);
-		if (autoUpdateTextures != null) { if (autoUpdateTextures) updateTextures(); }
-		else if (this.autoUpdateTextures) updateTextures();
+		checkAutoUpdate(autoUpdateTextures);
 	}
 	
 	// add a texture to textuer-units
@@ -371,8 +383,7 @@ class Program
 			}
 		}
 		else textureLayers.set(layer, [texture]);
-		if (autoUpdateTextures != null) { if (autoUpdateTextures) updateTextures(); }
-		else if (this.autoUpdateTextures) updateTextures();
+		checkAutoUpdate(autoUpdateTextures);
 	}
 	
 	public function removeTexture(texture:Texture, identifier:String, ?autoUpdateTextures:Null<Bool>):Void {
@@ -385,8 +396,7 @@ class Program
 			textureLayers.remove(layer);
 			customTextureIdentifiers.remove(identifier);
 		}
-		if (autoUpdateTextures != null) { if (autoUpdateTextures) updateTextures(); }
-		else if (this.autoUpdateTextures) updateTextures();
+		checkAutoUpdate(autoUpdateTextures);
 	}
 	
 	public function removeAllTexture(identifier:String, ?autoUpdateTextures:Null<Bool>):Void {
@@ -395,6 +405,10 @@ class Program
 		if (layer < 0) throw('Error, textureLayer "$identifier" did not exists.');
 		textureLayers.remove(layer);
 		customTextureIdentifiers.remove(identifier);
+		checkAutoUpdate(autoUpdateTextures);
+	}
+	
+	inline function checkAutoUpdate(autoUpdateTextures:Null<Bool>) {
 		if (autoUpdateTextures != null) { if (autoUpdateTextures) updateTextures(); }
 		else if (this.autoUpdateTextures) updateTextures();
 	}
@@ -454,11 +468,9 @@ class Program
 		
 		if (activeTextures.length == 0) {
 			glShaderConfig.hasTEXTURES = false;
-			//glShaderConfig.FRAGMENT_CALC_LAYER = "c0"; // TODO
 		}
 		else {
 			glShaderConfig.hasTEXTURES = true;
-			//glShaderConfig.FRAGMENT_CALC_LAYER = colorFormula;  // TODO
 			
 			glShaderConfig.FRAGMENT_PROGRAM_UNIFORMS = "";
 			for (i in 0...activeTextures.length)
@@ -496,8 +508,7 @@ class Program
 			}
 		}
 		
-		if (gl != null) reCreateProgram(); // recompile shaders
-			
+		if (gl != null) reCreateProgram(); // recompile shaders			
 	}
 	
 	
@@ -536,7 +547,7 @@ class Program
 				gl.activeTexture (gl.TEXTURE0 + textureListItem.value.unit);
 				trace("activate Texture", textureListItem.value.unit);
 				gl.bindTexture (gl.TEXTURE_2D, textureListItem.value.texture.glTexture);
-				//gl.bindSampler(textureListItem.value.unit, gl.TEXTURE_3D);
+				//gl.bindSampler(textureListItem.value.unit, sampler); // only ES3.0
 				//gl.enable(gl.TEXTURE_2D); // is default ?
 			}
 			gl.uniform1i (textureListItem.value.uniformLoc, textureListItem.value.unit); // optimizing: later in this.uniformBuffer for isUBO
@@ -551,7 +562,8 @@ class Program
 		
 		render_activeTextureUnits(peoteView);
 		
-		// TODO: own uniforms for every Program
+		// TODO: custom uniforms per Program
+		
 		if (PeoteGL.Version.isUBO)
 		{	
 			// ------------- uniform block -------------
@@ -576,6 +588,7 @@ class Program
 		buffer.render(peoteView, display, this);
 		gl.useProgram (null);
 	}
+	
 	// ------------------------------------------------------------------------------
 	// ------------------------ OPENGL PICKING -------------------------------------- 
 	// ------------------------------------------------------------------------------

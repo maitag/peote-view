@@ -3,13 +3,14 @@
 	
 	<meta title="PeoteView" package="peote.view" version="0.7.0" company="Sylvio Sell - maitag" />
 	
-	<android target-sdk-version="26" />
+	<android target-sdk-version="26" /> <!-- lowest possible is 14 for android 4.0.1-4.0.2 -->
 	
 	
 	<app main="Main" path="bin" file="Main" />
-	<haxedef name="sampleGLPicking" />
-	<!-- sampleTest, sampleTextureSimple, sampleTextureSlotTiles, sampleMultiTextures, sampleDepthBlend, sampleBunnyMark, sampleMultidisplay,
-		sampleMultibuffer, sampleAnimation, sampleElementInherit, sampleGLPicking... -->
+	<haxedef name="sampleTextureMipmapFilter" />
+	<!-- sampleTest, sampleMultidisplay, sampleMultibuffer, sampleElementInherit,  sampleDepthBlend,
+		sampleTextureSimple, sampleTextureSlotTiles, sampleMultiTextures, sampleTextureMipmapFilter,		
+		sampleAnimation, sampleGLPicking, sampleBunnyMark, ... -->
 	<define name="bunnies" value="400000" />
 	<define name="bunnies"  value="14000" if="android||neko" />
 	<define name="stats" if="html5" />
