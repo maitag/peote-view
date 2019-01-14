@@ -101,7 +101,7 @@ class Program
 		else
 		{	
 			// if added to another one remove it frome there first
-			if (this.display != null) this.display.removeProgram(this);        // <--------------- TODO: allow multiple displays !!!
+			if (this.display != null) this.display.removeProgram(this);  // <-- TODO: allow multiple displays !!!
 			
 			this.display = display;
 			
@@ -205,7 +205,7 @@ class Program
 		if ( !isPicking && PeoteGL.Version.isUBO)
 		{
 			display.peoteView.uniformBuffer.bindToProgram(gl, glProg, "uboView", 0);
-			display.uniformBuffer.bindToProgram(gl, glProg, "uboDisplay", 1);
+			display.uniformBuffer.bindToProgram(gl, glProg, "uboDisplay", 1); // TODO: multiple displays
 		}
 		else
 		{	// Try to optimize here to let use picking shader the same vars
@@ -578,6 +578,9 @@ class Program
 			gl.uniform1f (uZOOM, peoteView.zoom * display.zoom);
 			gl.uniform2f (uOFFSET, (display.x + display.xOffset + peoteView.xOffset) / display.zoom, 
 			                       (display.y + display.yOffset + peoteView.yOffset) / display.zoom);
+			/*gl.uniform2f (uZOOM, peoteView.xZoom * display.xZoom, peoteView.yZoom * display.yZoom);
+			gl.uniform2f (uOFFSET, (display.x + display.xOffset + peoteView.xOffset) / display.xZoom, 
+			                       (display.y + display.yOffset + peoteView.yOffset) / display.yZoom);*/
 		}
 		
 		gl.uniform1f (uTIME, peoteView.time);

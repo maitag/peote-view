@@ -21,6 +21,16 @@ class Display
 		if (PeoteGL.Version.isUBO) uniformBuffer.updateZoom(gl, z);
 		return zoom = z;
 	}
+	/*public var xZoom(default, set):Int = 1.0;
+	public inline function set_xZoom(xz:Int):Int {
+		if (PeoteGL.Version.isUBO) uniformBuffer.updateXZoom(gl, xz);
+		return xZoom = xz;
+	}
+	public var yZoom(default, set):Int = 1.0;
+	public inline function set_yZoom(yz:Int):Int {
+		if (PeoteGL.Version.isUBO) uniformBuffer.updateYZoom(gl, yz);
+		return yZoom = yz;
+	}*/
 	public var xOffset(default, set):Int = 0;
 	public inline function set_xOffset(offset:Int):Int {
 		if (PeoteGL.Version.isUBO) uniformBuffer.updateXOffset(gl, x + offset);
@@ -193,11 +203,8 @@ class Display
 	// ------------------------------------------------------------------------------
 	// ------------------------ OPENGL PICKING -------------------------------------- 
 	// ------------------------------------------------------------------------------
-	private function pick( mouseX:Int, mouseY:Int, peoteView:PeoteView, program:Program):Void
+	private inline function pick( xOff:Float, yOff:Float, peoteView:PeoteView, program:Program):Void
 	{
-		var xOff:Float = peoteView.xOffset * (peoteView.zoom-1)/peoteView.zoom - (mouseX - peoteView.xOffset) / peoteView.zoom;
-		var yOff:Float = peoteView.yOffset * (peoteView.zoom-1)/peoteView.zoom - (mouseY - peoteView.yOffset) / peoteView.zoom;
-
 		glScissor(peoteView.gl, 1, 1, xOff, yOff, peoteView.zoom);
 		program.pick( xOff, yOff, peoteView, this);
 	}

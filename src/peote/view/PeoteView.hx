@@ -56,8 +56,19 @@ class PeoteView
 	public var zoom(default, set):Float = 1.0;
 	public inline function set_zoom(z:Float):Float {
 		if (PeoteGL.Version.isUBO) uniformBuffer.updateZoom(gl, z);
+		//if (PeoteGL.Version.isUBO) uniformBuffer.updateZoom(gl, z*xZoom, z*yZoom);
 		return zoom = z;
 	}
+	/*public var xZoom(default, set):Int = 1.0;
+	public inline function set_xZoom(xz:Int):Int {
+		if (PeoteGL.Version.isUBO) uniformBuffer.updateXZoom(gl, xz);
+		return xZoom = xz;
+	}
+	public var yZoom(default, set):Int = 1.0;
+	public inline function set_yZoom(yz:Int):Int {
+		if (PeoteGL.Version.isUBO) uniformBuffer.updateYZoom(gl, yz);
+		return yZoom = yz;
+	}*/
 	public var xOffset(default, set):Int = 0;
 	public inline function set_xOffset(offset:Int):Int {
 		if (PeoteGL.Version.isUBO) uniformBuffer.updateXOffset(gl, offset);
@@ -259,7 +270,7 @@ class PeoteView
 	}
 	
 	// TODO: another Function to call onClick eventhandler of all pickable 
-	public function getElementAt(mouseX:Int, mouseY:Int, display:Display, program:Program):Int
+	public function getElementAt(mouseX:Float, mouseY:Float, display:Display, program:Program):Int
 	{
 		gl.bindFramebuffer(gl.FRAMEBUFFER, pickFB);
 		
@@ -279,7 +290,10 @@ class PeoteView
 		// TODO: to wrap around webgl1 ( or do fetch all stacked Elements! )
 		// put in a loop here ( in every pass render only up to the last found element )
 
-		display.pick(mouseX, mouseY, this, program); // render with picking shader
+		var xOff:Float = xOffset * (zoom-1)/zoom - (mouseX - xOffset) / zoom;
+		var yOff:Float = yOffset * (zoom-1)/zoom - (mouseY - yOffset) / zoom;
+
+		display.pick(xOff, yOff, this, program); // render with picking shader
 		
 		// read picked pixel (element-number)
 		if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE) {

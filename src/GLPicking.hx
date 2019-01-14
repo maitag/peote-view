@@ -88,34 +88,44 @@ class GLPicking
 			displayLeft.addProgram(programLeft);
 			displayRight.addProgram(programRight);
 			
+			var future = Image.loadFromFile("assets/images/wabbit_alpha.png");
+			future.onProgress (function (a:Int,b:Int) trace ('loading image $a/$b'));
+			future.onError (function (msg:String) trace ("Error: "+msg));
+			future.onComplete (function (image:Image) {
+				trace("loading complete");
+				var texture = new Texture(26, 37);
+				texture.setImage(image);
+				programLeft.setTexture(texture, "custom");
+			});
 			
-			
+			/*
 			var timer = new Timer(60);
 			timer.run =  function() {
-				//element2.x++; buffer.updateElement(element);
+				element[0].x++; buffer.updateElement(element[0]);
 				if (element[0].x > 170) timer.stop();
-			};
+			};*/
 		}
 		catch (msg:String) {trace("ERROR", msg); }
 		
 		
 	}
 	
-	public function onPreloadComplete ():Void {
+	public function onPreloadComplete():Void {
 		trace("preload complete");
-		var texture = new Texture(26, 37);
+		// syncload with javascript needs <!assets embed=true> in project.xml!
+		/*var texture = new Texture(26, 37);
 		texture.setImage(Assets.getImage("assets/images/wabbit_alpha.png"));
-		programLeft.setTexture(texture, "custom");
+		programLeft.setTexture(texture, "custom");*/
 	}
 
-	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
+	public function onMouseDown(x:Float, y:Float, button:MouseButton):Void
 	{
-		var pickedElement = peoteView.getElementAt(Std.int(x), Std.int(y), displayLeft, programLeft);
+		var pickedElement = peoteView.getElementAt(x, y, displayLeft, programLeft);
 		trace(pickedElement);
 		//if (pickedElement != null) pickedElement.y += 100;
 	}
 	
-	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
+	public function onKeyDown(keyCode:KeyCode, modifier:KeyModifier):Void
 	{
 		var steps = 10;
 		var esteps = 10;
@@ -161,8 +171,9 @@ class GLPicking
 		}
 		
 	}
-	public function update(deltaTime:Int):Void {}
 	public function onMouseUp (x:Float, y:Float, button:MouseButton):Void {}
+	
+	public function update(deltaTime:Int):Void {}
 	
 	public function render()
 	{

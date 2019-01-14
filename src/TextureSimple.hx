@@ -110,6 +110,7 @@ class TextureSimple
 		
 	}
 	public function onPreloadComplete ():Void {
+		// sync loading did not work with html5!
 		// texture.setImage(Assets.getImage("assets/images/wabbit_alpha.png"));
 	}
 	
