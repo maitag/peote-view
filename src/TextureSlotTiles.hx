@@ -88,6 +88,7 @@ class TextureSlotTiles
 			loadImage(texture0, "assets/images/test2.png", 2);
 			loadImage(texture0, "assets/images/test3.png", 3);
 			
+			program.discardAtAlpha(0.3, false);
 			program.addTexture(texture0, "custom", false);
 			//program.updateTextures();
 			

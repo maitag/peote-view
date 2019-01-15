@@ -14,20 +14,18 @@ class Shader
 	{
 		vec2 uResolution;
 		vec2 uViewOffset;
-		float uViewZoom;
-		//vec2 uViewZoom;
+		vec2 uViewZoom;
 	};
 	//layout(std140) uniform uboDisplay
 	uniform uboDisplay
 	{
 		vec2 uOffset;
-		float uZoom;
-		//vec2 uZoom;
+		vec2 uZoom;
 	};
 	::else::
 	uniform vec2 uResolution;
 	uniform vec2 uOffset;
-	uniform float uZoom;
+	uniform vec2 uZoom;
 	::end::
 	
 	::UNIFORM_TIME::
@@ -122,26 +120,20 @@ class Shader
 		float width = uResolution.x;
 		float height = uResolution.y;
 		::if (!isPICKING && isUBO)::
-		float deltaX = (uOffset.x  + uViewOffset.x) / uZoom; //.x
-		float deltaY = (uOffset.y  + uViewOffset.y) / uZoom; //.y
-		float zoom = uZoom * uViewZoom;
-		//vec2 zoom = uZoom * uViewZoom;
+		float deltaX = (uOffset.x  + uViewOffset.x) / uZoom.x;
+		float deltaY = (uOffset.y  + uViewOffset.y) / uZoom.y;
+		vec2 zoom = uZoom * uViewZoom;
 		::else::
 		float deltaX = uOffset.x;
 		float deltaY = uOffset.y;
-		float zoom = uZoom;
-		//vec2 zoom = uZoom;
+		vec2 zoom = uZoom;
 		::end::
 		
 		gl_Position = mat4 (
-			vec4(2.0 / width*zoom, 0.0, 0.0, 0.0),
-			vec4(0.0, -2.0 / height*zoom, 0.0, 0.0),
-			vec4(0.0, 0.0, -1.0, 0.0),
-			vec4(2.0*deltaX*zoom/width-1.0, 1.0-2.0*deltaY*zoom/height, 0.0, 1.0)
-			//vec4(2.0 / width*zoom.x, 0.0, 0.0, 0.0),
-			//vec4(0.0, -2.0 / height*zoom.y, 0.0, 0.0),
-			//vec4(0.0, 0.0, -1.0, 0.0),
-			//vec4(2.0*deltaX*zoom.x/width-1.0, 1.0-2.0*deltaY*zoom.y/height, 0.0, 1.0)
+			vec4(2.0/width*zoom.x,                 0.0,  0.0, 0.0),
+			vec4(             0.0,  -2.0/height*zoom.y,  0.0, 0.0),
+			vec4(0.0             ,                 0.0, -1.0, 0.0),
+			vec4(2.0 * deltaX * zoom.x / width - 1.0, 1.0 - 2.0 * deltaY * zoom.y / height, 0.0, 1.0)
 		)
 		* vec4 (pos ,
 			::ZINDEX::

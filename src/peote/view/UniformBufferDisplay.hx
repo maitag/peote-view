@@ -11,7 +11,8 @@ class UniformBufferDisplay
 {
 	var xOffestDataPointer: DataPointer;
 	var yOffestDataPointer: DataPointer;
-	var zoomDataPointer: DataPointer;
+	var xZoomDataPointer: DataPointer;
+	var yZoomDataPointer: DataPointer;
 	
 	public var block:Int;
 	public var uniformBuffer:GLBuffer;
@@ -23,68 +24,59 @@ class UniformBufferDisplay
 	{
 		//uniformBytes = Bytes.alloc(3 * 4);
 		uniformBytes = Bytes.alloc(2 * 4*4);  // alignment to vec4 (2 values)
-		xOffestDataPointer    = new BytePointer(uniformBytes, 0);
-		yOffestDataPointer    = new BytePointer(uniformBytes, 4);
-		zoomDataPointer = new BytePointer(uniformBytes, 8);
-		//xZoomDataPointer    = new BytePointer(uniformBytes, 8);
-		//yZoomDataPointer    = new BytePointer(uniformBytes, 12);
+		xOffestDataPointer  = new BytePointer(uniformBytes, 0);
+		yOffestDataPointer  = new BytePointer(uniformBytes, 4);
+		xZoomDataPointer    = new BytePointer(uniformBytes, 8);
+		yZoomDataPointer    = new BytePointer(uniformBytes, 12);
 	}
 	
-	public inline function updateXOffset(gl:PeoteGL, offset:Float) {
+	public inline function updateXOffset(gl:PeoteGL, xo:Float) {
 		if (gl != null) {
-			uniformBytes.setFloat(0, offset);
+			uniformBytes.setFloat(0, xo);
 			gl.bindBuffer(gl.UNIFORM_BUFFER, uniformBuffer);
 			gl.bufferSubData(gl.UNIFORM_BUFFER, 0, 4, xOffestDataPointer );
 			gl.bindBuffer(gl.UNIFORM_BUFFER, null);
 		}
 	}
 
-	public inline function updateYOffset(gl:PeoteGL, offset:Float) {
+	public inline function updateYOffset(gl:PeoteGL, yo:Float) {
 		if (gl != null) {
-			uniformBytes.setFloat(4, offset);
+			uniformBytes.setFloat(4, yo);
 			gl.bindBuffer(gl.UNIFORM_BUFFER, uniformBuffer);
 			gl.bufferSubData(gl.UNIFORM_BUFFER, 4, 4, yOffestDataPointer );
 			gl.bindBuffer(gl.UNIFORM_BUFFER, null);
 		}
 	}
 
-	public inline function updateZoom(gl:PeoteGL, zoom:Float) {
-		if (gl != null) {
-			uniformBytes.setFloat(8, zoom);
-			gl.bindBuffer(gl.UNIFORM_BUFFER, uniformBuffer);
-			gl.bufferSubData(gl.UNIFORM_BUFFER, 8, 4, zoomDataPointer );
-			gl.bindBuffer(gl.UNIFORM_BUFFER, null);
-		}
-	}
-	/*
-	public inline function updateZoom(gl:PeoteGL, xZoom:Float, yZoom:Float) {
-		uniformBytes.setFloat(8, xZoom);
-		uniformBytes.setFloat(12, yZoom);
+	public inline function updateZoom(gl:PeoteGL, xz:Float, yz:Float) {
+		uniformBytes.setFloat(8,  xz);
+		uniformBytes.setFloat(12, yz);
 		gl.bindBuffer(gl.UNIFORM_BUFFER, uniformBuffer);
 		gl.bufferSubData(gl.UNIFORM_BUFFER, 8, 8, xZoomDataPointer );
 		gl.bindBuffer(gl.UNIFORM_BUFFER, null);
 	}
-	public inline function updateXZoom(gl:PeoteGL, xZoom:Float) {
-		uniformBytes.setFloat(8, xZoom);
+	
+	public inline function updateXZoom(gl:PeoteGL, xz:Float) {
+		uniformBytes.setFloat(8, xz);
 		gl.bindBuffer(gl.UNIFORM_BUFFER, uniformBuffer);
 		gl.bufferSubData(gl.UNIFORM_BUFFER, 8, 4, xZoomDataPointer );
 		gl.bindBuffer(gl.UNIFORM_BUFFER, null);
 	}
 	
-	public inline function updateYZoom(gl:PeoteGL, yZoom:Float) {
-		uniformBytes.setFloat(12, yZoom);
+	public inline function updateYZoom(gl:PeoteGL, yz:Float) {
+		uniformBytes.setFloat(12, yz);
 		gl.bindBuffer(gl.UNIFORM_BUFFER, uniformBuffer);
 		gl.bufferSubData(gl.UNIFORM_BUFFER, 12, 4, yZoomDataPointer );
 		gl.bindBuffer(gl.UNIFORM_BUFFER, null);
 	}
-	*/
 
-	public function createGLBuffer(gl:PeoteGL, xOffest:Float, yOffest:Float, zoom:Float)
+	public function createGLBuffer(gl:PeoteGL, xOffest:Float, yOffest:Float, xz:Float, yz:Float)
 	{
 		uniformBuffer = gl.createBuffer();
-		uniformBytes.setFloat(0, xOffest);
-		uniformBytes.setFloat(4, yOffest);
-		uniformBytes.setFloat(8, zoom);
+		uniformBytes.setFloat(0,  xOffest);
+		uniformBytes.setFloat(4,  yOffest);
+		uniformBytes.setFloat(8,  xz);
+		uniformBytes.setFloat(12, yz);
 		gl.bindBuffer(gl.UNIFORM_BUFFER, uniformBuffer);
 		gl.bufferData(gl.UNIFORM_BUFFER, uniformBytes.length, uniformBytes, gl.STATIC_DRAW);
 		gl.bindBuffer(gl.UNIFORM_BUFFER, null);

@@ -153,8 +153,12 @@ class MultiTextures
 				trace("replace texture "); // TODO
 				//program.replaceTexture(texture0, texture1);
 			case KeyCode.NUMBER_1:
-				loadImage(texture0, "assets/images/peote_tiles.png");
+				loadImage(texture0, "assets/images/test0.png");
 			case KeyCode.NUMBER_2:
+				loadImage(texture0, "assets/images/peote_tiles.png");
+			case KeyCode.NUMBER_3:
+				loadImage(texture1, "assets/images/wabbit_alpha.png");// TODO: BUG after activating new imagebuffer from second texture
+			case KeyCode.NUMBER_4:
 				loadImage(texture1, "assets/images/peote_tiles_bunnys.png");// TODO: BUG after activating new imagebuffer from second texture
 			default:
 		}

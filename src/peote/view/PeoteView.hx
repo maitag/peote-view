@@ -42,9 +42,8 @@ class PeoteView
 			texture.updated = false;
 			// TODO: should it update ALL other textures the program is in use?
 			// ..maybe program as param here and then set all glStateTexture of that program ?
-			#if html5 //TODO
-			glStateTexture = new Vector<GLTexture>(maxTextureImageUnits); return false;// or clear full?			
-			#end
+			glStateTexture = new Vector<GLTexture>(maxTextureImageUnits); // clear full -> todo: optimize
+			glStateTexture.set(activeTextureUnit, texture.glTexture);			
 			return true;
 		}
 		if (glStateTexture.get(activeTextureUnit) != texture.glTexture) {
@@ -53,31 +52,37 @@ class PeoteView
 		} else return false;
 	}
 	
+	private var xz(default, null):Float = 1.0;
+	private var yz(default, null):Float = 1.0;
+	
 	public var zoom(default, set):Float = 1.0;
 	public inline function set_zoom(z:Float):Float {
-		if (PeoteGL.Version.isUBO) uniformBuffer.updateZoom(gl, z);
-		//if (PeoteGL.Version.isUBO) uniformBuffer.updateZoom(gl, z*xZoom, z*yZoom);
+		xz = xZoom * z;
+		yz = yZoom * z;
+		if (PeoteGL.Version.isUBO) uniformBuffer.updateZoom(gl, xz, yz);
 		return zoom = z;
 	}
-	/*public var xZoom(default, set):Int = 1.0;
-	public inline function set_xZoom(xz:Int):Int {
+	public var xZoom(default, set):Float = 1.0;
+	public inline function set_xZoom(z:Float):Float {
+		xz = zoom * z;
 		if (PeoteGL.Version.isUBO) uniformBuffer.updateXZoom(gl, xz);
-		return xZoom = xz;
+		return xZoom = z;
 	}
-	public var yZoom(default, set):Int = 1.0;
-	public inline function set_yZoom(yz:Int):Int {
+	public var yZoom(default, set):Float = 1.0;
+	public inline function set_yZoom(z:Float):Float {
+		yz = zoom * z;
 		if (PeoteGL.Version.isUBO) uniformBuffer.updateYZoom(gl, yz);
-		return yZoom = yz;
-	}*/
-	public var xOffset(default, set):Int = 0;
-	public inline function set_xOffset(offset:Int):Int {
-		if (PeoteGL.Version.isUBO) uniformBuffer.updateXOffset(gl, offset);
-		return xOffset = offset;
+		return yZoom = z;
 	}
-	public var yOffset(default, set):Int = 0;
-	public inline function set_yOffset(offset:Int):Int {
-		if (PeoteGL.Version.isUBO) uniformBuffer.updateYOffset(gl, offset);
-		return yOffset = offset;
+	public var xOffset(default, set):Float = 0;
+	public inline function set_xOffset(xo:Float):Float {
+		if (PeoteGL.Version.isUBO) uniformBuffer.updateXOffset(gl, xo);//TODO:->float
+		return xOffset = xo;
+	}
+	public var yOffset(default, set):Float = 0;
+	public inline function set_yOffset(yo:Float):Float {
+		if (PeoteGL.Version.isUBO) uniformBuffer.updateYOffset(gl, yo);
+		return yOffset = yo;
 	}
 	
 	var displayList:RenderList<Display>;
@@ -121,7 +126,7 @@ class PeoteView
 		if (PeoteGL.Version.isUBO) {
             trace("OpenGL Uniform Buffer Objects enabled.");
 			uniformBuffer = new UniformBufferView();
-			uniformBuffer.createGLBuffer(gl, width, height, xOffset, yOffset, zoom);
+			uniformBuffer.createGLBuffer(gl, width, height, xOffset, yOffset, xz, yz);
         }
         else {
             trace("OpenGL Uniform Buffer Objects disabled.");
@@ -168,7 +173,7 @@ class PeoteView
 	{
 		trace("PeoteView setNewGLContext");
 		gl = newGl;
-		if (PeoteGL.Version.isUBO) uniformBuffer.createGLBuffer(gl, width, height, xOffset, yOffset, zoom);
+		if (PeoteGL.Version.isUBO) uniformBuffer.createGLBuffer(gl, width, height, xOffset, yOffset, xz, yz);
 		for (display in displayList) display.setNewGLContext(newGl);
 	}
 
@@ -290,8 +295,8 @@ class PeoteView
 		// TODO: to wrap around webgl1 ( or do fetch all stacked Elements! )
 		// put in a loop here ( in every pass render only up to the last found element )
 
-		var xOff:Float = xOffset * (zoom-1)/zoom - (mouseX - xOffset) / zoom;
-		var yOff:Float = yOffset * (zoom-1)/zoom - (mouseY - yOffset) / zoom;
+		var xOff:Float = xOffset - (xOffset + mouseX - xOffset) / xz;
+		var yOff:Float = yOffset - (yOffset + mouseY - yOffset) / xz;
 
 		display.pick(xOff, yOff, this, program); // render with picking shader
 		

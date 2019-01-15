@@ -16,30 +16,37 @@ class Display
 	public var backgroundDepth:Bool = false;
 	public var backgroundEnabled:Bool = false;
 	
+	private var xz(default, null):Float = 1.0;
+	private var yz(default, null):Float = 1.0;
+
 	public var zoom(default, set):Float = 1.0;
 	public inline function set_zoom(z:Float):Float {
-		if (PeoteGL.Version.isUBO) uniformBuffer.updateZoom(gl, z);
+		xz = xZoom * z;
+		yz = yZoom * z;
+		if (PeoteGL.Version.isUBO) uniformBuffer.updateZoom(gl, xz, yz);
 		return zoom = z;
 	}
-	/*public var xZoom(default, set):Int = 1.0;
-	public inline function set_xZoom(xz:Int):Int {
+	public var xZoom(default, set):Float = 1.0;
+	public inline function set_xZoom(z:Float):Float {
+		xz = zoom * z;
 		if (PeoteGL.Version.isUBO) uniformBuffer.updateXZoom(gl, xz);
-		return xZoom = xz;
+		return xZoom = z;
 	}
-	public var yZoom(default, set):Int = 1.0;
-	public inline function set_yZoom(yz:Int):Int {
+	public var yZoom(default, set):Float = 1.0;
+	public inline function set_yZoom(z:Float):Float {
+		yz = zoom * z;
 		if (PeoteGL.Version.isUBO) uniformBuffer.updateYZoom(gl, yz);
-		return yZoom = yz;
-	}*/
-	public var xOffset(default, set):Int = 0;
-	public inline function set_xOffset(offset:Int):Int {
-		if (PeoteGL.Version.isUBO) uniformBuffer.updateXOffset(gl, x + offset);
-		return xOffset = offset;
+		return yZoom = z;
 	}
-	public var yOffset(default, set):Int = 0;
-	public inline function set_yOffset(offset:Int):Int {
-		if (PeoteGL.Version.isUBO) uniformBuffer.updateYOffset(gl, y + offset);
-		return yOffset = offset;
+	public var xOffset(default, set):Float = 0;
+	public inline function set_xOffset(xo:Float):Float {
+		if (PeoteGL.Version.isUBO) uniformBuffer.updateXOffset(gl, x + xo);
+		return xOffset = xo;
+	}
+	public var yOffset(default, set):Float = 0;
+	public inline function set_yOffset(yo:Float):Float {
+		if (PeoteGL.Version.isUBO) uniformBuffer.updateYOffset(gl, y + yo);
+		return yOffset = yo;
 	}
 	
 	public var color(default,set):Color = 0x000000FF;
@@ -109,7 +116,7 @@ class Display
 		trace("Display setNewGLContext");
 		gl = newGl;
 		if (PeoteGL.Version.isUBO) {
-			uniformBuffer.createGLBuffer(gl, x + xOffset, y + yOffset, zoom);
+			uniformBuffer.createGLBuffer(gl, x + xOffset, y + yOffset, xz, yz);
 		}
 		for (program in programList) program.setNewGLContext(newGl);
 	}
@@ -161,12 +168,12 @@ class Display
 	// ------------------------------------------------------------------------------
 	// ----------------------------- Render -----------------------------------------
 	// ------------------------------------------------------------------------------
-	private inline function glScissor(gl:PeoteGL, w:Int, h:Int, xOffset:Float, yOffset:Float, zoom:Float):Void
+	private inline function glScissor(gl:PeoteGL, w:Int, h:Int, xo:Float, yo:Float, xz:Float, yz:Float):Void
 	{	
-		var sx:Int = Math.floor((x + xOffset) * zoom);
-		var sy:Int = Math.floor((y + yOffset) * zoom);
-		var sw:Int = Math.floor(width  * zoom);
-		var sh:Int = Math.floor(height * zoom);
+		var sx:Int = Math.floor((x + xo) * xz);
+		var sy:Int = Math.floor((y + yo) * yz);
+		var sw:Int = Math.floor(width  * xz);
+		var sh:Int = Math.floor(height * yz);
 		
 		if (sx < 0) sw += sx;
 		sx = Std.int( Math.max(0, Math.min(w, sx)) );
@@ -184,7 +191,7 @@ class Display
 	private inline function render(peoteView:PeoteView):Void
 	{	
 		//trace("  ---display.render---");
-		glScissor(peoteView.gl, peoteView.width, peoteView.height, peoteView.xOffset, peoteView.yOffset, peoteView.zoom);
+		glScissor(peoteView.gl, peoteView.width, peoteView.height, peoteView.xOffset, peoteView.yOffset, peoteView.xz, peoteView.yz);
 		
 		if (backgroundEnabled) {
 			peoteView.setGLDepth(backgroundDepth);
@@ -205,7 +212,7 @@ class Display
 	// ------------------------------------------------------------------------------
 	private inline function pick( xOff:Float, yOff:Float, peoteView:PeoteView, program:Program):Void
 	{
-		glScissor(peoteView.gl, 1, 1, xOff, yOff, peoteView.zoom);
+		glScissor(peoteView.gl, 1, 1, xOff, yOff, peoteView.xz, peoteView.yz);
 		program.pick( xOff, yOff, peoteView, this);
 	}
 

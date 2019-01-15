@@ -58,6 +58,8 @@ class Program
 	};
 	
 	var textureList = new RenderList<ActiveTexture>(new Map<ActiveTexture,RenderListItem<ActiveTexture>>());
+	var textureListPicking = new RenderList<ActiveTexture>(new Map<ActiveTexture,RenderListItem<ActiveTexture>>());
+	
 	var textureLayers = new IntMap<Array<Texture>>();
 	var activeTextures = new Array<Texture>();
 	var activeUnits = new Array<Int>();
@@ -155,14 +157,16 @@ class Program
 		for (t in activeTextures) t.clearOldGLContext();
 	}
 
+	var ready:Bool = false; // TODO !!!
 	private inline function reCreateProgram():Void 
 	{
+		ready = false; // TODO !!!
 		deleteProgram();
 		createProgram();
 	}
 	
 	private inline function deleteProgram()
-	{
+	{	
 		gl.deleteShader(glVertexShader);
 		gl.deleteShader(glFragmentShader);
 		gl.deleteProgram(glProgram);
@@ -193,14 +197,8 @@ class Program
 		
 		buffer.bindAttribLocations(gl, glProg);
 				
-		textureList.clear(); // maybe optimize later with own single-linked list here!
 
 		GLTool.linkGLProgram(gl, glProg);
-		
-		// create textureList with new unitormlocations
-		for (i in 0...activeTextures.length) {
-			textureList.add(new ActiveTexture(activeUnits[i], activeTextures[i], gl.getUniformLocation(glProg, "uTexture" + i)), null, false );
-		}
 		
 		if ( !isPicking && PeoteGL.Version.isUBO)
 		{
@@ -224,10 +222,20 @@ class Program
 		else uTIME_PICK = gl.getUniformLocation(glProg, "uTime");
 		
 		if (!isPicking) {
-			glProgram = glProg;
+			// create new textureList with new unitormlocations
+			textureList.clear(); // maybe optimize later with own single-linked list here!
+			for (i in 0...activeTextures.length) {
+				textureList.add(new ActiveTexture(activeUnits[i], activeTextures[i], gl.getUniformLocation(glProg, "uTexture" + i)), null, false );
+			}	
+			glProgram = glProg; ready = true;
 			glVertexShader = glVShader;
 			glFragmentShader  = glFShader;
 		} else {
+			// create new textureListPicking with new unitormlocations
+			textureListPicking.clear(); // maybe optimize later with own single-linked list here!
+			for (i in 0...activeTextures.length) {
+				textureListPicking.add(new ActiveTexture(activeUnits[i], activeTextures[i], gl.getUniformLocation(glProg, "uTexture" + i)), null, false );
+			}
 			glProgramPicking = glProg;
 			glVertexShaderPicking = glVShader;
 			glFragmentShaderPicking  = glFShader;
@@ -527,8 +535,8 @@ class Program
 		if (j != -1) activeUnits[j] = oldUnit;
 		
 		// update textureList units
-		j = 0;
-		for (t in textureList) t.unit = activeUnits[j++];
+		j = 0; for (t in textureList) t.unit = activeUnits[j++];
+		if (buffer.hasPicking()) j = 0; for (t in textureListPicking) t.unit = activeUnits[j++];
 	}
 	
 	// ------------------------------------------------------------------------------
@@ -536,31 +544,35 @@ class Program
 	// ------------------------------------------------------------------------------
 	var textureListItem:RenderListItem<ActiveTexture>;
 
-	private inline function render_activeTextureUnits(peoteView:PeoteView):Void {
+	private inline function render_activeTextureUnits(peoteView:PeoteView, textureList:RenderList<ActiveTexture>):Void {
 		// Texture Units
 		textureListItem = textureList.first;
 		while (textureListItem != null)
 		{
-			if (textureListItem.value.texture.glTexture == null) trace("=======PROBLEM========");
+			if (textureListItem.value.texture.glTexture == null) trace("=======PROBLEM========"); // TODO !!!
 			
-			if ( peoteView.isTextureStateChange(textureListItem.value.unit, textureListItem.value.texture) ) {
+			if ( peoteView.isTextureStateChange(textureListItem.value.unit, textureListItem.value.texture) )
+			{
 				gl.activeTexture (gl.TEXTURE0 + textureListItem.value.unit);
 				trace("activate Texture", textureListItem.value.unit);
 				gl.bindTexture (gl.TEXTURE_2D, textureListItem.value.texture.glTexture);
+				
 				//gl.bindSampler(textureListItem.value.unit, sampler); // only ES3.0
 				//gl.enable(gl.TEXTURE_2D); // is default ?
 			}
 			gl.uniform1i (textureListItem.value.uniformLoc, textureListItem.value.unit); // optimizing: later in this.uniformBuffer for isUBO
 			textureListItem = textureListItem.next;
-		}		
+		}
 	}
 	
 	private inline function render(peoteView:PeoteView, display:Display)
-	{	
+	{
 		//trace("    ---program.render---");
-		gl.useProgram(glProgram); // ------ Shader Program
+		if (!ready) trace("=======PROBLEM=====> not READY !!!!!!!!"); // TODO !!!
 		
-		render_activeTextureUnits(peoteView);
+		gl.useProgram(glProgram);
+		
+		render_activeTextureUnits(peoteView, textureList);
 		
 		// TODO: custom uniforms per Program
 		
@@ -575,12 +587,9 @@ class Program
 		{
 			// ------------- simple uniform -------------
 			gl.uniform2f (uRESOLUTION, peoteView.width, peoteView.height);
-			gl.uniform1f (uZOOM, peoteView.zoom * display.zoom);
-			gl.uniform2f (uOFFSET, (display.x + display.xOffset + peoteView.xOffset) / display.zoom, 
-			                       (display.y + display.yOffset + peoteView.yOffset) / display.zoom);
-			/*gl.uniform2f (uZOOM, peoteView.xZoom * display.xZoom, peoteView.yZoom * display.yZoom);
-			gl.uniform2f (uOFFSET, (display.x + display.xOffset + peoteView.xOffset) / display.xZoom, 
-			                       (display.y + display.yOffset + peoteView.yOffset) / display.yZoom);*/
+			gl.uniform2f (uZOOM, peoteView.xz * display.xz, peoteView.yz * display.yz);
+			gl.uniform2f (uOFFSET, (display.x + display.xOffset + peoteView.xOffset) / display.xz, 
+			                       (display.y + display.yOffset + peoteView.yOffset) / display.yz);
 		}
 		
 		gl.uniform1f (uTIME, peoteView.time);
@@ -597,15 +606,15 @@ class Program
 	// ------------------------------------------------------------------------------
 	private inline function pick( xOff:Float, yOff:Float, peoteView:PeoteView, display:Display):Void
 	{
-		gl.useProgram(glProgramPicking); // ------ Shader Program
+		gl.useProgram(glProgramPicking);
 		
-		render_activeTextureUnits(peoteView);
+		render_activeTextureUnits(peoteView, textureListPicking);
 		
 		// No view/display UBOs for PICKING-SHADER!
 		gl.uniform2f (uRESOLUTION_PICK, 1, 1);
-		gl.uniform1f (uZOOM_PICK, peoteView.zoom * display.zoom);
-		gl.uniform2f (uOFFSET_PICK, (display.x + display.xOffset + xOff) / display.zoom,
-		                       (display.y + display.yOffset + yOff) / display.zoom);
+		gl.uniform2f (uZOOM_PICK, peoteView.xz * display.xz, peoteView.yz * display.yz);
+		gl.uniform2f (uOFFSET_PICK, (display.x + display.xOffset + xOff) / display.xz,
+		                            (display.y + display.yOffset + yOff) / display.yz);
 		
 		gl.uniform1f (uTIME_PICK, peoteView.time);
 		
