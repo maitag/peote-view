@@ -16,6 +16,7 @@ import peote.view.Buffer;
 import peote.view.Program;
 import peote.view.Color;
 import peote.view.Texture;
+import peote.view.utils.Util;
 
 import peote.ui.Gl3Font;
 
@@ -76,7 +77,7 @@ class FontrenderingGl3
 		display   = new Display(10,10, window.width-20, window.height-20, Color.GREY1);
 		peoteView.addDisplay(display);  // display to peoteView
 		
-		buffer  = new Buffer<Elem>(100);
+		buffer  = new Buffer<Elem>(10000);
 		program = new Program(buffer);
 		
 		display.addProgram(program);    // programm to display
@@ -88,8 +89,12 @@ class FontrenderingGl3
 			function(texture:Texture, info:Gl3Font, imgWidth:Int, imgHeight:Int, isKerning:Bool)
 			{
 				program.setTexture(texture, "t");
-				var bold = 0.47;
-				program.setColorFormula('c0 * smoothstep( $bold - fwidth(t.r), $bold + fwidth(t.r), t.r)');
+				/*var bold = Util.toFloatString(0.48);
+				var sharp = Util.toFloatString(0.5);
+				program.setColorFormula('c0 * smoothstep( $bold - $sharp * fwidth(t.r), $bold + $sharp * fwidth(t.r), t.r)');
+				*/
+				// for unifont + INT is this best readable (but not scalable!) at fixed scale 16 ( or 32.. etc)
+				program.setColorFormula('c0 * smoothstep( 0.5, 0.5, t.r)');
 			
 				renderText(	10, 50, 16, info, imgWidth, imgHeight, isKerning,
 					"Hello World (yiö) 1.23 a^2 abcdefgHIJKLMNOP XYZ | # _- .,*/"
@@ -109,7 +114,7 @@ class FontrenderingGl3
 		});						
 	}
 	
-	public function renderText(x:Int, y:Int, scale:Float, info:Gl3Font, imgWidth:Int, imgHeight:Int, isKerning:Bool, text:String)
+	public function renderText(x:Float, y:Float, scale:Float, info:Gl3Font, imgWidth:Int, imgHeight:Int, isKerning:Bool, text:String)
 	{
 		var penX:Float = x;
 		var penY:Float = y;
@@ -134,7 +139,7 @@ class FontrenderingGl3
 					Math.floor((penY + ( info.height - info.metrics[id].top ) * scale ))
 				);
 				
-				penX += info.metrics[id].advance * scale;
+				penX += Math.ceil(info.metrics[id].advance * scale);
 
 				element.w  = Math.ceil( info.metrics[id].width  * scale );
 				element.h  = Math.ceil( info.metrics[id].height * scale );
@@ -200,7 +205,7 @@ class FontrenderingGl3
 	
 	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
 	{
-		
+		peoteView.zoom+=0.1;
 	}
 
 	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
