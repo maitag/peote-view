@@ -27,22 +27,23 @@ class Elem implements Element
 	
 	@texSlot var slot:Int = 0;
 	
-	@color public var c:Color = 0xff0000ff;
+	//@color public var c:Color = 0xff0000ff;
 		
-	@zIndex public var z:Int = 0;	
+	//@zIndex public var z:Int = 0;	
 	
 	// manual texture coordinates inside a slot (or inside all slots if no slot available)
-	@texX() public var tx:Int=32;
-	@texY() public var ty:Int=0;
+	@texX public var tx:Int=32;
+	@texY public var ty:Int=0;
 	@texW() public var tw:Int=256;
-	@texH() public var th:Int=256;
+	@texH() public var th:Int=64;
 	
 	//let the texture shift/resize inside slot/texCoords/tile area of Element
-	@texPosX public var txOffset:Int = 16;  // TODO: @option("repeat") per layer
-	@texPosY public var tyOffset:Int = 16;
-	@texSizeX public var twOffset:Int = 128;
-	@texSizeY public var thOffset:Int = 128;
+	@texPosX public var txOffset:Int = 10;
+	@texPosY public var tyOffset:Int = 10;
+	@texSizeX public var twOffset:Int = 256;
+	@texSizeY public var thOffset:Int = 16;
 	
+	var OPTIONS = { texRepeatX:false, texRepeatY:true };
 	
 	public function new(positionX:Int=0, positionY:Int=0, width:Int=100, height:Int=100, c:Int=0xFF0000FF )
 	{
@@ -50,7 +51,7 @@ class Elem implements Element
 		this.y = positionY;
 		this.w = width;
 		this.h = height;
-		this.c = c;
+		//this.c = c;
 	}
 
 
@@ -74,10 +75,9 @@ class TextureSimple
 		buffer  = new Buffer<Elem>(100);
 		program = new Program(buffer);
 		
-		texture = new Texture(512, 512, 2);
+		//texture = new Texture(512, 512, 2);
+		texture = new Texture(512, 512, 1);
 		
-		display.addProgram(program);    // programm to display
-
 		element  = new Elem(0, 0);
 		buffer.addElement(element);     // element to buffer
 		
@@ -97,11 +97,13 @@ class TextureSimple
 			
 			//program.setActiveTextureGlIndex(texture, 2);// only after update
 
+			display.addProgram(program);    // programm to display
+
 			
 			element.w = image.width;
 			element.h = image.height;
 			buffer.updateElement(element);
-			//program.replaceTexture(texture, texture1);
+			
 		});
 				
 		// ---------------------------------------------------------------
@@ -113,8 +115,7 @@ class TextureSimple
 	
 	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
 	{
-		element.x += 100;
-		buffer.updateElement(element);		
+		display.zoom *= 2;	
 	}
 
 	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void

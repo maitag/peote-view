@@ -2,6 +2,8 @@ package peote.view;
 
 import haxe.ds.IntMap;
 import haxe.ds.StringMap;
+import lime.utils.BytePointer;
+import lime.utils.DataPointer;
 import peote.view.PeoteGL.GLProgram;
 import peote.view.PeoteGL.GLShader;
 import peote.view.PeoteGL.GLUniformLocation;
@@ -198,8 +200,7 @@ class Program
 		gl.attachShader(glProg, glFShader);
 		
 		buffer.bindAttribLocations(gl, glProg);
-				
-
+		
 		GLTool.linkGLProgram(gl, glProg);
 		
 		if ( !isPicking && PeoteGL.Version.isUBO)

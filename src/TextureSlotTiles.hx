@@ -19,8 +19,8 @@ import peote.view.Element;
 
 class Elem implements Element
 {
-	@posX public var x:Int=0; // signed 2 bytes integer
-	@posY public var y:Int=0; // signed 2 bytes integer
+	@posX public var x:Int=0;
+	@posY public var y:Int=0;
 	
 	@sizeX public var w:Int=100;
 	@sizeY public var h:Int=100;
@@ -31,21 +31,11 @@ class Elem implements Element
 	// what texture-slot to use
 	@texSlot  @anim("Slot")
 	public var slot:Int;  // unsigned 2 bytes integer
-
-	// manual texture coordinates inside a slot (or inside all slots if no slot available)
-	//@texX public var tx:Int;
-	//@texY public var ty:Int;
-	//@texW public var tw:Int=512;
-	//@texH public var th:Int=512;
 	
 	// tiles the slot or manual texture-coordinate into sub-slots
 	@texTile() @anim("Tile")
 	public var tile:Int;  // unsigned 2 bytes integer
 
-	//TODO: let the texture shift inside slot/texCoords/tile area
-	//@texOffsetX("color") public var txOffset:Int;
-	//@texOffsetY("color") public var tyOffset:Int;
-	
 	
 	public function new(positionX:Int=0, positionY:Int=0, width:Int=100, height:Int=100 )
 	{

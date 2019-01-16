@@ -151,8 +151,8 @@ class Shader
 	::else::#extension GL_OES_standard_derivatives : enable // TODO: set via Program
 	::end::
 	
-    precision highp float; // TODO: set via Program
-    //precision mediump float;
+    //precision highp float; // TODO: set via Program
+    precision mediump float;
 	
 	::FRAGMENT_PROGRAM_UNIFORMS::
 	
