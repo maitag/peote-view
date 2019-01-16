@@ -1,5 +1,4 @@
 package;
-
 #if sampleGLPicking
 import haxe.Timer;
 

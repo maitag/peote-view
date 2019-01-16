@@ -154,7 +154,7 @@ class PeoteView
 		trace("EXTENSIONS:\n" + gl.getSupportedExtensions());
 		// to use internal 32 bit float-textures for webgl enable: gl.getExtension("EXT_color_buffer_float");
 		// or look here https://stackoverflow.com/questions/45571488/webgl-2-readpixels-on-framebuffers-with-float-textures
-		
+		gl.getExtension("OES_standard_derivatives");
 		/*
 		// only ES2:
 		trace("precision range low precision", gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.LOW_FLOAT).precision);
@@ -277,6 +277,8 @@ class PeoteView
 	// TODO: another Function to call onClick eventhandler of all pickable 
 	public function getElementAt(mouseX:Float, mouseY:Float, display:Display, program:Program):Int
 	{
+		if (! program.hasPicking()) throw("Error: opengl-Picking - type of buffer/element is not pickable !");
+		
 		gl.bindFramebuffer(gl.FRAMEBUFFER, pickFB);
 		
 		// clear framebuffer

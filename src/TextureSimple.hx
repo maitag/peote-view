@@ -75,7 +75,6 @@ class TextureSimple
 		program = new Program(buffer);
 		
 		texture = new Texture(512, 512, 2);
-		//program.setTextureLayer(0, [texture]);
 		
 		display.addProgram(program);    // programm to display
 
@@ -96,7 +95,7 @@ class TextureSimple
 			program.setTexture(texture, "custom");
 			//program.updateTextures();
 			
-			program.setActiveTextureGlIndex(texture, 2);// only after update
+			//program.setActiveTextureGlIndex(texture, 2);// only after update
 
 			
 			element.w = image.width;
@@ -106,8 +105,6 @@ class TextureSimple
 		});
 				
 		// ---------------------------------------------------------------
-		//peoteView.render();
-		
 	}
 	public function onPreloadComplete ():Void {
 		// sync loading did not work with html5!

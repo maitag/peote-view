@@ -147,7 +147,9 @@ class Shader
 	// ------------------------ FRAGMENT SHADER TEMPLATE --------------------------------	
 	@:allow(peote.view) static var fragmentShader(default, null):String =	
 	"
-	::if isES3::#version 300 es::end::
+	::if isES3::#version 300 es
+	::else::#extension GL_OES_standard_derivatives : enable
+	::end::
 	
     precision highp float;
     //precision mediump float;

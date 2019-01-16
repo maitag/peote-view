@@ -7,9 +7,10 @@
 	
 	
 	<app main="Main" path="bin" file="Main" />
-	<haxedef name="sampleTextureMipmapFilter" />
+	<haxedef name="sampleFontrenderingGl3" />
 	<!-- sampleTest, sampleMultidisplay, sampleMultibuffer, sampleElementInherit,  sampleDepthBlend,
-		sampleTextureSimple, sampleTextureSlotTiles, sampleMultiTextures, sampleTextureMipmapFilter,		
+		sampleTextureSimple, sampleTextureSlotTiles, sampleMultiTextures, sampleTextureMipmapFilter,
+		sampleFontrenderingGl3,
 		sampleAnimation, sampleGLPicking, sampleBunnyMark, ... -->
 	<define name="bunnies" value="400000" />
 	<define name="bunnies"  value="14000" if="android||neko" />

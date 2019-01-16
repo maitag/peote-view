@@ -165,12 +165,14 @@ class Program
 		createProgram();
 	}
 	
+	private inline function hasPicking() return buffer.hasPicking();
+	
 	private inline function deleteProgram()
 	{	
 		gl.deleteShader(glVertexShader);
 		gl.deleteShader(glFragmentShader);
 		gl.deleteProgram(glProgram);
-		if (buffer.hasPicking()) {
+		if (hasPicking()) {
 			gl.deleteShader(glVertexShaderPicking);
 			gl.deleteShader(glFragmentShaderPicking);
 			gl.deleteProgram(glProgramPicking);	
@@ -179,7 +181,7 @@ class Program
 	
 	private inline function createProgram() {
 		createProg();
-		if (buffer.hasPicking()) createProg(true);		
+		if (hasPicking()) createProg(true);		
 	}
 	
 	private function createProg(isPicking:Bool = false):Void  // TODO: do not compile twice if same program is used inside multiple displays
@@ -227,7 +229,7 @@ class Program
 			for (i in 0...activeTextures.length) {
 				textureList.add(new ActiveTexture(activeUnits[i], activeTextures[i], gl.getUniformLocation(glProg, "uTexture" + i)), null, false );
 			}	
-			glProgram = glProg; ready = true;
+			glProgram = glProg;
 			glVertexShader = glVShader;
 			glFragmentShader  = glFShader;
 		} else {
@@ -240,7 +242,7 @@ class Program
 			glVertexShaderPicking = glVShader;
 			glFragmentShaderPicking  = glFShader;
 		}
-		
+		ready = true;
 	}
 	
 	var uRESOLUTION:GLUniformLocation;
@@ -536,13 +538,13 @@ class Program
 		
 		// update textureList units
 		j = 0; for (t in textureList) t.unit = activeUnits[j++];
-		if (buffer.hasPicking()) j = 0; for (t in textureListPicking) t.unit = activeUnits[j++];
+		if (hasPicking()) j = 0; for (t in textureListPicking) t.unit = activeUnits[j++];
 	}
 	
 	// ------------------------------------------------------------------------------
 	// ----------------------------- Render -----------------------------------------
 	// ------------------------------------------------------------------------------
-	var textureListItem:RenderListItem<ActiveTexture>;
+	var textureListItem:RenderListItem<ActiveTexture>; // TODO: check if this can be problem while shared with picking
 
 	private inline function render_activeTextureUnits(peoteView:PeoteView, textureList:RenderList<ActiveTexture>):Void {
 		// Texture Units

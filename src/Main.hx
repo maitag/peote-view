@@ -30,6 +30,8 @@ typedef Sample = Animation;
 typedef Sample = ElementInherit;
 #elseif sampleGLPicking
 typedef Sample = GLPicking;
+#elseif sampleFontrenderingGl3
+typedef Sample = FontrenderingGl3;
 #elseif sampleBunnyMark
 typedef Sample = BunnyMark;
 #end 
@@ -156,7 +158,7 @@ class Main extends Application
 	}
 	
 	public override function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
-	{
+	{	//trace("keydown",keyCode, modifier);
 		switch (keyCode) {
 			case KeyCode.F:
 				#if html5
@@ -183,6 +185,10 @@ class Main extends Application
 				#end				
 			default: if (renderTest) test.onKeyDown(keyCode, modifier);
 		}
+	}
+	
+	public override function onKeyUp (keyCode:KeyCode, modifier:KeyModifier):Void {
+		//trace("keyup",keyCode, modifier);
 	}
 	
 	// end Event Handler ------------------------------
