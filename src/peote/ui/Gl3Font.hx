@@ -26,7 +26,7 @@ class Gl3Font
 			descender = bytes.getFloat(pos); pos += 4; trace('descender: $descender');
 			idmap = new Map<Int,Int>();
 			metrics = [for (i in 0...N) {
-				var charcode = bytes.getInt32(pos); //trace(charcode);
+				var charcode = bytes.getInt32(pos);
 				idmap.set(charcode, i); pos += 4;
 				var m:Metric = {
 					advance : bytes.getFloat(pos),

@@ -514,7 +514,7 @@ class ElementImpl
 			ELEMENT_LAYERS:[],
 		};
 		
-		var options = { picking:false, texRepeatX:false, texRepeatY:false };
+		var options = { alpha:false, picking:false, texRepeatX:false, texRepeatY:false };
 		
 		setFun  = new StringMap<Dynamic>();
 		animFun = new StringMap<Dynamic>();
@@ -596,6 +596,7 @@ class ElementImpl
 										if (v==null) throw Context.error('Error: "${o.field}" should be of type $expType', f.pos);
 									}
 									switch (o.field) {
+										case ("alpha"):        checkErr(vBool, "Bool"); options.alpha      = vBool;
 										case ("picking"):      checkErr(vBool, "Bool"); options.picking    = vBool;
 										case ("texRepeatX"):   checkErr(vBool, "Bool"); options.texRepeatX = vBool;
 										case ("texRepeatY"):   checkErr(vBool, "Bool"); options.texRepeatY = vBool;
@@ -645,7 +646,9 @@ class ElementImpl
 				glConf.IN_COLOR  += '::if isES3::flat::end:: ::VARIN::  vec4 vColor${k};';
 			}
 		}
+		
 		//TODO: better pack the attributes here ------------------------- 
+		
 		// units
 		for (k in 0...conf.texUnit.length) {
 			if (conf.texUnit[k].n > 0) {
@@ -851,6 +854,9 @@ class ElementImpl
 			}
 			return start;
 		}
+		
+		// TODO: refactoring
+		
 		// texUnit
 		for (k in 0...conf.texUnit.length) {
 			glConf.CALC_UNIT += 'vUnit$k = ' + packTex("aUnit", conf.texUnit, k) + ";";
@@ -1130,6 +1136,8 @@ class ElementImpl
 		// setters for anim
 		for (v in setterFun) genSetter(v);
 		
+		// TODO: refactoring
+		
 		// start/end vars for animation attributes - TODO: do in loop also for optimizing macro
 		if (conf.posX.isAnim) {
 			genVar(macro:Int, conf.posX.name+"Start", conf.posX.vStart, !conf.posX.isStart);
@@ -1264,7 +1272,7 @@ class ElementImpl
 			name:  "ALPHA_ENABLED",
 			meta:  allowForBuffer,
 			access:  [Access.APrivate, Access.AStatic, Access.AInline],
-			kind: FieldType.FVar(macro:Bool, macro $v{(conf.color.length > 0)}), 
+			kind: FieldType.FVar(macro:Bool, macro $v{options.alpha}), 
 			pos: Context.currentPos(),
 		});
 		fields.push({
@@ -1322,6 +1330,21 @@ class ElementImpl
 		
 		// ---------------------- vertex attribute bindings ----------------------------------
 		var attrNumber = 0;
+		/*
+		function createAttribVar(name:String) {
+			fields.push({
+				name:  name,
+				access: [Access.APrivate, Access.AStatic, Access.AInline],
+				kind: FieldType.FVar(macro:Int, macro $v{attrNumber++}), 
+				pos: Context.currentPos(),
+			});
+		}
+		
+		function createAttrib2pack(name:String, x:ConfSubParam, y:ConfSubParam) {
+			if (x.n + y.n > 0) createAttribVar(name);
+		}
+		*/
+		// TODO: refactoring
 		fields.push({
 			name:  "aPOSITION",
 			access:  [Access.APrivate, Access.AStatic, Access.AInline],
@@ -1356,6 +1379,7 @@ class ElementImpl
 				kind: FieldType.FVar(macro:Int, macro $v{attrNumber++}), 
 				pos: Context.currentPos(),
 			});
+		// --------
 		for (i in 0...Std.int((timers.length+1) / 2)) {
 			fields.push({
 				name:  "aTIME"+i,
@@ -1363,7 +1387,8 @@ class ElementImpl
 				kind: FieldType.FVar(macro:Int, macro $v{attrNumber++}), 
 				pos: Context.currentPos(),
 			});
-		}
+		}		
+		// --------
 		for (k in 0...conf.color.length) {
 			if (conf.color[k].isStart) {
 				fields.push({
@@ -1382,6 +1407,7 @@ class ElementImpl
 				});
 			}
 		}
+		// --------
 		for (k in 0...conf.texUnit.length) {
 			if (conf.texUnit[k].n > 0) {
 				fields.push({
@@ -1584,34 +1610,42 @@ class ElementImpl
 				if (conf.rotation.isAnim && conf.rotation.isEnd)   { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{conf.rotation.name+"End"}/180*Math.PI) ); i+=4; }
 				if (conf.zIndex.isAnim && conf.zIndex.isEnd)       { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, Math.min(1.0,Math.max(-1.0, $i{conf.zIndex.name+"End"}/MAX_ZINDEX))) ); i+=4; }
 				
+				// POS, SIZE, PIVOT
+				function write2packed(x:ConfSubParam, y:ConfSubParam) {
+					if (x.isAnim && x.isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{x.name+"Start"}) ); i+=2; }
+					if (!x.isAnim && x.isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{x.name }) ); i+=2; }
+					if (y.isAnim && y.isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{y.name+"Start"}) ); i+=2; }
+					if (!y.isAnim && y.isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{y.name }) ); i+=2; }
+					if (x.isAnim && x.isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{x.name+"End"}) ); i+=2; }
+					if (y.isAnim && y.isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{y.name+"End"}) ); i+=2; }
+				}
+				write2packed(conf.posX, conf.posY);
+				write2packed(conf.sizeX,conf.sizeY);
+				write2packed(conf.pivotX, conf.pivotY);
+				
+				// TEXCOORDS
+				function writeTex(tex:Array<ConfSubParam>) {
+					for (k in 0...tex.length) {
+						if (tex[k].isAnim && tex[k].isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{tex[k].name+"Start"}) ); i+=2; }
+						if (!tex[k].isAnim && tex[k].isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{tex[k].name}) ); i+=2; }
+						if (tex[k].isAnim && tex[k].isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{tex[k].name+"End"}) ); i+=2; }
+					}
+				}
+				writeTex(conf.texX);
+				writeTex(conf.texY);
+				writeTex(conf.texW);
+				writeTex(conf.texH);
+				writeTex(conf.texPosX);
+				writeTex(conf.texPosY);
+				writeTex(conf.texSizeX);
+				writeTex(conf.texSizeY);
+				
 				// -------------- setUInt16 ------------------------------
 				// POSITION for non-instancedrawing
 				if (verts != null) {
 					exprBlock.push( macro bytes.set(bytePos + $v{i}, $v{verts[j][0]}) ); i++;
 					exprBlock.push( macro bytes.set(bytePos + $v{i}, $v{verts[j][1]}) ); i++;
 				}
-				
-				// POS
-				if (conf.posX.isAnim && conf.posX.isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.posX.name+"Start"}) ); i+=2; }
-				if (!conf.posX.isAnim && conf.posX.isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.posX.name }) ); i+=2; }
-				if (conf.posY.isAnim && conf.posY.isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.posY.name+"Start"}) ); i+=2; }
-				if (!conf.posY.isAnim && conf.posY.isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.posY.name }) ); i+=2; }
-				if (conf.posX.isAnim && conf.posX.isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.posX.name+"End"}) ); i+=2; }
-				if (conf.posY.isAnim && conf.posY.isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.posY.name+"End"}) ); i+=2; }
-				// SIZE
-				if (conf.sizeX.isAnim && conf.sizeX.isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.sizeX.name+"Start"}) ); i+=2; }
-				if (!conf.sizeX.isAnim && conf.sizeX.isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.sizeX.name}) ); i+=2; }
-				if (conf.sizeY.isAnim && conf.sizeY.isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.sizeY.name+"Start"}) ); i+=2; }
-				if (!conf.sizeY.isAnim && conf.sizeY.isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.sizeY.name}) ); i+=2; }
-				if (conf.sizeX.isAnim && conf.sizeX.isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.sizeX.name+"End"}) ); i+=2; }
-				if (conf.sizeY.isAnim && conf.sizeY.isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.sizeY.name+"End"}) ); i+=2; }
-				// PIVOT
-				if (conf.pivotX.isAnim && conf.pivotX.isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.pivotX.name+"Start"}) ); i+=2; }
-				if (!conf.pivotX.isAnim && conf.pivotX.isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.pivotX.name}) ); i+=2; }
-				if (conf.pivotY.isAnim && conf.pivotY.isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.pivotY.name+"Start"}) ); i+=2; }
-				if (!conf.pivotY.isAnim && conf.pivotY.isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.pivotY.name}) ); i+=2; }
-				if (conf.pivotX.isAnim && conf.pivotX.isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.pivotX.name+"End"}) ); i+=2; }
-				if (conf.pivotY.isAnim && conf.pivotY.isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.pivotY.name+"End"}) ); i+=2; }
 				
 				// SLOTS
 				for (k in 0...conf.texSlot.length) {
@@ -1625,55 +1659,6 @@ class ElementImpl
 					if (!conf.texTile[k].isAnim && conf.texTile[k].isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texTile[k].name}) ); i+=2; }
 					if (conf.texTile[k].isAnim && conf.texTile[k].isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texTile[k].name+"End"}) ); i+=2; }
 				}
-				// TEXX
-				for (k in 0...conf.texX.length) {
-					if (conf.texX[k].isAnim && conf.texX[k].isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texX[k].name+"Start"}) ); i+=2; }
-					if (!conf.texX[k].isAnim && conf.texX[k].isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texX[k].name}) ); i+=2; }
-					if (conf.texX[k].isAnim && conf.texX[k].isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texX[k].name+"End"}) ); i+=2; }
-				}
-				// TEXY
-				for (k in 0...conf.texY.length) {
-					if (conf.texY[k].isAnim && conf.texY[k].isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texY[k].name+"Start"}) ); i+=2; }
-					if (!conf.texY[k].isAnim && conf.texY[k].isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texY[k].name}) ); i+=2; }
-					if (conf.texY[k].isAnim && conf.texY[k].isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texY[k].name+"End"}) ); i+=2; }
-				}
-				// TEXW
-				for (k in 0...conf.texW.length) {
-					if (conf.texW[k].isAnim && conf.texW[k].isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texW[k].name+"Start"}) ); i+=2; }
-					if (!conf.texW[k].isAnim && conf.texW[k].isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texW[k].name}) ); i+=2; }
-					if (conf.texW[k].isAnim && conf.texW[k].isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texW[k].name+"End"}) ); i+=2; }
-				}
-				// TEXH
-				for (k in 0...conf.texH.length) {
-					if (conf.texH[k].isAnim && conf.texH[k].isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texH[k].name+"Start"}) ); i+=2; }
-					if (!conf.texH[k].isAnim && conf.texH[k].isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texH[k].name}) ); i+=2; }
-					if (conf.texH[k].isAnim && conf.texH[k].isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texH[k].name+"End"}) ); i+=2; }
-				}
-				// TEXPOSX
-				for (k in 0...conf.texPosX.length) {
-					if (conf.texPosX[k].isAnim && conf.texPosX[k].isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texPosX[k].name+"Start"}) ); i+=2; }
-					if (!conf.texPosX[k].isAnim && conf.texPosX[k].isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texPosX[k].name}) ); i+=2; }
-					if (conf.texPosX[k].isAnim && conf.texPosX[k].isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texPosX[k].name+"End"}) ); i+=2; }
-				}
-				// TEXPOSY
-				for (k in 0...conf.texPosY.length) {
-					if (conf.texPosY[k].isAnim && conf.texPosY[k].isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texPosY[k].name+"Start"}) ); i+=2; }
-					if (!conf.texPosY[k].isAnim && conf.texPosY[k].isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texPosY[k].name}) ); i+=2; }
-					if (conf.texPosY[k].isAnim && conf.texPosY[k].isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texPosY[k].name+"End"}) ); i+=2; }
-				}
-				// TEXSIZEX
-				for (k in 0...conf.texSizeX.length) {
-					if (conf.texSizeX[k].isAnim && conf.texSizeX[k].isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texSizeX[k].name+"Start"}) ); i+=2; }
-					if (!conf.texSizeX[k].isAnim && conf.texSizeX[k].isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texSizeX[k].name}) ); i+=2; }
-					if (conf.texSizeX[k].isAnim && conf.texSizeX[k].isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texSizeX[k].name+"End"}) ); i+=2; }
-				}
-				// TEXSIZEY
-				for (k in 0...conf.texSizeY.length) {
-					if (conf.texSizeY[k].isAnim && conf.texSizeY[k].isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texSizeY[k].name+"Start"}) ); i+=2; }
-					if (!conf.texSizeY[k].isAnim && conf.texSizeY[k].isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texSizeY[k].name}) ); i+=2; }
-					if (conf.texSizeY[k].isAnim && conf.texSizeY[k].isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texSizeY[k].name+"End"}) ); i+=2; }
-				}
-				
 				// ----------------- Bytes --------------------------------
 				// UNITS
 				for (k in 0...conf.texUnit.length) {
@@ -1737,20 +1722,23 @@ class ElementImpl
 		
 		// ------------------ bind vertex attributes to program ----------------------------------
 		function bindAttribLocationsExpr(isInstanced:Bool=false):Array<Expr> {
-			var exprBlock = [ macro gl.bindAttribLocation(glProgram, aPOSITION, "aPosition") ];
+			var exprBlock = new Array<Expr>();
+			// PICKING-ID
 			if (!isInstanced && options.picking) exprBlock.push( macro gl.bindAttribLocation(glProgram, aELEMENT,  "aElement" ) );
-			if (conf.posX.n  + conf.posY.n  > 0 ) exprBlock.push( macro gl.bindAttribLocation(glProgram, aPOS,  "aPos" ) );
-			if (conf.sizeX.n + conf.sizeY.n > 0 ) exprBlock.push( macro gl.bindAttribLocation(glProgram, aSIZE, "aSize") );
-			if (conf.pivotX.n + conf.pivotY.n > 0 ) exprBlock.push( macro gl.bindAttribLocation(glProgram, aPIVOT, "aPivot") );
-			if (conf.rotation.n + conf.zIndex.n > 0 ) exprBlock.push( macro gl.bindAttribLocation(glProgram, aROTZ, "aRotZ") );
-			for (k in 0...Std.int((timers.length+1) / 2)) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTIME" + k}, $v{"aTime"+k} ) );
+			// COLOR
 			for (k in 0...conf.color.length) {
 				if (conf.color[k].isStart) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aCOLORSTART"+k}, $v{"aColorStart"+k} ) );
 				if (conf.color[k].isEnd)   exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aCOLOREND"  +k}, $v{"aColorEnd"  +k} ) );
 			}
-			for (k in 0...conf.texUnit.length) if (conf.texUnit[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aUNIT"+k}, $v{"aUnit"+k} ) );
-			for (k in 0...conf.texSlot.length) if (conf.texSlot[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aSLOT"+k}, $v{"aSlot"+k} ) );
-			for (k in 0...conf.texTile.length) if (conf.texTile[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTILE"+k}, $v{"aTile"+k} ) );
+			// TIMERS
+			for (k in 0...Std.int((timers.length+1) / 2)) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTIME" + k}, $v{"aTime"+k} ) );
+			// ROTZ
+			if (conf.rotation.n + conf.zIndex.n > 0 ) exprBlock.push( macro gl.bindAttribLocation(glProgram, aROTZ, "aRotZ") );
+			// POS, SIZE, PIVOT
+			if (conf.posX.n  + conf.posY.n  > 0 ) exprBlock.push( macro gl.bindAttribLocation(glProgram, aPOS,  "aPos" ) );
+			if (conf.sizeX.n + conf.sizeY.n > 0 ) exprBlock.push( macro gl.bindAttribLocation(glProgram, aSIZE, "aSize") );
+			if (conf.pivotX.n + conf.pivotY.n > 0 ) exprBlock.push( macro gl.bindAttribLocation(glProgram, aPIVOT, "aPivot") );
+			// TEXCOORDS
 			for (k in 0...conf.texX.length) if (conf.texX[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTEXX"+k}, $v{"aTexX"+k} ) );
 			for (k in 0...conf.texY.length) if (conf.texY[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTEXY"+k}, $v{"aTexY"+k} ) );
 			for (k in 0...conf.texW.length) if (conf.texW[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTEXW"+k}, $v{"aTexW"+k} ) );
@@ -1759,6 +1747,12 @@ class ElementImpl
 			for (k in 0...conf.texPosY.length) if (conf.texPosY[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTEXPOSY"+k}, $v{"aTexPosY"+k} ) );
 			for (k in 0...conf.texSizeX.length) if (conf.texSizeX[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTEXSIZEX"+k}, $v{"aTexSizeX"+k} ) );
 			for (k in 0...conf.texSizeY.length) if (conf.texSizeY[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTEXSIZEY"+k}, $v{"aTexSizeY"+k} ) );
+			// POSITION for non-instancedrawing
+			exprBlock.push( macro gl.bindAttribLocation(glProgram, aPOSITION, "aPosition") );
+			// SLOT, TILE, UNIT
+			for (k in 0...conf.texSlot.length) if (conf.texSlot[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aSLOT"+k}, $v{"aSlot"+k} ) );
+			for (k in 0...conf.texTile.length) if (conf.texTile[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTILE"+k}, $v{"aTile"+k} ) );
+			for (k in 0...conf.texUnit.length) if (conf.texUnit[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aUNIT"+k}, $v{"aUnit"+k} ) );
 			return exprBlock;
 		}
 		fields.push({
@@ -1810,7 +1804,7 @@ class ElementImpl
 				exprBlock.push( macro gl.enableVertexAttribArray (aELEMENT) );
 				exprBlock.push( macro gl.vertexAttribPointer(aELEMENT, 4, gl.UNSIGNED_BYTE, true, $v{stride}, $v{i} ) ); i += 4;
 			}
-			// COLOR
+			// COLORS
 			for (k in 0...conf.color.length) {
 				if (conf.color[k].isStart) {
 					exprBlock.push( macro gl.enableVertexAttribArray ($i{"aCOLORSTART"+k}) );
@@ -1837,31 +1831,43 @@ class ElementImpl
 				exprBlock.push( macro gl.vertexAttribPointer(aROTZ, $v{n}, gl.FLOAT, false, $v{stride}, $v{i} ) ); i += n * 4;
 				if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor(aROTZ, 1) );			
 			}
+			// POS, SIZE, PIVOT
+			function enable2pack(attr:String, x:ConfSubParam, y:ConfSubParam) {
+				n = x.n + y.n;
+				if (n > 0 ) {
+					exprBlock.push( macro gl.enableVertexAttribArray ($i{attr}) );
+					exprBlock.push( macro gl.vertexAttribPointer($i{attr}, $v{n}, gl.SHORT, false, $v{stride}, $v{i} ) ); i += n * 2;
+					if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{attr}, 1) );			
+				}
+			}
+			enable2pack("aPOS", conf.posX, conf.posY);
+			enable2pack("aSIZE", conf.sizeX, conf.sizeY);
+			enable2pack("aPIVOT", conf.pivotX, conf.pivotY);
+
+			// TEXTURE COORDS
+			function enableTex(attr:String, tex:Array<ConfSubParam>) {
+				for (k in 0...tex.length) {
+					n = tex[k].n;
+					if (n > 0 ) {
+						exprBlock.push( macro gl.enableVertexAttribArray ($i{attr+k}) );
+						exprBlock.push( macro gl.vertexAttribPointer($i{attr+k}, $v{n}, gl.SHORT, false, $v{stride}, $v{i} ) ); i += n * 2;
+						if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{attr+k}, 1) );
+					}
+				}
+			}
+			enableTex("aTEXX", conf.texX);
+			enableTex("aTEXY", conf.texY);
+			enableTex("aTEXW", conf.texW);
+			enableTex("aTEXH", conf.texH);
+			enableTex("aTEXPOSX", conf.texPosX);
+			enableTex("aTEXPOSY", conf.texPosY);
+			enableTex("aTEXSIZEX", conf.texSizeX);
+			enableTex("aTEXSIZEY", conf.texSizeY);
+
 			// POSITION for non-instancedrawing
 			if (!isInstanced) {
 				exprBlock.push( macro gl.enableVertexAttribArray (aPOSITION) );
 				exprBlock.push( macro gl.vertexAttribPointer(aPOSITION, 2, gl.UNSIGNED_BYTE, false, $v{stride}, $v{i} )); i += 2;
-			}
-			// POS
-			n = conf.posX.n + conf.posY.n;
-			if (n > 0 ) {
-				exprBlock.push( macro gl.enableVertexAttribArray (aPOS) );
-				exprBlock.push( macro gl.vertexAttribPointer(aPOS, $v{n}, gl.SHORT, false, $v{stride}, $v{i} ) ); i += n * 2;
-				if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor(aPOS, 1) );			
-			}
-			// SIZE
-			n = conf.sizeX.n + conf.sizeY.n;
-			if (n > 0 ) {
-				exprBlock.push( macro gl.enableVertexAttribArray (aSIZE) );
-				exprBlock.push( macro gl.vertexAttribPointer(aSIZE, $v{n}, gl.SHORT, false, $v{stride}, $v{i} ) ); i += n * 2;
-				if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor(aSIZE, 1) );			
-			}
-			// PIVOT
-			n = conf.pivotX.n + conf.pivotY.n;
-			if (n > 0 ) {
-				exprBlock.push( macro gl.enableVertexAttribArray (aPIVOT) );
-				exprBlock.push( macro gl.vertexAttribPointer(aPIVOT, $v{n}, gl.SHORT, false, $v{stride}, $v{i} ) ); i += n * 2;
-				if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor(aPIVOT, 1) );			
 			}
 			// SLOT
 			for (k in 0...conf.texSlot.length) {
@@ -1879,78 +1885,6 @@ class ElementImpl
 					exprBlock.push( macro gl.enableVertexAttribArray ($i{"aTILE"+k}) );
 					exprBlock.push( macro gl.vertexAttribPointer($i{"aTILE"+k}, $v{n}, gl.SHORT, false, $v{stride}, $v{i} ) ); i += n * 2;
 					if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{"aTILE"+k}, 1) );
-				}
-			}
-			// TEXX
-			for (k in 0...conf.texX.length) {
-				n = conf.texX[k].n;
-				if (n > 0 ) {
-					exprBlock.push( macro gl.enableVertexAttribArray ($i{"aTEXX"+k}) );
-					exprBlock.push( macro gl.vertexAttribPointer($i{"aTEXX"+k}, $v{n}, gl.SHORT, false, $v{stride}, $v{i} ) ); i += n * 2;
-					if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{"aTEXX"+k}, 1) );
-				}
-			}
-			// TEXY
-			for (k in 0...conf.texY.length) {
-				n = conf.texY[k].n;
-				if (n > 0 ) {
-					exprBlock.push( macro gl.enableVertexAttribArray ($i{"aTEXY"+k}) );
-					exprBlock.push( macro gl.vertexAttribPointer($i{"aTEXY"+k}, $v{n}, gl.SHORT, false, $v{stride}, $v{i} ) ); i += n * 2;
-					if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{"aTEXY"+k}, 1) );
-				}
-			}
-			// TEXW
-			for (k in 0...conf.texW.length) {
-				n = conf.texW[k].n;
-				if (n > 0 ) {
-					exprBlock.push( macro gl.enableVertexAttribArray ($i{"aTEXW"+k}) );
-					exprBlock.push( macro gl.vertexAttribPointer($i{"aTEXW"+k}, $v{n}, gl.SHORT, false, $v{stride}, $v{i} ) ); i += n * 2;
-					if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{"aTEXW"+k}, 1) );
-				}
-			}
-			// TEXH
-			for (k in 0...conf.texH.length) {
-				n = conf.texH[k].n;
-				if (n > 0 ) {
-					exprBlock.push( macro gl.enableVertexAttribArray ($i{"aTEXH"+k}) );
-					exprBlock.push( macro gl.vertexAttribPointer($i{"aTEXH"+k}, $v{n}, gl.SHORT, false, $v{stride}, $v{i} ) ); i += n * 2;
-					if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{"aTEXH"+k}, 1) );
-				}
-			}
-			// TEXPOSX
-			for (k in 0...conf.texPosX.length) {
-				n = conf.texPosX[k].n;
-				if (n > 0 ) {
-					exprBlock.push( macro gl.enableVertexAttribArray ($i{"aTEXPOSX"+k}) );
-					exprBlock.push( macro gl.vertexAttribPointer($i{"aTEXPOSX"+k}, $v{n}, gl.SHORT, false, $v{stride}, $v{i} ) ); i += n * 2;
-					if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{"aTEXPOSX"+k}, 1) );
-				}
-			}
-			// TEXPOSY
-			for (k in 0...conf.texPosY.length) {
-				n = conf.texPosY[k].n;
-				if (n > 0 ) {
-					exprBlock.push( macro gl.enableVertexAttribArray ($i{"aTEXPOSY"+k}) );
-					exprBlock.push( macro gl.vertexAttribPointer($i{"aTEXPOSY"+k}, $v{n}, gl.SHORT, false, $v{stride}, $v{i} ) ); i += n * 2;
-					if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{"aTEXPOSY"+k}, 1) );
-				}
-			}
-			// TEXSIZEX
-			for (k in 0...conf.texSizeX.length) {
-				n = conf.texSizeX[k].n;
-				if (n > 0 ) {
-					exprBlock.push( macro gl.enableVertexAttribArray ($i{"aTEXSIZEX"+k}) );
-					exprBlock.push( macro gl.vertexAttribPointer($i{"aTEXSIZEX"+k}, $v{n}, gl.SHORT, false, $v{stride}, $v{i} ) ); i += n * 2;
-					if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{"aTEXSIZEX"+k}, 1) );
-				}
-			}
-			// TEXSIZEY
-			for (k in 0...conf.texSizeY.length) {
-				n = conf.texSizeY[k].n;
-				if (n > 0 ) {
-					exprBlock.push( macro gl.enableVertexAttribArray ($i{"aTEXSIZEY"+k}) );
-					exprBlock.push( macro gl.vertexAttribPointer($i{"aTEXSIZEY"+k}, $v{n}, gl.SHORT, false, $v{stride}, $v{i} ) ); i += n * 2;
-					if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{"aTEXSIZEY"+k}, 1) );
 				}
 			}
 			// UNIT
@@ -1997,22 +1931,25 @@ class ElementImpl
 		// trace(new Printer().printField(fields[fields.length-1])); //debug
 		// -------------------------
 		function disableVertexAttribExpr(isInstanced:Bool=false):Array<Expr> {
-			var exprBlock = [ macro gl.disableVertexAttribArray (aPOSITION) ];
-			if (!isInstanced && options.picking) {
-					exprBlock.push( macro gl.disableVertexAttribArray (aELEMENT) );
-			}
-			if (conf.posX.n  + conf.posY.n  > 0 ) exprBlock.push( macro gl.disableVertexAttribArray (aPOS) );
-			if (conf.sizeX.n + conf.sizeY.n > 0 ) exprBlock.push( macro gl.disableVertexAttribArray (aSIZE) );
-			if (conf.pivotX.n + conf.pivotY.n > 0 ) exprBlock.push( macro gl.disableVertexAttribArray (aPIVOT) );
-			if (conf.rotation.n + conf.zIndex.n > 0 ) exprBlock.push( macro gl.disableVertexAttribArray (aROTZ) );
-			for (k in 0...Std.int((timers.length+1) / 2)) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTIME"+k}) );
+			var exprBlock = new Array<Expr>();
+			// POSITION (instance or non-instancedrawing)
+			exprBlock.push(  macro gl.disableVertexAttribArray (aPOSITION) );
+			// PICKING ID
+			if (!isInstanced && options.picking) exprBlock.push( macro gl.disableVertexAttribArray (aELEMENT) );
+			// COLORS
 			for (k in 0...conf.color.length) {
 				if (conf.color[k].isStart) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aCOLORSTART"+k}) );
 				if (conf.color[k].isEnd)   exprBlock.push( macro gl.disableVertexAttribArray ($i{"aCOLOREND"  +k}) );
 			}
-			for (k in 0...conf.texUnit.length) if (conf.texUnit[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aUNIT"+k}) );
-			for (k in 0...conf.texSlot.length) if (conf.texSlot[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aSLOT"+k}) );
-			for (k in 0...conf.texTile.length) if (conf.texTile[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTILE"+k}) );
+			// TIMERS
+			for (k in 0...Std.int((timers.length+1) / 2)) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTIME"+k}) );
+			// ROTZ
+			if (conf.rotation.n + conf.zIndex.n > 0 ) exprBlock.push( macro gl.disableVertexAttribArray (aROTZ) );
+			// POS, SIZE, PIVOT
+			if (conf.posX.n  + conf.posY.n  > 0 ) exprBlock.push( macro gl.disableVertexAttribArray (aPOS) );
+			if (conf.sizeX.n + conf.sizeY.n > 0 ) exprBlock.push( macro gl.disableVertexAttribArray (aSIZE) );
+			if (conf.pivotX.n + conf.pivotY.n > 0 ) exprBlock.push( macro gl.disableVertexAttribArray (aPIVOT) );
+			// TEXTURE COORDS
 			for (k in 0...conf.texX.length) if (conf.texX[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTEXX"+k}) );
 			for (k in 0...conf.texY.length) if (conf.texY[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTEXY"+k}) );
 			for (k in 0...conf.texW.length) if (conf.texW[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTEXW"+k}) );
@@ -2021,6 +1958,10 @@ class ElementImpl
 			for (k in 0...conf.texPosY.length) if (conf.texPosY[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTEXPOSY"+k}) );
 			for (k in 0...conf.texSizeX.length) if (conf.texSizeX[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTEXSIZEX"+k}) );
 			for (k in 0...conf.texSizeY.length) if (conf.texSizeY[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTEXSIZEY"+k}) );
+			// SLOT, TILE, UNIT
+			for (k in 0...conf.texSlot.length) if (conf.texSlot[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aSLOT"+k}) );
+			for (k in 0...conf.texTile.length) if (conf.texTile[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTILE"+k}) );
+			for (k in 0...conf.texUnit.length) if (conf.texUnit[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aUNIT"+k}) );
 			return exprBlock;
 		}
 		

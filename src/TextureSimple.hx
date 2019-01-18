@@ -43,7 +43,7 @@ class Elem implements Element
 	@texSizeX public var twOffset:Int = 256;
 	@texSizeY public var thOffset:Int = 16;
 	
-	var OPTIONS = { texRepeatX:false, texRepeatY:true };
+	var OPTIONS = { texRepeatX:false, texRepeatY:true, alpha:true };
 	
 	public function new(positionX:Int=0, positionY:Int=0, width:Int=100, height:Int=100, c:Int=0xFF0000FF )
 	{
@@ -75,8 +75,7 @@ class TextureSimple
 		buffer  = new Buffer<Elem>(100);
 		program = new Program(buffer);
 		
-		//texture = new Texture(512, 512, 2);
-		texture = new Texture(512, 512, 1);
+		texture = new Texture(512, 512, 2);
 		
 		element  = new Elem(0, 0);
 		buffer.addElement(element);     // element to buffer
@@ -94,7 +93,8 @@ class TextureSimple
 			//program.autoUpdateTextures = false;
 			program.setTexture(texture, "custom");
 			//program.updateTextures();
-			
+			program.discardAtAlpha(0.1);
+			//program.alphaEnabled = true;
 			//program.setActiveTextureGlIndex(texture, 2);// only after update
 
 			display.addProgram(program);    // programm to display

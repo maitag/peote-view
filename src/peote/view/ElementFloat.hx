@@ -1606,7 +1606,6 @@ class ElementImplFloat
 				if (!conf.pivotY.isAnim && conf.pivotY.isStart){ exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{conf.pivotY.name}) ); i+=4; }
 				if (conf.pivotX.isAnim && conf.pivotX.isEnd)   { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{conf.pivotX.name+"End"}) ); i+=4; }
 				if (conf.pivotY.isAnim && conf.pivotY.isEnd)   { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{conf.pivotY.name+"End"}) ); i+=4; }
-				
 				// TEXX
 				for (k in 0...conf.texX.length) {
 					if (conf.texX[k].isAnim && conf.texX[k].isStart) { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{conf.texX[k].name+"Start"}) ); i+=4; }
@@ -1736,7 +1735,7 @@ class ElementImplFloat
 		});
 		
 		// ------------------ bind vertex attributes to program ----------------------------------
-		function enableVertexAttribExpr(isInstanced:Bool=false):Array<Expr> {
+		function bindAttribLocationsExpr(isInstanced:Bool=false):Array<Expr> {
 			var exprBlock = [ macro gl.bindAttribLocation(glProgram, aPOSITION, "aPosition") ];
 			if (!isInstanced && options.picking) exprBlock.push( macro gl.bindAttribLocation(glProgram, aELEMENT,  "aElement" ) );
 			if (conf.posX.n  + conf.posY.n  > 0 ) exprBlock.push( macro gl.bindAttribLocation(glProgram, aPOS,  "aPos" ) );
@@ -1770,7 +1769,7 @@ class ElementImplFloat
 				args:[ {name:"gl", type:macro:peote.view.PeoteGL},
 				       {name:"glProgram", type:macro:peote.view.PeoteGL.GLProgram}
 				],
-				expr: macro $b{ enableVertexAttribExpr() },
+				expr: macro $b{ bindAttribLocationsExpr() },
 				ret: null
 			})
 		});
@@ -1784,11 +1783,12 @@ class ElementImplFloat
 				args:[ {name:"gl", type:macro:peote.view.PeoteGL},
 				       {name:"glProgram", type:macro:peote.view.PeoteGL.GLProgram}
 				],
-				expr: macro $b{ enableVertexAttribExpr(true) },
+				expr: macro $b{ bindAttribLocationsExpr(true) },
 				ret: null
 			})
 		});
-				
+		//trace(new Printer().printField(fields[fields.length - 1])); //debug
+		
 		// ------------------------ enable/disable vertex attributes ------------------------------
 		function enableVertexAttribExpr(isInstanced:Bool=false):Array<Expr> {
 			var i:Int = 0;
