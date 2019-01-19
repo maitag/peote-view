@@ -101,7 +101,6 @@ class MultiTextures
 			//program.setMultiTexture([texture0, texture1],           Elem.TEXTURE_alpha, false);
 			program.setTexture(texture1, Elem.TEXTURE_mask, false);
 			program.setTexture(texture2, "custom", false);
-			
 			/*
 			// compositing multiple textures per fragment-shader
 			program.setColorFormula(

@@ -97,8 +97,8 @@ class FontrenderingGl3
 					var sharp = Util.toFloatString(0.5);
 					program.setColorFormula('COL * smoothstep( $bold - $sharp * fwidth(TEX.r), $bold + $sharp * fwidth(TEX.r), TEX.r)');
 					
-					// for unifont + INT is this best readable (but good not scalable!) at fixed scale 16 ( or 32.. etc)
-					// program.setColorFormula('COL * smoothstep( 0.5, 0.5, TEX.r)');
+					// for unifont + INT is this best readable (but good not scalable and not not for all letters!!!) at fixed scale 16 ( or 32.. etc)
+					//program.setColorFormula('COL * smoothstep( 0.5, 0.5, TEX.r)');
 					
 					renderTextLine(	100, 4, 16, gl3font, image.width, image.height, isKerning,
 						"Unifont Test with peote-view and gl3font"

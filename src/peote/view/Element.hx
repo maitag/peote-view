@@ -444,7 +444,8 @@ class ElementImpl
 		else if (hasMeta(f, "sizeX"))  checkMetas(f, macro:Int, macro:Float, type, val, conf.sizeX, getter, setter);
 		else if (hasMeta(f, "sizeY"))  checkMetas(f, macro:Int, macro:Float, type, val, conf.sizeY, getter, setter);
 		else if (hasMeta(f, "pivotX")) checkMetas(f, macro:Int, macro:Float, type, val, conf.pivotX, getter, setter);
-		else if (hasMeta(f, "pivotY")) checkMetas(f, macro:Int, macro:Float, type, val, conf.pivotY, getter, setter);		
+		else if (hasMeta(f, "pivotY")) checkMetas(f, macro:Int, macro:Float, type, val, conf.pivotY, getter, setter);
+		// rotz
 		else if (hasMeta(f, "rotation"))checkMetas(f, macro:Float, null, type, val, conf.rotation, getter, setter);
 		else if (hasMeta(f, "zIndex"))  checkMetas(f, macro:Int,   null, type, val, conf.zIndex, getter, setter);
 		// color layer attributes
@@ -936,7 +937,7 @@ class ElementImpl
 			var layer = (name == "__default__") ? maxLayer : v.get("layer");
 			
 			var unit = resolveVaryingName("vUnit", "texUnit", v, dv, "0.0");
-			
+			/*
 			var x  = "0.0";
 			var y  = "0.0";
 			var w = "::SLOTS_WIDTH::";
@@ -998,6 +999,93 @@ class ElementImpl
 				if_ELEMENT_LAYER:  '::if (LAYER ${(name == "__default__") ? ">" : "="}= $layer)::',
 				end_ELEMENT_LAYER: "::end::"
 			});
+			*/
+			var x  = "0.0";
+			var y  = "0.0";
+			var w = "::SLOTS_WIDTH:: / ::TEXTURE_WIDTH::";
+			var h = "::SLOTS_HEIGHT:: / ::TEXTURE_HEIGHT::";
+
+			var slot = resolveVaryingName("vSlot", "texSlot", v, dv);
+			if (slot != "") {
+				w = '::SLOT_WIDTH:: / ::TEXTURE_WIDTH::';
+				h = '::SLOT_HEIGHT:: / ::TEXTURE_HEIGHT::';
+				x  = 'mod(floor($slot), ::SLOTS_X::) * $w / ::TEXTURE_WIDTH::';
+				y  = 'floor(floor($slot)/::SLOTS_X::) * $h / ::TEXTURE_HEIGHT::';
+			}
+			
+			var texX = resolveVaryingName("vTexX", "texX", v, dv);
+			if (texX != "") x = ((x != "0.0") ? '$x + ' : "") + texX + "/ ::TEXTURE_WIDTH::";
+						
+			var texY = resolveVaryingName("vTexY", "texY", v, dv);
+			if (texY != "") y = ((y != "0.0") ? '$y + ' : "") + texY + " / ::TEXTURE_HEIGHT::";
+			
+			var texW = resolveVaryingName("vTexW", "texW", v, dv);
+			if (texW != "") w = texW;
+			
+			var texH = resolveVaryingName("vTexH", "texH", v, dv);
+			if (texH != "") h = texH;
+			
+			var tile = resolveVaryingName("vTile", "texTile", v, dv);
+			if (tile != "") {
+				w = '$w / ::TILES_X::';
+				h = '$h / ::TILES_Y::';
+				x  = ((x != "0.0") ? '$x + ' : "") + 'mod(floor($tile), ::TILES_X::) * $w';
+				y  = ((y != "0.0") ? '$y + ' : "") + 'floor(floor($tile)/::TILES_X::) * $h';
+			}
+
+			var texCoordX = 'vTexCoord.x * $w';
+			var texCoordY = 'vTexCoord.y * $h';
+			
+			var texPosX  = resolveVaryingName("vTexPosX" , "texPosX" , v, dv, "0.0");
+			var texPosY  = resolveVaryingName("vTexPosY" , "texPosY" , v, dv, "0.0");
+			
+			if (texPosX != "0.0" || texPosY != "0.0") {
+				texCoordX = '($texCoordX - $texPosX / ::TEXTURE_WIDTH::)';
+				texCoordY = '($texCoordY - $texPosY / ::TEXTURE_HEIGHT::)';
+			}
+			
+			var texSizeX = resolveVaryingName("vTexSizeX", "texSizeX", v, dv, '$w');
+			var texSizeY = resolveVaryingName("vTexSizeY", "texSizeY", v, dv, '$h');
+			
+			if (texSizeX != '$w' || texSizeY != '$h') {
+				texCoordX = '$w / $texSizeX * ::TEXTURE_WIDTH:: * $texCoordX';
+				texCoordY = '$h / $texSizeY * ::TEXTURE_HEIGHT:: * $texCoordY';
+			}
+			
+			if (texPosX != "0.0" || texPosY != "0.0" || texSizeX != '$w' || texSizeY != '$h') {
+				if (options.texRepeatX && options.texRepeatY) {
+					texCoordX = 'mod($texCoordX, $w)';
+					texCoordY = 'mod($texCoordY, $h)';
+				}
+				else if (options.texRepeatX) texCoordX = 'mod($texCoordX, $w)';
+				else if (options.texRepeatY) texCoordY = 'mod($texCoordY, $h)';
+				texCoordX = 'clamp($texCoordX, 0.0, $w)';
+				texCoordY = 'clamp($texCoordY, 0.0, $h)';
+			}
+			
+			
+			if (x != "0.0" || y != "0.0") {
+				texCoordX = '$texCoordX + $x';
+				texCoordY = '$texCoordY + $y';
+			}
+			
+			glConf.ELEMENT_LAYERS.push({
+				UNIT: unit,
+				TEXCOORD: 'vec2($texCoordX , $texCoordY)',
+				if_ELEMENT_LAYER:  '::if (LAYER ${(name == "__default__") ? ">" : "="}= $layer)::',
+				end_ELEMENT_LAYER: "::end::"
+			});
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
 			// create static vars for texture identifiers
 			if (name != "__default__") {
 				fields.push({

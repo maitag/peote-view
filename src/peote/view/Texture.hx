@@ -133,9 +133,9 @@ class Texture
 		gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, w, h, gl.RGBA, gl.UNSIGNED_BYTE,  image.data );
 		
 		if (createMipmaps) { // re-create for full texture ?
-			//GL.hint(GL.GENERATE_MIPMAP_HINT, GL.NICEST);
-			//GL.hint(GL.GENERATE_MIPMAP_HINT, GL.FASTEST);
-			gl.generateMipmap(gl.TEXTURE_2D);
+			//gl.hint(gl.GENERATE_MIPMAP_HINT, gl.NICEST);
+			//gl.hint(gl.GENERATE_MIPMAP_HINT, gl.FASTEST);
+			gl.generateMipmap(gl.TEXTURE_2D); // TODO: check speed vs quality
 		}
 		gl.bindTexture(gl.TEXTURE_2D, null);
 	}

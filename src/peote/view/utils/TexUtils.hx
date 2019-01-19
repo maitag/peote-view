@@ -49,6 +49,12 @@ class TexUtils
 		// firefox needs this texture wrapping for gl.texSubImage2D if imagesize is non power of 2 
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+		
+		if (createMipmaps) { // re-create for full texture ?
+			//gl.hint(GL.GENERATE_MIPMAP_HINT, gl.NICEST);
+			//gl.hint(GL.GENERATE_MIPMAP_HINT, gl.FASTEST);
+			gl.generateMipmap(gl.TEXTURE_2D); // again after texSubImage2D!
+		}
 
 		//peoteView.glStateTexture.set(gl.getInteger(gl.ACTIVE_TEXTURE), null); // TODO: check with multiwindows (gl.getInteger did not work on html5)
 		gl.bindTexture(gl.TEXTURE_2D, null);

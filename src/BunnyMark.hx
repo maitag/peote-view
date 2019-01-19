@@ -19,10 +19,14 @@ import peote.view.Element;
 
 class Bunny implements Element
 {
-	@posX public var xi:Int=0;
-	@posY public var yi:Int=0;
 	@sizeX @const public var w:Int=26;
 	@sizeY @const public var h:Int=37;
+	
+	@posX public var x:Float; // using 32 bit Float for glBuffer
+	@posY public var y:Float;
+	/*
+	@posX public var xi:Int;  // using 16 bit Integer for glBuffer
+	@posY public var yi:Int;
 	
 	public var x(default, set):Float=0;
 	inline function set_x(a):Float {
@@ -35,6 +39,7 @@ class Bunny implements Element
 		yi = Std.int(y);
 		return y=a;
 	}
+	*/
 	
 	public var speedX:Float;
 	public var speedY:Float;
