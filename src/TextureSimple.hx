@@ -19,8 +19,8 @@ import peote.view.Element;
 
 class Elem implements Element
 {
-	@posX public var x:Int=0; // signed 2 bytes integer
-	@posY public var y:Int=0; // signed 2 bytes integer
+	@posX public var x:Int=0;
+	@posY public var y:Int=0;
 	
 	@sizeX public var w:Int=100;
 	@sizeY public var h:Int=100;
@@ -43,7 +43,7 @@ class Elem implements Element
 	@texSizeX public var twOffset:Int = 256;
 	@texSizeY public var thOffset:Int = 16;
 	
-	var OPTIONS = { texRepeatX:false, texRepeatY:true, alpha:true };
+	var OPTIONS = { texRepeatX:true, texRepeatY:true, alpha:true };
 	
 	public function new(positionX:Int=0, positionY:Int=0, width:Int=100, height:Int=100, c:Int=0xFF0000FF )
 	{

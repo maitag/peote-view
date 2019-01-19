@@ -17,11 +17,12 @@ import peote.view.Program;
 import peote.view.Color;
 import peote.view.Texture;
 import peote.view.utils.Util;
+import peote.view.Element;
 
 import peote.ui.Gl3Font;
 
 #if isInt
-class Elem implements peote.view.Element { // signed 2 bytes integer
+class Elem implements Element { // signed 2 bytes integer
 	@posX public var x:Int; 
 	@posY public var y:Int;
 	
@@ -41,7 +42,7 @@ class Elem implements peote.view.Element { // signed 2 bytes integer
 	}
 }
 #else
-class Elem implements peote.view.ElementFloat { // 4 bytes float
+class Elem implements Element { // 4 bytes float
 	@posX public var x:Float; 
 	@posY public var y:Float;
 	
@@ -84,7 +85,7 @@ class FontrenderingGl3
 			
 			
 			//loadFont("assets/gl3fonts/DejavuSans", true,
-			loadFont("assets/gl3fonts/unifont/unifont_0000-0fff", false,
+			loadFont("assets/gl3fonts/unifont/unifont_0000-0fff", false, // <- no kerning (much faster then to convert fontdata!)
 				function(gl3font:Gl3Font, image:Image, isKerning:Bool)
 				{
 					var texture = new Texture(image.width, image.height, 1, 4, false, 1, 1);

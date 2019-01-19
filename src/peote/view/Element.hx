@@ -40,7 +40,7 @@ typedef ConfParam =
 }
 typedef ConfSubParam =
 {
-	vStart:Dynamic, vEnd:Dynamic, n:Int, isAnim:Bool, name:String, isStart:Bool, isEnd:Bool, time:String,
+	isAltType:Bool, vStart:Dynamic, vEnd:Dynamic, n:Int, isAnim:Bool, name:String, isStart:Bool, isEnd:Bool, time:String, pos:Position
 }
 
 typedef GLConfParam =
@@ -65,6 +65,7 @@ class ElementImpl
 {
 	static inline var MAX_ZINDEX:Int = 0x1FFFFF;
 	
+	//static inline function debug(s:String, ?pos:haxe.PosInfos):Void	{
 	static inline function debug(s:String, ?pos:haxe.PosInfos):Void	{
 		#if peoteview_debug_macro
 		//trace(s);
@@ -276,16 +277,18 @@ class ElementImpl
 	}
 	
 	
-	static function checkMetas(f:Field, expectedType:ComplexType, type:ComplexType, val:Expr, confItem:ConfSubParam, getter:String, setter:String)
+	static function checkMetas(f:Field, expectedType:ComplexType, alternativeType:ComplexType, type:ComplexType, val:Expr, confItem:ConfSubParam, getter:String, setter:String)
 	{
 		if (confItem.name == "") confItem.name = f.name;
 		else throw Context.error('Error: attribute already defined for "${f.name}"', f.pos);
+		
+		confItem.pos = f.pos;
 		
 		if (f.access.indexOf(Access.AStatic) != -1) throw Context.error('Error: "${f.name}" can not be static', f.pos);
 		
 		var printer = new Printer();
 		
-		var expType:String = switch(expectedType) {	case TPath(tp): tp.name; default: ""; }
+		var expType:String = switch(expectedType) { case TPath(tp): tp.name; default: ""; }
 		var hasType:String;
 		
 		if (type == null) { debug('set type of ${f.name} to ${printer.printComplexType(expectedType)}');
@@ -295,7 +298,17 @@ class ElementImpl
 		else {
 			hasType = switch(type) { case TPath(tp): tp.name; default: ""; }
 			//trace('var ${f.name}: - type:${hasType} - expected type:${expType}');
-			if (hasType != expType) throw Context.error('Error: type of "${f.name}" should be ${ printer.printComplexType(expectedType) }', f.pos);
+			if (hasType != expType) {
+				if (alternativeType != null) {
+					expType = switch(alternativeType) { case TPath(tp): tp.name; default: ""; }
+					if (hasType == expType) {
+						type = alternativeType;
+						confItem.isAltType = true;
+					}
+					else throw Context.error('Error: type of "${f.name}" should be ${ printer.printComplexType(expectedType) } or ${ printer.printComplexType(alternativeType) }', f.pos);
+				}
+				else throw Context.error('Error: type of "${f.name}" should be ${ printer.printComplexType(expectedType) }', f.pos);
+			}
 		}
 				
 		var defaultVal:Dynamic;
@@ -379,7 +392,7 @@ class ElementImpl
 		//trace(confItem);
 	}
 	
-	static function checkTexLayerMetas(meta:String, f:Field, expectedType:ComplexType, type:ComplexType, val:Expr, d:ConfSubParam, confItem:Array<ConfSubParam>, getter:String, setter:String):Bool
+	static function checkTexLayerMetas(meta:String, f:Field, expectedType:ComplexType, alternativeType:ComplexType, type:ComplexType, val:Expr, d:ConfSubParam, confItem:Array<ConfSubParam>, getter:String, setter:String):Bool
 	{
 		var metas:Array<String> = getAllMetaParams(f, meta);
 		if (metas == null) return false;
@@ -401,13 +414,13 @@ class ElementImpl
 				confTextureLayer.set(name, layer);
 			}
 		}
-		var c = { vStart:d.vStart, vEnd:d.vEnd, n:d.n, isAnim:d.isAnim, name:d.name, isStart:d.isStart, isEnd:d.isEnd, time:d.time };
-		checkMetas(f, expectedType, type, val, c , getter, setter);
+		var c = { isAltType:d.isAltType, vStart:d.vStart, vEnd:d.vEnd, n:d.n, isAnim:d.isAnim, name:d.name, isStart:d.isStart, isEnd:d.isEnd, time:d.time, pos:d.pos };
+		checkMetas(f, expectedType, alternativeType, type, val, c , getter, setter);
 		confItem.push(c);
 		return true;
 	}
 	
-	static function checkColorLayerMetas(meta:String, f:Field, expectedType:ComplexType, type:ComplexType, val:Expr, d:ConfSubParam, confItem:Array<ConfSubParam>, getter:String, setter:String):Bool
+	static function checkColorLayerMetas(meta:String, f:Field, expectedType:ComplexType, alternativeType:ComplexType, type:ComplexType, val:Expr, d:ConfSubParam, confItem:Array<ConfSubParam>, getter:String, setter:String):Bool
 	{
 		var metas:Array<String> = getAllMetaParams(f, meta);
 		if (metas == null) return false;
@@ -418,35 +431,36 @@ class ElementImpl
 		if (colorIdentifiers.indexOf(name) >= 0) throw Context.error('Error: "$name" is already used for a @color identifier', f.pos);
 		if (confTextureLayer.exists(name)) throw Context.error('Error: "$name" is already used as identifier for a texture-layer', f.pos);
 		colorIdentifiers.push(name);
-		var c = { vStart:d.vStart, vEnd:d.vEnd, n:d.n, isAnim:d.isAnim, name:d.name, isStart:d.isStart, isEnd:d.isEnd, time:d.time };
-		checkMetas(f, expectedType, type, val, c , getter, setter);
+		var c = { isAltType:d.isAltType, vStart:d.vStart, vEnd:d.vEnd, n:d.n, isAnim:d.isAnim, name:d.name, isStart:d.isStart, isEnd:d.isEnd, time:d.time, pos:d.pos };
+		checkMetas(f, expectedType, alternativeType, type, val, c , getter, setter);
 		confItem.push(c);
 		return true;
 	}
 	
 	static inline function configure(f:Field, type:ComplexType, val:Expr, getter:String=null, setter:String=null)
 	{	//trace(f.name, type, val, getter, setter);
-		if      ( hasMeta(f, "posX")  ) checkMetas(f, macro:Int, type, val, conf.posX, getter, setter);
-		else if ( hasMeta(f, "posY")  ) checkMetas(f, macro:Int, type, val, conf.posY, getter, setter);
-		else if ( hasMeta(f, "sizeX") ) checkMetas(f, macro:Int, type, val, conf.sizeX, getter, setter);
-		else if ( hasMeta(f, "sizeY") ) checkMetas(f, macro:Int, type, val, conf.sizeY, getter, setter);
-		else if ( hasMeta(f, "pivotX") ) checkMetas(f, macro:Int, type, val, conf.pivotX, getter, setter);
-		else if ( hasMeta(f, "pivotY") ) checkMetas(f, macro:Int, type, val, conf.pivotY, getter, setter);
-		else if ( hasMeta(f, "rotation") ) checkMetas(f, macro:Float, type, val, conf.rotation, getter, setter);
-		else if ( hasMeta(f, "zIndex") ) checkMetas(f, macro:Int, type, val, conf.zIndex, getter, setter);
+		if      (hasMeta(f, "posX"))   checkMetas(f, macro:Int, macro:Float, type, val, conf.posX, getter, setter);
+		else if (hasMeta(f, "posY"))   checkMetas(f, macro:Int, macro:Float, type, val, conf.posY, getter, setter);
+		else if (hasMeta(f, "sizeX"))  checkMetas(f, macro:Int, macro:Float, type, val, conf.sizeX, getter, setter);
+		else if (hasMeta(f, "sizeY"))  checkMetas(f, macro:Int, macro:Float, type, val, conf.sizeY, getter, setter);
+		else if (hasMeta(f, "pivotX")) checkMetas(f, macro:Int, macro:Float, type, val, conf.pivotX, getter, setter);
+		else if (hasMeta(f, "pivotY")) checkMetas(f, macro:Int, macro:Float, type, val, conf.pivotY, getter, setter);		
+		else if (hasMeta(f, "rotation"))checkMetas(f, macro:Float, null, type, val, conf.rotation, getter, setter);
+		else if (hasMeta(f, "zIndex"))  checkMetas(f, macro:Int,   null, type, val, conf.zIndex, getter, setter);
+		// color layer attributes
+		else if (checkColorLayerMetas("color", f, macro:Color, null, type, val, conf.colorDefault, conf.color, getter, setter) ) {}
 		// texture layer attributes
-		else if ( checkTexLayerMetas("texUnit", f, macro:Int, type, val, conf.texUnitDefault, conf.texUnit, getter, setter) ) {}
-		else if ( checkTexLayerMetas("texSlot", f, macro:Int, type, val, conf.texSlotDefault, conf.texSlot, getter, setter) ) {}
-		else if ( checkTexLayerMetas("texTile", f, macro:Int, type, val, conf.texTileDefault, conf.texTile, getter, setter) ) {}
-		else if ( checkTexLayerMetas("texX",    f, macro:Int, type, val, conf.texXDefault, conf.texX, getter, setter) ) {}
-		else if ( checkTexLayerMetas("texY",    f, macro:Int, type, val, conf.texYDefault, conf.texY, getter, setter) ) {}
-		else if ( checkTexLayerMetas("texW",    f, macro:Int, type, val, conf.texWDefault, conf.texW, getter, setter) ) {}
-		else if ( checkTexLayerMetas("texH",    f, macro:Int, type, val, conf.texHDefault, conf.texH, getter, setter) ) {}
-		else if ( checkTexLayerMetas("texPosX", f, macro:Int, type, val, conf.texPosXDefault,  conf.texPosX, getter, setter) ) {}
-		else if ( checkTexLayerMetas("texPosY", f, macro:Int, type, val, conf.texPosYDefault,  conf.texPosY, getter, setter) ) {}
-		else if ( checkTexLayerMetas("texSizeX",f, macro:Int, type, val, conf.texSizeXDefault, conf.texSizeX, getter, setter) ) {}
-		else if ( checkTexLayerMetas("texSizeY",f, macro:Int, type, val, conf.texSizeYDefault, conf.texSizeY, getter, setter) ) {}
-		else if ( checkColorLayerMetas("color",   f, macro:Color, type, val, conf.colorDefault, conf.color, getter, setter) ) {}
+		else if (checkTexLayerMetas("texX",    f, macro:Int, macro:Float, type, val, conf.texXDefault, conf.texX, getter, setter) ) {}
+		else if (checkTexLayerMetas("texY",    f, macro:Int, macro:Float, type, val, conf.texYDefault, conf.texY, getter, setter) ) {}
+		else if (checkTexLayerMetas("texW",    f, macro:Int, macro:Float, type, val, conf.texWDefault, conf.texW, getter, setter) ) {}
+		else if (checkTexLayerMetas("texH",    f, macro:Int, macro:Float, type, val, conf.texHDefault, conf.texH, getter, setter) ) {}
+		else if (checkTexLayerMetas("texPosX", f, macro:Int, macro:Float, type, val, conf.texPosXDefault,  conf.texPosX, getter, setter) ) {}
+		else if (checkTexLayerMetas("texPosY", f, macro:Int, macro:Float, type, val, conf.texPosYDefault,  conf.texPosY, getter, setter) ) {}
+		else if (checkTexLayerMetas("texSizeX",f, macro:Int, macro:Float, type, val, conf.texSizeXDefault, conf.texSizeX, getter, setter) ) {}
+		else if (checkTexLayerMetas("texSizeY",f, macro:Int, macro:Float, type, val, conf.texSizeYDefault, conf.texSizeY, getter, setter) ) {}
+		else if (checkTexLayerMetas("texUnit", f, macro:Int, null, type, val, conf.texUnitDefault, conf.texUnit, getter, setter) ) {}
+		else if (checkTexLayerMetas("texSlot", f, macro:Int, null, type, val, conf.texSlotDefault, conf.texSlot, getter, setter) ) {}
+		else if (checkTexLayerMetas("texTile", f, macro:Int, null, type, val, conf.texTileDefault, conf.texTile, getter, setter) ) {}
 	}
 
 	static var setFun :StringMap<Dynamic>;
@@ -474,26 +488,26 @@ class ElementImpl
 	public static function build()
 	{
 		conf = {
-			posX :{ vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-" },
-			posY :{ vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-" },		
-			sizeX:{ vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-" },
-			sizeY:{ vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-" },
-			pivotX:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-" },			
-			pivotY:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-" },			
-			rotation:{ vStart:0.0, vEnd:0.0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-" },			
-			zIndex:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-" },			
-			texUnitDefault:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-" }, texUnit:[],
-			texSlotDefault:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-" }, texSlot:[],
-			texTileDefault:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-" }, texTile:[],
-			texXDefault:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-" }, texX:[],
-			texYDefault:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-" }, texY:[],
-			texWDefault:{ vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-" }, texW:[],
-			texHDefault:{ vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-" }, texH:[],
-			texPosXDefault:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-" }, texPosX:[],
-			texPosYDefault:{ vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-" }, texPosY:[],
-			texSizeXDefault:{ vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-" }, texSizeX:[],
-			texSizeYDefault:{ vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-" }, texSizeY:[],
-			colorDefault:{ vStart:0xFF0000FF, vEnd:0xFF0000FF, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-" }, color:[],
+			posX :          { isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },
+			posY :          { isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },		
+			sizeX:          { isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },
+			sizeY:          { isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },
+			pivotX:         { isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
+			pivotY:         { isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
+			rotation:       { isAltType:false, vStart:0.0, vEnd:0.0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
+			zIndex:         { isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
+			texUnitDefault: { isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texUnit:[],
+			texSlotDefault: { isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texSlot:[],
+			texTileDefault: { isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texTile:[],
+			texXDefault:    { isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texX:[],
+			texYDefault:    { isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texY:[],
+			texWDefault:    { isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texW:[],
+			texHDefault:    { isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texH:[],
+			texPosXDefault: { isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texPosX:[],
+			texPosYDefault: { isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texPosY:[],
+			texSizeXDefault:{ isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texSizeX:[],
+			texSizeYDefault:{ isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texSizeY:[],
+			colorDefault:   { isAltType:false, vStart:0xFF0000FF, vEnd:0xFF0000FF, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, color:[],
 		};
 		
 		glConf = {
@@ -1227,22 +1241,23 @@ class ElementImpl
 		var buff_size_instanced:Int = Std.int(
 			timers.length * 8
 			+ 4 * (conf.rotation.n + conf.zIndex.n)
-			+ 2 * (conf.posX.n  + conf.posY.n)
-			+ 2 * (conf.sizeX.n + conf.sizeY.n)
-			+ 2 * (conf.pivotX.n + conf.pivotY.n)
+			+ ((conf.posX.isAltType) ? 4:2) * (conf.posX.n  + conf.posY.n)
+			+ ((conf.sizeX.isAltType) ? 4:2) * (conf.sizeX.n + conf.sizeY.n)
+			+ ((conf.pivotX.isAltType) ? 4:2) * (conf.pivotX.n + conf.pivotY.n)
 		);
-		for (c in conf.color) buff_size_instanced += Std.int(c.n * 4);
-		for (c in conf.texUnit) buff_size_instanced += Std.int(c.n);
-		for (c in conf.texSlot) buff_size_instanced += Std.int(c.n * 2);
-		for (c in conf.texTile) buff_size_instanced += Std.int(c.n * 2);
-		for (c in conf.texX) buff_size_instanced += Std.int(c.n * 2);
-		for (c in conf.texY) buff_size_instanced += Std.int(c.n * 2);
-		for (c in conf.texW) buff_size_instanced += Std.int(c.n * 2);
-		for (c in conf.texH) buff_size_instanced += Std.int(c.n * 2);
-		for (c in conf.texPosX) buff_size_instanced += Std.int(c.n * 2);
-		for (c in conf.texPosY) buff_size_instanced += Std.int(c.n * 2);
-		for (c in conf.texSizeX) buff_size_instanced += Std.int(c.n * 2);
-		for (c in conf.texSizeY) buff_size_instanced += Std.int(c.n * 2);
+		for (c in conf.color)   buff_size_instanced += c.n * 4;
+		for (c in conf.texSlot) buff_size_instanced += c.n * 2;
+		for (c in conf.texTile) buff_size_instanced += c.n * 2;
+		for (c in conf.texUnit) buff_size_instanced += c.n;
+		
+		for (c in conf.texX)     buff_size_instanced += c.n * ((c.isAltType) ? 4:2);
+		for (c in conf.texY)     buff_size_instanced += c.n * ((c.isAltType) ? 4:2);
+		for (c in conf.texW)     buff_size_instanced += c.n * ((c.isAltType) ? 4:2);
+		for (c in conf.texH)     buff_size_instanced += c.n * ((c.isAltType) ? 4:2);
+		for (c in conf.texPosX)  buff_size_instanced += c.n * ((c.isAltType) ? 4:2);
+		for (c in conf.texPosY)  buff_size_instanced += c.n * ((c.isAltType) ? 4:2);
+		for (c in conf.texSizeX) buff_size_instanced += c.n * ((c.isAltType) ? 4:2);
+		for (c in conf.texSizeY) buff_size_instanced += c.n * ((c.isAltType) ? 4:2);
 		
 		var buff_size:Int = buff_size_instanced + 2;
 		if (options.picking) buff_size += 4; // add size of elementId for picking
@@ -1588,8 +1603,7 @@ class ElementImpl
 				// PICKING-ID
 				if (verts != null && options.picking) {
 					exprBlock.push( macro bytes.setInt32(bytePos + $v{i},  Std.int(1+bytePos/($v{buff_size*vertex_count})) ) ); i+=4;
-				}
-				
+				}				
 				// COLOR
 				for (k in 0...conf.color.length) {
 					if (conf.color[k].isAnim && conf.color[k].isStart) { exprBlock.push( macro bytes.setInt32(bytePos + $v{i}, $i{conf.color[k].name+"Start"}) ); i+=4; }
@@ -1610,37 +1624,77 @@ class ElementImpl
 				if (conf.rotation.isAnim && conf.rotation.isEnd)   { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{conf.rotation.name+"End"}/180*Math.PI) ); i+=4; }
 				if (conf.zIndex.isAnim && conf.zIndex.isEnd)       { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, Math.min(1.0,Math.max(-1.0, $i{conf.zIndex.name+"End"}/MAX_ZINDEX))) ); i+=4; }
 				
-				// POS, SIZE, PIVOT
-				function write2packed(x:ConfSubParam, y:ConfSubParam) {
-					if (x.isAnim && x.isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{x.name+"Start"}) ); i+=2; }
-					if (!x.isAnim && x.isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{x.name }) ); i+=2; }
-					if (y.isAnim && y.isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{y.name+"Start"}) ); i+=2; }
-					if (!y.isAnim && y.isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{y.name }) ); i+=2; }
-					if (x.isAnim && x.isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{x.name+"End"}) ); i+=2; }
-					if (y.isAnim && y.isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{y.name+"End"}) ); i+=2; }
-				}
-				write2packed(conf.posX, conf.posY);
-				write2packed(conf.sizeX,conf.sizeY);
-				write2packed(conf.pivotX, conf.pivotY);
-				
-				// TEXCOORDS
-				function writeTex(tex:Array<ConfSubParam>) {
-					for (k in 0...tex.length) {
-						if (tex[k].isAnim && tex[k].isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{tex[k].name+"Start"}) ); i+=2; }
-						if (!tex[k].isAnim && tex[k].isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{tex[k].name}) ); i+=2; }
-						if (tex[k].isAnim && tex[k].isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{tex[k].name+"End"}) ); i+=2; }
+				// POS, SIZE, PIVOT -> Floats
+				function write2packedFloat(x:ConfSubParam, y:ConfSubParam) {
+					// attributes that are packed together should use same type
+					if (x.isAltType != y.isAltType) throw Context.error('Error: ${x.name} and ${y.name} has to be of the same type', x.pos);
+					if (x.isAltType) { // -> only the Float ones
+						if (x.isAnim && x.isStart) { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{x.name+"Start"}) ); i+=4; }
+						if (!x.isAnim && x.isStart){ exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{x.name })        ); i+=4; }
+						if (y.isAnim && y.isStart) { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{y.name+"Start"}) ); i+=4; }
+						if (!y.isAnim && y.isStart){ exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{y.name })        ); i+=4; }
+						if (x.isAnim && x.isEnd)   { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{x.name+"End"})   ); i+=4; }
+						if (y.isAnim && y.isEnd)   { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{y.name+"End"})   ); i+=4; }
 					}
 				}
-				writeTex(conf.texX);
-				writeTex(conf.texY);
-				writeTex(conf.texW);
-				writeTex(conf.texH);
-				writeTex(conf.texPosX);
-				writeTex(conf.texPosY);
-				writeTex(conf.texSizeX);
-				writeTex(conf.texSizeY);
+				write2packedFloat(conf.posX  , conf.posY);
+				write2packedFloat(conf.sizeX , conf.sizeY);
+				write2packedFloat(conf.pivotX, conf.pivotY);
+				
+				// TEXCOORDS -> Floats
+				function writeTexFloat(tex:Array<ConfSubParam>) {
+					for (k in 0...tex.length) {
+						if (tex[k].isAltType) {  // -> only the Float ones
+							if (tex[k].isAnim && tex[k].isStart) { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{tex[k].name+"Start"}) ); i+=4; }
+							if (!tex[k].isAnim && tex[k].isStart){ exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{tex[k].name})         ); i+=4; }
+							if (tex[k].isAnim && tex[k].isEnd)   { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{tex[k].name+"End"})   ); i+=4; }
+						}
+					}
+				}
+				writeTexFloat(conf.texX);
+				writeTexFloat(conf.texY);
+				writeTexFloat(conf.texW);
+				writeTexFloat(conf.texH);
+				writeTexFloat(conf.texPosX);
+				writeTexFloat(conf.texPosY);
+				writeTexFloat(conf.texSizeX);
+				writeTexFloat(conf.texSizeY);
 				
 				// -------------- setUInt16 ------------------------------
+				// POS, SIZE, PIVOT -> INT
+				function write2packedInt(x:ConfSubParam, y:ConfSubParam) {
+					if (! x.isAltType) {  // -> only the Int ones
+						if (x.isAnim && x.isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{x.name+"Start"}) ); i+=2; }
+						if (!x.isAnim && x.isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{x.name })        ); i+=2; }
+						if (y.isAnim && y.isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{y.name+"Start"}) ); i+=2; }
+						if (!y.isAnim && y.isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{y.name })        ); i+=2; }
+						if (x.isAnim && x.isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{x.name+"End"})   ); i+=2; }
+						if (y.isAnim && y.isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{y.name+"End"})   ); i+=2; }
+					}
+				}
+				write2packedInt(conf.posX  , conf.posY);
+				write2packedInt(conf.sizeX , conf.sizeY);
+				write2packedInt(conf.pivotX, conf.pivotY);
+				
+				// TEXCOORDS -> INT
+				function writeTexInt(tex:Array<ConfSubParam>) {
+					for (k in 0...tex.length) {
+						if (! tex[k].isAltType) { // -> only the Int ones
+							if (tex[k].isAnim && tex[k].isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{tex[k].name+"Start"}) ); i+=2; }
+							if (!tex[k].isAnim && tex[k].isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{tex[k].name})         ); i+=2; }
+							if (tex[k].isAnim && tex[k].isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{tex[k].name+"End"})   ); i+=2; }
+						}
+					}
+				}
+				writeTexInt(conf.texX);
+				writeTexInt(conf.texY);
+				writeTexInt(conf.texW);
+				writeTexInt(conf.texH);
+				writeTexInt(conf.texPosX);
+				writeTexInt(conf.texPosY);
+				writeTexInt(conf.texSizeX);
+				writeTexInt(conf.texSizeY);
+				
 				// POSITION for non-instancedrawing
 				if (verts != null) {
 					exprBlock.push( macro bytes.set(bytePos + $v{i}, $v{verts[j][0]}) ); i++;
@@ -1799,6 +1853,7 @@ class ElementImpl
 			
 			exprBlock.push( macro gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer) );
 			
+			// -------------- setInt32 ------------------------------
 			// PICKING ID
 			if (!isInstanced && options.picking) {
 				exprBlock.push( macro gl.enableVertexAttribArray (aELEMENT) );
@@ -1817,6 +1872,7 @@ class ElementImpl
 					if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{"aCOLOREND"+k}, 1) );			
 				}
 			}
+			// -------------- setFloat (32) ------------------------------
 			// TIMERS
 			for (k in 0...Std.int((timers.length+1) / 2) ) {
 				exprBlock.push( macro gl.enableVertexAttribArray ($i{"aTIME" + k}) );
@@ -1831,39 +1887,83 @@ class ElementImpl
 				exprBlock.push( macro gl.vertexAttribPointer(aROTZ, $v{n}, gl.FLOAT, false, $v{stride}, $v{i} ) ); i += n * 4;
 				if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor(aROTZ, 1) );			
 			}
-			// POS, SIZE, PIVOT
-			function enable2pack(attr:String, x:ConfSubParam, y:ConfSubParam) {
-				n = x.n + y.n;
-				if (n > 0 ) {
-					exprBlock.push( macro gl.enableVertexAttribArray ($i{attr}) );
-					exprBlock.push( macro gl.vertexAttribPointer($i{attr}, $v{n}, gl.SHORT, false, $v{stride}, $v{i} ) ); i += n * 2;
-					if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{attr}, 1) );			
-				}
-			}
-			enable2pack("aPOS", conf.posX, conf.posY);
-			enable2pack("aSIZE", conf.sizeX, conf.sizeY);
-			enable2pack("aPIVOT", conf.pivotX, conf.pivotY);
-
-			// TEXTURE COORDS
-			function enableTex(attr:String, tex:Array<ConfSubParam>) {
-				for (k in 0...tex.length) {
-					n = tex[k].n;
+			
+			// POS, SIZE, PIVOT -> FLOAT
+			function enable2packFloat(attr:String, x:ConfSubParam, y:ConfSubParam) {
+				if (x.isAltType) { // -> only the Float ones
+					n = x.n + y.n;
 					if (n > 0 ) {
-						exprBlock.push( macro gl.enableVertexAttribArray ($i{attr+k}) );
-						exprBlock.push( macro gl.vertexAttribPointer($i{attr+k}, $v{n}, gl.SHORT, false, $v{stride}, $v{i} ) ); i += n * 2;
-						if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{attr+k}, 1) );
+						exprBlock.push( macro gl.enableVertexAttribArray ($i{attr}) );
+						exprBlock.push( macro gl.vertexAttribPointer($i{attr}, $v{n}, gl.FLOAT, false, $v{stride}, $v{i} ) ); i += n * 4;
+						if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{attr}, 1) );			
 					}
 				}
 			}
-			enableTex("aTEXX", conf.texX);
-			enableTex("aTEXY", conf.texY);
-			enableTex("aTEXW", conf.texW);
-			enableTex("aTEXH", conf.texH);
-			enableTex("aTEXPOSX", conf.texPosX);
-			enableTex("aTEXPOSY", conf.texPosY);
-			enableTex("aTEXSIZEX", conf.texSizeX);
-			enableTex("aTEXSIZEY", conf.texSizeY);
+			enable2packFloat("aPOS", conf.posX, conf.posY);
+			enable2packFloat("aSIZE", conf.sizeX, conf.sizeY);
+			enable2packFloat("aPIVOT", conf.pivotX, conf.pivotY);
 
+			// TEXTURE COORDS -> FLOAT
+			function enableTexFloat(attr:String, tex:Array<ConfSubParam>) {
+				for (k in 0...tex.length) {
+					if (tex[k].isAltType) {  // -> only the Float ones
+						n = tex[k].n;
+						if (n > 0 ) {
+							exprBlock.push( macro gl.enableVertexAttribArray ($i{attr+k}) );
+							exprBlock.push( macro gl.vertexAttribPointer($i{attr+k}, $v{n}, gl.FLOAT, false, $v{stride}, $v{i} ) ); i += n * 4;
+							if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{attr+k}, 1) );
+						}
+					}
+				}
+			}
+			enableTexFloat("aTEXX", conf.texX);
+			enableTexFloat("aTEXY", conf.texY);
+			enableTexFloat("aTEXW", conf.texW);
+			enableTexFloat("aTEXH", conf.texH);
+			enableTexFloat("aTEXPOSX", conf.texPosX);
+			enableTexFloat("aTEXPOSY", conf.texPosY);
+			enableTexFloat("aTEXSIZEX", conf.texSizeX);
+			enableTexFloat("aTEXSIZEY", conf.texSizeY);
+			
+			// -------------- setUInt16 ------------------------------
+
+			// POS, SIZE, PIVOT -> INT
+			function enable2packInt(attr:String, x:ConfSubParam, y:ConfSubParam) {
+				if (! x.isAltType) {  // -> only the Int ones
+					n = x.n + y.n;
+					if (n > 0 ) {
+						exprBlock.push( macro gl.enableVertexAttribArray ($i{attr}) );
+						exprBlock.push( macro gl.vertexAttribPointer($i{attr}, $v{n}, gl.SHORT, false, $v{stride}, $v{i} ) ); i += n * 2;
+						if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{attr}, 1) );			
+					}
+				}
+			}
+			enable2packInt("aPOS", conf.posX, conf.posY);
+			enable2packInt("aSIZE", conf.sizeX, conf.sizeY);
+			enable2packInt("aPIVOT", conf.pivotX, conf.pivotY);
+
+			// TEXTURE COORDS -> INT
+			function enableTexInt(attr:String, tex:Array<ConfSubParam>) {
+				for (k in 0...tex.length) {
+					if (! tex[k].isAltType) { // -> only the Int ones
+						n = tex[k].n;
+						if (n > 0 ) {
+							exprBlock.push( macro gl.enableVertexAttribArray ($i{attr+k}) );
+							exprBlock.push( macro gl.vertexAttribPointer($i{attr+k}, $v{n}, gl.SHORT, false, $v{stride}, $v{i} ) ); i += n * 2;
+							if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{attr+k}, 1) );
+						}
+					}
+				}
+			}
+			enableTexInt("aTEXX", conf.texX);
+			enableTexInt("aTEXY", conf.texY);
+			enableTexInt("aTEXW", conf.texW);
+			enableTexInt("aTEXH", conf.texH);
+			enableTexInt("aTEXPOSX", conf.texPosX);
+			enableTexInt("aTEXPOSY", conf.texPosY);
+			enableTexInt("aTEXSIZEX", conf.texSizeX);
+			enableTexInt("aTEXSIZEY", conf.texSizeY);
+			
 			// POSITION for non-instancedrawing
 			if (!isInstanced) {
 				exprBlock.push( macro gl.enableVertexAttribArray (aPOSITION) );
