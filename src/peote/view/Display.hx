@@ -49,7 +49,7 @@ class Display
 		return yOffset = yo;
 	}
 	
-	public var color(default,set):Color = 0x000000FF;
+	public var color(default,set):Color = 0x00000000;
 	inline function set_color(c:Color):Color {
 		red   = c.red   / 255.0;
 		green = c.green / 255.0;
@@ -71,7 +71,7 @@ class Display
 		
 	var uniformBuffer:UniformBufferDisplay;
 
-	public function new(x:Int, y:Int, width:Int, height:Int, color:Color = 0x000000FF) 
+	public function new(x:Int, y:Int, width:Int, height:Int, color:Color = 0x00000000) 
 	{	
 		this.x = x;
 		this.y = y;

@@ -135,7 +135,12 @@ class Shader
 			vec4(0.0             ,                 0.0, -1.0, 0.0),
 			vec4(2.0 * deltaX * zoom.x / width - 1.0, 1.0 - 2.0 * deltaY * zoom.y / height, 0.0, 1.0)
 		)
-		* vec4 (pos ,
+		* vec4 (
+			::if isPIXELSNAPPING::
+			floor( pos * ::PIXELDIVISOR:: * zoom ) / ::PIXELDIVISOR:: / zoom ,
+			::else::
+				pos ,
+			::end::
 			::ZINDEX::
 			, 1.0
 			);
@@ -151,8 +156,8 @@ class Shader
 	::else::#extension GL_OES_standard_derivatives : enable // TODO: set via Program
 	::end::
 	
-    //precision highp float; // TODO: set via Program
-    precision mediump float;
+    precision highp float; // TODO: set via Program
+    //precision mediump float;
 	
 	::FRAGMENT_PROGRAM_UNIFORMS::
 	

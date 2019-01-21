@@ -57,6 +57,8 @@ class Program
 		TEXTURES:[],
 		isDISCARD: true,
 		DISCARD: "0.0",
+		isPIXELSNAPPING: false,
+		PIXELDIVISOR: "1.0",
 	};
 	
 	var textureList = new RenderList<ActiveTexture>(new Map<ActiveTexture,RenderListItem<ActiveTexture>>());
@@ -344,6 +346,18 @@ class Program
 			}	
 		}
 		return layer;
+	}
+	
+	// enable pixelsnapping 
+	public function snapToPixel(?pixelDivisor:Null<Float>, ?autoUpdateTextures:Null<Bool>) {
+		if (pixelDivisor == null) {
+			glShaderConfig.isPIXELSNAPPING = false;
+		}
+		else {
+			glShaderConfig.isPIXELSNAPPING = true;
+			glShaderConfig.PIXELDIVISOR = Util.toFloatString(1/pixelDivisor);
+		}
+		checkAutoUpdate(autoUpdateTextures);
 	}
 	
 	// discard pixels with alpha lower then 

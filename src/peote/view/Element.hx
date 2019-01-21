@@ -1238,90 +1238,51 @@ class ElementImpl
 		// setters for anim
 		for (v in setterFun) genSetter(v);
 		
-		// TODO: refactoring
+		// start/end vars for animation attributes
+		function createStartEndVar(p:ConfSubParam, type:ComplexType, altType:ComplexType=null) {
+			if (p.isAnim) {
+				if (! p.isAltType) {
+					genVar(type, p.name+"Start", p.vStart, !p.isStart);
+					genVar(type, p.name+"End",   p.vEnd,   !p.isEnd);				
+				}
+				else {
+					genVar(altType, p.name+"Start", p.vStart, !p.isStart);
+					genVar(altType, p.name+"End",   p.vEnd,   !p.isEnd);				
+				}
+			}
+		}
+		createStartEndVar(conf.rotation, macro:Float);
+		createStartEndVar(conf.zIndex,   macro:Int);
+		createStartEndVar(conf.posX,  macro:Int, macro:Float);
+		createStartEndVar(conf.posY,  macro:Int, macro:Float);
+		createStartEndVar(conf.sizeX, macro:Int, macro:Float);
+		createStartEndVar(conf.sizeY, macro:Int, macro:Float);
+		createStartEndVar(conf.pivotX, macro:Int, macro:Float);
+		createStartEndVar(conf.pivotY, macro:Int, macro:Float);		
 		
-		// start/end vars for animation attributes - TODO: do in loop also for optimizing macro
-		if (conf.posX.isAnim) {
-			genVar(macro:Int, conf.posX.name+"Start", conf.posX.vStart, !conf.posX.isStart);
-			genVar(macro:Int, conf.posX.name+"End",   conf.posX.vEnd,   !conf.posX.isEnd);
+		function createStartEndTexVar(pa:Array<ConfSubParam>, type:ComplexType, altType:ComplexType=null) {
+			for (p in pa) if (p.isAnim) {
+				if (! p.isAltType) {
+					genVar(type, p.name+"Start", p.vStart, !p.isStart);
+					genVar(type, p.name+"End",   p.vEnd,   !p.isEnd);				
+				} else {
+					genVar(altType, p.name+"Start", p.vStart, !p.isStart);
+					genVar(altType, p.name+"End",   p.vEnd,   !p.isEnd);				
+				}
+			}
 		}
-		if (conf.posY.isAnim) {
-			genVar(macro:Int, conf.posY.name+"Start", conf.posY.vStart, !conf.posY.isStart);
-			genVar(macro:Int, conf.posY.name+"End",   conf.posY.vEnd,   !conf.posY.isEnd);
-		}
-		
-		if (conf.sizeX.isAnim) {
-			genVar(macro:Int, conf.sizeX.name+"Start", conf.sizeX.vStart, !conf.sizeX.isStart);
-			genVar(macro:Int, conf.sizeX.name+"End",   conf.sizeX.vEnd,   !conf.sizeX.isEnd);
-		}
-		if (conf.sizeY.isAnim) {
-			genVar(macro:Int, conf.sizeY.name+"Start", conf.sizeY.vStart, !conf.sizeY.isStart);
-			genVar(macro:Int, conf.sizeY.name+"End",   conf.sizeY.vEnd,   !conf.sizeY.isEnd);
-		}
-		if (conf.rotation.isAnim) {
-			genVar(macro:Float, conf.rotation.name+"Start", conf.rotation.vStart, !conf.rotation.isStart);
-			genVar(macro:Float, conf.rotation.name+"End",   conf.rotation.vEnd,   !conf.rotation.isEnd);
-		}
-		if (conf.zIndex.isAnim) {
-			genVar(macro:Int, conf.zIndex.name+"Start", conf.zIndex.vStart, !conf.zIndex.isStart);
-			genVar(macro:Int, conf.zIndex.name+"End",   conf.zIndex.vEnd,   !conf.zIndex.isEnd);
-		}
-		if (conf.pivotX.isAnim) {
-			genVar(macro:Int, conf.pivotX.name+"Start", conf.pivotX.vStart, !conf.pivotX.isStart);
-			genVar(macro:Int, conf.pivotX.name+"End",   conf.pivotX.vEnd,   !conf.pivotX.isEnd);
-		}
-		if (conf.pivotY.isAnim) {
-			genVar(macro:Int, conf.pivotY.name+"Start", conf.pivotY.vStart, !conf.pivotY.isStart);
-			genVar(macro:Int, conf.pivotY.name+"End",   conf.pivotY.vEnd,   !conf.pivotY.isEnd);
-		}		
-		for (c in conf.color) if (c.isAnim) {
-			genVar(macro:Color, c.name+"Start", c.vStart, !c.isStart);
-			genVar(macro:Color, c.name+"End",   c.vEnd,   !c.isEnd);
-		}
-		for (c in conf.texUnit) if (c.isAnim) {		
-			genVar(macro:Int, c.name+"Start", c.vStart, !c.isStart);
-			genVar(macro:Int, c.name+"End",   c.vEnd,   !c.isEnd);
-		}
-		for (c in conf.texSlot) if (c.isAnim) {		
-			genVar(macro:Int, c.name+"Start", c.vStart, !c.isStart);
-			genVar(macro:Int, c.name+"End",   c.vEnd,   !c.isEnd);
-		}
-		for (c in conf.texTile) if (c.isAnim) {		
-			genVar(macro:Int, c.name+"Start", c.vStart, !c.isStart);
-			genVar(macro:Int, c.name+"End",   c.vEnd,   !c.isEnd);
-		}
-		for (c in conf.texX) if (c.isAnim) {		
-			genVar(macro:Int, c.name+"Start", c.vStart, !c.isStart);
-			genVar(macro:Int, c.name+"End",   c.vEnd,   !c.isEnd);
-		}
-		for (c in conf.texY) if (c.isAnim) {		
-			genVar(macro:Int, c.name+"Start", c.vStart, !c.isStart);
-			genVar(macro:Int, c.name+"End",   c.vEnd,   !c.isEnd);
-		}
-		for (c in conf.texW) if (c.isAnim) {		
-			genVar(macro:Int, c.name+"Start", c.vStart, !c.isStart);
-			genVar(macro:Int, c.name+"End",   c.vEnd,   !c.isEnd);
-		}
-		for (c in conf.texH) if (c.isAnim) {		
-			genVar(macro:Int, c.name+"Start", c.vStart, !c.isStart);
-			genVar(macro:Int, c.name+"End",   c.vEnd,   !c.isEnd);
-		}
-		for (c in conf.texPosX) if (c.isAnim) {		
-			genVar(macro:Int, c.name+"Start", c.vStart, !c.isStart);
-			genVar(macro:Int, c.name+"End",   c.vEnd,   !c.isEnd);
-		}
-		for (c in conf.texPosY) if (c.isAnim) {		
-			genVar(macro:Int, c.name+"Start", c.vStart, !c.isStart);
-			genVar(macro:Int, c.name+"End",   c.vEnd,   !c.isEnd);
-		}
-		for (c in conf.texSizeX) if (c.isAnim) {		
-			genVar(macro:Int, c.name+"Start", c.vStart, !c.isStart);
-			genVar(macro:Int, c.name+"End",   c.vEnd,   !c.isEnd);
-		}
-		for (c in conf.texSizeY) if (c.isAnim) {		
-			genVar(macro:Int, c.name+"Start", c.vStart, !c.isStart);
-			genVar(macro:Int, c.name+"End",   c.vEnd,   !c.isEnd);
-		}
+		createStartEndTexVar(conf.color, macro:Color);
+		createStartEndTexVar(conf.texUnit, macro:Int);
+		createStartEndTexVar(conf.texSlot, macro:Int);
+		createStartEndTexVar(conf.texTile, macro:Int);
+		createStartEndTexVar(conf.texX, macro:Int, macro:Float);		
+		createStartEndTexVar(conf.texY, macro:Int, macro:Float);		
+		createStartEndTexVar(conf.texW, macro:Int, macro:Float);		
+		createStartEndTexVar(conf.texH, macro:Int, macro:Float);		
+		createStartEndTexVar(conf.texPosX, macro:Int, macro:Float);		
+		createStartEndTexVar(conf.texPosY, macro:Int, macro:Float);		
+		createStartEndTexVar(conf.texSizeX, macro:Int, macro:Float);		
+		createStartEndTexVar(conf.texSizeY, macro:Int, macro:Float);		
 		
 		// ------------------------- calc buffer size ----------------------------------------		
 		var vertex_count:Int = 6;
