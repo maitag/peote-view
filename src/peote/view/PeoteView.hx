@@ -154,13 +154,16 @@ class PeoteView
 		trace("EXTENSIONS:\n" + gl.getSupportedExtensions());
 		// to use internal 32 bit float-textures for webgl enable: gl.getExtension("EXT_color_buffer_float");
 		// or look here https://stackoverflow.com/questions/45571488/webgl-2-readpixels-on-framebuffers-with-float-textures
+		
+		// TODO: enable per program
 		gl.getExtension("OES_standard_derivatives");
-		/*
-		// only ES2:
-		trace("precision range low precision", gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.LOW_FLOAT).precision);
-		trace("precision range low min", gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.LOW_FLOAT).rangeMin);
-		trace("precision range low max", gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.LOW_FLOAT).rangeMax);
-		*/
+		//gl.getExtension("OES_fragment_precision_high");
+		
+		// check recision
+		var precision = gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.MEDIUM_FLOAT);
+		if (precision != null) trace("vertexshader-precision MEDIUM_FLOAT",precision.precision, precision.rangeMin, precision.rangeMax);
+		precision = gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.MEDIUM_FLOAT);
+		if (precision != null) trace("fragmentshader-precision MEDIUM_FLOAT",precision.precision, precision.rangeMin, precision.rangeMax);
 		
 		initGlPicking();
 		

@@ -6,6 +6,9 @@ class Shader
 	@:allow(peote.view) static var vertexShader(default, null):String =		
 	"
 	::if isES3::#version 300 es::end::
+	::if VERTEX_INT_PRECISION::precision ::VERTEX_INT_PRECISION:: int; ::end::
+	::if VERTEX_FLOAT_PRECISION::precision ::VERTEX_FLOAT_PRECISION:: float; ::end::
+	::if VERTEX_SAMPLER_PRECISION::precision ::VERTEX_SAMPLER_PRECISION:: sampler2D; ::end::
 	
 	// Uniforms -------------------------
 	::if (!isPICKING && isUBO)::
@@ -152,12 +155,16 @@ class Shader
 	// ------------------------ FRAGMENT SHADER TEMPLATE --------------------------------	
 	@:allow(peote.view) static var fragmentShader(default, null):String =	
 	"
-	::if isES3::#version 300 es
-	::else::#extension GL_OES_standard_derivatives : enable // TODO: set via Program
+	::if isES3::
+	#version 300 es
+	::else::
+	#extension GL_OES_standard_derivatives : enable // TODO: set via Program
+	//#extension GL_OES_fragment_precision_high : enable // TODO: set via Program
 	::end::
 	
-    precision highp float; // TODO: set via Program
-    //precision mediump float;
+	::if FRAGMENT_INT_PRECISION::precision ::FRAGMENT_INT_PRECISION:: int; ::end::
+	::if FRAGMENT_FLOAT_PRECISION::precision ::FRAGMENT_FLOAT_PRECISION:: float; ::end::
+	::if FRAGMENT_SAMPLER_PRECISION::precision ::FRAGMENT_SAMPLER_PRECISION:: sampler2D; ::end::
 	
 	::FRAGMENT_PROGRAM_UNIFORMS::
 	

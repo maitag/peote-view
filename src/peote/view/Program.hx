@@ -59,6 +59,12 @@ class Program
 		DISCARD: "0.0",
 		isPIXELSNAPPING: false,
 		PIXELDIVISOR: "1.0",
+		VERTEX_FLOAT_PRECISION : null,
+		VERTEX_INT_PRECISION : null,
+		VERTEX_SAMPLER_PRECISION : null,
+		FRAGMENT_FLOAT_PRECISION : null,
+		FRAGMENT_INT_PRECISION : null,
+		FRAGMENT_SAMPLER_PRECISION : null,
 	};
 	
 	var textureList = new RenderList<ActiveTexture>(new Map<ActiveTexture,RenderListItem<ActiveTexture>>());
@@ -77,7 +83,8 @@ class Program
 	var defaultColorFormula:String;
 	var colorFormula = "";
 	
-
+	var fragmentFloatPrecision:Null<String> = null;
+	
 	public function new(buffer:BufferInterface) 
 	{
 		this.buffer = buffer;
@@ -192,6 +199,12 @@ class Program
 	{
 		trace("create GL-Program" + ((isPicking) ? " for opengl-picking" : ""));
 		glShaderConfig.isPICKING = (isPicking) ? true : false;
+		
+		if (buffer.needFragmentPrecision() && fragmentFloatPrecision == null) {
+			var precision = gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.MEDIUM_FLOAT);
+			if (precision != null) if (Std.int(precision.precision) < 23) fragmentFloatPrecision = "highp";
+		}
+		glShaderConfig.FRAGMENT_FLOAT_PRECISION = (fragmentFloatPrecision == null) ? "mediump" : fragmentFloatPrecision;
 		
 		var glVShader = GLTool.compileGLShader(gl, gl.VERTEX_SHADER,   GLTool.parseShader(buffer.getVertexShader(),   glShaderConfig), true );
 		var glFShader = GLTool.compileGLShader(gl, gl.FRAGMENT_SHADER, GLTool.parseShader(buffer.getFragmentShader(), glShaderConfig), true );
@@ -346,6 +359,48 @@ class Program
 			}	
 		}
 		return layer;
+	}
+	
+	
+	function validatePrecision(precision:Null<String>):Null<String> {
+		if (precision != null) {
+			if (["low", "medium", "high"].indexOf(precision.toLowerCase()) < 0) {
+				if (["lowp", "mediump", "highp"].indexOf(precision.toLowerCase()) < 0)
+					throw("Error, no valid precision format. Use 'low', 'medium' or 'high' (or leave it null for default)");
+			}
+			else precision += "p";
+		}
+		return (precision);
+	}	
+	// set float precision for fragmentShader 
+	public function setFragmentFloatPrecision(?precision:Null<String>, ?autoUpdateTextures:Null<Bool>) {
+		fragmentFloatPrecision = validatePrecision(precision); // template is set in createProgram
+		checkAutoUpdate(autoUpdateTextures);
+	}
+	// set int precision for fragmentShader 
+	public function setFragmentIntPrecision(?precision:Null<String>, ?autoUpdateTextures:Null<Bool>) {
+		glShaderConfig.FRAGMENT_INT_PRECISION = validatePrecision(precision);
+		checkAutoUpdate(autoUpdateTextures);
+	}
+	// set sampler2D precision for fragmentShader 
+	public function setFragmentSamplerPrecision(?precision:Null<String>, ?autoUpdateTextures:Null<Bool>) {
+		glShaderConfig.FRAGMENT_SAMPLER_PRECISION = validatePrecision(precision);
+		checkAutoUpdate(autoUpdateTextures);
+	}
+	// set float precision for vertexShader 
+	public function setVertexFloatPrecision(?precision:Null<String>, ?autoUpdateTextures:Null<Bool>) {
+		glShaderConfig.VERTEX_FLOAT_PRECISION = validatePrecision(precision);
+		checkAutoUpdate(autoUpdateTextures);
+	}
+	// set int precision for vertexShader 
+	public function setVertexIntPrecision(?precision:Null<String>, ?autoUpdateTextures:Null<Bool>) {
+		glShaderConfig.VERTEX_INT_PRECISION = validatePrecision(precision);
+		checkAutoUpdate(autoUpdateTextures);
+	}
+	// set sampler precision for vertexShader 
+	public function setVertexSamplerPrecision(?precision:Null<String>, ?autoUpdateTextures:Null<Bool>) {
+		glShaderConfig.VERTEX_SAMPLER_PRECISION = validatePrecision(precision);
+		checkAutoUpdate(autoUpdateTextures);
 	}
 	
 	// enable pixelsnapping 

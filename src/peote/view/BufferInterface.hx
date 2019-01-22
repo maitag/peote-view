@@ -18,6 +18,7 @@ interface BufferInterface
 	private function hasAlpha():Bool;
 	private function hasZindex():Bool;
 	private function hasPicking():Bool;
+	private function needFragmentPrecision():Bool;
 	
 	private function bindAttribLocations(gl: peote.view.PeoteGL, glProgram:lime.graphics.opengl.GLProgram):Void;
 	

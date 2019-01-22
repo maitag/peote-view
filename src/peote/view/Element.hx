@@ -479,7 +479,7 @@ class ElementImpl
 	static var conf:ConfParam;
 	static var glConf:GLConfParam;
 	
-	static var maxLayer:Int = 0;
+	static var maxLayer:Int;
 	static var confTextureLayer:StringMap<StringMap<Int>>;
 	static var textureIdentifiers:Array<String>;
 	static var colorIdentifiers:Array<String>;
@@ -537,7 +537,8 @@ class ElementImpl
 		setterFun = new Array<Dynamic>();
 		timers = new Array<String>();
 		timerTypes = new Array<String>();
-		fieldnames = new Array<String>();	
+		fieldnames = new Array<String>();
+		maxLayer = 0;
 		confTextureLayer = new StringMap<StringMap<Int>>();
 		textureIdentifiers = new Array<String>();
 		colorIdentifiers = new Array<String>();
@@ -548,6 +549,8 @@ class ElementImpl
 		var hasNoDefaultColorFormula:Bool = true;		
 		var hasNoDefaultFormulaVars:Bool = true;
 		var defaultFormulaVars = new Array<String>();
+		var needFragmentPrecision:Bool = false;
+		
 		var classname:String = Context.getLocalClass().get().name;
 		//var classpackage = Context.getLocalClass().get().pack;
 		
@@ -937,7 +940,7 @@ class ElementImpl
 			var layer = (name == "__default__") ? maxLayer : v.get("layer");
 			
 			var unit = resolveVaryingName("vUnit", "texUnit", v, dv, "0.0");
-			/*
+			/*  
 			var x  = "0.0";
 			var y  = "0.0";
 			var w = "::SLOTS_WIDTH::";
@@ -1000,6 +1003,7 @@ class ElementImpl
 				end_ELEMENT_LAYER: "::end::"
 			});
 			*/
+			// without vector TODO: optimize texturecoord-calculation
 			var x  = "0.0";
 			var y  = "0.0";
 			var w = "::SLOTS_WIDTH:: / ::TEXTURE_WIDTH::";
@@ -1009,28 +1013,33 @@ class ElementImpl
 			if (slot != "") {
 				w = '::SLOT_WIDTH:: / ::TEXTURE_WIDTH::';
 				h = '::SLOT_HEIGHT:: / ::TEXTURE_HEIGHT::';
-				x  = 'mod(floor($slot), ::SLOTS_X::) * $w / ::TEXTURE_WIDTH::';
-				y  = 'floor(floor($slot)/::SLOTS_X::) * $h / ::TEXTURE_HEIGHT::';
+				//x  = 'mod(floor($slot), ::SLOTS_X::) * $w';
+				x  = 'floor(mod($slot, ::SLOTS_X::)) * $w';
+				y  = 'floor(floor($slot)/::SLOTS_X::) * $h';
 			}
 			
 			var texX = resolveVaryingName("vTexX", "texX", v, dv);
-			if (texX != "") x = ((x != "0.0") ? '$x + ' : "") + texX + "/ ::TEXTURE_WIDTH::";
-						
 			var texY = resolveVaryingName("vTexY", "texY", v, dv);
-			if (texY != "") y = ((y != "0.0") ? '$y + ' : "") + texY + " / ::TEXTURE_HEIGHT::";
+			if (texX != "") x = ((x != "0.0") ? '$x + ' : "") + "(" + texX + " / ::TEXTURE_WIDTH::)";
+			if (texY != "") y = ((y != "0.0") ? '$y + ' : "") + "(" + texY + " / ::TEXTURE_HEIGHT::)";
 			
 			var texW = resolveVaryingName("vTexW", "texW", v, dv);
-			if (texW != "") w = texW;
-			
 			var texH = resolveVaryingName("vTexH", "texH", v, dv);
-			if (texH != "") h = texH;
+			if (texW != "") w = '($texW / ::TEXTURE_WIDTH::)';
+			if (texH != "") h = '($texH / ::TEXTURE_HEIGHT::)';
 			
 			var tile = resolveVaryingName("vTile", "texTile", v, dv);
 			if (tile != "") {
 				w = '$w / ::TILES_X::';
 				h = '$h / ::TILES_Y::';
-				x  = ((x != "0.0") ? '$x + ' : "") + 'mod(floor($tile), ::TILES_X::) * $w';
-				y  = ((y != "0.0") ? '$y + ' : "") + 'floor(floor($tile)/::TILES_X::) * $h';
+				//x  = ((x != "0.0") ? '$x + ' : "") + 'mod(floor($tile), ::TILES_X::) * $w';				
+				x  = ((x != "0.0") ? '$x + ' : "") + 'floor(mod($tile, ::TILES_X::)) * $w';
+				// this all did not help on android (only highp float solves the modulo-precision-bug):
+				//x  = ((x != "0.0") ? '$x + ' : "") + '(floor($tile) - ::TILES_X:: * floor($tile/::TILES_X::)) * $w';
+				//x  = ((x != "0.0") ? '$x + ' : "") + 'floor(mod($tile/::TILES_X::, 1.0)*::TILES_X::) * $w';
+				//x  = ((x != "0.0") ? '$x + ' : "") + 'floor(fract($tile/::TILES_X::)*::TILES_X::) * $w';
+				needFragmentPrecision = true;
+				y  = ((y != "0.0") ? '$y + ' : "") + 'floor(floor($tile) / ::TILES_X::) * $h';
 			}
 
 			var texCoordX = 'vTexCoord.x * $w';
@@ -1038,21 +1047,15 @@ class ElementImpl
 			
 			var texPosX  = resolveVaryingName("vTexPosX" , "texPosX" , v, dv, "0.0");
 			var texPosY  = resolveVaryingName("vTexPosY" , "texPosY" , v, dv, "0.0");
+			if (texPosX != "0.0") texCoordX = '($texCoordX - $texPosX / ::TEXTURE_WIDTH::)';
+			if (texPosY != "0.0") texCoordY = '($texCoordY - $texPosY / ::TEXTURE_HEIGHT::)';
 			
-			if (texPosX != "0.0" || texPosY != "0.0") {
-				texCoordX = '($texCoordX - $texPosX / ::TEXTURE_WIDTH::)';
-				texCoordY = '($texCoordY - $texPosY / ::TEXTURE_HEIGHT::)';
-			}
-			
-			var texSizeX = resolveVaryingName("vTexSizeX", "texSizeX", v, dv, '$w');
-			var texSizeY = resolveVaryingName("vTexSizeY", "texSizeY", v, dv, '$h');
-			
-			if (texSizeX != '$w' || texSizeY != '$h') {
-				texCoordX = '$w / $texSizeX * ::TEXTURE_WIDTH:: * $texCoordX';
-				texCoordY = '$h / $texSizeY * ::TEXTURE_HEIGHT:: * $texCoordY';
-			}
-			
-			if (texPosX != "0.0" || texPosY != "0.0" || texSizeX != '$w' || texSizeY != '$h') {
+			var texSizeX = resolveVaryingName("vTexSizeX", "texSizeX", v, dv);
+			var texSizeY = resolveVaryingName("vTexSizeY", "texSizeY", v, dv);
+			if (texSizeX != "") texCoordX = '$w * ::TEXTURE_WIDTH:: / $texSizeX * $texCoordX';
+			if (texSizeY != "") texCoordY = '$h * ::TEXTURE_HEIGHT:: / $texSizeY * $texCoordY';
+						
+			if (texPosX != "0.0" || texPosY != "0.0" || texSizeX != "" || texSizeY != "") {
 				if (options.texRepeatX && options.texRepeatY) {
 					texCoordX = 'mod($texCoordX, $w)';
 					texCoordY = 'mod($texCoordY, $h)';
@@ -1061,13 +1064,10 @@ class ElementImpl
 				else if (options.texRepeatY) texCoordY = 'mod($texCoordY, $h)';
 				texCoordX = 'clamp($texCoordX, 0.0, $w)';
 				texCoordY = 'clamp($texCoordY, 0.0, $h)';
-			}
+			}			
 			
-			
-			if (x != "0.0" || y != "0.0") {
-				texCoordX = '$texCoordX + $x';
-				texCoordY = '$texCoordY + $y';
-			}
+			if (x != "0.0") texCoordX = '$texCoordX + $x';
+			if (y != "0.0") texCoordY = '$texCoordY + $y';				
 			
 			glConf.ELEMENT_LAYERS.push({
 				UNIT: unit,
@@ -1075,15 +1075,6 @@ class ElementImpl
 				if_ELEMENT_LAYER:  '::if (LAYER ${(name == "__default__") ? ">" : "="}= $layer)::',
 				end_ELEMENT_LAYER: "::end::"
 			});
-			
-			
-			
-			
-			
-			
-			
-			
-			
 			
 			
 			// create static vars for texture identifiers
@@ -1157,7 +1148,14 @@ class ElementImpl
 				pos: Context.currentPos(),
 			});
 		}
-		
+		// if modulo in glsl needs a 23-precision for float
+		fields.push({
+			name:  "NEED_FRAGMENT_PRECISION",
+			meta:  allowForBuffer,
+			access:  [Access.APrivate, Access.AStatic, Access.AInline],
+			kind: FieldType.FVar(macro:Bool, macro $v{needFragmentPrecision}),
+			pos: Context.currentPos(),
+		});
 		
 		// ---------------------- generate helper vars and functions ---------------------------
 		debug("__generate vars and functions__");

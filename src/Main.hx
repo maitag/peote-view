@@ -30,6 +30,8 @@ typedef Sample = Animation;
 typedef Sample = ElementInherit;
 #elseif sampleGLPicking
 typedef Sample = GLPicking;
+#elseif sampleRenderToTexture
+typedef Sample = RenderToTexture;
 #elseif sampleFontrenderingGl3
 typedef Sample = FontrenderingGl3;
 #elseif sampleBunnyMark
