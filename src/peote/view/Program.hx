@@ -31,7 +31,7 @@ class Program
 	public var zIndexEnabled:Bool;
 	public var autoUpdateTextures:Bool = true;
 	
-	var display:Display = null;
+	var displays = new Array<Display>();
 	var gl:PeoteGL = null;
 
 	var glProgram:GLProgram = null;
@@ -102,62 +102,60 @@ class Program
 		parseColorFormula();
 	}
 	
- 	private inline function isIn(display:Display):Bool
-	{
-		return (this.display == display);
-	}
-			
-	private inline function addToDisplay(display:Display):Bool
+ 	public inline function isIn(display:Display):Bool return (displays.indexOf(display) >= 0);			
+
+	public function addToDisplay(display:Display, ?atProgram:Program, addBefore:Bool=false)
 	{
 		trace("Program added to Display");
-		if (this.display == display) return false; // is already added
-		else
-		{	
-			// if added to another one remove it frome there first
-			if (this.display != null) this.display.removeProgram(this);  // <-- TODO: allow multiple displays !!!
-			
-			this.display = display;
-			
-			if (gl != display.gl) // new or different GL-Context
-			{	
-				if (gl != null) clearOldGLContext(); // different GL-Context
-				setNewGLContext(display.gl); //TODO: check that this is not Null
-			}
-			else if (PeoteGL.Version.isUBO)
-			{	// if Display is changed but same gl-context -> bind to UBO of new Display
-				if (gl!=null) display.uniformBuffer.bindToProgram(gl, glProgram, "uboDisplay", 1);
-			}
-			
-			return true;
-		}	
+		if ( isIn(display) ) throw("Error, program is already added to this display");
+		displays.push(display);
+		setNewGLContext(display.gl);
+		display.programList.add(this, atProgram, addBefore);
+		//if (PeoteGL.Version.isUBO)
+		//	{	// if Display is changed but same gl-context -> bind to UBO of new Display
+		//		if (this.gl!=null) display.uniformBuffer.bindToProgram(gl, glProgram, "uboDisplay", 1);
+		//	}
 	}
 
-	private inline function removedFromDisplay():Void
+	private inline function removeFromDisplay(display:Display):Void
 	{
-		display = null;
+		if (!displays.remove(display)) throw("Error, program is not inside display");
+		display.programList.remove(this);
 	}
 		
 	
 	private inline function setNewGLContext(newGl:PeoteGL)
 	{
 		trace("Program setNewGLContext");
-		gl = newGl;
-		buffer._gl = gl;          // TODO: check here if buffer already inside another peoteView with different glContext (multiwindows)
-		buffer.createGLBuffer();
-		buffer.updateGLBuffer();
-		
-		for (t in activeTextures) t.setNewGLContext(newGl);
-		
-		if (PeoteGL.Version.isES3) {
-			glShaderConfig.isES3 = true;
-			glShaderConfig.IN = "in";
-			glShaderConfig.VARIN = "in";
-			glShaderConfig.VAROUT = "out";
+		if (newGl != null && newGl != gl) // only if different GL - Context	
+		{
+			// check gl-context of all parents
+			for (display in displays)
+				if (display.gl != null && display.gl != newGl) throw("Error, program can not used inside different gl-contexts");
+			
+			// setNewGLContext for all childs
+			for (t in activeTextures) t.setNewGLContext(newGl);
+			
+			// clear old gl-context if there is one
+			if (gl != null) clearOldGLContext();
+			
+			// setNewGLContext
+			gl = newGl;
+			buffer._gl = gl;   // TODO: check here if buffer already inside another peoteView with different glContext (multiwindows)
+			buffer.createGLBuffer();
+			buffer.updateGLBuffer();
+			
+			if (PeoteGL.Version.isES3) {
+				glShaderConfig.isES3 = true;
+				glShaderConfig.IN = "in";
+				glShaderConfig.VARIN = "in";
+				glShaderConfig.VAROUT = "out";
+			}
+			if (PeoteGL.Version.isUBO)       glShaderConfig.isUBO = true;
+			if (PeoteGL.Version.isINSTANCED) glShaderConfig.isINSTANCED = true;
+			
+			createProgram();
 		}
-		if (PeoteGL.Version.isUBO)       glShaderConfig.isUBO = true;
-		if (PeoteGL.Version.isINSTANCED) glShaderConfig.isINSTANCED = true;
-		
-		createProgram();
 	}
 
 	private inline function clearOldGLContext() 
@@ -165,7 +163,6 @@ class Program
 		trace("Program clearOldGLContext");
 		deleteProgram();
 		buffer.deleteGLBuffer();
-		for (t in activeTextures) t.clearOldGLContext();
 	}
 
 	var ready:Bool = false; // TODO !!!
@@ -220,8 +217,11 @@ class Program
 		
 		if ( !isPicking && PeoteGL.Version.isUBO)
 		{
-			display.peoteView.uniformBuffer.bindToProgram(gl, glProg, "uboView", 0);
-			display.uniformBuffer.bindToProgram(gl, glProg, "uboDisplay", 1); // TODO: multiple displays
+			for (display in displays) {
+				display.uniformBuffer.bindToProgram(gl, glProg, "uboDisplay", 1); // TODO: multiple displays
+				for (peoteView in display.peoteViews)
+					peoteView.uniformBuffer.bindToProgram(gl, glProg, "uboView", 0);
+			}
 		}
 		else
 		{	// Try to optimize here to let use picking shader the same vars

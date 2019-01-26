@@ -172,20 +172,6 @@ class PeoteView
 		displayList = new RenderList<Display>(new Map<Display,RenderListItem<Display>>());
 	}
 	
-	public function setNewGLContext(newGl:PeoteGL) 
-	{
-		trace("PeoteView setNewGLContext");
-		gl = newGl;
-		if (PeoteGL.Version.isUBO) uniformBuffer.createGLBuffer(gl, width, height, xOffset, yOffset, xz, yz);
-		for (display in displayList) display.setNewGLContext(newGl);
-	}
-
-	public function clearOldGLContext() 
-	{
-		trace("Display clearOldGLContext");
-		if (PeoteGL.Version.isUBO) uniformBuffer.deleteGLBuffer(gl);
-		for (display in displayList) display.clearOldGLContext();
-	}
 
  	public inline function hasDisplay(display:Display):Bool
 	{
@@ -202,8 +188,7 @@ class PeoteView
     **/
 	public function addDisplay(display:Display, ?atDisplay:Display, addBefore:Bool=false)
 	{
-		if (display.addToPeoteView(this)) displayList.add(display, atDisplay, addBefore);
-		else throw ("Error: display is already added to this peoteView");
+		display.addToPeoteView(this, atDisplay, addBefore);
 	}
 	
     /**
@@ -211,8 +196,31 @@ class PeoteView
     **/
 	public function removeDisplay(display:Display):Void
 	{
-		displayList.remove(display);
-		display.removedFromPeoteView();
+		display.removeFromPeoteView(this);
+	}
+
+	public function setNewGLContext(newGl:PeoteGL)
+	{
+		trace("PeoteView setNewGLContext");
+		if (newGl != null && newGl != gl) // only if different GL - Context	
+		{
+			// setNewGLContext for all childs
+			for (display in displayList) display.setNewGLContext(newGl);
+			
+			// clear old gl-context if there is one
+			if (gl != null) clearOldGLContext();
+			
+			// setNewGLContext
+			gl = newGl;
+			if (PeoteGL.Version.isUBO) uniformBuffer.createGLBuffer(gl, width, height, xOffset, yOffset, xz, yz);
+		}
+	}
+
+	private function clearOldGLContext() 
+	{
+		trace("Display clearOldGLContext");
+		if (PeoteGL.Version.isUBO) uniformBuffer.deleteGLBuffer(gl);
+		for (display in displayList) display.clearOldGLContext();
 	}
 
     /**

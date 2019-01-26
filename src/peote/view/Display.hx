@@ -64,7 +64,7 @@ class Display
 	var blue:Float = 0.0;
 	var alpha:Float = 1.0;
 	
-	var peoteView:PeoteView = null;
+	var peoteViews = new Array<PeoteView>();
 	var gl:PeoteGL = null;
 
 	var programList:RenderList<Program>;
@@ -84,64 +84,53 @@ class Display
 		if (PeoteGL.Version.isUBO) uniformBuffer = new UniformBufferDisplay();
 	}
 
-	private inline function addToPeoteView(peoteView:PeoteView):Bool
+ 	public inline function isIn(peoteView:PeoteView):Bool return (peoteViews.indexOf(peoteView) >= 0);			
+
+	public function addToPeoteView(peoteView:PeoteView, ?atDisplay:Display, addBefore:Bool=false)
 	{
 		trace("Display added to PeoteView");
-		if (this.peoteView == peoteView) return false; // is already added
-		else
-		{
-			if (this.peoteView != null) {  // was added to another peoteView
-				this.peoteView.removeDisplay(this); // removing from the other one
-			}
-			
-			this.peoteView = peoteView;
-			
-			if (this.gl != peoteView.gl) // new or different GL-Context
-			{
-				if (this.gl != null) clearOldGLContext(); // different GL-Context
-				setNewGLContext(peoteView.gl);
-			} 
-			// if it's stay into same gl-context, no buffers had to recreate/fill
-			return true;
-		}
+		if ( isIn(peoteView) ) throw("Error, display is already added to this peoteView");
+		peoteViews.push(peoteView);
+		setNewGLContext(peoteView.gl);
+		peoteView.displayList.add(this, atDisplay, addBefore);
 	}
 	
-	private inline function removedFromPeoteView():Void
+	public function removeFromPeoteView(peoteView:PeoteView)
 	{
-		peoteView = null;
+		if (!peoteViews.remove(peoteView)) throw("Error, display is not inside peoteView");
+		peoteView.displayList.remove(this);
 	}
-		
-	private inline function setNewGLContext(newGl:PeoteGL) 
+	
+	private inline function setNewGLContext(newGl:PeoteGL)
 	{
-		trace("Display setNewGLContext");
-		gl = newGl;
-		if (PeoteGL.Version.isUBO) {
-			uniformBuffer.createGLBuffer(gl, x + xOffset, y + yOffset, xz, yz);
+		trace("Display setNewGLContext");		
+		if (newGl != null && newGl != gl) // only if different GL - Context	
+		{
+			// check gl-context of all parents
+			for (peoteView in peoteViews)
+				if (peoteView.gl != null && peoteView.gl != newGl)  throw("Error, display can not used inside different gl-contexts");
+			
+			// setNewGLContext for all childs
+			for (program in programList) program.setNewGLContext(newGl);			
+			//if (fbTexture != null) fbTexture.setNewGLContext(newGl);
+			
+			// clear old gl-context if there is one
+			if (gl != null) clearOldGLContext();
+			
+			// setNewGLContext
+			gl = newGl;			
+			if (PeoteGL.Version.isUBO) uniformBuffer.createGLBuffer(gl, x + xOffset, y + yOffset, xz, yz);
 		}
-		for (program in programList) program.setNewGLContext(newGl);
-		if (fbTexture != null) fbTexture.setNewGLContext(newGl);
 	}
 
 	private inline function clearOldGLContext() 
 	{
 		trace("Display clearOldGLContext");
-		if (PeoteGL.Version.isUBO) {
-			uniformBuffer.deleteGLBuffer(gl);
-		}
-		for (program in programList) program.clearOldGLContext();
-		if (fbTexture != null) fbTexture.clearOldGLContext();
+		if (PeoteGL.Version.isUBO) uniformBuffer.deleteGLBuffer(gl);
 	}
 
 	
- 	private inline function isIn(peoteView:PeoteView):Bool
-	{
-		return (this.peoteView == peoteView);
-	}
-			
- 	public inline function hasProgram(program:Program):Bool
-	{
-		return program.isIn(this);
-	}
+ 	public inline function hasProgram(program:Program):Bool return program.isIn(this);
 			
    /**
         Adds an Program instance to the RenderList. If it's already added it can be used to 
@@ -153,8 +142,7 @@ class Display
     **/
 	public function addProgram(program:Program, ?atProgram:Program, addBefore:Bool=false)
 	{
-		if (program.addToDisplay(this)) programList.add(program, atProgram, addBefore);
-		else throw ("Error: program is already added to this display");
+		program.addToDisplay(this, atProgram, addBefore);
 	}
 	
     /**
@@ -162,8 +150,7 @@ class Display
     **/
 	public function removeProgram(program:Program):Void
 	{
-		programList.remove(program);
-		program.removedFromDisplay();
+		program.removeFromDisplay(this);
 	}
 	
 	var fbTexture:Texture = null;

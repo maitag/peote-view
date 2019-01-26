@@ -19,8 +19,6 @@ class Texture
 	var framebuffer:GLFramebuffer;
 	var hasFramebuffer:Bool = false;	
 	
-	var used:Int = 0; //TODO (from program)
-	
 	public var colorChannels(default, null):Int=4;
 	
 	public var width(default, null):Int = 0;
@@ -44,6 +42,9 @@ class Texture
 
 	var updated:Bool = false;
 	
+	var usedByPrograms = new Array<Program>();
+	var usedByDisplays = new Array<Display>();
+	
 	public function new(slotWidth:Int, slotHeight:Int, imageSlots:Int=1, colorChannels:Int=4, createMipmaps:Bool=false, magFilter:Int=0, minFilter:Int=0, maxTextureSize:Int=16384)
 	{
 		this.slotWidth = slotWidth;
@@ -62,47 +63,53 @@ class Texture
 	}
 	
 	private inline function setToProgram(program:Program):Bool{
-		// TODO if(program.gl != null) ...check gl-context of all programs and displays that using this texture 
-		return useIt(program.gl);
+		if (usedByPrograms.indexOf(program) < 0) {
+			if (useIt(program.gl)) {
+				usedByPrograms.push(program);
+				return true;
+			} 
+			else return false;
+		}
+		else return true; // is already added
 	}
-	private inline function removeFromProgram(program:Program):Void unUseIt();
 	
 	private inline function setFramebufferToDisplay(display:Display) {
-		hasFramebuffer = true;
+		if (usedByDisplays.indexOf(display) < 0) usedByDisplays.push(display);
+		
 
 		if (useIt(display.gl)) {
 			createFramebuffer();
 			return true;
 		} else return false;
 	}
-	private inline function removeFramebufferFromDisplay(display:Display):Void {
-		hasFramebuffer = true;
-		unUseIt();
+	
+	private inline function removeFromProgram(program:Program):Void {
+		if (!usedByPrograms.remove(program)) throw("Error, this texture is not used by program anymore");
 	}
-	// TODO: better store all programs and displays that using this texture and check gl-context inside-> setNewGLContext
+	
+	private inline function removeFramebufferFromDisplay(display:Display):Void {
+		if (!usedByDisplays.remove(display)) throw("Error, this texture is not used by display anymore");
+	}
+	
 	private function useIt(newGl:PeoteGL):Bool
 	{
-		if (gl != newGl) // new or different GL-Context
+		if (this.gl != newGl) // new or different GL-Context
 		{	
-			if (gl != null) {
-				if (used > 0) return false; // already used by another gl-context
-				else clearOldGLContext();
+			if (this.gl != null) {  // different GL-Context
+				if (usedByPrograms.length != 0 && usedByDisplays.length != 0) return false; // already used by another gl-context
+				else clearOldGLContext(); // was last one that using this texture TODO-> no setNewGLContext
 			}
 			setNewGLContext(newGl);
 		}
-		used++;
-		return true;
+		return true; // same gl-context
 	}
 
-	private inline function unUseIt():Void
-	{
-		used--;
-	}
 	
 	private inline function setNewGLContext(newGl:PeoteGL)
 	{
 		trace("Texture setNewGLContext");
 		// TODO:  check gl-context of all programs and displays that using this texture 
+		// throw("Error, texture can not change gl context if used by another program");
 		gl = newGl;
 		createTexture();
 		// all images to gpu
@@ -112,7 +119,6 @@ class Texture
 	private inline function clearOldGLContext() 
 	{
 		trace("Texture clearOldGLContext");
-		if (used > 1) throw("Error, texture can not change gl context if used by another program");
 		//TODO
 		gl.deleteTexture(glTexture);
 		glTexture = null;
@@ -128,14 +134,14 @@ class Texture
 	}
 
 	private inline function createFramebuffer() {
-		if (!hasFramebuffer) {
+		if (usedByDisplays.length > 0) {
 			framebuffer = GLTool.createFramebuffer(gl, glTexture, glDepthTexture, width, height); 
 		}
 
 	}
 
 	private inline function deleteFramebuffer() {
-		if (hasFramebuffer) {
+		if (usedByDisplays.length == 0) {
 			gl.deleteFramebuffer(framebuffer);
 			gl.deleteTexture(glDepthTexture);
 		}

@@ -74,8 +74,14 @@ class Multidisplay
 		var esteps = element.w;
 		switch (keyCode) {
 			case KeyCode.P: //  switch the program to the other display
-				if (displayLeft.hasProgram(program)) displayRight.addProgram(program);
-				else displayLeft.addProgram(program);
+				if (displayLeft.hasProgram(program)) {
+					displayLeft.removeProgram(program);
+					displayRight.addProgram(program);
+				}
+				else {
+					displayRight.removeProgram(program);
+					displayLeft.addProgram(program);
+				}
 			case KeyCode.LEFT:
 					if (modifier.ctrlKey) {element.x-=esteps; buffer.updateElement(element);}
 					else if (modifier.shiftKey) displayLeft.xOffset-=steps;

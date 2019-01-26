@@ -24,16 +24,21 @@ class Test
 	var buffer:Buffer<ElementSimple>;
 	
 	public function new(window:Window)
-	{	
+	{
+		try {
 		peoteView = new PeoteView(window.context, window.width, window.height);
 		
 		buffer = new Buffer<ElementSimple>(100);
 
 		var display   = new Display(10,10, window.width-20, window.height-20, Color.GREEN);
+		var display1  = new Display(10,10, window.width-20, window.height-20, Color.GREEN);
 		var program   = new Program(buffer);
 		
-		peoteView.addDisplay(display);  // display to peoteView
-		display.addProgram(program);    // programm to display
+		peoteView.addDisplay(display1);
+		display1.addProgram(program);
+		
+		display.addProgram(program);  
+		peoteView.addDisplay(display);
 	
 		element  = new ElementSimple(10, 10);
 		buffer.addElement(element);     // element to buffer
@@ -49,7 +54,7 @@ class Test
 		
 		// ---------------------------------------------------------------
 		//peoteView.render();
-		
+		} catch (e:Dynamic) trace("ERROR:", e);
 	}
 	
 	public function onPreloadComplete ():Void { trace("preload complete"); }

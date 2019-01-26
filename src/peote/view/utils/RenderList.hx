@@ -51,7 +51,7 @@ class RenderList<T>
 						newItem = new RenderListItem<T>(value, atItem, atItem.next);
 						if (atItem == last) last = newItem;
 					}
-					else throw('Error on addD: $atValue is not in list.');
+					else throw('Error on add: $atValue is not in list.');
 				}
 			}			
 		}
