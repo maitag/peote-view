@@ -3,14 +3,56 @@ package peote.view.utils;
 import peote.view.PeoteGL.GLFramebuffer;
 import peote.view.PeoteGL.GLProgram;
 import peote.view.PeoteGL.GLShader;
+import peote.view.PeoteGL.GLTexture;
 import utils.MultipassTemplate;
 
 class GLTool 
 {
 
-	static public inline function createFramebuffer(gl:PeoteGL):GLFramebuffer
+	static public inline function createFramebuffer(gl:PeoteGL, texture:GLTexture, depthTexture:GLTexture, width:Int, height:Int):GLFramebuffer
 	{
-		return (gl.createFramebuffer());
+		var framebuffer = gl.createFramebuffer();
+		
+		gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+		if (PeoteGL.Version.hasFRAMEBUFFER_DEPTH) {
+			depthTexture = TexUtils.createDepthTexture(gl, width, height);
+			gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, depthTexture, 0);
+		}
+		if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE) throw("Error: opengl-Picking - Framebuffer not complete!");
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		
+		return (framebuffer);
+	}
+	
+	static public function hasFramebufferDepth(gl:PeoteGL):Bool
+	{
+		
+		var texture = TexUtils.createDepthTexture(gl, 1, 1);
+		
+		// TODO: check later like here -> https://github.com/KhronosGroup/WebGL/blob/master/sdk/tests/conformance2/renderbuffers/framebuffer-object-attachment.html#L63
+		/*var texture:GLTexture = gl.createTexture();
+		gl.bindTexture(gl.TEXTURE_2D, glTexture);
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT16, width, height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, 0);
+		//gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, width, height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, 0);
+		//gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT24, width, height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, 0);
+		*/		
+		var fb = gl.createFramebuffer();
+		
+		gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, texture, 0);
+			
+		if (!PeoteGL.Version.isES3) // check only for es2 if it supports depth-test
+			if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE) { // depth-test did not work with webgl1 (neko/cpp is ok!)
+				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+				trace("Can not bind depth texture to FB for gl-picking");
+				texture = null;
+				gl.deleteFramebuffer(fb);
+				return false;
+			}
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		
+		return true;
 	}
 	
 	static public inline function compileGLShader(gl:PeoteGL, type:Int, shaderSrc:String, debug:Bool = false):GLShader

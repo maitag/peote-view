@@ -159,7 +159,7 @@ class PeoteView
 		gl.getExtension("OES_standard_derivatives");
 		//gl.getExtension("OES_fragment_precision_high");
 		
-		// check recision
+		// check precision
 		var precision = gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.MEDIUM_FLOAT);
 		if (precision != null) trace("vertexshader-precision MEDIUM_FLOAT",precision.precision, precision.rangeMin, precision.rangeMax);
 		precision = gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.MEDIUM_FLOAT);
@@ -230,73 +230,56 @@ class PeoteView
 	
 
 	// ------------------------------------------------------------------------------
-	// ----------------------------- Render -----------------------------------------
+	// ----------------------------- GL-Picking -------------------------------------
 	// ------------------------------------------------------------------------------
 	var pickFB:GLFramebuffer;
 	var pickTexture:GLTexture;
 	var pickDepthTexture:GLTexture;
 	var pickInt32:lime.utils.Int32Array;
 	var pickUInt8:lime.utils.UInt8Array;
-	var pickHasDepth:Bool = true;
 	
 	private inline function initGlPicking() // TODO: refactor more into GLTool!
 	{
-		if (peote.view.PeoteGL.Version.isINSTANCED) {
+		if (PeoteGL.Version.isINSTANCED) {
 			pickInt32 = new lime.utils.Int32Array(4);
 			pickTexture = TexUtils.createPickingTexture(gl, true); // RGBA32I
 		} else {
 			pickUInt8  = new lime.utils.UInt8Array(4);
 			pickTexture = TexUtils.createPickingTexture(gl); // RGBA
-		}
-		
-		// TODO better check gl-error here -> var err; while ((err = gl.getError()) != gl.NO_ERROR) trace(err);
-		pickDepthTexture = TexUtils.createPickingDepthTexture(gl);
-		
-		pickFB = GLTool.createFramebuffer(gl); 
-		gl.bindFramebuffer(gl.FRAMEBUFFER, pickFB);
-		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, pickTexture, 0);
-		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, pickDepthTexture, 0);
-			
-		if (!PeoteGL.Version.isES3) // check only for es2 if it supports depth-test
-			if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE) { // depth-test did not work with webgl1 (neko/cpp is ok!)
-				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-				trace("Can not bind depth texture to FB for gl-picking");
-				pickHasDepth = false;
-				pickDepthTexture = null;
-				gl.deleteFramebuffer(pickFB);
-				
-				pickFB = GLTool.createFramebuffer(gl); 
-				gl.bindFramebuffer(gl.FRAMEBUFFER, pickFB);
-				gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, pickTexture, 0);
-				
-				if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE)
-					throw("Error: opengl-Picking - Framebuffer not complete!");
-			}
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		
-		// CHECK LATER: this works only with es3.0 ->  gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
+		}		
+		pickFB = GLTool.createFramebuffer(gl, pickTexture, pickDepthTexture, 1, 1); 
 	}
 	
-	// TODO: another Function to call onClick eventhandler of all pickable 
+	// TODO: function to call onClick eventhandler of all pickable
+	
 	public function getElementAt(mouseX:Float, mouseY:Float, display:Display, program:Program):Int
 	{
 		if (! program.hasPicking()) throw("Error: opengl-Picking - type of buffer/element is not pickable !");
 		
 		gl.bindFramebuffer(gl.FRAMEBUFFER, pickFB);
 		
+		//initGLViewport
+		gl.viewport (0, 0, 1, 1);
+		gl.scissor(0, 0, 1, 1);
+		gl.enable(gl.SCISSOR_TEST);	
+		
 		// clear framebuffer
-		gl.viewport (0, 0, 1, 1); gl.scissor(0, 0, 1, 1); gl.enable(gl.SCISSOR_TEST);	
-		if (peote.view.PeoteGL.Version.isINSTANCED) {
+		if (PeoteGL.Version.isINSTANCED) {
 			gl.clearBufferiv(gl.COLOR, 0, [0, 0, 0, 0]); // only the first value is the UInt32 value that clears the texture
-			gl.clear(gl.DEPTH_BUFFER_BIT);
+			if (PeoteGL.Version.hasFRAMEBUFFER_DEPTH) {
+				gl.clear(gl.DEPTH_BUFFER_BIT);
+				gl.depthFunc(gl.LEQUAL);
+			}
 		}
 		else {
 			gl.clearColor(0.0, 0.0, 0.0, 0.0);
-			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+			if (PeoteGL.Version.hasFRAMEBUFFER_DEPTH) {
+				gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
+				gl.depthFunc(gl.LEQUAL);
+			}
+			else gl.clear( gl.COLOR_BUFFER_BIT );
 		}
-		
-		if (pickHasDepth) gl.depthFunc(gl.LEQUAL);
-		
+				
 		// TODO: to wrap around webgl1 ( or do fetch all stacked Elements! )
 		// put in a loop here ( in every pass render only up to the last found element )
 
@@ -321,6 +304,35 @@ class PeoteView
 		else throw("Error: opengl-Picking - Framebuffer not complete!");
 		return -2;
 	}
+	
+	// ------------------------------------------------------------------------------
+	// -------------------------- Render to Texture ---------------------------------
+	// ------------------------------------------------------------------------------
+	public function renderToTexture(display:Display) {
+		// activate the framebuffer from texture
+		gl.bindFramebuffer(gl.FRAMEBUFFER, display.fbTexture.framebuffer);
+		// clear framebuffer
+		gl.viewport (0, 0, display.fbTexture.width, display.fbTexture.height);
+		gl.scissor(0, 0, display.fbTexture.width, display.fbTexture.height);
+		gl.enable(gl.SCISSOR_TEST);	
+		/*if (peote.view.PeoteGL.Version.isINSTANCED) {
+			gl.clearBufferiv(gl.COLOR, 0, [0, 0, 0, 0]); // only the first value is the UInt32 value that clears the texture
+			gl.clear(gl.DEPTH_BUFFER_BIT);
+		}
+		else {*/
+			gl.clearColor(0.0, 0.0, 0.0, 0.0);
+			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+		//}
+		// TODO: set only if program added or background need it
+		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+		gl.depthFunc(gl.LEQUAL);
+		// CHECK LATER: this works only with es3.0 ->  gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
+		
+		display.renderFramebuffer(this); // render with picking shader
+	}
+	
+	// ------------------------------------------------------------------------------
+	// ----------------------------- Render -----------------------------------------
 	// ------------------------------------------------------------------------------
 	private inline function initGLViewport(w:Int, h:Int):Void
 	{

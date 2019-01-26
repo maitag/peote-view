@@ -1,5 +1,7 @@
 package peote.view;
 
+import peote.view.utils.GLTool;
+
 typedef GLTexture           = lime.graphics.opengl.GLTexture;
 typedef GLFramebuffer       = lime.graphics.opengl.GLFramebuffer;                    
 typedef GLProgram           = lime.graphics.opengl.GLProgram;
@@ -87,6 +89,7 @@ abstract PeoteGL(LimeGLRenderContext) from LimeGLRenderContext to LimeGLRenderCo
 				}
 				else if (context.webgl != null) {
 					trace("WEBGL1 detected.");
+					Version.hasFRAMEBUFFER_DEPTH = GLTool.hasFramebufferDepth(cast context.webgl);
 					return cast context.webgl;
 				}
 				else {
@@ -112,10 +115,12 @@ abstract PeoteGL(LimeGLRenderContext) from LimeGLRenderContext to LimeGLRenderCo
 				}
 				else if (context.gles2 != null) {
 					trace("OpenGL-ES2 detected.");
+					Version.hasFRAMEBUFFER_DEPTH = GLTool.hasFramebufferDepth(cast context.webgl);
 					return cast context.gles2;
 				}
 				else if (context.gl != null) {
 					trace("OpenGL detected.");
+					Version.hasFRAMEBUFFER_DEPTH = GLTool.hasFramebufferDepth(cast context.webgl);
 					return cast context.gl;
 				}
 				else throw("Error: missing OpenGL context");
@@ -132,6 +137,8 @@ abstract PeoteGL(LimeGLRenderContext) from LimeGLRenderContext to LimeGLRenderCo
 class Version {
 	#if peoteview_es3
 	
+		static inline var hasFRAMEBUFFER_DEPTH = true;
+
 		static inline var isES3 = true; // force compiling without runtimecheck for UBOs/InstanceDrawing
 
 		#if peoteview_uniformbuffers
@@ -152,6 +159,8 @@ class Version {
 		
 	#elseif peoteview_es2  // force compiling without runtimecheck for UBOs/InstanceDrawing
 	
+		static var hasFRAMEBUFFER_DEPTH = true;
+
 		static inline var isES3 = false;
 		static inline var isUBO = false;
 		static inline var isINSTANCED = false;
@@ -159,6 +168,8 @@ class Version {
 		
 	#else // check at runtime (depends on available es-version) 
 
+		static var hasFRAMEBUFFER_DEPTH = true;
+		
 		static var isES3(default, set) = false;		// <---- set this true if detected gl-Version is es3
 		static inline function set_isES3(b:Bool):Bool {
 			#if peoteview_uniformbuffers

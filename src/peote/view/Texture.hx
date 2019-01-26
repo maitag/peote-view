@@ -2,6 +2,8 @@ package peote.view;
 
 import peote.view.PeoteGL.Image;
 import peote.view.PeoteGL.GLTexture;
+import peote.view.PeoteGL.GLFramebuffer;
+import peote.view.utils.GLTool;
 import peote.view.utils.TexUtils;
 
 typedef ImgProp = {imageSlot:Int}; //isRotated
@@ -12,6 +14,10 @@ class Texture
 	var gl:PeoteGL = null;
 
 	public var glTexture(default, null):GLTexture = null;	
+	
+	var glDepthTexture:GLTexture;	
+	var framebuffer:GLFramebuffer;
+	var hasFramebuffer:Bool = false;	
 	
 	var used:Int = 0; //TODO (from program)
 	
@@ -36,7 +42,6 @@ class Texture
 	public var magFilter:Int = 0;
 	public var minFilter:Int = 0;
 
-
 	var updated:Bool = false;
 	
 	public function new(slotWidth:Int, slotHeight:Int, imageSlots:Int=1, colorChannels:Int=4, createMipmaps:Bool=false, magFilter:Int=0, minFilter:Int=0, maxTextureSize:Int=16384)
@@ -56,21 +61,40 @@ class Texture
 		slotsY = p.slotsY;
 	}
 	
-	private function setToProgram(program:Program):Bool
+	private inline function setToProgram(program:Program):Bool{
+		// TODO if(program.gl != null) ...check gl-context of all programs and displays that using this texture 
+		return useIt(program.gl);
+	}
+	private inline function removeFromProgram(program:Program):Void unUseIt();
+	
+	private inline function setFramebufferToDisplay(display:Display) {
+		hasFramebuffer = true;
+
+		if (useIt(display.gl)) {
+			createFramebuffer();
+			return true;
+		} else return false;
+	}
+	private inline function removeFramebufferFromDisplay(display:Display):Void {
+		hasFramebuffer = true;
+		unUseIt();
+	}
+	// TODO: better store all programs and displays that using this texture and check gl-context inside-> setNewGLContext
+	private function useIt(newGl:PeoteGL):Bool
 	{
-		if (gl != program.gl) // new or different GL-Context
-		{
+		if (gl != newGl) // new or different GL-Context
+		{	
 			if (gl != null) {
 				if (used > 0) return false; // already used by another gl-context
 				else clearOldGLContext();
 			}
-			setNewGLContext(program.gl);
+			setNewGLContext(newGl);
 		}
 		used++;
 		return true;
 	}
 
-	private inline function removedFromProgram():Void
+	private inline function unUseIt():Void
 	{
 		used--;
 	}
@@ -78,6 +102,7 @@ class Texture
 	private inline function setNewGLContext(newGl:PeoteGL)
 	{
 		trace("Texture setNewGLContext");
+		// TODO:  check gl-context of all programs and displays that using this texture 
 		gl = newGl;
 		createTexture();
 		// all images to gpu
@@ -91,6 +116,7 @@ class Texture
 		//TODO
 		gl.deleteTexture(glTexture);
 		glTexture = null;
+		deleteFramebuffer();
 	}
 	
 	private inline function createTexture()
@@ -101,6 +127,20 @@ class Texture
 		glTexture = TexUtils.createEmptyTexture(gl, width, height, colorChannels, createMipmaps, magFilter, minFilter);			
 	}
 
+	private inline function createFramebuffer() {
+		if (!hasFramebuffer) {
+			framebuffer = GLTool.createFramebuffer(gl, glTexture, glDepthTexture, width, height); 
+		}
+
+	}
+
+	private inline function deleteFramebuffer() {
+		if (hasFramebuffer) {
+			gl.deleteFramebuffer(framebuffer);
+			gl.deleteTexture(glDepthTexture);
+		}
+	}
+	
 	public function setImage(image:Image, imageSlot:Int = 0) {
 		trace("Set Image into Texture Slot"+imageSlot);
 		images.set(image, {imageSlot:imageSlot}); // TODO: is already set?
@@ -140,7 +180,4 @@ class Texture
 		gl.bindTexture(gl.TEXTURE_2D, null);
 	}
 	
-	
-
-
 }

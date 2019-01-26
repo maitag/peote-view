@@ -61,6 +61,24 @@ class TexUtils
 		
 		return glTexture;
 	}
+	
+	public static function createDepthTexture(gl:PeoteGL, width:Int, height:Int):GLTexture
+	{
+		var glTexture:GLTexture = gl.createTexture();
+		gl.bindTexture(gl.TEXTURE_2D, glTexture);
+		
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT24, width, height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, 0);
+				
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST); // <- bilinear 
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+		
+		// firefox needs this texture wrapping for gl.texSubImage2D if imagesize is non power of 2 
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+		gl.bindTexture(gl.TEXTURE_2D, null);		
+		return glTexture;
+	}
 
 	public static function createPickingTexture(gl:PeoteGL, isRGBA32I:Bool=false):GLTexture
 	{
@@ -69,6 +87,7 @@ class TexUtils
 		
 		if (isRGBA32I) gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32I, 1, 1, 0, gl.RGBA_INTEGER, gl.INT,           0);
 		else           gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA,    1, 1, 0, gl.RGBA,         gl.UNSIGNED_BYTE, 0);
+		// TODO better check gl-error here -> var err; while ((err = gl.getError()) != gl.NO_ERROR) trace(err);
 		
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST); // <- bilinear 
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
@@ -81,24 +100,6 @@ class TexUtils
 		return glTexture;
 	}
 	
-	public static function createPickingDepthTexture(gl:PeoteGL):GLTexture
-	{
-		var glTexture:GLTexture = gl.createTexture();
-		gl.bindTexture(gl.TEXTURE_2D, glTexture);
-		
-		gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT24, 1, 1, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, 0);
-		
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST); // <- bilinear 
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-		
-		// firefox needs this texture wrapping for gl.texSubImage2D if imagesize is non power of 2 
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
-		gl.bindTexture(gl.TEXTURE_2D, null);		
-		return glTexture;
-	}
-
 	public static function optimalTextureSize(imageSlots:Int, slotWidth:Int, slotHeight:Int, maxTextureSize:Int):Dynamic
     {
         maxTextureSize = Math.ceil( Math.log(maxTextureSize) / Math.log(2) );

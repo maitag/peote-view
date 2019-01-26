@@ -119,6 +119,7 @@ class Display
 			uniformBuffer.createGLBuffer(gl, x + xOffset, y + yOffset, xz, yz);
 		}
 		for (program in programList) program.setNewGLContext(newGl);
+		if (fbTexture != null) fbTexture.setNewGLContext(newGl);
 	}
 
 	private inline function clearOldGLContext() 
@@ -128,6 +129,7 @@ class Display
 			uniformBuffer.deleteGLBuffer(gl);
 		}
 		for (program in programList) program.clearOldGLContext();
+		if (fbTexture != null) fbTexture.clearOldGLContext();
 	}
 
 	
@@ -164,6 +166,17 @@ class Display
 		program.removedFromDisplay();
 	}
 	
+	var fbTexture:Texture = null;
+	public function setTextureToRenderIn(texture:Texture) {
+		if (fbTexture == texture) throw("Error, texture already in use as Framebuffer for Display");
+		if (fbTexture != null) fbTexture.removeFramebufferFromDisplay(this);
+		fbTexture = texture;
+		if (! fbTexture.setFramebufferToDisplay(this) ) throw("Error, texture already used into different gl-context");
+	}
+	public function removeTextureToRenderIn() {
+		fbTexture.removeFramebufferFromDisplay(this);
+	}
+	
 
 	// ------------------------------------------------------------------------------
 	// ----------------------------- Render -----------------------------------------
@@ -195,6 +208,29 @@ class Display
 		
 		if (backgroundEnabled) {
 			peoteView.setGLDepth(backgroundDepth);
+			peoteView.setGLAlpha(backgroundAlpha);
+			peoteView.background.render(red, green, blue, alpha);
+		}
+		
+		programListItem = programList.first;
+		while (programListItem != null)
+		{
+			programListItem.value.render(peoteView, this);			
+			programListItem = programListItem.next;
+		}
+	}
+	
+	// ------------------------------------------------------------------------------
+	// ------------------------ RENDER TO TEXTURE ----------------------------------- 
+	// ------------------------------------------------------------------------------
+	public inline function renderToTexture(peoteView:PeoteView) peoteView.renderToTexture(this);
+	
+	private inline function renderFramebuffer(peoteView:PeoteView):Void
+	{
+		// TODO: change the uniform-buffers for peote-view and display (to match new size)
+		// get width and height from fbTexture!
+		// no scissoring need here!
+		if (backgroundEnabled) {
 			peoteView.setGLAlpha(backgroundAlpha);
 			peoteView.background.render(red, green, blue, alpha);
 		}

@@ -525,7 +525,7 @@ class Program
 		while (i-- > 0) 
 			if (newTextures.indexOf(activeTextures[i]) < 0) { // remove texture
 				trace("REMOVE texture",i);
-				activeTextures[i].removedFromProgram();
+				activeTextures[i].removeFromProgram(this);
 				activeTextures.splice(i, 1);
 				activeUnits.splice(i, 1);
 			}
