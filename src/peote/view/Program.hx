@@ -108,17 +108,19 @@ class Program
 	{
 		trace("Program added to Display");
 		if ( isIn(display) ) throw("Error, program is already added to this display");
+		if ( display.gl == gl && gl != null && PeoteGL.Version.isUBO ) {
+			// if display is changed but same gl-context -> bind to UBO of new Display
+			trace("rebind display-UBO to gl-program");
+			display.uniformBuffer.bindToProgram(gl, glProgram, "uboDisplay", 1);
+		}
 		displays.push(display);
 		setNewGLContext(display.gl);
 		display.programList.add(this, atProgram, addBefore);
-		//if (PeoteGL.Version.isUBO)
-		//	{	// if Display is changed but same gl-context -> bind to UBO of new Display
-		//		if (this.gl!=null) display.uniformBuffer.bindToProgram(gl, glProgram, "uboDisplay", 1);
-		//	}
 	}
 
 	private inline function removeFromDisplay(display:Display):Void
 	{
+		trace("Program removed from Display");
 		if (!displays.remove(display)) throw("Error, program is not inside display");
 		display.programList.remove(this);
 	}
@@ -126,12 +128,11 @@ class Program
 	
 	private inline function setNewGLContext(newGl:PeoteGL)
 	{
-		trace("Program setNewGLContext");
 		if (newGl != null && newGl != gl) // only if different GL - Context	
 		{
 			// check gl-context of all parents
-			for (display in displays)
-				if (display.gl != null && display.gl != newGl) throw("Error, program can not used inside different gl-contexts");
+			for (d in displays)
+				if (d.gl != null && d.gl != newGl) throw("Error, program can not used inside different gl-contexts");
 			
 			// setNewGLContext for all childs
 			for (t in activeTextures) t.setNewGLContext(newGl);
@@ -139,7 +140,8 @@ class Program
 			// clear old gl-context if there is one
 			if (gl != null) clearOldGLContext();
 			
-			// setNewGLContext
+			trace("Program setNewGLContext");
+			
 			gl = newGl;
 			buffer._gl = gl;   // TODO: check here if buffer already inside another peoteView with different glContext (multiwindows)
 			buffer.createGLBuffer();

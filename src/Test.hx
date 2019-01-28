@@ -31,14 +31,14 @@ class Test
 		buffer = new Buffer<ElementSimple>(100);
 
 		var display   = new Display(10,10, window.width-20, window.height-20, Color.GREEN);
-		var display1  = new Display(10,10, window.width-20, window.height-20, Color.GREEN);
+		//var display1  = new Display(10,10, window.width-20, window.height-20, Color.GREEN);
 		var program   = new Program(buffer);
 		
-		peoteView.addDisplay(display1);
-		display1.addProgram(program);
+		//peoteView.addDisplay(display1);
+		//display1.addProgram(program);
 		
-		display.addProgram(program);  
 		peoteView.addDisplay(display);
+		display.addProgram(program);  
 	
 		element  = new ElementSimple(10, 10);
 		buffer.addElement(element);     // element to buffer

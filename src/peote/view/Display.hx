@@ -90,6 +90,14 @@ class Display
 	{
 		trace("Display added to PeoteView");
 		if ( isIn(peoteView) ) throw("Error, display is already added to this peoteView");
+		
+		if ( peoteView.gl == gl && gl != null && PeoteGL.Version.isUBO ) {
+			// if peoteView is changed but same gl-context -> bind to UBO of new peoteView
+			trace("rebind peoteView-UBO to all gl-programs for Display");
+			for (program in programList)
+				peoteView.uniformBuffer.bindToProgram(gl, program.glProgram, "uboView", 0);
+		}
+		
 		peoteViews.push(peoteView);
 		setNewGLContext(peoteView.gl);
 		peoteView.displayList.add(this, atDisplay, addBefore);
@@ -97,29 +105,30 @@ class Display
 	
 	public function removeFromPeoteView(peoteView:PeoteView)
 	{
+		trace("Display removed from PeoteView");
 		if (!peoteViews.remove(peoteView)) throw("Error, display is not inside peoteView");
 		peoteView.displayList.remove(this);
 	}
 	
 	private inline function setNewGLContext(newGl:PeoteGL)
 	{
-		trace("Display setNewGLContext");		
 		if (newGl != null && newGl != gl) // only if different GL - Context	
 		{
 			// check gl-context of all parents
 			for (peoteView in peoteViews)
 				if (peoteView.gl != null && peoteView.gl != newGl)  throw("Error, display can not used inside different gl-contexts");
 			
-			// setNewGLContext for all childs
-			for (program in programList) program.setNewGLContext(newGl);			
-			//if (fbTexture != null) fbTexture.setNewGLContext(newGl);
-			
 			// clear old gl-context if there is one
 			if (gl != null) clearOldGLContext();
 			
-			// setNewGLContext
+			trace("Display setNewGLContext");
+			
 			gl = newGl;			
 			if (PeoteGL.Version.isUBO) uniformBuffer.createGLBuffer(gl, x + xOffset, y + yOffset, xz, yz);
+			
+			// setNewGLContext for all childs
+			for (program in programList) program.setNewGLContext(newGl);			
+			//if (fbTexture != null) fbTexture.setNewGLContext(newGl);			
 		}
 	}
 

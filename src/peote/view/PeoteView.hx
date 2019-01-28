@@ -173,10 +173,7 @@ class PeoteView
 	}
 	
 
- 	public inline function hasDisplay(display:Display):Bool
-	{
-		return display.isIn(this);
-	}
+ 	public inline function hasDisplay(display:Display):Bool return display.isIn(this);
 			
     /**
         Adds an Display instance to the RenderList. If it's already added it can be used to 
@@ -201,18 +198,17 @@ class PeoteView
 
 	public function setNewGLContext(newGl:PeoteGL)
 	{
-		trace("PeoteView setNewGLContext");
 		if (newGl != null && newGl != gl) // only if different GL - Context	
 		{
-			// setNewGLContext for all childs
-			for (display in displayList) display.setNewGLContext(newGl);
-			
 			// clear old gl-context if there is one
 			if (gl != null) clearOldGLContext();
 			
-			// setNewGLContext
+			trace("PeoteView setNewGLContext");
 			gl = newGl;
 			if (PeoteGL.Version.isUBO) uniformBuffer.createGLBuffer(gl, width, height, xOffset, yOffset, xz, yz);
+			
+			// setNewGLContext for all childs
+			for (display in displayList) display.setNewGLContext(newGl);
 		}
 	}
 
@@ -220,7 +216,6 @@ class PeoteView
 	{
 		trace("Display clearOldGLContext");
 		if (PeoteGL.Version.isUBO) uniformBuffer.deleteGLBuffer(gl);
-		for (display in displayList) display.clearOldGLContext();
 	}
 
     /**

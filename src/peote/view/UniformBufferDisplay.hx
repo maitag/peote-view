@@ -91,7 +91,7 @@ class UniformBufferDisplay
 		this.block = block;
 		var index:Int = gl.getUniformBlockIndex(glProgram, name);
 		if (index != gl.INVALID_INDEX) {
-			trace('has uniform $name, index=$index, block=$block');
+			//trace('has uniform $name, index=$index, block=$block');
 			gl.uniformBlockBinding(glProgram, index, block);
 		}
 	}
