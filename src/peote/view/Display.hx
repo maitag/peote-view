@@ -92,7 +92,7 @@ class Display
 		if ( isIn(peoteView) ) throw("Error, display is already added to this peoteView");
 		
 		if ( peoteView.gl == gl && gl != null && PeoteGL.Version.isUBO ) {
-			// if peoteView is changed but same gl-context -> bind to UBO of new peoteView
+			// if peoteView is changed but same gl-context -> rebind glPrograms to UBO of new peoteView
 			trace("rebind peoteView-UBO to all gl-programs for Display");
 			for (program in programList)
 				peoteView.uniformBuffer.bindToProgram(gl, program.glProgram, "uboView", 0);
@@ -126,7 +126,7 @@ class Display
 			gl = newGl;			
 			if (PeoteGL.Version.isUBO) uniformBuffer.createGLBuffer(gl, x + xOffset, y + yOffset, xz, yz);
 			
-			// setNewGLContext for all childs
+			// setNewGLContext for all programs
 			for (program in programList) program.setNewGLContext(newGl);			
 			//if (fbTexture != null) fbTexture.setNewGLContext(newGl);			
 		}
@@ -165,12 +165,13 @@ class Display
 	var fbTexture:Texture = null;
 	public function setTextureToRenderIn(texture:Texture) {
 		if (fbTexture == texture) throw("Error, texture already in use as Framebuffer for Display");
-		if (fbTexture != null) fbTexture.removeFramebufferFromDisplay(this);
+		if (fbTexture != null) fbTexture.removeFromDisplay(this);
 		fbTexture = texture;
-		if (! fbTexture.setFramebufferToDisplay(this) ) throw("Error, texture already used into different gl-context");
+		fbTexture.addToDisplay(this);
 	}
 	public function removeTextureToRenderIn() {
-		fbTexture.removeFramebufferFromDisplay(this);
+		fbTexture.removeFromDisplay(this);
+		fbTexture = null;
 	}
 	
 

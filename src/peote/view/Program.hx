@@ -2,8 +2,6 @@ package peote.view;
 
 import haxe.ds.IntMap;
 import haxe.ds.StringMap;
-import lime.utils.BytePointer;
-import lime.utils.DataPointer;
 import peote.view.PeoteGL.GLProgram;
 import peote.view.PeoteGL.GLShader;
 import peote.view.PeoteGL.GLUniformLocation;
@@ -106,10 +104,11 @@ class Program
 
 	public function addToDisplay(display:Display, ?atProgram:Program, addBefore:Bool=false)
 	{
-		trace("Program added to Display");
+		trace("Add Program to Display");
 		if ( isIn(display) ) throw("Error, program is already added to this display");
-		if ( display.gl == gl && gl != null && PeoteGL.Version.isUBO ) {
-			// if display is changed but same gl-context -> bind to UBO of new Display
+		
+		if ( display.gl == gl && gl != null && PeoteGL.Version.isUBO ) // if display is changed but same gl-context
+		{
 			trace("rebind display-UBO to gl-program");
 			display.uniformBuffer.bindToProgram(gl, glProgram, "uboDisplay", 1);
 		}
@@ -118,14 +117,13 @@ class Program
 		display.programList.add(this, atProgram, addBefore);
 	}
 
-	private inline function removeFromDisplay(display:Display):Void
+	public function removeFromDisplay(display:Display):Void
 	{
-		trace("Program removed from Display");
+		trace("Remove Program from Display"); // TODO <- PROBLEM with multiwindows-sample
 		if (!displays.remove(display)) throw("Error, program is not inside display");
 		display.programList.remove(this);
 	}
 		
-	
 	private inline function setNewGLContext(newGl:PeoteGL)
 	{
 		if (newGl != null && newGl != gl) // only if different GL - Context	
@@ -134,18 +132,11 @@ class Program
 			for (d in displays)
 				if (d.gl != null && d.gl != newGl) throw("Error, program can not used inside different gl-contexts");
 			
-			// setNewGLContext for all childs
-			for (t in activeTextures) t.setNewGLContext(newGl);
-			
 			// clear old gl-context if there is one
 			if (gl != null) clearOldGLContext();
 			
-			trace("Program setNewGLContext");
-			
+			trace("Program setNewGLContext");	
 			gl = newGl;
-			buffer._gl = gl;   // TODO: check here if buffer already inside another peoteView with different glContext (multiwindows)
-			buffer.createGLBuffer();
-			buffer.updateGLBuffer();
 			
 			if (PeoteGL.Version.isES3) {
 				glShaderConfig.isES3 = true;
@@ -156,7 +147,11 @@ class Program
 			if (PeoteGL.Version.isUBO)       glShaderConfig.isUBO = true;
 			if (PeoteGL.Version.isINSTANCED) glShaderConfig.isINSTANCED = true;
 			
+			buffer.setNewGLContext(gl);
 			createProgram();
+			
+			// setNewGLContext for all textures
+			for (t in activeTextures) t.setNewGLContext(gl);		
 		}
 	}
 
@@ -164,7 +159,6 @@ class Program
 	{
 		trace("Program clearOldGLContext");
 		deleteProgram();
-		buffer.deleteGLBuffer();
 	}
 
 	var ready:Bool = false; // TODO !!!
@@ -539,7 +533,7 @@ class Program
 				var unit = 0;
 				while (activeUnits.indexOf(unit) >= 0 ) unit++;
 				activeUnits.push(unit);
-				if (! t.setToProgram(this)) throw("Error, texture already used by another program into different gl-context");
+				t.addToProgram(this);
 			}
 		}
 				
@@ -641,9 +635,8 @@ class Program
 	
 	private inline function render(peoteView:PeoteView, display:Display)
 	{
-		//trace("    ---program.render---");
+		//trace("    ---program.render---");		
 		if (!ready) trace("=======PROBLEM=====> not READY !!!!!!!!"); // TODO !!!
-		
 		gl.useProgram(glProgram);
 		
 		render_activeTextureUnits(peoteView, textureList);

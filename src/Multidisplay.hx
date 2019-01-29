@@ -27,6 +27,7 @@ class Multidisplay
 	var displayLeft:Display;
 	var displayRight:Display;
 	var program:Program;
+	var programBG :Program;
 	
 	public function new(window:Window)
 	{	
@@ -53,11 +54,10 @@ class Multidisplay
 		bufferBG.addElement(new elements.ElementSimple(300, 0));
 		bufferBG.addElement(new elements.ElementSimple(300, 300));
 		bufferBG.addElement(new elements.ElementSimple(0, 300));
-		var programLeft = new Program(bufferBG);
-		var programRight = new Program(bufferBG);
+		programBG = new Program(bufferBG);
 		
-		displayLeft.addProgram(programLeft);
-		displayRight.addProgram(programRight);
+		displayLeft.addProgram(programBG);
+		displayRight.addProgram(programBG);
 		
 	}
 

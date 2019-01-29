@@ -207,7 +207,7 @@ class PeoteView
 			gl = newGl;
 			if (PeoteGL.Version.isUBO) uniformBuffer.createGLBuffer(gl, width, height, xOffset, yOffset, xz, yz);
 			
-			// setNewGLContext for all childs
+			// setNewGLContext for all displays
 			for (display in displayList) display.setNewGLContext(newGl);
 		}
 	}

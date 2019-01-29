@@ -114,7 +114,7 @@ class MultiTextures
 			);
 			*/
 			
-			program.updateTextures(); // updates gl-textures and also rebuilds the shadercode
+			program.updateTextures(); // updates gl-textures and rebuilding shadercode
 			
 			
 			loadImage(texture0, "assets/images/peote_tiles.png");

@@ -88,15 +88,17 @@ class $className implements BufferInterface
 	
 	#if peoteview_queueGLbuffering
 	var updateGLBufferElementQueue:Array<$elementType>;
-	var queueCreateGLBuffer:Bool = false;
+	var setNewGLContextQueue:Array<PeoteGL>;
+	/*var queueCreateGLBuffer:Bool = false;
 	var queueDeleteGLBuffer:Bool = false;
-	var queueUpdateGLBuffer:Bool = false;
+	var queueUpdateGLBuffer:Bool = false;*/
 	#end
 
 	public function new(size:Int)
 	{
 		#if peoteview_queueGLbuffering
 		updateGLBufferElementQueue = new Array<$elementType>();
+		setNewGLContextQueue = new Array<PeoteGL>();
 		#end
 		
 		_elements = new haxe.ds.Vector<$elementType>(size);
@@ -113,6 +115,27 @@ class $className implements BufferInterface
 		_bytes.fill(0, _elemBuffSize * size, 0);		
 	}
 	
+	inline function setNewGLContext(newGl:PeoteGL)
+	{
+		#if peoteview_queueGLbuffering
+		setNewGLContextQueue.push(newGl);
+		#else
+		_setNewGLContext(newGl);
+		#end
+	}
+	inline function _setNewGLContext(newGl:PeoteGL)
+	{
+		if (newGl != null && newGl != _gl) // only if different GL - Context	
+		{
+			if (_gl != null) deleteGLBuffer(); // < ------- TODO BUGGY with different-context (see multiwindow sample)
+			
+			trace("Buffer setNewGLContext");	
+			_gl = newGl;
+			createGLBuffer();
+			//updateGLBuffer();
+		}
+	}
+	/*
 	inline function createGLBuffer():Void
 	{
 		#if peoteview_queueGLbuffering
@@ -120,14 +143,14 @@ class $className implements BufferInterface
 		#else
 		_createGLBuffer();
 		#end
-	}	
-	inline function _createGLBuffer():Void
+	}*/
+	inline function createGLBuffer():Void
 	{
 		trace("create new GlBuffer");
 		_glBuffer = _gl.createBuffer();
 		
 		_gl.bindBuffer (_gl.ARRAY_BUFFER, _glBuffer);
-		_gl.bufferData (_gl.ARRAY_BUFFER, _bytes.length, _bytes, _gl.STREAM_DRAW);
+		_gl.bufferData (_gl.ARRAY_BUFFER, _bytes.length, _bytes, _gl.STREAM_DRAW); // STATIC_DRAW, DYNAMIC_DRAW, STREAM_DRAW 
 		_gl.bindBuffer (_gl.ARRAY_BUFFER, null);
 		
 		if (peote.view.PeoteGL.Version.isINSTANCED) { // init and update instance buffer
@@ -143,7 +166,7 @@ class $className implements BufferInterface
 			_gl.bindVertexArray(null);
 		}
 	}
-	
+	/*
 	inline function deleteGLBuffer():Void
 	{
 		#if peoteview_queueGLbuffering
@@ -152,15 +175,16 @@ class $className implements BufferInterface
 		_deleteGLBuffer();
 		#end
 	}
-	
-	inline function _deleteGLBuffer():Void
+	*/
+	inline function deleteGLBuffer():Void
 	{
 		trace("delete GlBuffer");
 		_gl.deleteBuffer(_glBuffer);
+		
 		if (peote.view.PeoteGL.Version.isINSTANCED)	_gl.deleteBuffer(_glInstanceBuffer);
 		if (peote.view.PeoteGL.Version.isVAO) _gl.deleteVertexArray(_glVAO);
 	}
-	
+	/*
 	inline function updateGLBuffer():Void
 	{
 		#if peoteview_queueGLbuffering
@@ -171,8 +195,8 @@ class $className implements BufferInterface
 		//trace("updateGLBuffer time:"+(haxe.Timer.stamp()-t));
 		#end
 	}
-	
-	inline function _updateGLBuffer():Void
+	*/
+	inline function updateGLBuffer():Void
 	{
 		_gl.bindBuffer (_gl.ARRAY_BUFFER, _glBuffer);
 		//_gl.bufferData (_gl.ARRAY_BUFFER, _bytes.length, _bytes, _gl.STATIC_DRAW); // _gl.DYNAMIC_DRAW _gl.STREAM_DRAW
@@ -301,7 +325,8 @@ class $className implements BufferInterface
 		#if peoteview_queueGLbuffering
 		//TODO: put all in one glCommandQueue (+ loop)
 		if (updateGLBufferElementQueue.length > 0) _updateElement(updateGLBufferElementQueue.shift());
-		if (queueDeleteGLBuffer) {
+		if (setNewGLContextQueue.length > 0) _setNewGLContext(setNewGLContextQueue.shift());
+		/*if (queueDeleteGLBuffer) {
 			queueDeleteGLBuffer = false;
 			_deleteGLBuffer();
 		}
@@ -312,7 +337,7 @@ class $className implements BufferInterface
 		if (queueUpdateGLBuffer) {
 			queueUpdateGLBuffer = false;
 			_updateGLBuffer();
-		}
+		}*/
 		#end
 		
 		//var t = haxe.Timer.stamp();

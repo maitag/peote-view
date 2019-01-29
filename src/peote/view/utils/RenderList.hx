@@ -25,7 +25,6 @@ class RenderList<T>
 			if (first == null) newItem = first = last = new RenderListItem<T>(value, null, null);
 			else
 			{
-				var newItem:RenderListItem<T>;
 				if (atValue == null) {
 					newItem = first = new RenderListItem<T>(value, null, first);
 				} else {

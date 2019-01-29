@@ -84,7 +84,7 @@ class RenderToTexture
 		bufferFrom.addElement(elementFrom);
 		
 		texture = new Texture(256, 256, 1);
-		displayFrom.setTextureToRenderIn(texture);
+		//displayFrom.setTextureToRenderIn(texture);
 		//displayFrom.removeTextureToRenderIn(); // need before using this texture with different gl-context!
 		
 		// display to use the Texture the other is rendering In:

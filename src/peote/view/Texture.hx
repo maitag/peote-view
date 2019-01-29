@@ -42,8 +42,8 @@ class Texture
 
 	var updated:Bool = false;
 	
-	var usedByPrograms = new Array<Program>();
-	var usedByDisplays = new Array<Display>();
+	var programs = new Array<Program>();
+	var displays = new Array<Display>();
 	
 	public function new(slotWidth:Int, slotHeight:Int, imageSlots:Int=1, colorChannels:Int=4, createMipmaps:Bool=false, magFilter:Int=0, minFilter:Int=0, maxTextureSize:Int=16384)
 	{
@@ -62,58 +62,53 @@ class Texture
 		slotsY = p.slotsY;
 	}
 	
-	private inline function setToProgram(program:Program):Bool{
-		if (usedByPrograms.indexOf(program) < 0) {
-			if (useIt(program.gl)) {
-				usedByPrograms.push(program);
-				return true;
-			} 
-			else return false;
-		}
-		else return true; // is already added
+ 	public inline function isIn(program:Program):Bool return (programs.indexOf(program) >= 0);
+	
+	private inline function addToProgram(program:Program)
+	{
+		trace("Add Program to Texture");
+		if ( isIn(program) ) throw("Error, program is already added to this display");
+		programs.push(program);
+		setNewGLContext(program.gl);
 	}
 	
-	private inline function setFramebufferToDisplay(display:Display) {
-		if (usedByDisplays.indexOf(display) < 0) usedByDisplays.push(display);
-		
-
-		if (useIt(display.gl)) {
-			createFramebuffer();
-			return true;
-		} else return false;
+	private inline function addToDisplay(display:Display) {
+		trace("Add Display to Texture");
+		if (displays.indexOf(display) < 0) displays.push(display);
+		createFramebuffer();
+		// TODO
 	}
 	
 	private inline function removeFromProgram(program:Program):Void {
-		if (!usedByPrograms.remove(program)) throw("Error, this texture is not used by program anymore");
+		trace("Texture removed from Program");
+		if (!programs.remove(program)) throw("Error, this texture is not used by program anymore");
 	}
 	
-	private inline function removeFramebufferFromDisplay(display:Display):Void {
-		if (!usedByDisplays.remove(display)) throw("Error, this texture is not used by display anymore");
+	private inline function removeFromDisplay(display:Display):Void {
+		trace("Texture (Framebuffer) removed from Display");
+		if (!displays.remove(display)) throw("Error, this texture (Framebuffer) is not used by display anymore");
 	}
-	
-	private function useIt(newGl:PeoteGL):Bool
-	{
-		if (this.gl != newGl) // new or different GL-Context
-		{	
-			if (this.gl != null) {  // different GL-Context
-				if (usedByPrograms.length != 0 && usedByDisplays.length != 0) return false; // already used by another gl-context
-				else clearOldGLContext(); // was last one that using this texture TODO-> no setNewGLContext
-			}
-			setNewGLContext(newGl);
-		}
-		return true; // same gl-context
-	}
-
-	
+		
 	private inline function setNewGLContext(newGl:PeoteGL)
 	{
-		trace("Texture setNewGLContext");
-		// TODO:  check gl-context of all programs and displays that using this texture 
-		// throw("Error, texture can not change gl context if used by another program");
-		gl = newGl;
-		createTexture();
-		// all images to gpu
-		for (image in images.keys()) bufferImage(image,images.get(image));
+		if (newGl != null && newGl != gl) // only if different GL - Context	
+		{
+			// check gl-context of all parents
+			for (p in programs)
+				if (p.gl != null && p.gl != newGl) throw("Error, texture can not used inside different gl-contexts");
+			for (d in displays)
+				if (d.gl != null && d.gl != newGl) throw("Error, texture can not used inside different gl-contexts");
+				
+			// clear old gl-context if there is one
+			if (gl != null) clearOldGLContext();
+			
+			trace("Texture setNewGLContext");
+			gl = newGl;
+			createTexture();
+			//createFramebuffer();
+			// all images to gpu
+			for (image in images.keys()) bufferImage(image, images.get(image));
+		}
 	}
 	
 	private inline function clearOldGLContext() 
@@ -122,7 +117,7 @@ class Texture
 		//TODO
 		gl.deleteTexture(glTexture);
 		glTexture = null;
-		deleteFramebuffer();
+		//deleteFramebuffer();
 	}
 	
 	private inline function createTexture()
@@ -134,14 +129,13 @@ class Texture
 	}
 
 	private inline function createFramebuffer() {
-		if (usedByDisplays.length > 0) {
+		if (displays.length > 0) {
 			framebuffer = GLTool.createFramebuffer(gl, glTexture, glDepthTexture, width, height); 
 		}
-
 	}
 
 	private inline function deleteFramebuffer() {
-		if (usedByDisplays.length == 0) {
+		if (displays.length == 0) {
 			gl.deleteFramebuffer(framebuffer);
 			gl.deleteTexture(glDepthTexture);
 		}

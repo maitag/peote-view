@@ -5,9 +5,10 @@ package peote.view;
 interface BufferInterface
 {
 	@:allow(peote.view.Display) private var _gl: peote.view.PeoteGL;
-	@:allow(peote.view.Display) private function createGLBuffer():Void;
-	@:allow(peote.view.Display) private function deleteGLBuffer():Void;
-	@:allow(peote.view.Display) private function updateGLBuffer():Void;
+	//@:allow(peote.view.Display) private function createGLBuffer():Void;
+	//@:allow(peote.view.Display) private function deleteGLBuffer():Void;
+	//@:allow(peote.view.Display) private function updateGLBuffer():Void;
+	@:allow(peote.view.Display) private function setNewGLContext(newGl:PeoteGL):Void;
 	
 	private function getVertexShader():String;
 	private function getFragmentShader():String;
