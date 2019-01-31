@@ -214,9 +214,9 @@ class Program
 		if ( !isPicking && PeoteGL.Version.isUBO)
 		{
 			for (display in displays) {
-				display.uniformBuffer.bindToProgram(gl, glProg, "uboDisplay", 1); // TODO: multiple displays
 				for (peoteView in display.peoteViews)
 					peoteView.uniformBuffer.bindToProgram(gl, glProg, "uboView", 0);
+				display.uniformBuffer.bindToProgram(gl, glProg, "uboDisplay", 1);
 			}
 		}
 		else
@@ -646,9 +646,10 @@ class Program
 		if (PeoteGL.Version.isUBO)
 		{	
 			// ------------- uniform block -------------
-			//gl.bindBufferRange(gl.UNIFORM_BUFFER, 0, uProgramBuffer, 0, 8);
-			gl.bindBufferBase(gl.UNIFORM_BUFFER, peoteView.uniformBuffer.block , peoteView.uniformBuffer.uniformBuffer);
-			gl.bindBufferBase(gl.UNIFORM_BUFFER, display.uniformBuffer.block , display.uniformBuffer.uniformBuffer);
+			//gl.bindBufferRange(gl.UNIFORM_BUFFER, peoteView.uniformBuffer.block, peoteView.uniformBuffer.uniformBuffer, 0, 3 * 4*4);
+			//gl.bindBufferRange(gl.UNIFORM_BUFFER, display.uniformBuffer.block  , display.uniformBuffer.uniformBuffer  , 0, 2 * 4*4);
+			gl.bindBufferBase(gl.UNIFORM_BUFFER, peoteView.uniformBuffer.block, peoteView.uniformBuffer.uniformBuffer);
+			gl.bindBufferBase(gl.UNIFORM_BUFFER, display.uniformBuffer.block  , display.uniformBuffer.uniformBuffer);
 		}
 		else
 		{
@@ -668,6 +669,47 @@ class Program
 		gl.useProgram (null);
 	}
 	
+	// ------------------------------------------------------------------------------
+	// ------------------------ RENDER TO TEXTURE ----------------------------------- 
+	// ------------------------------------------------------------------------------
+	private inline function renderFramebuffer(peoteView:PeoteView, display:Display)
+	{
+		gl.useProgram(glProgram);
+		render_activeTextureUnits(peoteView, textureList);
+		
+		if (PeoteGL.Version.isUBO)
+		{	
+			// ------------- uniform block -------------
+			//gl.bindBufferBase(gl.UNIFORM_BUFFER, peoteView.uniformBuffer.block , peoteView.uniformBuffer.uniformBuffer);
+			//gl.bindBufferBase(gl.UNIFORM_BUFFER, display.uniformBuffer.block   , display.uniformBuffer.uniformBuffer);
+			// TODO
+			display.uniformBufferViewFB.bindToProgram(gl, glProgram, "uboView", 0);
+			display.uniformBufferFB.bindToProgram(gl, glProgram, "uboDisplay", 1);
+
+			gl.bindBufferBase(gl.UNIFORM_BUFFER, display.uniformBufferViewFB.block , display.uniformBufferViewFB.uniformBuffer);
+			gl.bindBufferBase(gl.UNIFORM_BUFFER, display.uniformBufferFB.block , display.uniformBufferFB.uniformBuffer);
+
+			peoteView.uniformBuffer.bindToProgram(gl, glProgram, "uboView", 0);
+			display.uniformBuffer.bindToProgram(gl, glProgram, "uboDisplay", 1);
+		}
+		else
+		{
+			// ------------- simple uniform -------------
+			gl.uniform2f (uRESOLUTION, display.width, -display.height);
+			gl.uniform2f (uZOOM, display.xz, display.yz);
+			gl.uniform2f (uOFFSET, (display.xOffset + peoteView.xOffset) / display.xz, 
+			                       (display.yOffset + peoteView.yOffset - display.height) / display.yz );
+		}
+		
+		gl.uniform1f (uTIME, peoteView.time);
+		
+		peoteView.setGLDepth(zIndexEnabled);
+		peoteView.setGLAlpha(alphaEnabled);
+		
+		buffer.render(peoteView, display, this);
+		gl.useProgram (null);
+	}
+
 	// ------------------------------------------------------------------------------
 	// ------------------------ OPENGL PICKING -------------------------------------- 
 	// ------------------------------------------------------------------------------

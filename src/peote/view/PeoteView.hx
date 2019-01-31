@@ -313,11 +313,12 @@ class PeoteView
 	// ------------------------------------------------------------------------------
 	public function renderToTexture(display:Display) {
 		// activate the framebuffer from texture
-		gl.bindFramebuffer(gl.FRAMEBUFFER, display.fbTexture.framebuffer);
-		// clear framebuffer
+		gl.bindFramebuffer(gl.FRAMEBUFFER, display.fbTexture.framebuffer); 
 		gl.viewport (0, 0, display.fbTexture.width, display.fbTexture.height);
 		gl.scissor(0, 0, display.fbTexture.width, display.fbTexture.height);
 		gl.enable(gl.SCISSOR_TEST);	
+		
+		// clear framebuffer
 		/*if (peote.view.PeoteGL.Version.isINSTANCED) {
 			gl.clearBufferiv(gl.COLOR, 0, [0, 0, 0, 0]); // only the first value is the UInt32 value that clears the texture
 			gl.clear(gl.DEPTH_BUFFER_BIT);
@@ -331,7 +332,9 @@ class PeoteView
 		gl.depthFunc(gl.LEQUAL);
 		// CHECK LATER: this works only with es3.0 ->  gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
 		
-		display.renderFramebuffer(this); // render with picking shader
+		display.renderFramebuffer(this);
+		
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 	}
 	
 	// ------------------------------------------------------------------------------

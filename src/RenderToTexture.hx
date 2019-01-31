@@ -32,16 +32,16 @@ class Elem implements Element
 	
 	//@texSlot var slot:Int = 0;
 	
-	@color public var c:Color = 0xff0000ff;
+	@color public var c:Color = 0xffff00ff;
 		
 	
-	public function new(positionX:Int=0, positionY:Int=0, width:Int=64, height:Int=64, c:Int=0xFF0000FF )
+	public function new(positionX:Int=0, positionY:Int=0, width:Int=64, height:Int=64, c:Int=0xFFFF00FF )
 	{
 		this.x = positionX;
 		this.y = positionY;
 		this.w = width;
 		this.h = height;
-		//this.c = c;
+		this.c = c;
 	}
 
 
@@ -69,7 +69,7 @@ class RenderToTexture
 		peoteView = new PeoteView(window.context, window.width, window.height);
 
 		// display to renderToTexture:
-		displayFrom = new Display(0,0, 256, 256, Color.GREEN);
+		displayFrom = new Display(0, 60, 256, 256, Color.GREEN);
 		peoteView.addDisplay(displayFrom);
 		
 		bufferFrom  = new Buffer<Elem>(100);
@@ -77,15 +77,15 @@ class RenderToTexture
 		displayFrom.addProgram(programFrom);
 		
 		// rotation Elements
-		elementFrom = new Elem(120, 16, 16, 64);
+		elementFrom = new Elem(120, 16, 16, 64, Color.RED);
 		elementFrom.setPivot(8, 96 + 16);
 		elementFrom.animRotation(0, 360);
 		elementFrom.timeRotation(0, 1);
 		bufferFrom.addElement(elementFrom);
 		
-		texture = new Texture(256, 256, 1);
-		//displayFrom.setTextureToRenderIn(texture);
-		//displayFrom.removeTextureToRenderIn(); // need before using this texture with different gl-context!
+		texture = new Texture(256, 256);
+		displayFrom.setFramebuffer(texture);
+		//displayFrom.removeFramebuffer(); // need before using this texture with different gl-context!
 		
 		// display to use the Texture the other is rendering In:
 		displayTo = new Display(260, 0, 512, 512, Color.BLUE);
@@ -94,13 +94,19 @@ class RenderToTexture
 		bufferTo  = new Buffer<Elem>(100);
 		programTo = new Program(bufferTo);
 		programTo.setTexture(texture, "renderFrom");
+		programTo.setColorFormula('renderFrom');
 		programTo.discardAtAlpha(null);
 		displayTo.addProgram(programTo);
 		
-		elementTo = new Elem(10, 10, 64, 64);
+		elementTo = new Elem(10, 10, 256, 256, Color.CYAN);
 		bufferTo.addElement(elementTo);
 		
 		peoteView.start();
+		
+		var timer = new Timer(30);
+		timer.run = function() {
+			peoteView.renderToTexture(displayFrom);
+		}
 		
 		} catch (msg:Dynamic) trace("Error:", msg);
 		// ---------------------------------------------------------------
@@ -113,13 +119,22 @@ class RenderToTexture
 	
 	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
 	{
-		peoteView.renderToTexture(displayFrom);
+		//peoteView.renderToTexture(displayFrom);
 	}
 
 	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
 	{
 		switch (keyCode) {
-			case KeyCode.L:
+			case KeyCode.NUMPAD_PLUS:
+					if (modifier.shiftKey) peoteView.zoom+=0.01;
+					else displayFrom.zoom+=0.1;
+			case KeyCode.NUMPAD_MINUS:
+					if (modifier.shiftKey) peoteView.zoom-=0.01;
+					else displayFrom.zoom -= 0.1;
+			case KeyCode.UP: displayFrom.yOffset -= (modifier.shiftKey) ? 8 : 1;
+			case KeyCode.DOWN: displayFrom.yOffset += (modifier.shiftKey) ? 8 : 1;
+			case KeyCode.RIGHT: displayFrom.xOffset += (modifier.shiftKey) ? 8 : 1;
+			case KeyCode.LEFT: displayFrom.xOffset -= (modifier.shiftKey) ? 8 : 1;
 			default:
 		}
 	}

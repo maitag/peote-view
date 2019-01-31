@@ -15,9 +15,8 @@ class Texture
 
 	public var glTexture(default, null):GLTexture = null;	
 	
-	var glDepthTexture:GLTexture;	
-	var framebuffer:GLFramebuffer;
-	var hasFramebuffer:Bool = false;	
+	var framebuffer:GLFramebuffer = null;
+	var glDepthTexture:GLTexture = null;	
 	
 	public var colorChannels(default, null):Int=4;
 	
@@ -62,33 +61,54 @@ class Texture
 		slotsY = p.slotsY;
 	}
 	
- 	public inline function isIn(program:Program):Bool return (programs.indexOf(program) >= 0);
+ 	public inline function usedByProgram(program:Program):Bool return (programs.indexOf(program) >= 0);
 	
 	private inline function addToProgram(program:Program)
 	{
 		trace("Add Program to Texture");
-		if ( isIn(program) ) throw("Error, program is already added to this display");
-		programs.push(program);
+		if ( usedByProgram(program) ) throw("Error, texture is already used by program");
 		setNewGLContext(program.gl);
+		programs.push(program);
 	}
 	
-	private inline function addToDisplay(display:Display) {
-		trace("Add Display to Texture");
-		if (displays.indexOf(display) < 0) displays.push(display);
-		createFramebuffer();
-		// TODO
-	}
-	
+ 	public inline function usedByDisplay(display:Display):Bool return (displays.indexOf(display) >= 0);
+
 	private inline function removeFromProgram(program:Program):Void {
 		trace("Texture removed from Program");
 		if (!programs.remove(program)) throw("Error, this texture is not used by program anymore");
 	}
 	
+	private inline function addToDisplay(display:Display) {
+		trace("Add Display to Texture");
+		if ( usedByDisplay(display) ) throw("Error, texture is already used by display");
+		setNewGLContext(display.gl);
+		displays.push(display);
+		createFramebuffer();
+	}
+	
 	private inline function removeFromDisplay(display:Display):Void {
 		trace("Texture (Framebuffer) removed from Display");
 		if (!displays.remove(display)) throw("Error, this texture (Framebuffer) is not used by display anymore");
+		deleteFramebuffer();
 	}
 		
+	private inline function createFramebuffer() {
+		if (displays.length > 0 && framebuffer == null) {
+			trace("Create Framebuffer");
+			framebuffer = GLTool.createFramebuffer(gl, glTexture, glDepthTexture, width, height); 
+		}
+	}
+
+	private inline function deleteFramebuffer() {
+		if (displays.length == 0 && framebuffer != null) {
+			trace("Delete Framebuffer");
+			gl.deleteFramebuffer(framebuffer);
+			if (glDepthTexture != null) gl.deleteTexture(glDepthTexture);
+			framebuffer = null;
+			glDepthTexture = null;
+		}
+	}
+	
 	private inline function setNewGLContext(newGl:PeoteGL)
 	{
 		if (newGl != null && newGl != gl) // only if different GL - Context	
@@ -105,7 +125,7 @@ class Texture
 			trace("Texture setNewGLContext");
 			gl = newGl;
 			createTexture();
-			//createFramebuffer();
+			createFramebuffer();
 			// all images to gpu
 			for (image in images.keys()) bufferImage(image, images.get(image));
 		}
@@ -117,7 +137,7 @@ class Texture
 		//TODO
 		gl.deleteTexture(glTexture);
 		glTexture = null;
-		//deleteFramebuffer();
+		deleteFramebuffer();
 	}
 	
 	private inline function createTexture()
@@ -128,19 +148,6 @@ class Texture
 		glTexture = TexUtils.createEmptyTexture(gl, width, height, colorChannels, createMipmaps, magFilter, minFilter);			
 	}
 
-	private inline function createFramebuffer() {
-		if (displays.length > 0) {
-			framebuffer = GLTool.createFramebuffer(gl, glTexture, glDepthTexture, width, height); 
-		}
-	}
-
-	private inline function deleteFramebuffer() {
-		if (displays.length == 0) {
-			gl.deleteFramebuffer(framebuffer);
-			gl.deleteTexture(glDepthTexture);
-		}
-	}
-	
 	public function setImage(image:Image, imageSlot:Int = 0) {
 		trace("Set Image into Texture Slot"+imageSlot);
 		images.set(image, {imageSlot:imageSlot}); // TODO: is already set?

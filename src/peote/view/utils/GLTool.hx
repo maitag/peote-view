@@ -19,7 +19,7 @@ class GLTool
 			depthTexture = TexUtils.createDepthTexture(gl, width, height);
 			gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, depthTexture, 0);
 		}
-		if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE) throw("Error: opengl-Picking - Framebuffer not complete!");
+		if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE) throw("Error: Framebuffer not complete!");
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		
 		return (framebuffer);

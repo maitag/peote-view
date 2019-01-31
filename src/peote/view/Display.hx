@@ -70,6 +70,10 @@ class Display
 	var programList:RenderList<Program>;
 		
 	var uniformBuffer:UniformBufferDisplay;
+	var uniformBufferFB:UniformBufferDisplay;
+	var uniformBufferViewFB:UniformBufferView;
+	
+	var fbTexture:Texture = null;
 
 	public function new(x:Int, y:Int, width:Int, height:Int, color:Color = 0x00000000) 
 	{	
@@ -81,14 +85,18 @@ class Display
 		
 		programList = new RenderList<Program>(new Map<Program,RenderListItem<Program>>());
 		
-		if (PeoteGL.Version.isUBO) uniformBuffer = new UniformBufferDisplay();
+		if (PeoteGL.Version.isUBO) {
+			uniformBuffer = new UniformBufferDisplay();
+			uniformBufferFB = new UniformBufferDisplay();
+			uniformBufferViewFB = new UniformBufferView();
+		}
 	}
 
  	public inline function isIn(peoteView:PeoteView):Bool return (peoteViews.indexOf(peoteView) >= 0);			
 
 	public function addToPeoteView(peoteView:PeoteView, ?atDisplay:Display, addBefore:Bool=false)
 	{
-		trace("Display added to PeoteView");
+		trace("Add Display to PeoteView");
 		if ( isIn(peoteView) ) throw("Error, display is already added to this peoteView");
 		
 		if ( peoteView.gl == gl && gl != null && PeoteGL.Version.isUBO ) {
@@ -105,7 +113,7 @@ class Display
 	
 	public function removeFromPeoteView(peoteView:PeoteView)
 	{
-		trace("Display removed from PeoteView");
+		trace("Removed Display from PeoteView");
 		if (!peoteViews.remove(peoteView)) throw("Error, display is not inside peoteView");
 		peoteView.displayList.remove(this);
 	}
@@ -124,7 +132,11 @@ class Display
 			trace("Display setNewGLContext");
 			
 			gl = newGl;			
-			if (PeoteGL.Version.isUBO) uniformBuffer.createGLBuffer(gl, x + xOffset, y + yOffset, xz, yz);
+			if (PeoteGL.Version.isUBO) {
+				uniformBuffer.createGLBuffer(gl, x + xOffset, y + yOffset, xz, yz);
+				uniformBufferFB.createGLBuffer(gl, xOffset, yOffset - height, xz, yz);
+				uniformBufferViewFB.createGLBuffer(gl, width, -height, 0.0, 0.0, 1.0, 1.0);
+			}
 			
 			// setNewGLContext for all programs
 			for (program in programList) program.setNewGLContext(newGl);			
@@ -135,7 +147,11 @@ class Display
 	private inline function clearOldGLContext() 
 	{
 		trace("Display clearOldGLContext");
-		if (PeoteGL.Version.isUBO) uniformBuffer.deleteGLBuffer(gl);
+		if (PeoteGL.Version.isUBO) {
+			uniformBuffer.deleteGLBuffer(gl);
+			uniformBufferFB.deleteGLBuffer(gl);
+			uniformBufferViewFB.deleteGLBuffer(gl);
+		}
 	}
 
 	
@@ -162,14 +178,13 @@ class Display
 		program.removeFromDisplay(this);
 	}
 	
-	var fbTexture:Texture = null;
-	public function setTextureToRenderIn(texture:Texture) {
+	public function setFramebuffer(texture:Texture) {
 		if (fbTexture == texture) throw("Error, texture already in use as Framebuffer for Display");
 		if (fbTexture != null) fbTexture.removeFromDisplay(this);
 		fbTexture = texture;
 		fbTexture.addToDisplay(this);
 	}
-	public function removeTextureToRenderIn() {
+	public function removeFramebuffer() {
 		fbTexture.removeFromDisplay(this);
 		fbTexture = null;
 	}
@@ -235,7 +250,7 @@ class Display
 		programListItem = programList.first;
 		while (programListItem != null)
 		{
-			programListItem.value.render(peoteView, this);			
+			programListItem.value.renderFramebuffer(peoteView, this);			
 			programListItem = programListItem.next;
 		}
 	}

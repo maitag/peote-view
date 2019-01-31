@@ -85,7 +85,11 @@ class FontrenderingGl3
 			
 			
 			//loadFont("assets/gl3fonts/DejavuSans", true,
-			loadFont("assets/gl3fonts/unifont/unifont_0000-0fff", false, // <- no kerning (much faster then to convert fontdata!)
+			
+			// no kerning (much faster then to convert fontdata!) for the u n i glyphes
+			//loadFont("assets/gl3fonts/unifont/unifont_0000-0fff", false, 
+			//loadFont("assets/gl3fonts/unifont/unifont_1000-1fff", false,
+			loadFont("assets/gl3fonts/unifont/unifont_3000-3fff", false,
 				function(gl3font:Gl3Font, image:Image, isKerning:Bool)
 				{
 					var texture = new Texture(image.width, image.height, 1, 4, false, 1, 1);
@@ -115,8 +119,7 @@ class FontrenderingGl3
 					var c:Int = 0;
 					var s = new haxe.Utf8();
 					for (char in gl3font.idmap)
-					{	
-						s.addChar( char );
+					{	s.addChar( char + 0x3000);
 						i++; c++;
 						if (i > 100) {
 							//trace("charnumber:",c,"line:",l);
