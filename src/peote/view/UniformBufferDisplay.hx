@@ -14,7 +14,7 @@ class UniformBufferDisplay
 	var xZoomDataPointer: DataPointer;
 	var yZoomDataPointer: DataPointer;
 	
-	public var block:Int;
+	public static inline var block:Int = 1;
 	public var uniformBuffer:GLBuffer;
 	
 	var uniformBytes:Bytes;
@@ -86,16 +86,5 @@ class UniformBufferDisplay
 	{
 		gl.deleteBuffer(uniformBuffer);
 	}
-	
-	public function bindToProgram(gl:PeoteGL, glProgram:GLProgram, name:String, block:Int) {
-		this.block = block;
-		var index:Int = gl.getUniformBlockIndex(glProgram, name);
-		if (index != gl.INVALID_INDEX) {
-			//trace('has uniform $name, index=$index, block=$block');
-			gl.uniformBlockBinding(glProgram, index, block);
-		}
-	}
-	
-
 	
 }

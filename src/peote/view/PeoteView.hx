@@ -127,6 +127,9 @@ class PeoteView
             trace("OpenGL Uniform Buffer Objects enabled.");
 			uniformBuffer = new UniformBufferView();
 			uniformBuffer.createGLBuffer(gl, width, height, xOffset, yOffset, xz, yz);
+			
+			trace("GL.UNIFORM_BUFFER_OFFSET_ALIGNMENT:" + gl.getParameter(gl.UNIFORM_BUFFER_OFFSET_ALIGNMENT));
+			trace("GL.MAX_UNIFORM_BLOCK_SIZE:" + gl.getParameter(gl.MAX_UNIFORM_BLOCK_SIZE));
         }
         else {
             trace("OpenGL Uniform Buffer Objects disabled.");
@@ -311,11 +314,23 @@ class PeoteView
 	// ------------------------------------------------------------------------------
 	// -------------------------- Render to Texture ---------------------------------
 	// ------------------------------------------------------------------------------
-	public function renderToTexture(display:Display) {
+	public function renderToTexture(display:Display, slot:Int = 0) {
 		// activate the framebuffer from texture
 		gl.bindFramebuffer(gl.FRAMEBUFFER, display.fbTexture.framebuffer); 
-		gl.viewport (0, 0, display.fbTexture.width, display.fbTexture.height);
-		gl.scissor(0, 0, display.fbTexture.width, display.fbTexture.height);
+		
+		//gl.viewport(0, 0, display.fbTexture.width, display.fbTexture.height);
+		//gl.scissor(0, 0, display.fbTexture.width, display.fbTexture.height);
+		gl.viewport(
+			display.fbTexture.slotWidth * (slot % display.fbTexture.slotsX),
+			display.fbTexture.slotHeight * Math.floor(slot / display.fbTexture.slotsX),
+			display.fbTexture.slotWidth, display.fbTexture.slotHeight
+		);
+		gl.scissor(
+			display.fbTexture.slotWidth * (slot % display.fbTexture.slotsX),
+			display.fbTexture.slotHeight * Math.floor(slot / display.fbTexture.slotsX),
+			display.fbTexture.slotWidth, display.fbTexture.slotHeight
+		);
+		
 		gl.enable(gl.SCISSOR_TEST);	
 		
 		// clear framebuffer
@@ -336,7 +351,7 @@ class PeoteView
 		
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 	}
-	
+		
 	// ------------------------------------------------------------------------------
 	// ----------------------------- Render -----------------------------------------
 	// ------------------------------------------------------------------------------

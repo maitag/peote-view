@@ -16,7 +16,7 @@ class UniformBufferView
 	var xZoomDataPointer: DataPointer;
 	var yZoomDataPointer: DataPointer;
 
-	public var block:Int;
+	public static inline var block:Int = 0;
 	public var uniformBuffer:GLBuffer;
 	
 	var uniformBytes:Bytes;
@@ -25,6 +25,7 @@ class UniformBufferView
 	{
 		//uniformBytes = Bytes.alloc(5 * 4);
 		uniformBytes = Bytes.alloc(3 * 4*4); // alignment to vec4 (3 values)
+		//uniformBytes = Bytes.alloc( 256   +    3 * 4*4); // for multiple ranges
 		resolutionDataPointer = new BytePointer(uniformBytes, 0);
 		xOffestDataPointer = new BytePointer(uniformBytes, 8);
 		yOffestDataPointer = new BytePointer(uniformBytes, 12);
@@ -84,6 +85,17 @@ class UniformBufferView
 		uniformBytes.setFloat(12, yOffest);
 		uniformBytes.setFloat(16, xz);
 		uniformBytes.setFloat(20, yz);
+		
+		// for multiple ranges, for 256 use gl.getParameter(gl.UNIFORM_BUFFER_OFFSET_ALIGNMENT)
+		/*
+		uniformBytes.setFloat( 256  +  0,  width);
+		uniformBytes.setFloat( 256  +  4,  height);
+		uniformBytes.setFloat( 256  +  8,  xOffest);
+		uniformBytes.setFloat( 256  +  12, yOffest);
+		uniformBytes.setFloat( 256  +  16, xz);
+		uniformBytes.setFloat( 256  +  20, yz);
+		*/
+		
 		gl.bindBuffer(gl.UNIFORM_BUFFER, uniformBuffer);
 		gl.bufferData(gl.UNIFORM_BUFFER, uniformBytes.length, uniformBytes, gl.STATIC_DRAW);
 		gl.bindBuffer(gl.UNIFORM_BUFFER, null);
@@ -93,16 +105,5 @@ class UniformBufferView
 	{
 		gl.deleteBuffer(uniformBuffer);
 	}
-	
-	public function bindToProgram(gl:PeoteGL, glProgram:GLProgram, name:String, block:Int) {
-		this.block = block;
-		var index:Int = gl.getUniformBlockIndex(glProgram, name);
-		if (index != gl.INVALID_INDEX) {
-			trace('has uniform $name, index=$index, block=$block');
-			gl.uniformBlockBinding(glProgram, index, block);
-		}
-	}
-	
-
 	
 }

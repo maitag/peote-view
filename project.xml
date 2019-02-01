@@ -1,24 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project>
 	
-	<meta title="PeoteView" package="peote.view" version="0.7.0" company="Sylvio Sell - maitag" />
+	<meta title="PeoteView" package="peote.view" version="0.8.0" company="Sylvio Sell - maitag" />
 	
 	<android target-sdk-version="26" /> <!-- lowest possible is 14 for android 4.0.1-4.0.2 -->
-	
+	<!-- <meta build-number="714" /> --> <!-- let set the buildnumber manual (android) -->
 	
 	<app main="Main" path="bin" file="Main" />
-	<haxedef name="sampleFontrenderingGl3" />
+	<haxedef name="sampleRenderToTexture" />
 	<!-- sampleTest, sampleMultidisplay, sampleMultibuffer, sampleElementInherit,  sampleDepthBlend,
 		sampleTextureSimple, sampleTextureSlotTiles, sampleMultiTextures, sampleTextureMipmapFilter,
-		sampleFontrenderingGl3,
+		sampleFontrenderingGl3, sampleRenderToTexture,
 		sampleAnimation, sampleGLPicking, sampleBunnyMark, ... -->
 	<define name="bunnies" value="400000" />
 	<define name="bunnies"  value="14000" if="android||neko" />
 	<define name="stats" if="html5" />
-
+	
 	<!-- multiple windows -->
 	<!-- <app main="MultipleWindows" path="bin" file="MultipleWindows" /> 
-	<haxedef name="peoteview_queueGLbuffering" /> -->  <!-- needs this to not write into wrong glBuffer -->
+	<haxedef name="peoteview_queueGLbuffering" /> -->   <!-- needs this to not write into wrong glBuffer -->
 	
 	<!-- testing MultipassTemplate.hx (modified haxe.Template.hx) -->
 	<!-- <app main="TestMultipassTemplate" path="bin" file="TestMultipassTemplate" /> -->
@@ -45,8 +45,8 @@
 	<haxedef name="peoteview_vertexarrayobjects" />
 
 
-	<haxedef name="peoteview_debug_macro" />
-	<haxedef name="peoteview_debug_shader" />
+	<!-- <haxedef name="peoteview_debug_macro" />
+	<haxedef name="peoteview_debug_shader" />-->
 
 	<!-- <haxedef name="webgl-debug" /> --> <!-- try with chrome and look here: https://www.khronos.org/webgl/wiki/Debugging -->
 	<!-- <haxedef name="source-map-content" /> -->
@@ -58,7 +58,7 @@
 	<!-- <haxedef name="HXCPP_MSVC_VER=120" if="cpp" /> -->
 	<!-- <haxedef name="HXCPP_MSVC_VER=140" if="cpp" /> -->
 	
-	<assets path="assets" exclude="lime.svg" embed="false" />
+	<assets path="assets" exclude="lime.svg" embed="false" /> <!-- for preloading like in sample "sampleDepthBlend" need to be embed=true --> 
 	
 	<icon path="assets/lime.svg" />
 	

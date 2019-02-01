@@ -30,7 +30,7 @@ class Elem implements Element
 	@pivotX @set("Pivot") public var px:Int;
 	@pivotY @set("Pivot") public var py:Int;
 	
-	//@texSlot var slot:Int = 0;
+	@texSlot public var slot:Int = 0;
 	
 	@color public var c:Color = 0xffff00ff;
 		
@@ -83,11 +83,14 @@ class RenderToTexture
 		elementFrom.timeRotation(0, 1);
 		bufferFrom.addElement(elementFrom);
 		
-		texture = new Texture(256, 256);
+		texture = new Texture(256, 256 , 2); // 2 Slots
+			
 		displayFrom.setFramebuffer(texture);
 		//displayFrom.removeFramebuffer(); // need before using this texture with different gl-context!
 		
-		// display to use the Texture the other is rendering In:
+		// --------------------------------------------
+		
+		// display that is using the Texture the other display is rendering In:
 		displayTo = new Display(260, 0, 512, 512, Color.BLUE);
 		peoteView.addDisplay(displayTo);
 		
@@ -98,15 +101,28 @@ class RenderToTexture
 		programTo.discardAtAlpha(null);
 		displayTo.addProgram(programTo);
 		
-		elementTo = new Elem(10, 10, 256, 256, Color.CYAN);
-		bufferTo.addElement(elementTo);
+		peoteView.renderToTexture(displayFrom, 0); // render into slot 0
 		
-		peoteView.start();
+		// element in middle is using texture-slot 1
+		var elementTo1 = new Elem(256 - 32, 256 - 32, 64, 64, Color.CYAN);
+		elementTo1.slot = 0;
+		bufferTo.addElement(elementTo1);
+		
+		// rotating element is using texture-slot 1
+		elementTo = new Elem(256 - 32, 16, 64, 64, Color.CYAN);
+		elementTo.slot = 1;
+		elementTo.setPivot(32, 256 - 16);
+		elementTo.animRotation(0, 360);
+		elementTo.timeRotation(0, 8);
+		bufferTo.addElement(elementTo);
 		
 		var timer = new Timer(30);
 		timer.run = function() {
-			peoteView.renderToTexture(displayFrom);
+			peoteView.renderToTexture(displayFrom, 1); // render into slot 1
 		}
+		
+		
+		peoteView.start();
 		
 		} catch (msg:Dynamic) trace("Error:", msg);
 		// ---------------------------------------------------------------

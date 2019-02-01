@@ -106,12 +106,6 @@ class Program
 	{
 		trace("Add Program to Display");
 		if ( isIn(display) ) throw("Error, program is already added to this display");
-		
-		if ( display.gl == gl && gl != null && PeoteGL.Version.isUBO ) // if display is changed but same gl-context
-		{
-			trace("rebind display-UBO to gl-program");
-			display.uniformBuffer.bindToProgram(gl, glProgram, "uboDisplay", 1);
-		}
 		displays.push(display);
 		setNewGLContext(display.gl);
 		display.programList.add(this, atProgram, addBefore);
@@ -188,7 +182,7 @@ class Program
 		if (hasPicking()) createProg(true);		
 	}
 	
-	private function createProg(isPicking:Bool = false):Void  // TODO: do not compile twice if same program is used inside multiple displays
+	private function createProg(isPicking:Bool = false):Void
 	{
 		trace("create GL-Program" + ((isPicking) ? " for opengl-picking" : ""));
 		glShaderConfig.isPICKING = (isPicking) ? true : false;
@@ -213,11 +207,10 @@ class Program
 		
 		if ( !isPicking && PeoteGL.Version.isUBO)
 		{
-			for (display in displays) {
-				for (peoteView in display.peoteViews)
-					peoteView.uniformBuffer.bindToProgram(gl, glProg, "uboView", 0);
-				display.uniformBuffer.bindToProgram(gl, glProg, "uboDisplay", 1);
-			}
+			var index:Int = gl.getUniformBlockIndex(glProg, "uboView");
+			if (index != gl.INVALID_INDEX) gl.uniformBlockBinding(glProg, index, UniformBufferView.block);
+			index = gl.getUniformBlockIndex(glProg, "uboDisplay");
+			if (index != gl.INVALID_INDEX) gl.uniformBlockBinding(glProg, index, UniformBufferDisplay.block);
 		}
 		else
 		{	// Try to optimize here to let use picking shader the same vars
@@ -646,10 +639,11 @@ class Program
 		if (PeoteGL.Version.isUBO)
 		{	
 			// ------------- uniform block -------------
-			//gl.bindBufferRange(gl.UNIFORM_BUFFER, peoteView.uniformBuffer.block, peoteView.uniformBuffer.uniformBuffer, 0, 3 * 4*4);
-			//gl.bindBufferRange(gl.UNIFORM_BUFFER, display.uniformBuffer.block  , display.uniformBuffer.uniformBuffer  , 0, 2 * 4*4);
-			gl.bindBufferBase(gl.UNIFORM_BUFFER, peoteView.uniformBuffer.block, peoteView.uniformBuffer.uniformBuffer);
-			gl.bindBufferBase(gl.UNIFORM_BUFFER, display.uniformBuffer.block  , display.uniformBuffer.uniformBuffer);
+			// for multiple ranges
+			//gl.bindBufferRange(gl.UNIFORM_BUFFER, peoteView.uniformBuffer.block, peoteView.uniformBuffer.uniformBuffer, 256, 3 * 4*4);
+			//gl.bindBufferRange(gl.UNIFORM_BUFFER, display.uniformBuffer.block  , display.uniformBuffer.uniformBuffer  , 256, 2 * 4*4);
+			gl.bindBufferBase(gl.UNIFORM_BUFFER, UniformBufferView.block, peoteView.uniformBuffer.uniformBuffer);
+			gl.bindBufferBase(gl.UNIFORM_BUFFER, UniformBufferDisplay.block, display.uniformBuffer.uniformBuffer);
 		}
 		else
 		{
@@ -680,17 +674,8 @@ class Program
 		if (PeoteGL.Version.isUBO)
 		{	
 			// ------------- uniform block -------------
-			//gl.bindBufferBase(gl.UNIFORM_BUFFER, peoteView.uniformBuffer.block , peoteView.uniformBuffer.uniformBuffer);
-			//gl.bindBufferBase(gl.UNIFORM_BUFFER, display.uniformBuffer.block   , display.uniformBuffer.uniformBuffer);
-			// TODO
-			display.uniformBufferViewFB.bindToProgram(gl, glProgram, "uboView", 0);
-			display.uniformBufferFB.bindToProgram(gl, glProgram, "uboDisplay", 1);
-
-			gl.bindBufferBase(gl.UNIFORM_BUFFER, display.uniformBufferViewFB.block , display.uniformBufferViewFB.uniformBuffer);
-			gl.bindBufferBase(gl.UNIFORM_BUFFER, display.uniformBufferFB.block , display.uniformBufferFB.uniformBuffer);
-
-			peoteView.uniformBuffer.bindToProgram(gl, glProgram, "uboView", 0);
-			display.uniformBuffer.bindToProgram(gl, glProgram, "uboDisplay", 1);
+			gl.bindBufferBase(gl.UNIFORM_BUFFER, UniformBufferView.block, display.uniformBufferViewFB.uniformBuffer);
+			gl.bindBufferBase(gl.UNIFORM_BUFFER, UniformBufferDisplay.block, display.uniformBufferFB.uniformBuffer);
 		}
 		else
 		{

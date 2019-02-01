@@ -23,29 +23,44 @@ class Display
 	public inline function set_zoom(z:Float):Float {
 		xz = xZoom * z;
 		yz = yZoom * z;
-		if (PeoteGL.Version.isUBO) uniformBuffer.updateZoom(gl, xz, yz);
+		if (PeoteGL.Version.isUBO) {
+			uniformBuffer.updateZoom(gl, xz, yz);
+			uniformBufferFB.updateZoom(gl, xz, yz);
+		}
 		return zoom = z;
 	}
 	public var xZoom(default, set):Float = 1.0;
 	public inline function set_xZoom(z:Float):Float {
 		xz = zoom * z;
-		if (PeoteGL.Version.isUBO) uniformBuffer.updateXZoom(gl, xz);
+		if (PeoteGL.Version.isUBO) {
+			uniformBuffer.updateXZoom(gl, xz);
+			uniformBufferFB.updateXZoom(gl, xz);
+		}
 		return xZoom = z;
 	}
 	public var yZoom(default, set):Float = 1.0;
 	public inline function set_yZoom(z:Float):Float {
 		yz = zoom * z;
-		if (PeoteGL.Version.isUBO) uniformBuffer.updateYZoom(gl, yz);
+		if (PeoteGL.Version.isUBO) {
+			uniformBuffer.updateYZoom(gl, yz);
+			uniformBufferFB.updateYZoom(gl, yz);
+		}
 		return yZoom = z;
 	}
 	public var xOffset(default, set):Float = 0;
 	public inline function set_xOffset(xo:Float):Float {
-		if (PeoteGL.Version.isUBO) uniformBuffer.updateXOffset(gl, x + xo);
+		if (PeoteGL.Version.isUBO) {
+			uniformBuffer.updateXOffset(gl, x + xo);
+			uniformBufferFB.updateXOffset(gl, xo);
+		}
 		return xOffset = xo;
 	}
 	public var yOffset(default, set):Float = 0;
 	public inline function set_yOffset(yo:Float):Float {
-		if (PeoteGL.Version.isUBO) uniformBuffer.updateYOffset(gl, y + yo);
+		if (PeoteGL.Version.isUBO) {
+			uniformBuffer.updateYOffset(gl, y + yo);
+			uniformBufferFB.updateYOffset(gl, yo - height);
+		}
 		return yOffset = yo;
 	}
 	
@@ -98,14 +113,6 @@ class Display
 	{
 		trace("Add Display to PeoteView");
 		if ( isIn(peoteView) ) throw("Error, display is already added to this peoteView");
-		
-		if ( peoteView.gl == gl && gl != null && PeoteGL.Version.isUBO ) {
-			// if peoteView is changed but same gl-context -> rebind glPrograms to UBO of new peoteView
-			trace("rebind peoteView-UBO to all gl-programs for Display");
-			for (program in programList)
-				peoteView.uniformBuffer.bindToProgram(gl, program.glProgram, "uboView", 0);
-		}
-		
 		peoteViews.push(peoteView);
 		setNewGLContext(peoteView.gl);
 		peoteView.displayList.add(this, atDisplay, addBefore);
@@ -239,9 +246,6 @@ class Display
 	
 	private inline function renderFramebuffer(peoteView:PeoteView):Void
 	{
-		// TODO: change the uniform-buffers for peote-view and display (to match new size)
-		// get width and height from fbTexture!
-		// no scissoring need here!
 		if (backgroundEnabled) {
 			peoteView.setGLAlpha(backgroundAlpha);
 			peoteView.background.render(red, green, blue, alpha);

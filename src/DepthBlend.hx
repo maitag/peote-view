@@ -77,7 +77,7 @@ class DepthBlend
 		activeElement = element1;
 	}
 	
-	public function onPreloadComplete ():Void {
+	public function onPreloadComplete ():Void {  // for HTML5 this needs <assets ...embed="true"> inside project.xml !!!
 		trace("preload complete");
 		var texture = new Texture(32, 32);
 		var image = new Image(null, 0, 0, 32, 32);
