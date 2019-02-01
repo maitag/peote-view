@@ -62,6 +62,8 @@ class RenderToTexture
 	var bufferTo:Buffer<Elem>;
 	var programTo:Program;
 	var elementTo:Elem;
+	
+	var autoRenderToTexture = false;
 
 	public function new(window:Window)
 	{
@@ -83,7 +85,7 @@ class RenderToTexture
 		elementFrom.timeRotation(0, 1);
 		bufferFrom.addElement(elementFrom);
 		
-		texture = new Texture(256, 256 , 2); // 2 Slots
+		texture = new Texture(256, 256 , 2, 4, true, 1, 1); // 2 Slots
 			
 		displayFrom.setFramebuffer(texture);
 		//displayFrom.removeFramebuffer(); // need before using this texture with different gl-context!
@@ -116,7 +118,8 @@ class RenderToTexture
 		elementTo.timeRotation(0, 8);
 		bufferTo.addElement(elementTo);
 		
-		var timer = new Timer(30);
+		
+		var timer = new Timer(100);
 		timer.run = function() {
 			peoteView.renderToTexture(displayFrom, 1); // render into slot 1
 		}
@@ -129,13 +132,13 @@ class RenderToTexture
 	}
 	
 	public function onPreloadComplete ():Void {
-		// sync loading did not work with html5!
+		// sync loading did not work with html5 if assets is set to embed=false!
 		// texture.setImage(Assets.getImage("assets/images/wabbit_alpha.png"));
 	}
 	
 	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
 	{
-		//peoteView.renderToTexture(displayFrom);
+		autoRenderToTexture = !autoRenderToTexture;
 	}
 
 	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
@@ -157,6 +160,7 @@ class RenderToTexture
 
 	public function render()
 	{
+		if (autoRenderToTexture) peoteView.renderToTexture(displayFrom, 0); // render into slot 1
 		peoteView.render();
 	}
 	

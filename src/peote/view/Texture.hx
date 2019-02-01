@@ -165,10 +165,9 @@ class Texture
 		                   slotWidth * (imgProp.imageSlot % slotsX),
 		                   slotHeight * Math.floor(imgProp.imageSlot / slotsX),
 		                   image.width, image.height, //slotWidth, slotHeight,
-		                   image, createMipmaps );		
-		
-		// to reset peoteView.glStateTexture
-		updated = true;
+		                   image, createMipmaps );	
+						   
+		updated = true; // to reset peoteView.glStateTexture  <-- TODO: check isTextureStateChange()
 	}
 	
 	private static inline function imageToTexture(gl:PeoteGL, glTexture:PeoteGL.GLTexture, x:Int, y:Int, w:Int, h:Int, 

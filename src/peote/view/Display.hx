@@ -64,7 +64,7 @@ class Display
 		return yOffset = yo;
 	}
 	
-	public var color(default,set):Color = 0x00000000;
+	public var color(default, set):Color = 0x00000000;
 	inline function set_color(c:Color):Color {
 		red   = c.red   / 255.0;
 		green = c.green / 255.0;
@@ -89,7 +89,7 @@ class Display
 	var uniformBufferViewFB:UniformBufferView;
 	
 	var fbTexture:Texture = null;
-
+	
 	public function new(x:Int, y:Int, width:Int, height:Int, color:Color = 0x00000000) 
 	{	
 		this.x = x;
@@ -191,6 +191,7 @@ class Display
 		fbTexture = texture;
 		fbTexture.addToDisplay(this);
 	}
+
 	public function removeFramebuffer() {
 		fbTexture.removeFromDisplay(this);
 		fbTexture = null;

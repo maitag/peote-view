@@ -295,7 +295,7 @@ class PeoteView
 		display.pick(xOff, yOff, this, program); // render with picking shader
 		
 		// read picked pixel (element-number)
-		if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE) {
+		if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE) { // Optimizing: is check need here ?
 			if (peote.view.PeoteGL.Version.isINSTANCED) {
 				gl.readPixels(0, 0, 1, 1, gl.RGBA_INTEGER, gl.INT, pickInt32);
 				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -314,12 +314,10 @@ class PeoteView
 	// ------------------------------------------------------------------------------
 	// -------------------------- Render to Texture ---------------------------------
 	// ------------------------------------------------------------------------------
-	public function renderToTexture(display:Display, slot:Int = 0) {
-		// activate the framebuffer from texture
+	public function renderToTexture(display:Display, slot:Int = 0)
+	{
 		gl.bindFramebuffer(gl.FRAMEBUFFER, display.fbTexture.framebuffer); 
 		
-		//gl.viewport(0, 0, display.fbTexture.width, display.fbTexture.height);
-		//gl.scissor(0, 0, display.fbTexture.width, display.fbTexture.height);
 		gl.viewport(
 			display.fbTexture.slotWidth * (slot % display.fbTexture.slotsX),
 			display.fbTexture.slotHeight * Math.floor(slot / display.fbTexture.slotsX),
@@ -333,23 +331,25 @@ class PeoteView
 		
 		gl.enable(gl.SCISSOR_TEST);	
 		
-		// clear framebuffer
-		/*if (peote.view.PeoteGL.Version.isINSTANCED) {
-			gl.clearBufferiv(gl.COLOR, 0, [0, 0, 0, 0]); // only the first value is the UInt32 value that clears the texture
-			gl.clear(gl.DEPTH_BUFFER_BIT);
-		}
-		else {*/
-			gl.clearColor(0.0, 0.0, 0.0, 0.0);
-			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-		//}
-		// TODO: set only if program added or background need it
+		gl.clearColor(0.0, 0.0, 0.0, 0.0);
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
 		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 		gl.depthFunc(gl.LEQUAL);
-		// CHECK LATER: this works only with es3.0 ->  gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
 		
 		display.renderFramebuffer(this);
 		
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		
+		if (display.fbTexture.createMipmaps) { // re-create for full texture ?
+			gl.bindTexture(gl.TEXTURE_2D, display.fbTexture.glTexture);
+			//gl.hint(gl.GENERATE_MIPMAP_HINT, gl.NICEST); // OPTIMIZING
+			//gl.hint(gl.GENERATE_MIPMAP_HINT, gl.FASTEST);
+			gl.generateMipmap(gl.TEXTURE_2D);
+			gl.bindTexture(gl.TEXTURE_2D, null); // <-- TODO: check isTextureStateChange()
+			display.fbTexture.updated = true;
+		}
+
 	}
 		
 	// ------------------------------------------------------------------------------
