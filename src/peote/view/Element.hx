@@ -940,7 +940,7 @@ class ElementImpl
 			var layer = (name == "__default__") ? maxLayer : v.get("layer");
 			
 			var unit = resolveVaryingName("vUnit", "texUnit", v, dv, "0.0");
-			/*  
+
 			var x  = "0.0";
 			var y  = "0.0";
 			var w = "::SLOTS_WIDTH::";
@@ -950,69 +950,6 @@ class ElementImpl
 			if (slot != "") {
 				w = '::SLOT_WIDTH::';
 				h = '::SLOT_HEIGHT::';
-				x  = 'mod(floor($slot), ::SLOTS_X::) * $w';
-				y  = 'floor(floor($slot)/::SLOTS_X::) * $h';
-			}
-			
-			var texX = resolveVaryingName("vTexX", "texX", v, dv);
-			if (texX != "") x = ((x != "0.0") ? '$x + ' : "") + texX;
-						
-			var texY = resolveVaryingName("vTexY", "texY", v, dv);
-			if (texY != "") y = ((y != "0.0") ? '$y + ' : "") + texY;
-			
-			var texW = resolveVaryingName("vTexW", "texW", v, dv);
-			if (texW != "") w = texW;
-			
-			var texH = resolveVaryingName("vTexH", "texH", v, dv);
-			if (texH != "") h = texH;
-			
-			var tile = resolveVaryingName("vTile", "texTile", v, dv);
-			if (tile != "") {
-				w = '$w / ::TILES_X::';
-				h = '$h / ::TILES_Y::';
-				x  = ((x != "0.0") ? '$x + ' : "") + 'mod(floor($tile), ::TILES_X::) * $w';
-				y  = ((y != "0.0") ? '$y + ' : "") + 'floor(floor($tile)/::TILES_X::) * $h';
-			}
-			
-			var texCoord = 'vTexCoord * vec2($w, $h)';
-			
-			var texPosX  = resolveVaryingName("vTexPosX" , "texPosX" , v, dv, "0.0");
-			var texPosY  = resolveVaryingName("vTexPosY" , "texPosY" , v, dv, "0.0");
-			
-			if (texPosX != "0.0" || texPosY != "0.0") texCoord = '($texCoord - vec2($texPosX, $texPosY))';
-			
-			var texSizeX = resolveVaryingName("vTexSizeX", "texSizeX", v, dv, '$w');
-			var texSizeY = resolveVaryingName("vTexSizeY", "texSizeY", v, dv, '$h');
-			
-			if (texSizeX != '$w' || texSizeY != '$h') texCoord = 'vec2($w, $h) / vec2($texSizeX, $texSizeY) * $texCoord';
-			
-			if (texPosX != "0.0" || texPosY != "0.0" || texSizeX != '$w' || texSizeY != '$h') {
-				if (options.texRepeatX && options.texRepeatY) texCoord = 'mod($texCoord, vec2($w, $h))';
-				else if (options.texRepeatX) texCoord = 'vec2( mod(($texCoord).x, $w), ($texCoord).y )';
-				else if (options.texRepeatY) texCoord = 'vec2( ($texCoord).x, mod(($texCoord).y, $h) )';
-				texCoord = 'clamp($texCoord, vec2(0.0, 0.0), vec2($w, $h))';
-			}
-			
-			
-			if (x != "0.0" || y != "0.0") texCoord = '($texCoord + vec2($x, $y))';
-			
-			glConf.ELEMENT_LAYERS.push({
-				UNIT: unit,
-				TEXCOORD: '$texCoord / vec2(::TEXTURE_WIDTH::, ::TEXTURE_HEIGHT::)',
-				if_ELEMENT_LAYER:  '::if (LAYER ${(name == "__default__") ? ">" : "="}= $layer)::',
-				end_ELEMENT_LAYER: "::end::"
-			});
-			*/
-			// without vector TODO: optimize texturecoord-calculation
-			var x  = "0.0";
-			var y  = "0.0";
-			var w = "::SLOTS_WIDTH:: / ::TEXTURE_WIDTH::";
-			var h = "::SLOTS_HEIGHT:: / ::TEXTURE_HEIGHT::";
-
-			var slot = resolveVaryingName("vSlot", "texSlot", v, dv);
-			if (slot != "") {
-				w = '::SLOT_WIDTH:: / ::TEXTURE_WIDTH::';
-				h = '::SLOT_HEIGHT:: / ::TEXTURE_HEIGHT::';
 				//x  = 'mod(floor($slot), ::SLOTS_X::) * $w';
 				x  = 'floor(mod($slot, ::SLOTS_X::)) * $w';
 				y  = 'floor(floor($slot)/::SLOTS_X::) * $h';
@@ -1041,7 +978,7 @@ class ElementImpl
 				needFragmentPrecision = true;
 				y  = ((y != "0.0") ? '$y + ' : "") + 'floor(floor($tile) / ::TILES_X::) * $h';
 			}
-
+			
 			var texCoordX = 'vTexCoord.x * $w';
 			var texCoordY = 'vTexCoord.y * $h';
 			
@@ -1071,7 +1008,7 @@ class ElementImpl
 			
 			glConf.ELEMENT_LAYERS.push({
 				UNIT: unit,
-				TEXCOORD: 'vec2($texCoordX , $texCoordY)',
+				TEXCOORD: 'vec2($texCoordX, $texCoordY)',
 				if_ELEMENT_LAYER:  '::if (LAYER ${(name == "__default__") ? ">" : "="}= $layer)::',
 				end_ELEMENT_LAYER: "::end::"
 			});

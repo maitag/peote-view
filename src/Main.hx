@@ -34,6 +34,8 @@ typedef Sample = GLPicking;
 typedef Sample = RenderToTexture;
 #elseif sampleFontrenderingGl3
 typedef Sample = FontrenderingGl3;
+#elseif sampleShaderInjection
+typedef Sample = ShaderInjection;
 #elseif sampleBunnyMark
 typedef Sample = BunnyMark;
 #end 

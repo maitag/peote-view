@@ -63,6 +63,11 @@ class Program
 		FRAGMENT_FLOAT_PRECISION : null,
 		FRAGMENT_INT_PRECISION : null,
 		FRAGMENT_SAMPLER_PRECISION : null,
+		VERTEX_INJECTION : "",
+		FRAGMENT_INJECTION : "",
+		// TODO: headers to share functions between glPrograms
+		//VERTEX_FUNCTION_HEADERS : "",
+		//FRAGMENT_FUNCTION_HEADERS : "",
 	};
 	
 	var textureList = new RenderList<ActiveTexture>(new Map<ActiveTexture,RenderListItem<ActiveTexture>>());
@@ -82,6 +87,8 @@ class Program
 	var colorFormula = "";
 	
 	var fragmentFloatPrecision:Null<String> = null;
+	
+	var useTextCoordVaryings:Bool = false;
 	
 	public function new(buffer:BufferInterface) 
 	{
@@ -334,6 +341,21 @@ class Program
 		else if (this.autoUpdateTextures) updateTextures();
 	}
 	
+	// inject custom defines or functions into vertexshader
+	public function injectIntoVertexShader(glslCode:String, ?autoUpdateTextures:Null<Bool>):Void {
+		glShaderConfig.VERTEX_INJECTION = glslCode;
+		checkAutoUpdate(autoUpdateTextures);
+	}
+	
+	// inject custom defines or functions into fragmentshader
+	public function injectIntoFragmentShader(glslCode:String, ?autoUpdateTextures:Null<Bool>):Void {
+		glShaderConfig.FRAGMENT_INJECTION = glslCode;
+		useTextCoordVaryings = (glslCode == "") ? false : true;
+		checkAutoUpdate(autoUpdateTextures);
+	}
+	
+	// -------------------------------------------------
+	
 	function getTextureIndexByIdentifier(identifier:String, addNew:Bool = true):Int {
 		var layer = textureIdentifiers.indexOf(identifier);
 		if (layer < 0) {
@@ -349,8 +371,7 @@ class Program
 		}
 		return layer;
 	}
-	
-	
+		
 	function validatePrecision(precision:Null<String>):Null<String> {
 		if (precision != null) {
 			if (["low", "medium", "high"].indexOf(precision.toLowerCase()) < 0) {
@@ -536,7 +557,7 @@ class Program
 		parseColorFormula();
 		
 		if (activeTextures.length == 0) {
-			glShaderConfig.hasTEXTURES = false;
+			glShaderConfig.hasTEXTURES = (useTextCoordVaryings) ? true : false;
 		}
 		else {
 			glShaderConfig.hasTEXTURES = true;
@@ -561,10 +582,10 @@ class Program
 						TEXTURE:"uTexture" + activeTextures.indexOf(textures[i]),
 						SLOTS_X: textures[i].slotsX + ".0",
 						SLOTS_Y: textures[i].slotsY + ".0",
-						SLOT_WIDTH:  textures[i].slotWidth  + ".0",
-						SLOT_HEIGHT: textures[i].slotHeight + ".0",
-						SLOTS_WIDTH:  Std.int(textures[i].slotsX * textures[i].slotWidth ) + ".0",
-						SLOTS_HEIGHT: Std.int(textures[i].slotsY * textures[i].slotHeight) + ".0",
+						SLOT_WIDTH:  Util.toFloatString(textures[i].slotWidth  / textures[i].width),
+						SLOT_HEIGHT: Util.toFloatString(textures[i].slotHeight / textures[i].height),
+						SLOTS_WIDTH: Util.toFloatString(textures[i].slotsX * textures[i].slotWidth / textures[i].width ),
+						SLOTS_HEIGHT:Util.toFloatString(textures[i].slotsY * textures[i].slotHeight/ textures[i].height),
 						TILES_X: textures[i].tilesX + ".0",
 						TILES_Y: textures[i].tilesY + ".0",
 						TEXTURE_WIDTH: textures[i].width + ".0",

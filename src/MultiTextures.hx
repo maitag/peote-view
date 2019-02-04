@@ -39,11 +39,12 @@ class Elem implements Element
 
 
 	// tiles the slot or manual texture-coordinate into sub-slots
-	@texTile() public var tile:Int;  // for all other Layers
+	@texTile public var tile:Int;  // for all other Layers
 	@texTile("base", "mask") public var tileBaseMask:Int;  // for "alpha" and "mask" Layers only
 
 	// formula (glsl) to combine colors with textures
-	// var DEFAULT_COLOR_FORMULA = "alpha * (color * base + shift)";  // default is alpha-over:  mix( mix( c0*t0, c1*t1 , (c1*t1).a ) ...)) * cn1 + cn2 * cn3 + cn4 * ...
+	// default is alpha-over:  mix( mix( c0*t0, c1*t1 , (c1*t1).a ) ...)) * cn1 + cn2 * cn3 + cn4 * ...
+	// var DEFAULT_COLOR_FORMULA = "alpha * (color * base + shift)";
 
 	// give texture, texturelayer- or custom-to-use identifiers a default value ( if there is no texture set for )
 	

@@ -89,8 +89,10 @@ class Shader
 		::OUT_TEXSIZEY::
 	::end::
 
-	
-	void main(void) {
+	::VERTEX_INJECTION::
+
+	void main(void)
+	{
 		::CALC_TIME::		
 		::CALC_SIZE::
 		::CALC_PIVOT::		
@@ -140,13 +142,13 @@ class Shader
 		)
 		* vec4 (
 			::if isPIXELSNAPPING::
-			floor( pos * ::PIXELDIVISOR:: * zoom ) / ::PIXELDIVISOR:: / zoom ,
+			floor( pos * ::PIXELDIVISOR:: * zoom ) / ::PIXELDIVISOR:: / zoom
 			::else::
-				pos ,
+				pos
 			::end::
-			::ZINDEX::
+			, ::ZINDEX::
 			, 1.0
-			);
+		);
 	}
 	";
 	
@@ -203,6 +205,7 @@ class Shader
 		::end::
 	::end::
 
+	::FRAGMENT_INJECTION::
 	
 	void main(void)
 	{	
