@@ -49,42 +49,34 @@ class GLPicking
 	var element = new Array<Elem>();
 	
 	var buffer:Buffer<Elem>;
-	var displayLeft:Display;
-	var displayRight:Display; 
-	var programLeft:Program;
-	var programRight:Program; 
+	var display:Display;
+	var program:Program;
 	
 	public function new(window:Window)
 	{	
 		try {
-			//peoteView = new PeoteView(window.context, window.width, window.height, Color.GREY1);
-			peoteView = new PeoteView(window.context, window.width, window.height, Color.GREEN);
+			peoteView = new PeoteView(window.context, window.width, window.height);
 			
-			displayLeft  = new Display(0, 0, 280, 280, Color.BLUE);
-			displayRight = new Display(300, 0, 280, 280, Color.YELLOW);
+			display = new Display(0, 0,  window.width, window.height);
 			
 			peoteView.zoom = 1.0;
 			peoteView.xOffset = 0;
 			peoteView.yOffset = 0;
 			
-			peoteView.addDisplay(displayLeft);
-			peoteView.addDisplay(displayRight);
+			peoteView.addDisplay(display);
 			
-			buffer   = new Buffer<Elem>(100);
+			buffer = new Buffer<Elem>(1000);
 
-			element[0]  = new Elem(0, 0, 100, 100, Color.RED);
-			element[0].z = 2;
-			buffer.addElement(element[0]);
+			for (i in 0...1000) {
+				var size = random(100);
+				element[i] = new Elem(random(window.width), random(window.height), size, size, Color.random());
+				element[i].z = random(Elem.MAX_ZINDEX);
+				buffer.addElement(element[i]);
+			}
 			
-			element[1]  = new Elem(40, 40, 100, 100, Color.CYAN);
-			element[1].z = 1;
-			buffer.addElement(element[1]);
-
-			programLeft  = new Program(buffer);
-			programRight = new Program(buffer);
+			program = new Program(buffer);
 			
-			displayLeft.addProgram(programLeft);
-			displayRight.addProgram(programRight);
+			display.addProgram(program);
 			
 			var future = Image.loadFromFile("assets/images/wabbit_alpha.png");
 			future.onProgress (function (a:Int,b:Int) trace ('loading image $a/$b'));
@@ -93,19 +85,11 @@ class GLPicking
 				trace("loading complete");
 				var texture = new Texture(26, 37);
 				texture.setImage(image);
-				programLeft.setTexture(texture, "custom");
+				program.setTexture(texture, "custom");
 			});
 			
-			/*
-			var timer = new Timer(60);
-			timer.run =  function() {
-				element[0].x++; buffer.updateElement(element[0]);
-				if (element[0].x > 170) timer.stop();
-			};*/
 		}
 		catch (msg:String) {trace("ERROR", msg); }
-		
-		
 	}
 	
 	public function onPreloadComplete():Void {
@@ -118,7 +102,7 @@ class GLPicking
 
 	public function onMouseDown(x:Float, y:Float, button:MouseButton):Void
 	{
-		var pickedElement = peoteView.getElementAt(x, y, displayLeft, programLeft);
+		var pickedElement = peoteView.getElementAt(x, y, display, program);
 		trace(pickedElement);
 		if (pickedElement >= 0) {
 			var elem = buffer.getElement(pickedElement);
@@ -126,7 +110,7 @@ class GLPicking
 			buffer.updateElement(elem);			
 		}
 		
-		var pickedElements = peoteView.getAllElementsAt(x, y, displayLeft, programLeft);
+		var pickedElements = peoteView.getAllElementsAt(x, y, display, program);
 		trace(pickedElements);
 		//if (pickedElement != null) pickedElement.y += 100;
 	}
@@ -138,41 +122,26 @@ class GLPicking
 		switch (keyCode) {
 			case KeyCode.LEFT:
 					if (modifier.ctrlKey) {element[0].x-=esteps; buffer.updateElement(element[0]);}
-					else if (modifier.shiftKey) displayLeft.xOffset-=steps;
-					else if (modifier.altKey) displayRight.xOffset-=steps;
+					else if (modifier.shiftKey) display.xOffset-=steps;
 					else peoteView.xOffset-=steps;
 			case KeyCode.RIGHT:
 					if (modifier.ctrlKey) {element[0].x+=esteps; buffer.updateElement(element[0]);}
-					else if (modifier.shiftKey) displayLeft.xOffset+=steps;
-					else if (modifier.altKey) displayRight.xOffset+=steps;
+					else if (modifier.shiftKey) display.xOffset+=steps;
 					else peoteView.xOffset+=steps;
 			case KeyCode.UP:
 					if (modifier.ctrlKey) {element[0].y-=esteps; buffer.updateElement(element[0]);}
-					else if (modifier.shiftKey) displayLeft.yOffset-=steps;
-					else if (modifier.altKey) displayRight.yOffset-=steps;
+					else if (modifier.shiftKey) display.yOffset-=steps;
 					else peoteView.yOffset-=steps;
 			case KeyCode.DOWN:
 					if (modifier.ctrlKey) {element[0].y+=esteps; buffer.updateElement(element[0]);}
-					else if (modifier.shiftKey) displayLeft.yOffset+=steps;
-					else if (modifier.altKey) displayRight.yOffset+=steps;
+					else if (modifier.shiftKey) display.yOffset+=steps;
 					else peoteView.yOffset+=steps;
 			case KeyCode.NUMPAD_PLUS:
-					if (modifier.shiftKey) displayLeft.zoom+=0.25;
-					else if (modifier.altKey) displayRight.zoom+=0.25;
+					if (modifier.shiftKey) display.zoom+=0.25;
 					else peoteView.zoom+=0.25;
 			case KeyCode.NUMPAD_MINUS:
-					if (modifier.shiftKey) displayLeft.zoom-=0.25;
-					else if (modifier.altKey) displayRight.zoom-=0.25;
+					if (modifier.shiftKey) display.zoom-=0.25;
 					else peoteView.zoom-=0.25;
-			case KeyCode.Z:
-					if (element[0].z == 2) {
-						element[0].z = 1;
-						element[1].z = 2;
-					} else {
-						element[0].z = 2;
-						element[1].z = 1;
-					}
-					buffer.update();
 			default:
 		}
 		
@@ -189,6 +158,11 @@ class GLPicking
 	public function resize(width:Int, height:Int)
 	{
 		peoteView.resize(width, height);
+	}
+	
+	private inline function random(n:Int):Int
+	{
+		return Math.floor(Math.random() * n);
 	}
 
 }
