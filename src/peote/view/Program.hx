@@ -727,7 +727,7 @@ class Program
 	// ------------------------------------------------------------------------------
 	// ------------------------ OPENGL PICKING -------------------------------------- 
 	// ------------------------------------------------------------------------------
-	private inline function pick( xOff:Float, yOff:Float, peoteView:PeoteView, display:Display):Void
+	private inline function pick( xOff:Float, yOff:Float, peoteView:PeoteView, display:Display, toElement:Int):Void
 	{
 		gl.useProgram(glProgramPicking);
 		
@@ -741,10 +741,10 @@ class Program
 		
 		gl.uniform1f (uTIME_PICK, peoteView.time);
 		
-		peoteView.setGLDepth(zIndexEnabled);
+		peoteView.setGLDepth((toElement == -1) ? zIndexEnabled : false); // disable for getAllElementsAt() in peoteView
 		peoteView.setGLAlpha(false);
 		
-		buffer.render(peoteView, display, this);
+		buffer.pick(peoteView, display, this, toElement);
 		gl.useProgram (null);		
 	}
 	

@@ -25,6 +25,8 @@ class Elem implements Element
 	@sizeX public var w:Int = 100;	
 	@sizeY public var h:Int = 100;
 	
+	@zIndex public var z:Int = 0;	
+
 	@rotation @anim("Rotation", "constant") public var r:Float;
 	
 	@pivotX @set("Pivot") public var px:Int;
@@ -84,6 +86,10 @@ class RenderToTexture
 		elementFrom.animRotation(0, 360);
 		elementFrom.timeRotation(0, 1);
 		bufferFrom.addElement(elementFrom);
+		
+		var elemBG = new Elem(64, 64, 128, 128, Color.BLUE); // TODO: problem if no support for framebuffer with depth-attachement
+		elemBG.z = -1;
+		bufferFrom.addElement(elemBG);
 		
 		texture = new Texture(256, 256 , 2, 4, true, 1, 1); // 2 Slots
 			

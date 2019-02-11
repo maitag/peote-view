@@ -27,23 +27,14 @@ class GLTool
 	
 	static public function hasFramebufferDepth(gl:PeoteGL):Bool
 	{
-		
-		var texture = TexUtils.createDepthTexture(gl, 1, 1);
-		
-		// TODO: check later like here -> https://github.com/KhronosGroup/WebGL/blob/master/sdk/tests/conformance2/renderbuffers/framebuffer-object-attachment.html#L63
-		/*var texture:GLTexture = gl.createTexture();
-		gl.bindTexture(gl.TEXTURE_2D, glTexture);
-		gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT16, width, height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, 0);
-		//gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, width, height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, 0);
-		//gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT24, width, height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, 0);
-		*/		
+		var texture = TexUtils.createDepthTexture(gl, 1, 1); // depth-texture did not work here on IE11 with webgl1 (neko/cpp is ok!)
 		var fb = gl.createFramebuffer();
 		
 		gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, texture, 0);
 			
-		if (!PeoteGL.Version.isES3) // check only for es2 if it supports depth-test
-			if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE) { // depth-test did not work with webgl1 (neko/cpp is ok!)
+		if (!PeoteGL.Version.isES3) // check only for es2
+			if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE) {
 				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 				trace("Can not bind depth texture to FB for gl-picking");
 				texture = null;

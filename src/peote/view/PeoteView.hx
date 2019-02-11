@@ -256,9 +256,36 @@ class PeoteView
 	
 	public function getElementAt(mouseX:Float, mouseY:Float, display:Display, program:Program):Int
 	{
-		if (! program.hasPicking()) throw("Error: opengl-Picking - type of buffer/element is not pickable !");
+		if (PeoteGL.Version.hasFRAMEBUFFER_DEPTH) {
+			gl.bindFramebuffer(gl.FRAMEBUFFER, pickFB);
+			var element = pick(mouseX, mouseY, display, program);
+			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+			return element;
+		} else {
+			var elements = getAllElementsAt(mouseX, mouseY, display, program);
+			//TODO -> sort z-depth
+			if (elements.length > 0) return elements[0];
+			else return -1;
+		}
 		
+	}
+
+	public function getAllElementsAt(mouseX:Float, mouseY:Float, display:Display, program:Program):Array<Int>
+	{
+		var elements = new Array<Int>();
+		var toElement = -2;
 		gl.bindFramebuffer(gl.FRAMEBUFFER, pickFB);
+		do {
+			toElement = pick(mouseX, mouseY, display, program, toElement);
+			if (toElement >= 0) elements.push(toElement);
+		} while (toElement > 0);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		return elements;
+	}
+	
+	private function pick(mouseX:Float, mouseY:Float, display:Display, program:Program, toElement:Int = -1):Int
+	{
+		if (! program.hasPicking()) throw("Error: opengl-Picking - type of buffer/element is not pickable !");
 		
 		//initGLViewport
 		gl.viewport (0, 0, 1, 1);
@@ -282,30 +309,26 @@ class PeoteView
 			else gl.clear( gl.COLOR_BUFFER_BIT );
 		}
 				
-		// TODO: to wrap around webgl1 ( fetch all stacked Elements! )
-		// put in a loop here ( in every pass render only up to the last found element )
-
 		var xOff:Float = xOffset - (xOffset + mouseX - xOffset) / xz;
 		var yOff:Float = yOffset - (yOffset + mouseY - yOffset) / xz;
 
-		display.pick(xOff, yOff, this, program); // render with picking shader
+		display.pick(xOff, yOff, this, program, toElement); // render with picking shader
 		
 		// read picked pixel (element-number)
 		if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE) { // Optimizing: is check need here ?
 			if (peote.view.PeoteGL.Version.isINSTANCED) {
 				gl.readPixels(0, 0, 1, 1, gl.RGBA_INTEGER, gl.INT, pickInt32);
-				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 				return pickInt32[0] - 1;
 			}
 			else {
 				gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pickUInt8);
-				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 				return pickUInt8[3] << 24 | pickUInt8[2] << 16 | pickUInt8[1] << 8 | pickUInt8[0] - 1;
 			}
 		}
 		else throw("Error: opengl-Picking - Framebuffer not complete!");
 		return -2;
 	}
+	
 	
 	// ------------------------------------------------------------------------------
 	// -------------------------- Render to Texture ---------------------------------

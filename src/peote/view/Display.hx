@@ -263,10 +263,10 @@ class Display
 	// ------------------------------------------------------------------------------
 	// ------------------------ OPENGL PICKING -------------------------------------- 
 	// ------------------------------------------------------------------------------
-	private inline function pick( xOff:Float, yOff:Float, peoteView:PeoteView, program:Program):Void
+	private inline function pick( xOff:Float, yOff:Float, peoteView:PeoteView, program:Program, toElement:Int = -1):Void
 	{
 		glScissor(peoteView.gl, 1, 1, xOff, yOff, peoteView.xz, peoteView.yz);
-		program.pick( xOff, yOff, peoteView, this);
+		program.pick( xOff, yOff, peoteView, this, toElement);
 	}
 
 }

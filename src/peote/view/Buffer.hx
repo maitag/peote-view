@@ -320,6 +320,16 @@ class $className implements BufferInterface
 	}
 
 	private inline function render(peoteView:peote.view.PeoteView, display:peote.view.Display, program:peote.view.Program)
+	{
+		renderFromTo( peoteView, display, program, _maxElements );
+	}
+	
+	private inline function pick(peoteView:peote.view.PeoteView, display:peote.view.Display, program:peote.view.Program, toElement:Int)
+	{
+		renderFromTo( peoteView, display, program, (toElement < 0) ? _maxElements : toElement );
+	}	
+	
+	private inline function renderFromTo(peoteView:peote.view.PeoteView, display:peote.view.Display, program:peote.view.Program, toElement:Int)
 	{		
 		//trace("        ---buffer.render---");
 		#if peoteview_queueGLbuffering
@@ -345,7 +355,7 @@ class $className implements BufferInterface
 			if (peote.view.PeoteGL.Version.isVAO) _gl.bindVertexArray(_glVAO);
 			else $p{elemField}.enableVertexAttribInstanced(_gl, _glBuffer, _glInstanceBuffer);
 			
-			_gl.drawArraysInstanced (_gl.TRIANGLE_STRIP,  0, $p{elemField}.VERTEX_COUNT, _maxElements);
+			_gl.drawArraysInstanced (_gl.TRIANGLE_STRIP, 0, $p{elemField}.VERTEX_COUNT, toElement);
 			
 			if (peote.view.PeoteGL.Version.isVAO) _gl.bindVertexArray(null);
 			else $p{elemField}.disableVertexAttribInstanced(_gl);
@@ -356,7 +366,7 @@ class $className implements BufferInterface
 			if (peote.view.PeoteGL.Version.isVAO) _gl.bindVertexArray(_glVAO);
 			else $p{elemField}.enableVertexAttrib(_gl, _glBuffer);
 			
-			_gl.drawArrays (_gl.TRIANGLE_STRIP,  0, _maxElements * $p{elemField}.VERTEX_COUNT);
+			_gl.drawArrays (_gl.TRIANGLE_STRIP, 0, toElement * $p{elemField}.VERTEX_COUNT);
 			
 			if (peote.view.PeoteGL.Version.isVAO) _gl.bindVertexArray(null);
 			else $p{elemField}.disableVertexAttrib(_gl);

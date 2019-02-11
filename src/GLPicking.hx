@@ -121,6 +121,8 @@ class GLPicking
 	{
 		var pickedElement = peoteView.getElementAt(x, y, displayLeft, programLeft);
 		trace(pickedElement);
+		var pickedElements = peoteView.getAllElementsAt(x, y, displayLeft, programLeft);
+		trace(pickedElements);
 		//if (pickedElement != null) pickedElement.y += 100;
 	}
 	
