@@ -25,17 +25,17 @@ class Elem implements Element
 	@sizeX public var w:Int=100;
 	@sizeY public var h:Int=100;
 	
-	@color public var c:Color = 0xff0000ff;
+	@color public var color:Color = 0xff0000ff;
 		
 	@zIndex public var z:Int = 0;	
 	
-	public function new(positionX:Int=0, positionY:Int=0, width:Int=100, height:Int=100, c:Int=0xff0000ff )
+	public function new(positionX:Int=0, positionY:Int=0, width:Int=100, height:Int=100, color:Int=0xff0000ff )
 	{
 		this.x = positionX;
 		this.y = positionY;
 		this.w = width;
 		this.h = height;
-		this.c = c;
+		this.color = color;
 	}
 	
 	var OPTIONS = { picking:true, texRepeatX:true };
@@ -80,7 +80,6 @@ class GLPicking
 			element[1].z = 1;
 			buffer.addElement(element[1]);
 
-			
 			programLeft  = new Program(buffer);
 			programRight = new Program(buffer);
 			
@@ -121,6 +120,12 @@ class GLPicking
 	{
 		var pickedElement = peoteView.getElementAt(x, y, displayLeft, programLeft);
 		trace(pickedElement);
+		if (pickedElement >= 0) {
+			var elem = buffer.getElement(pickedElement);
+			elem.color = Color.random();
+			buffer.updateElement(elem);			
+		}
+		
 		var pickedElements = peoteView.getAllElementsAt(x, y, displayLeft, programLeft);
 		trace(pickedElements);
 		//if (pickedElement != null) pickedElement.y += 100;

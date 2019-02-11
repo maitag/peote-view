@@ -285,6 +285,30 @@ class $className implements BufferInterface
 		else throw("Error: Element is not inside a Buffer");
 	}
 
+	/**
+        Get the element by index.
+        @param  elementIndex the index of Element inside buffer
+    **/
+	public function getElement(elementIndex:Int): $elementType
+	{
+		return _elements.get(elementIndex);
+	}
+
+	private function getElementWithHighestZindex(elementIndices:Array<Int>): Int
+	{
+		var lastZindex:Int = - $p{elemField}.MAX_ZINDEX;
+		var highest:Int = -1;
+		var e:$elementType;
+		for (i in elementIndices) {
+			e = _elements.get(i);
+			if (e.getZINDEX() > lastZindex) {
+				lastZindex = e.getZINDEX();
+				highest = i;
+			}
+		}
+		return highest;
+	}
+
 	// TODO: if alpha + zIndex this will be needed 
 	/*public function sortTransparency():Void
 	{
@@ -308,17 +332,6 @@ class $className implements BufferInterface
 		else $p{elemField}.bindAttribLocations(gl, glProgram);
 	}
 	
-	/**
-        Gets the element at screen position.
-        @param  program the program this buffer is bind to
-    **/
-	public function pickElementAt(x:Int, y:Int, program:peote.view.Program ): $elementType
-	{
-		//var elementNumber:Int = program.pickElementAt(x, y);
-		//trace("---------PICKED elementNumber:" + elementNumber);
-		return null;//TODO
-	}
-
 	private inline function render(peoteView:peote.view.PeoteView, display:peote.view.Display, program:peote.view.Program)
 	{
 		renderFromTo( peoteView, display, program, _maxElements );

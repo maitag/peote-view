@@ -21,6 +21,8 @@ interface BufferInterface
 	private function hasPicking():Bool;
 	private function needFragmentPrecision():Bool;
 	
+	@:allow(peote.view.PeoteView) private function getElementWithHighestZindex(elementIndices:Array<Int>): Int;
+	
 	private function bindAttribLocations(gl: peote.view.PeoteGL, glProgram:lime.graphics.opengl.GLProgram):Void;
 	
 	private function render(peoteView:peote.view.PeoteView, display:peote.view.Display, program:peote.view.Program):Void;

@@ -1264,22 +1264,33 @@ class ElementImpl
 			name:  "MAX_ZINDEX",
 			//meta:  allowForBuffer,
 			access:  [Access.APublic, Access.AStatic, Access.AInline],
-			kind: FieldType.FVar(macro:Int, macro $v{MAX_ZINDEX}), 
+			kind: FieldType.FVar(macro:Int, macro $v{MAX_ZINDEX}),
 			pos: Context.currentPos(),
 		});
 		fields.push({
 			name:  "ALPHA_ENABLED",
 			meta:  allowForBuffer,
 			access:  [Access.APrivate, Access.AStatic, Access.AInline],
-			kind: FieldType.FVar(macro:Bool, macro $v{options.alpha}), 
+			kind: FieldType.FVar(macro:Bool, macro $v{options.alpha}),
 			pos: Context.currentPos(),
 		});
 		fields.push({
 			name:  "ZINDEX_ENABLED",
 			meta:  allowForBuffer,
 			access:  [Access.APrivate, Access.AStatic, Access.AInline],
-			kind: FieldType.FVar(macro:Bool, macro $v{(conf.zIndex.name != "")}), 
+			kind: FieldType.FVar(macro:Bool, macro $v{(conf.zIndex.name != "")}),
 			pos: Context.currentPos(),
+		});
+		fields.push({
+			name: "getZINDEX",
+			meta:  allowForBuffer,
+			access: [Access.APrivate, Access.AInline],
+			pos: Context.currentPos(),
+			kind: FFun({
+				args: [],
+				expr: (conf.zIndex.name != "") ? macro return($i{conf.zIndex.name}) : macro return($v{conf.zIndex.vStart}),
+				ret: macro:Int
+			})
 		});
 		fields.push({
 			name:  "PICKING_ENABLED",

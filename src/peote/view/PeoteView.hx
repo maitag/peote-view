@@ -264,7 +264,7 @@ class PeoteView
 		} else {
 			var elements = getAllElementsAt(mouseX, mouseY, display, program);
 			//TODO -> sort z-depth
-			if (elements.length > 0) return elements[0];
+			if (elements.length > 0) return program.buffer.getElementWithHighestZindex(elements);
 			else return -1;
 		}
 		
