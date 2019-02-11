@@ -158,10 +158,6 @@ class PeoteView
 		// to use internal 32 bit float-textures for webgl enable: gl.getExtension("EXT_color_buffer_float");
 		// or look here https://stackoverflow.com/questions/45571488/webgl-2-readpixels-on-framebuffers-with-float-textures
 		
-		// TODO: enable per program
-		gl.getExtension("OES_standard_derivatives");
-		//gl.getExtension("OES_fragment_precision_high");
-		
 		// check precision
 		var precision = gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.MEDIUM_FLOAT);
 		if (precision != null) trace("vertexshader-precision MEDIUM_FLOAT",precision.precision, precision.rangeMin, precision.rangeMax);
@@ -286,7 +282,7 @@ class PeoteView
 			else gl.clear( gl.COLOR_BUFFER_BIT );
 		}
 				
-		// TODO: to wrap around webgl1 ( or do fetch all stacked Elements! )
+		// TODO: to wrap around webgl1 ( fetch all stacked Elements! )
 		// put in a loop here ( in every pass render only up to the last found element )
 
 		var xOff:Float = xOffset - (xOffset + mouseX - xOffset) / xz;

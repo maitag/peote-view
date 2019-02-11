@@ -89,7 +89,7 @@ class ShaderInjection
 			}
 			"
 		);
-		program.setColorFormula('vec4( hsb2rgb( vec3(vTexCoord.x, 1.0, 1.0 - vTexCoord.y) ), 1.0 )'); // color
+		program.setColorFormula('vec4( hsb2rgb( vec3(vTexCoord.x, 1.0, 1.0 - vTexCoord.y) ), 1.0 )');
 
 		// ---------------------------------------------------------------
 	}

@@ -99,6 +99,7 @@ class FontrenderingGl3
 					
 					var bold = Util.toFloatString(0.48);
 					var sharp = Util.toFloatString(0.5);
+					
 					program.setColorFormula('COL * smoothstep( $bold - $sharp * fwidth(TEX.r), $bold + $sharp * fwidth(TEX.r), TEX.r)');
 					
 					// for unifont + INT is this best readable (but good not scalable and not not for all letters!!!) at fixed scale 16 ( or 32.. etc)

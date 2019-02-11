@@ -68,6 +68,7 @@ class Program
 		// TODO: headers to share functions between glPrograms
 		//VERTEX_FUNCTION_HEADERS : "",
 		//FRAGMENT_FUNCTION_HEADERS : "",
+		FRAGMENT_EXTENSIONS: [],
 	};
 	
 	var textureList = new RenderList<ActiveTexture>(new Map<ActiveTexture,RenderListItem<ActiveTexture>>());
@@ -148,6 +149,12 @@ class Program
 			if (PeoteGL.Version.isUBO)       glShaderConfig.isUBO = true;
 			if (PeoteGL.Version.isINSTANCED) glShaderConfig.isINSTANCED = true;
 			
+			// gl-extensions for fragment-shader
+			glShaderConfig.FRAGMENT_EXTENSIONS = [];
+			if (gl.getExtension("OES_standard_derivatives") != null)
+				glShaderConfig.FRAGMENT_EXTENSIONS.push({EXTENSION:"GL_OES_standard_derivatives"});
+			// TODO: let enable custom extensions for shaders like "GL_OES_fragment_precision_high"
+
 			buffer.setNewGLContext(gl);
 			createProgram();
 			
@@ -194,6 +201,7 @@ class Program
 		trace("create GL-Program" + ((isPicking) ? " for opengl-picking" : ""));
 		glShaderConfig.isPICKING = (isPicking) ? true : false;
 		
+		// set minimum needed precision
 		if (buffer.needFragmentPrecision() && fragmentFloatPrecision == null) {
 			var precision = gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.MEDIUM_FLOAT);
 			if (precision != null) if (Std.int(precision.precision) < 23) fragmentFloatPrecision = "highp";
