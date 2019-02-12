@@ -1288,7 +1288,7 @@ class ElementImpl
 			pos: Context.currentPos(),
 			kind: FFun({
 				args: [],
-				expr: (conf.zIndex.name != "") ? macro return($i{conf.zIndex.name}) : macro return($v{conf.zIndex.vStart}),
+				expr: (conf.zIndex.name != "") ? macro return($i{conf.zIndex.name}) : macro return($v{Std.parseInt(conf.zIndex.vStart)}),
 				ret: macro:Int
 			})
 		});
