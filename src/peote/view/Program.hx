@@ -201,10 +201,14 @@ class Program
 		trace("create GL-Program" + ((isPicking) ? " for opengl-picking" : ""));
 		glShaderConfig.isPICKING = (isPicking) ? true : false;
 		
-		// set minimum needed precision (TODO: glsl-error -> while testing cpp-build on two years old mac-books! [thx tuna] )
 		if (buffer.needFragmentPrecision() && fragmentFloatPrecision == null) {
 			var precision = gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.MEDIUM_FLOAT);
-			if (precision != null) if (Std.int(precision.precision) < 23) fragmentFloatPrecision = "highp";
+			if (precision != null)
+				if (Std.int(precision.precision) < 23) {
+					precision = gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.HIGH_FLOAT);
+					if (precision != null) 
+						if (Std.int(precision.precision) > 0) fragmentFloatPrecision = "highp";
+				}
 		}
 		glShaderConfig.FRAGMENT_FLOAT_PRECISION = (fragmentFloatPrecision == null) ? "mediump" : fragmentFloatPrecision;
 		
