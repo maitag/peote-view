@@ -20,58 +20,53 @@ import elements.ElementSimple;
 class Test 
 {
 	var peoteView:PeoteView;
-	var element:ElementSimple;
+	var element = new Array<ElementSimple>();
 	var buffer:Buffer<ElementSimple>;
+	
+	var elemNumber:Int = 0;
 	
 	public function new(window:Window)
 	{
 		try {
-		peoteView = new PeoteView(window.context, window.width, window.height);
-		
-		buffer = new Buffer<ElementSimple>(100);
+			
+			peoteView = new PeoteView(window.context, window.width, window.height);
+			
+			buffer = new Buffer<ElementSimple>(4, 4, true);
 
-		var display   = new Display(10,10, window.width-20, window.height-20, Color.GREEN);
-		//var display1  = new Display(10,10, window.width-20, window.height-20, Color.GREEN);
-		var program   = new Program(buffer);
+			var display   = new Display(10,10, window.width-20, window.height-20, Color.GREEN);
+			var program   = new Program(buffer);
+			
+			peoteView.addDisplay(display);
+			display.addProgram(program);  
 		
-		//peoteView.addDisplay(display1);
-		//display1.addProgram(program);
-		
-		peoteView.addDisplay(display);
-		display.addProgram(program);  
-	
-		element  = new ElementSimple(10, 10);
-		buffer.addElement(element);     // element to buffer
-		
-		var element1  = new ElementSimple(10, 150);
-		buffer.addElement(element1);     // element to buffer
-		
-		Timer.delay( function() {
-			element1.x += 100;
-			buffer.updateElement(element1);
-		} , 1000);
-		
-		
-		// ---------------------------------------------------------------
-		//peoteView.render();
-		} catch (e:Dynamic) trace("ERROR:", e);
+		}
+		catch (e:Dynamic) trace("ERROR:", e);
 	}
 	
 	public function onPreloadComplete ():Void { trace("preload complete"); }
 	
 	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
 	{
-		element.x += 100;
-		buffer.updateElement(element);		
+		element[elemNumber]  = new ElementSimple(10+elemNumber*50, 10, 40, 40);
+		buffer.addElement(element[elemNumber]);
+		elemNumber++; trace("elements " + elemNumber);
 	}
 
 	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
 	{
 		switch (keyCode) {
-			//case KeyCode.:
+			case KeyCode.NUMPAD_PLUS:
+				element[elemNumber]  = new ElementSimple(10+elemNumber*50, 10, 40, 40);
+				buffer.addElement(element[elemNumber]);
+				elemNumber++; trace("elements " + elemNumber);
+			case KeyCode.NUMPAD_MINUS:
+				elemNumber--;  trace("elements " + elemNumber);
+				buffer.removeElement(element[elemNumber]);
+				element[elemNumber] = null;
 			default:
 		}
 	}
+	
 	public function update(deltaTime:Int):Void {}
 	public function onMouseUp (x:Float, y:Float, button:MouseButton):Void {}
 

@@ -83,8 +83,9 @@ class $className implements BufferInterface
 	var _maxElements:Int = 0; // amount of added elements (pos of last element)
 	var _elemBuffSize:Int;
 	
-	var _growSize:Int;
-	var _shrinkSize:Int;
+	var _minSize:Int;
+	var _growSize:Int = 0;
+	var _shrinkAtSize:Int = 0;
 	
 	// local bytes-buffer
 	var _bytes: utils.Bytes;
@@ -97,17 +98,19 @@ class $className implements BufferInterface
 	var queueUpdateGLBuffer:Bool = false;*/
 	#end
 
-	public function new(size:Int, growSize:Int = 0, shrinkSize:Int = 0)
+	public function new(minSize:Int, growSize:Int = 0, autoShrink:Bool = false)
 	{
-		_growSize = growSize;
-		_shrinkSize = shrinkSize;
+		if (minSize <= 0) throw("Error: Buffer need a minimum size of 1 to store an Element.");
+		_minSize = minSize;
+		_growSize = (growSize < 0) ? 0 : growSize;
+		if (autoShrink) _shrinkAtSize = growSize + Std.int(growSize/2);
 		
 		#if peoteview_queueGLbuffering
 		updateGLBufferElementQueue = new Array<$elementType>();
 		setNewGLContextQueue = new Array<PeoteGL>();
 		#end
 		
-		_elements = new haxe.ds.Vector<$elementType>(size);
+		_elements = new haxe.ds.Vector<$elementType>(_minSize);
 		
 		if (peote.view.PeoteGL.Version.isINSTANCED) // TODO can be missing if buffer created before peoteView
 		{
@@ -117,8 +120,8 @@ class $className implements BufferInterface
 		else _elemBuffSize = $p{elemField}.BUFF_SIZE * $p{elemField}.VERTEX_COUNT;
 		
 		trace("create bytes for GLbuffer");
-		_bytes = utils.Bytes.alloc(_elemBuffSize * size);
-		_bytes.fill(0, _elemBuffSize * size, 0);		
+		_bytes = utils.Bytes.alloc(_elemBuffSize * _minSize);
+		_bytes.fill(0, _elemBuffSize * _minSize, 0);		
 	}
 	
 	inline function setNewGLContext(newGl:PeoteGL)
@@ -291,7 +294,7 @@ class $className implements BufferInterface
 		if (element.bytePos == -1) {
 			if (_maxElements == _elements.length) {
 				if (_growSize == 0) throw("Error: Can't add new Element. Buffer is full and automatic growing Buffersize is disabled.");
-				trace("grow up the Buffersize about " + _growSize);
+				trace("grow up the Buffer to new size",_maxElements + _growSize);
 				changeBufferSize(_maxElements + _growSize);
 			}
 			element.bytePos = _maxElements * _elemBuffSize;
@@ -320,9 +323,9 @@ class $className implements BufferInterface
 			}
 			else _maxElements--;
 			element.bytePos = -1;
-			if (_maxElements != 0 && _maxElements == _elements.length - _shrinkSize) {
-				trace("shrinking the Buffersize about " + _shrinkSize);
-				changeBufferSize(_elements.length - _shrinkSize);
+			if (_shrinkAtSize > 0 && _elements.length - _growSize >= _minSize && _maxElements <= _elements.length - _shrinkAtSize) {
+				trace("shrink Buffer to size", _elements.length - _growSize);
+				changeBufferSize(_elements.length - _growSize);
 			}			
 		}
 		else throw("Error: Element is not inside a Buffer");
