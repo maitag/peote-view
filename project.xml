@@ -7,13 +7,14 @@
 	<!-- <meta build-number="714" /> --> <!-- let set the buildnumber manual (android) -->
 	
 	<app main="Main" path="bin" file="Main" />
-	<haxedef name="sampleTextureSlotTiles" />
+	<haxedef name="sampleBunnyMark" />
 	<!-- sampleTest, sampleMultidisplay, sampleMultibuffer, sampleElementInherit,  sampleDepthBlend,
 		sampleTextureSimple, sampleTextureSlotTiles, sampleMultiTextures, sampleTextureMipmapFilter,
 		sampleFontrenderingGl3, sampleRenderToTexture, sampleShaderInjection,
-		sampleAnimation, sampleGLPicking, sampleBunnyMark, ... -->
+		sampleAnimation, sampleGLPicking, sampleBunnyMark
+		sampleUserInterface, ... -->
 	<define name="bunnies" value="60000" />
-	<define name="bunnies"  value="14000" if="android||neko" />
+	<define name="bunnies"  value="14000" if="neko" />
 	<define name="stats" if="html5" />
 	
 	<!-- multiple windows -->

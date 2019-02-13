@@ -60,8 +60,7 @@ class BunnyMark
 	var maxX:Int;
 	var maxY:Int;
 	
-	var count:Int = 100;
-	var maxBunnies:Int = 1000;
+	var bunnyCount:Int = 100;
 	
 	var isStart:Bool = false;
 	
@@ -78,12 +77,10 @@ class BunnyMark
 		peoteView = new PeoteView(window.context, window.width, window.height);
 		
 		#if bunnies 
-		count = Std.parseInt (haxe.macro.Compiler.getDefine ("bunnies"));
-		maxBunnies = count + Std.int(count * 0.2);
+		bunnyCount = Std.parseInt (haxe.macro.Compiler.getDefine ("bunnies"));
 		#end
-		trace("Bunnies:", count);
-		trace("maxBunnies:", maxBunnies);
-		buffer = new Buffer<Bunny>(maxBunnies); // TODO -> automatic grow/shrink buffersize
+		trace("Bunnies:", bunnyCount);
+		buffer = new Buffer<Bunny>(bunnyCount, 4096); // automatic grow buffersize about 4096
 		
 		var display = new Display(0, 0, window.width, window.height, Color.GREEN);
 		
@@ -105,7 +102,7 @@ class BunnyMark
 			display.addProgram(program);    // programm to display
 			peoteView.addDisplay(display);  // display to peoteView
 			
-			for (i in 0...count) {
+			for (i in 0...bunnyCount) {
 				addBunny ();
 			}
 			isStart = true;
@@ -114,7 +111,6 @@ class BunnyMark
 		
 	private function addBunny():Void
 	{
-		if (bunnies.length >= maxBunnies) return; // no more then buffersize, TODO -> automatic grow/shrink buffersize
 		var bunny = new Bunny();
 		bunny.x = 0;
 		bunny.y = 0;

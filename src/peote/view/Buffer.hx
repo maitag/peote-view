@@ -83,6 +83,9 @@ class $className implements BufferInterface
 	var _maxElements:Int = 0; // amount of added elements (pos of last element)
 	var _elemBuffSize:Int;
 	
+	var _growSize:Int;
+	var _shrinkSize:Int;
+	
 	// local bytes-buffer
 	var _bytes: utils.Bytes;
 	
@@ -94,8 +97,11 @@ class $className implements BufferInterface
 	var queueUpdateGLBuffer:Bool = false;*/
 	#end
 
-	public function new(size:Int)
+	public function new(size:Int, growSize:Int = 0, shrinkSize:Int = 0)
 	{
+		_growSize = growSize;
+		_shrinkSize = shrinkSize;
+		
 		#if peoteview_queueGLbuffering
 		updateGLBufferElementQueue = new Array<$elementType>();
 		setNewGLContextQueue = new Array<PeoteGL>();
@@ -179,6 +185,7 @@ class $className implements BufferInterface
 	inline function deleteGLBuffer():Void
 	{
 		trace("delete GlBuffer");
+		
 		_gl.deleteBuffer(_glBuffer);
 		
 		if (peote.view.PeoteGL.Version.isINSTANCED)	_gl.deleteBuffer(_glInstanceBuffer);
@@ -206,6 +213,33 @@ class $className implements BufferInterface
 		
 		_gl.bindBuffer (_gl.ARRAY_BUFFER, null);
 	}
+	
+	inline function changeBufferSize(newSize:Int):Void
+	{
+		var _newBytes = utils.Bytes.alloc(_elemBuffSize * newSize);
+		_newBytes.blit(0, _bytes, 0, _elemBuffSize * _maxElements);
+		_bytes = _newBytes;
+		
+		var _newElements = new haxe.ds.Vector<$elementType>(newSize);
+		haxe.ds.Vector.blit(_elements, 0, _newElements, 0, _maxElements);
+		_elements = _newElements;
+		
+		if (_gl != null) {
+			_gl.deleteBuffer(_glBuffer);
+			_glBuffer = _gl.createBuffer();
+			_gl.bindBuffer (_gl.ARRAY_BUFFER, _glBuffer);
+			_gl.bufferData (_gl.ARRAY_BUFFER, _bytes.length, _bytes, _gl.STREAM_DRAW); // STATIC_DRAW, DYNAMIC_DRAW, STREAM_DRAW 
+			_gl.bindBuffer (_gl.ARRAY_BUFFER, null);
+			if (peote.view.PeoteGL.Version.isVAO) { // rebind VAO	
+				_gl.bindVertexArray(_glVAO);
+				if (peote.view.PeoteGL.Version.isINSTANCED)
+					$p{elemField}.enableVertexAttribInstanced(_gl, _glBuffer, _glInstanceBuffer);
+				else $p{elemField}.enableVertexAttrib(_gl, _glBuffer);
+				_gl.bindVertexArray(null);
+			}
+		}
+	}
+
 	
 	/**
         Updates all element-changes to the rendering process of this buffer.
@@ -255,6 +289,11 @@ class $className implements BufferInterface
 	public function addElement(element: $elementType):Void
 	{	
 		if (element.bytePos == -1) {
+			if (_maxElements == _elements.length) {
+				if (_growSize == 0) throw("Error: Can't add new Element. Buffer is full and automatic growing Buffersize is disabled.");
+				trace("grow up the Buffersize about " + _growSize);
+				changeBufferSize(_maxElements + _growSize);
+			}
 			element.bytePos = _maxElements * _elemBuffSize;
 			element.dataPointer = new peote.view.PeoteGL.BytePointer(_bytes, element.bytePos);
 			//trace("Buffer.addElement", _maxElements, element.bytePos);
@@ -280,7 +319,11 @@ class $className implements BufferInterface
 				_elements.set( Std.int(  element.bytePos / _elemBuffSize ), lastElement);
 			}
 			else _maxElements--;
-			element.bytePos = -1;			
+			element.bytePos = -1;
+			if (_maxElements != 0 && _maxElements == _elements.length - _shrinkSize) {
+				trace("shrinking the Buffersize about " + _shrinkSize);
+				changeBufferSize(_elements.length - _shrinkSize);
+			}			
 		}
 		else throw("Error: Element is not inside a Buffer");
 	}
