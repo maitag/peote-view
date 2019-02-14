@@ -102,12 +102,20 @@ class Main extends Application
 		*/
 	}
 	
+	public override function onMouseMoveRelative (x:Float, y:Float):Void {
+		//trace("onMouseMoveRelative" + x + "," + y ); 	
+	}
+	
 	public override function onMouseMove (x:Float, y:Float):Void
 	{
 		//trace("onMouseMove: " + x + "," + y );
+		#if sampleUserInterface
+		if (renderTest) test.onMouseMove(x, y);
+		#else
 		mouse_x = Std.int(x);
 		mouse_y = Std.int(y);
 		setOffsets();
+		#end
 	}
 	
 	public override function onTouchStart (touch:Touch):Void
@@ -196,6 +204,25 @@ class Main extends Application
 	public override function onKeyUp (keyCode:KeyCode, modifier:KeyModifier):Void {
 		//trace("keyup",keyCode, modifier);
 	}
+
+	#if sampleUserInterface		
+		public override function onWindowActivate ():Void { trace("onWindowActivate"); }
+		public override function onWindowClose ():Void { trace("onWindowClose"); }
+		public override function onWindowDeactivate ():Void { trace("onWindowDeactivate"); }
+		public override function onWindowDropFile (file:String):Void { trace("onWindowDropFile"); }
+		public override function onWindowEnter ():Void { trace("onWindowEnter"); }
+		public override function onWindowExpose ():Void { trace("onWindowExpose"); }
+		public override function onWindowFocusIn ():Void { trace("onWindowFocusIn"); }
+		public override function onWindowFocusOut ():Void { trace("onWindowFocusOut"); }
+		public override function onWindowFullscreen ():Void { trace("onWindowFullscreen"); }
+		public override function onWindowLeave ():Void {
+			trace("onWindowLeave"); 
+			if (renderTest) test.onWindowLeave();
+		}
+		public override function onWindowMove (x:Float, y:Float):Void { trace("onWindowMove"); }
+		public override function onWindowMinimize ():Void { trace("onWindowMinimize"); }
+		public override function onWindowRestore ():Void { trace("onWindowRestore"); }
+	#end
 	
 	// end Event Handler ------------------------------
 	// ------------------------------------------------

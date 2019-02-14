@@ -224,7 +224,12 @@ class $className implements BufferInterface
 		_bytes = _newBytes;
 		
 		var _newElements = new haxe.ds.Vector<$elementType>(newSize);
-		haxe.ds.Vector.blit(_elements, 0, _newElements, 0, _maxElements);
+		//haxe.ds.Vector.blit(_elements, 0, _newElements, 0, _maxElements);
+		for (i in 0..._maxElements) {
+			var element = _elements.get(i);
+			element.dataPointer = new peote.view.PeoteGL.BytePointer(_bytes, element.bytePos);
+			_newElements.set(i, element); 
+		}
 		_elements = _newElements;
 		
 		if (_gl != null) {
