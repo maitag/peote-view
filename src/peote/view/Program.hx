@@ -101,10 +101,11 @@ class Program
 		textureIdentifiers = buffer.getTextureIdentifiers();
 		
 		defaultColorFormula = buffer.getDefaultColorFormula();
-		trace("defaultColorFormula = ", defaultColorFormula);
 		defaultFormulaVars = buffer.getDefaultFormulaVars();
+		#if peoteview_debug_program
+		trace("defaultColorFormula = ", defaultColorFormula);
 		trace("defaultFormulaVars = ", defaultFormulaVars);
-		
+		#end
 		parseColorFormula();
 	}
 	
@@ -112,7 +113,9 @@ class Program
 
 	public function addToDisplay(display:Display, ?atProgram:Program, addBefore:Bool=false)
 	{
+		#if peoteview_debug_program
 		trace("Add Program to Display");
+		#end
 		if ( isIn(display) ) throw("Error, program is already added to this display");
 		displays.push(display);
 		setNewGLContext(display.gl);
@@ -121,7 +124,9 @@ class Program
 
 	public function removeFromDisplay(display:Display):Void
 	{
+		#if peoteview_debug_program
 		trace("Remove Program from Display"); // TODO <- PROBLEM with multiwindows-sample
+		#end
 		if (!displays.remove(display)) throw("Error, program is not inside display");
 		display.programList.remove(this);
 	}
@@ -136,8 +141,9 @@ class Program
 			
 			// clear old gl-context if there is one
 			if (gl != null) clearOldGLContext();
-			
-			trace("Program setNewGLContext");	
+			#if peoteview_debug_program
+			trace("Program setNewGLContext");
+			#end
 			gl = newGl;
 			
 			if (PeoteGL.Version.isES3) {
@@ -165,7 +171,9 @@ class Program
 
 	private inline function clearOldGLContext() 
 	{
+		#if peoteview_debug_program
 		trace("Program clearOldGLContext");
+		#end
 		deleteProgram();
 	}
 
@@ -198,7 +206,9 @@ class Program
 	
 	private function createProg(isPicking:Bool = false):Void
 	{
+		#if peoteview_debug_program
 		trace("create GL-Program" + ((isPicking) ? " for opengl-picking" : ""));
+		#end
 		glShaderConfig.isPICKING = (isPicking) ? true : false;
 		
 		if (buffer.needFragmentPrecision() && fragmentFloatPrecision == null) {
@@ -375,7 +385,9 @@ class Program
 			if (layer < 0) {
 				if (addNew) {
 					if (Util.isWrongIdentifier(identifier)) throw('Error: "$identifier" is not an identifier, please use only letters/numbers or "_" (starting with a letter)');
+					#if peoteview_debug_program
 					trace('adding custom texture layer "$identifier"');
+					#end
 					layer = textureIdentifiers.length + customTextureIdentifiers.length;
 					customTextureIdentifiers.push(identifier); // adds a custom identifier
 				}
@@ -451,7 +463,9 @@ class Program
 	
 	// set a texture-layer
 	public function setTexture(texture:Texture, identifier:String, ?autoUpdateTextures:Null<Bool>):Void {
+		#if peoteview_debug_program
 		trace("(re)set texture of a layer");
+		#end
 		var layer = getTextureIndexByIdentifier(identifier);
 		textureLayers.set(layer, [texture]);
 		checkAutoUpdate(autoUpdateTextures);
@@ -459,7 +473,9 @@ class Program
 	
 	// multiple textures per layer (to switch between them via unit-attribute)
 	public function setMultiTexture(textureUnits:Array<Texture>, identifier:String, ?autoUpdateTextures:Null<Bool>):Void {
+		#if peoteview_debug_program
 		trace("(re)set texture-units of a layer");
+		#end
 		var layer = getTextureIndexByIdentifier(identifier);
 		if (textureUnits == null) throw("Error, textureUnits need to be an array of textures");
 		if (textureUnits.length == 0) throw("Error, textureUnits needs at least 1 texture");
@@ -473,7 +489,9 @@ class Program
 	
 	// add a texture to textuer-units
 	public function addTexture(texture:Texture, identifier:String, ?autoUpdateTextures:Null<Bool>):Void {
+		#if peoteview_debug_program
 		trace("add texture into units of " + identifier);
+		#end
 		var layer = getTextureIndexByIdentifier(identifier);
 		if (texture == null) throw("Error, texture is null.");
 		var textures:Array<Texture> = textureLayers.get(layer);
@@ -489,7 +507,9 @@ class Program
 	}
 	
 	public function removeTexture(texture:Texture, identifier:String, ?autoUpdateTextures:Null<Bool>):Void {
+		#if peoteview_debug_program
 		trace("remove texture from textureUnits of a layer");
+		#end
 		var layer = getTextureIndexByIdentifier(identifier, false);
 		if (layer < 0) throw('Error, textureLayer "$identifier" did not exists.');
 		if (texture == null) throw("Error, texture is null.");
@@ -502,7 +522,9 @@ class Program
 	}
 	
 	public function removeAllTexture(identifier:String, ?autoUpdateTextures:Null<Bool>):Void {
+		#if peoteview_debug_program
 		trace("remove all textures from a layer");
+		#end
 		var layer = getTextureIndexByIdentifier(identifier, false);
 		if (layer < 0) throw('Error, textureLayer "$identifier" did not exists.');
 		textureLayers.remove(layer);
@@ -534,7 +556,9 @@ class Program
 	// ------------------------------------
 	
 	public function updateTextures():Void {
+		#if peoteview_debug_program
 		trace("update Textures");
+		#end
 		// collect new or removed old textures
 		var newTextures = new Array<Texture>();
 		for (layer in textureLayers.keys()) {
@@ -546,7 +570,9 @@ class Program
 		var i = activeTextures.length;
 		while (i-- > 0) 
 			if (newTextures.indexOf(activeTextures[i]) < 0) { // remove texture
-				trace("REMOVE texture",i);
+				#if peoteview_debug_program 
+				trace("REMOVE texture", i);
+				#end
 				activeTextures[i].removeFromProgram(this);
 				activeTextures.splice(i, 1);
 				activeUnits.splice(i, 1);
@@ -554,7 +580,9 @@ class Program
 		
 		for (t in newTextures) {
 			if (activeTextures.indexOf(t) < 0) { // add texture
+				#if peoteview_debug_program
 				trace("ADD texture", activeTextures.length);
+				#end
 				activeTextures.push(t);
 				var unit = 0;
 				while (activeUnits.indexOf(unit) >= 0 ) unit++;
@@ -564,8 +592,9 @@ class Program
 		}
 				
 		// -----------
+		#if peoteview_debug_program
 		trace("textureLayers", [for (layer in textureLayers.keys()) layer]);
-		
+		#end
 		parseColorFormula();
 		
 		if (activeTextures.length == 0) {
@@ -605,7 +634,9 @@ class Program
 						FIRST:((i == 0) ? true : false), LAST:((i == textures.length - 1) ? true : false)
 					});
 				}
+				#if peoteview_debug_program
 				trace("LAYER:", layer, units);
+				#end
 				glShaderConfig.TEXTURES.push({LAYER:layer, UNITS:units});
 			}
 		}
@@ -615,7 +646,9 @@ class Program
 	
 	
 	public function setActiveTextureGlIndex(texture:Texture, index:Int):Void {
+		#if peoteview_debug_program
 		trace("set texture index to " + index);
+		#end
 		var oldUnit:Int = -1;
 		var j:Int = -1;
 		for (i in 0...activeTextures.length) {
@@ -643,12 +676,16 @@ class Program
 		textureListItem = textureList.first;
 		while (textureListItem != null)
 		{
+			#if peoteview_debug_program
 			if (textureListItem.value.texture.glTexture == null) trace("=======PROBLEM========"); // TODO !!!
+			#end
 			
 			if ( peoteView.isTextureStateChange(textureListItem.value.unit, textureListItem.value.texture) )
 			{
 				gl.activeTexture (gl.TEXTURE0 + textureListItem.value.unit);
+				#if peoteview_debug_program
 				trace("activate Texture", textureListItem.value.unit);
+				#end
 				gl.bindTexture (gl.TEXTURE_2D, textureListItem.value.texture.glTexture);
 				
 				//gl.bindSampler(textureListItem.value.unit, sampler); // only ES3.0
@@ -661,8 +698,10 @@ class Program
 	
 	private inline function render(peoteView:PeoteView, display:Display)
 	{
+		#if peoteview_debug_program
 		//trace("    ---program.render---");		
 		if (!ready) trace("=======PROBLEM=====> not READY !!!!!!!!"); // TODO !!!
+		#end
 		gl.useProgram(glProgram);
 		
 		render_activeTextureUnits(peoteView, textureList);

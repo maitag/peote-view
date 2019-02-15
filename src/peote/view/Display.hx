@@ -111,7 +111,9 @@ class Display
 
 	public function addToPeoteView(peoteView:PeoteView, ?atDisplay:Display, addBefore:Bool=false)
 	{
+		#if peoteview_debug_display
 		trace("Add Display to PeoteView");
+		#end
 		if ( isIn(peoteView) ) throw("Error, display is already added to this peoteView");
 		peoteViews.push(peoteView);
 		setNewGLContext(peoteView.gl);
@@ -120,7 +122,9 @@ class Display
 	
 	public function removeFromPeoteView(peoteView:PeoteView)
 	{
+		#if peoteview_debug_display
 		trace("Removed Display from PeoteView");
+		#end
 		if (!peoteViews.remove(peoteView)) throw("Error, display is not inside peoteView");
 		peoteView.displayList.remove(this);
 	}
@@ -135,9 +139,9 @@ class Display
 			
 			// clear old gl-context if there is one
 			if (gl != null) clearOldGLContext();
-			
+			#if peoteview_debug_display
 			trace("Display setNewGLContext");
-			
+			#end
 			gl = newGl;			
 			if (PeoteGL.Version.isUBO) {
 				uniformBuffer.createGLBuffer(gl, x + xOffset, y + yOffset, xz, yz);
@@ -153,7 +157,9 @@ class Display
 
 	private inline function clearOldGLContext() 
 	{
+		#if peoteview_debug_display
 		trace("Display clearOldGLContext");
+		#end
 		if (PeoteGL.Version.isUBO) {
 			uniformBuffer.deleteGLBuffer(gl);
 			uniformBufferFB.deleteGLBuffer(gl);

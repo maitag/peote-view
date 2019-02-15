@@ -65,7 +65,9 @@ class Texture
 	
 	private inline function addToProgram(program:Program)
 	{
+		#if peoteview_debug_texture
 		trace("Add Program to Texture");
+		#end
 		if ( usedByProgram(program) ) throw("Error, texture is already used by program");
 		setNewGLContext(program.gl);
 		programs.push(program);
@@ -74,12 +76,16 @@ class Texture
  	public inline function usedByDisplay(display:Display):Bool return (displays.indexOf(display) >= 0);
 
 	private inline function removeFromProgram(program:Program):Void {
+		#if peoteview_debug_texture
 		trace("Texture removed from Program");
+		#end
 		if (!programs.remove(program)) throw("Error, this texture is not used by program anymore");
 	}
 	
 	private inline function addToDisplay(display:Display) {
+		#if peoteview_debug_texture
 		trace("Add Display to Texture");
+		#end
 		if ( usedByDisplay(display) ) throw("Error, texture is already used by display");
 		setNewGLContext(display.gl);
 		displays.push(display);
@@ -87,21 +93,27 @@ class Texture
 	}
 	
 	private inline function removeFromDisplay(display:Display):Void {
+		#if peoteview_debug_texture
 		trace("Texture (Framebuffer) removed from Display");
+		#end
 		if (!displays.remove(display)) throw("Error, this texture (Framebuffer) is not used by display anymore");
 		deleteFramebuffer();
 	}
 		
 	private inline function createFramebuffer() {
 		if (displays.length > 0 && framebuffer == null) {
+			#if peoteview_debug_texture 
 			trace("Create Framebuffer");
+			#end
 			framebuffer = GLTool.createFramebuffer(gl, glTexture, glDepthTexture, width, height); 
 		}
 	}
 
 	private inline function deleteFramebuffer() {
 		if (displays.length == 0 && framebuffer != null) {
+			#if peoteview_debug_texture
 			trace("Delete Framebuffer");
+			#end
 			gl.deleteFramebuffer(framebuffer);
 			if (glDepthTexture != null) gl.deleteTexture(glDepthTexture);
 			framebuffer = null;
@@ -121,8 +133,9 @@ class Texture
 				
 			// clear old gl-context if there is one
 			if (gl != null) clearOldGLContext();
-			
+			#if peoteview_debug_texture
 			trace("Texture setNewGLContext");
+			#end
 			gl = newGl;
 			createTexture();
 			createFramebuffer();
@@ -133,7 +146,9 @@ class Texture
 	
 	private inline function clearOldGLContext() 
 	{
+		#if peoteview_debug_texture
 		trace("Texture clearOldGLContext");
+		#end
 		//TODO
 		gl.deleteTexture(glTexture);
 		glTexture = null;
@@ -142,14 +157,18 @@ class Texture
 	
 	private inline function createTexture()
 	{
+		#if peoteview_debug_texture
 		trace("Create new Texture");
+		#end
 		if (width > gl.getParameter(gl.MAX_TEXTURE_SIZE) || height > gl.getParameter(gl.MAX_TEXTURE_SIZE))
 			throw("Error, texture size is greater then gl.MAX_TEXTURE_SIZE");
 		glTexture = TexUtils.createEmptyTexture(gl, width, height, colorChannels, createMipmaps, magFilter, minFilter);			
 	}
 
 	public function setImage(image:Image, imageSlot:Int = 0) {
-		trace("Set Image into Texture Slot"+imageSlot);
+		#if peoteview_debug_texture
+		trace("Set Image into Texture Slot" + imageSlot);
+		#end
 		images.set(image, {imageSlot:imageSlot}); // TODO: is already set?
 		if (gl != null) {
 			if (glTexture == null) createTexture();
@@ -158,8 +177,9 @@ class Texture
 	}
 	
 	private function bufferImage(image:Image, imgProp:ImgProp) {
+		#if peoteview_debug_texture
 		trace("buffer Image to Texture");
-		
+		#end
 		// TODO: overwrite and fit-parameters
 		imageToTexture(gl, glTexture,
 		                   slotWidth * (imgProp.imageSlot % slotsX),

@@ -159,7 +159,9 @@ class TexUtils
 			param.imageSlots = param.slotsX * param.slotsY;
 			param.width = 1 << w;
 			param.height = 1 << h;
-            trace('${imageSlots} imageSlots (${param.slotsX} * ${param.slotsY}) on ${param.width} x ${param.height} Texture'); 
+			#if peoteview_debug_texture
+            trace('${imageSlots} imageSlots (${param.slotsX} * ${param.slotsY}) on ${param.width} x ${param.height} Texture');
+			#end
         }
         else
 		{

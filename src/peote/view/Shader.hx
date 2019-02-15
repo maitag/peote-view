@@ -234,10 +234,10 @@ class Shader
 		::end::
 		
 		::if isPICKING:: 
-			::if !isES3::gl_Frag::end::Color = vElement; // vec4(vElement.r, vElement.g, vElement.b, 1.0);
+			::if !isES3::gl_Frag::end::Color = vElement;
 		::else::
 			::if !isES3::gl_Frag::end::Color = col;
-			// TODO: check this fix for problem on old FF if alpha goes zero
+			// this fixing problem on old FF if alpha goes zero
 			::if !isES3::gl_Frag::end::Color.w = clamp(::if !isES3::gl_Frag::end::Color.w, 0.003, 1.0);
 		::end::
 	}

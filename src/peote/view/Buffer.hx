@@ -119,7 +119,9 @@ class $className implements BufferInterface
 		}
 		else _elemBuffSize = $p{elemField}.BUFF_SIZE * $p{elemField}.VERTEX_COUNT;
 		
+		#if peoteview_debug_buffer
 		trace("create bytes for GLbuffer");
+		#end
 		_bytes = utils.Bytes.alloc(_elemBuffSize * _minSize);
 		_bytes.fill(0, _elemBuffSize * _minSize, 0);		
 	}
@@ -138,7 +140,9 @@ class $className implements BufferInterface
 		{
 			if (_gl != null) deleteGLBuffer(); // < ------- TODO BUGGY with different-context (see multiwindow sample)
 			
-			trace("Buffer setNewGLContext");	
+			#if peoteview_debug_buffer
+			trace("Buffer setNewGLContext");
+			#end
 			_gl = newGl;
 			createGLBuffer();
 			//updateGLBuffer();
@@ -155,7 +159,9 @@ class $className implements BufferInterface
 	}*/
 	inline function createGLBuffer():Void
 	{
+		#if peoteview_debug_buffer
 		trace("create new GlBuffer");
+		#end
 		_glBuffer = _gl.createBuffer();
 		
 		_gl.bindBuffer (_gl.ARRAY_BUFFER, _glBuffer);
@@ -187,8 +193,9 @@ class $className implements BufferInterface
 	*/
 	inline function deleteGLBuffer():Void
 	{
+		#if peoteview_debug_buffer
 		trace("delete GlBuffer");
-		
+		#end
 		_gl.deleteBuffer(_glBuffer);
 		
 		if (peote.view.PeoteGL.Version.isINSTANCED)	_gl.deleteBuffer(_glInstanceBuffer);
@@ -299,7 +306,9 @@ class $className implements BufferInterface
 		if (element.bytePos == -1) {
 			if (_maxElements == _elements.length) {
 				if (_growSize == 0) throw("Error: Can't add new Element. Buffer is full and automatic growing Buffersize is disabled.");
-				trace("grow up the Buffer to new size",_maxElements + _growSize);
+				#if peoteview_debug_buffer
+				trace("grow up the Buffer to new size", _maxElements + _growSize);
+				#end
 				changeBufferSize(_maxElements + _growSize);
 			}
 			element.bytePos = _maxElements * _elemBuffSize;
@@ -319,7 +328,9 @@ class $className implements BufferInterface
 	{
 		if (element.bytePos != -1) {
 			if (_maxElements > 1 && element.bytePos < (_maxElements-1) * _elemBuffSize ) {
+				#if peoteview_debug_buffer
 				trace("Buffer.removeElement", element.bytePos);
+				#end
 				var lastElement: $elementType = _elements.get(--_maxElements);
 				lastElement.bytePos = element.bytePos;
 				lastElement.dataPointer = new peote.view.PeoteGL.BytePointer(_bytes, element.bytePos);
@@ -329,7 +340,9 @@ class $className implements BufferInterface
 			else _maxElements--;
 			element.bytePos = -1;
 			if (_shrinkAtSize > 0 && _elements.length - _growSize >= _minSize && _maxElements <= _elements.length - _shrinkAtSize) {
+				#if peoteview_debug_buffer
 				trace("shrink Buffer to size", _elements.length - _growSize);
+				#end
 				changeBufferSize(_elements.length - _growSize);
 			}			
 		}

@@ -79,7 +79,7 @@ class BunnyMark
 		#if bunnies 
 		bunnyCount = Std.parseInt (haxe.macro.Compiler.getDefine ("bunnies"));
 		#end
-		trace("Bunnies:", bunnyCount);
+		//trace("Bunnies:", bunnyCount);
 		buffer = new Buffer<Bunny>(bunnyCount, 4096); // automatic grow buffersize about 4096
 		
 		var display = new Display(0, 0, window.width, window.height, Color.GREEN);
@@ -89,7 +89,7 @@ class BunnyMark
 		var image = new Image();
 		
 		var future = Image.loadFromFile("assets/images/wabbit_alpha.png");
-		future.onProgress (function (a:Int,b:Int) trace ('loading image $a/$b'));
+		//future.onProgress (function (a:Int,b:Int) trace ('loading image $a/$b'));
 		future.onError (function (msg:String) trace ("Error: "+msg));
 		future.onComplete (function (image:Image) {
 			
@@ -98,6 +98,12 @@ class BunnyMark
 			texture.setImage(image);
 			
 			program.addTexture(texture, "custom");
+			
+			
+			//program.setFragmentFloatPrecision("high");
+			//program.setFragmentFloatPrecision("medium");
+			program.setFragmentFloatPrecision("low");
+			
 			
 			display.addProgram(program);    // programm to display
 			peoteView.addDisplay(display);  // display to peoteView

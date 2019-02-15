@@ -124,32 +124,34 @@ class PeoteView
 		set_color(color);
 		
 		if (PeoteGL.Version.isUBO) {
-            trace("OpenGL Uniform Buffer Objects enabled.");
-			uniformBuffer = new UniformBufferView();
-			uniformBuffer.createGLBuffer(gl, width, height, xOffset, yOffset, xz, yz);
-			
+            #if peoteview_debug_view
+			trace("OpenGL Uniform Buffer Objects enabled.");
 			trace("GL.UNIFORM_BUFFER_OFFSET_ALIGNMENT:" + gl.getParameter(gl.UNIFORM_BUFFER_OFFSET_ALIGNMENT));
 			trace("GL.MAX_UNIFORM_BLOCK_SIZE:" + gl.getParameter(gl.MAX_UNIFORM_BLOCK_SIZE));
+			#end
+			uniformBuffer = new UniformBufferView();
+			uniformBuffer.createGLBuffer(gl, width, height, xOffset, yOffset, xz, yz);			
         }
         else {
+			#if peoteview_debug_view
             trace("OpenGL Uniform Buffer Objects disabled.");
+			#end
         }
-		
+		#if peoteview_debug_view
 		if (PeoteGL.Version.isINSTANCED) {
             trace("OpenGL InstanceDrawing enabled.");
         }
         else {
             trace("OpenGL InstanceDrawing disabled.");
         }
-		
+		#end
 		maxTextureImageUnits = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS);
 		glStateTexture = new Vector<GLTexture>(maxTextureImageUnits);
-		
+		#if peoteview_debug_view
 		trace("GL.MAX_TEXTURE_SIZE:" + gl.getParameter(gl.MAX_TEXTURE_SIZE));
 		trace("GL.MAX_TEXTURE_IMAGE_UNITS:" + gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS));
 		trace("GL.MAX_COMBINED_TEXTURE_IMAGE_UNITS:" + gl.getParameter(gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS));
 		trace("GL.MAX_VERTEX_TEXTURE_IMAGE_UNITS:" + gl.getParameter(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS));
-		trace("GL.MAX_TEXTURE_SIZE:" + gl.getParameter(gl.MAX_TEXTURE_SIZE));
 		trace("GL.MAX_VERTEX_ATTRIBS:" + gl.getParameter(gl.MAX_VERTEX_ATTRIBS));
 		trace("GL.MAX_VARYING_VECTORS:" + gl.getParameter(gl.MAX_VARYING_VECTORS));
 		trace("GL.MAX_VERTEX_UNIFORM_VECTORS:" + gl.getParameter(gl.MAX_VERTEX_UNIFORM_VECTORS));
@@ -157,12 +159,21 @@ class PeoteView
 		trace("EXTENSIONS:\n" + gl.getSupportedExtensions());
 		// to use internal 32 bit float-textures for webgl enable: gl.getExtension("EXT_color_buffer_float");
 		// or look here https://stackoverflow.com/questions/45571488/webgl-2-readpixels-on-framebuffers-with-float-textures
-		
+		#end
 		// check precision
-		var precision = gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.MEDIUM_FLOAT);
+		var precision = gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.HIGH_FLOAT);
+		if (precision != null) trace("vertexshader-precision HIGH_FLOAT",precision.precision, precision.rangeMin, precision.rangeMax);
+		precision = gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.MEDIUM_FLOAT);
 		if (precision != null) trace("vertexshader-precision MEDIUM_FLOAT",precision.precision, precision.rangeMin, precision.rangeMax);
+		precision = gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.LOW_FLOAT);
+		if (precision != null) trace("vertexshader-precision LOW_FLOAT",precision.precision, precision.rangeMin, precision.rangeMax);
+
+		precision = gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.HIGH_FLOAT);
+		if (precision != null) trace("fragmentshader-precision HIGH_FLOAT",precision.precision, precision.rangeMin, precision.rangeMax);
 		precision = gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.MEDIUM_FLOAT);
 		if (precision != null) trace("fragmentshader-precision MEDIUM_FLOAT",precision.precision, precision.rangeMin, precision.rangeMax);
+		precision = gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.LOW_FLOAT);
+		if (precision != null) trace("fragmentshader-precision LOW_FLOAT",precision.precision, precision.rangeMin, precision.rangeMax);
 		
 		initGlPicking();
 		
