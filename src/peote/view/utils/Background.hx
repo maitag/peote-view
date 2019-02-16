@@ -61,8 +61,6 @@ class Background
 		
 		var glFragmentShader:GLShader = GLTool.compileGLShader(gl, gl.FRAGMENT_SHADER,
 		"
-			precision mediump float;
-			
 			uniform vec4 uRGBA;
 			void main(void)
 			{

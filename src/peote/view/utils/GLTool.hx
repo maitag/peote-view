@@ -46,7 +46,7 @@ class GLTool
 		return true;
 	}
 	
-	static public inline function compileGLShader(gl:PeoteGL, type:Int, shaderSrc:String, debug:Bool = false):GLShader
+	static public inline function compileGLShader(gl:PeoteGL, type:Int, shaderSrc:String, debug:Bool = true):GLShader
 	{
 		#if peoteview_debug_shader
 		if (debug) {
