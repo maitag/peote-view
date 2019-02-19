@@ -8,7 +8,6 @@ import utils.MultipassTemplate;
 
 class GLTool 
 {
-
 	static public inline function createFramebuffer(gl:PeoteGL, texture:GLTexture, depthTexture:GLTexture, width:Int, height:Int):GLFramebuffer
 	{
 		var framebuffer = gl.createFramebuffer();

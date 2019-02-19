@@ -211,17 +211,14 @@ class Program
 		#end
 		glShaderConfig.isPICKING = (isPicking) ? true : false;
 		
-		if (buffer.needFragmentPrecision() && fragmentFloatPrecision == null) {
-			var precision = gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.MEDIUM_FLOAT);
-			if (precision != null)
-				if (Std.int(precision.precision) < 23) {
-					precision = gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.HIGH_FLOAT);
-					if (precision != null) 
-						if (Std.int(precision.precision) > 0) fragmentFloatPrecision = "highp";
-				}
+		if (fragmentFloatPrecision != null) glShaderConfig.FRAGMENT_FLOAT_PRECISION = fragmentFloatPrecision;
+		else {
+			if (buffer.needFragmentPrecision() && PeoteGL.Precision.FragmentFloat.medium < 23)
+				glShaderConfig.FRAGMENT_FLOAT_PRECISION = PeoteGL.Precision.availFragmentFloat("highp");
+			else 
+				glShaderConfig.FRAGMENT_FLOAT_PRECISION = PeoteGL.Precision.availFragmentFloat("mediump");
 		}
-		glShaderConfig.FRAGMENT_FLOAT_PRECISION = (fragmentFloatPrecision == null) ? "mediump" : fragmentFloatPrecision;
-		
+				
 		var glVShader = GLTool.compileGLShader(gl, gl.VERTEX_SHADER,   GLTool.parseShader(buffer.getVertexShader(),   glShaderConfig), true );
 		var glFShader = GLTool.compileGLShader(gl, gl.FRAGMENT_SHADER, GLTool.parseShader(buffer.getFragmentShader(), glShaderConfig), true );
 
@@ -404,36 +401,36 @@ class Program
 			}
 			else precision += "p";
 		}
-		return (precision);
+		return precision;
 	}	
 	// set float precision for fragmentShader 
 	public function setFragmentFloatPrecision(?precision:Null<String>, ?autoUpdateTextures:Null<Bool>) {
-		fragmentFloatPrecision = validatePrecision(precision); // template is set in createProgram
+		fragmentFloatPrecision =  PeoteGL.Precision.availFragmentFloat(validatePrecision(precision)); // template is set in createProgram
 		checkAutoUpdate(autoUpdateTextures);
 	}
 	// set int precision for fragmentShader 
 	public function setFragmentIntPrecision(?precision:Null<String>, ?autoUpdateTextures:Null<Bool>) {
-		glShaderConfig.FRAGMENT_INT_PRECISION = validatePrecision(precision);
+		glShaderConfig.FRAGMENT_INT_PRECISION =  PeoteGL.Precision.availFragmentInt(validatePrecision(precision));
 		checkAutoUpdate(autoUpdateTextures);
 	}
 	// set sampler2D precision for fragmentShader 
 	public function setFragmentSamplerPrecision(?precision:Null<String>, ?autoUpdateTextures:Null<Bool>) {
-		glShaderConfig.FRAGMENT_SAMPLER_PRECISION = validatePrecision(precision);
+		glShaderConfig.FRAGMENT_SAMPLER_PRECISION =  PeoteGL.Precision.availFragmentSampler(validatePrecision(precision));
 		checkAutoUpdate(autoUpdateTextures);
 	}
 	// set float precision for vertexShader 
 	public function setVertexFloatPrecision(?precision:Null<String>, ?autoUpdateTextures:Null<Bool>) {
-		glShaderConfig.VERTEX_FLOAT_PRECISION = validatePrecision(precision);
+		glShaderConfig.VERTEX_FLOAT_PRECISION =  PeoteGL.Precision.availVertexFloat(validatePrecision(precision));
 		checkAutoUpdate(autoUpdateTextures);
 	}
 	// set int precision for vertexShader 
 	public function setVertexIntPrecision(?precision:Null<String>, ?autoUpdateTextures:Null<Bool>) {
-		glShaderConfig.VERTEX_INT_PRECISION = validatePrecision(precision);
+		glShaderConfig.VERTEX_INT_PRECISION = PeoteGL.Precision.availVertexInt(validatePrecision(precision));
 		checkAutoUpdate(autoUpdateTextures);
 	}
 	// set sampler precision for vertexShader 
 	public function setVertexSamplerPrecision(?precision:Null<String>, ?autoUpdateTextures:Null<Bool>) {
-		glShaderConfig.VERTEX_SAMPLER_PRECISION = validatePrecision(precision);
+		glShaderConfig.VERTEX_SAMPLER_PRECISION = PeoteGL.Precision.availVertexSampler(validatePrecision(precision));
 		checkAutoUpdate(autoUpdateTextures);
 	}
 	

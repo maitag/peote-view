@@ -202,3 +202,47 @@ class Version {
 		
 	#end	
 }
+
+@:allow(peote.view)
+class Precision {
+	static var VertexFloat    :PrecType = {high:0, medium:0, low:0};
+	static var VertexInt      :PrecType = {high:0, medium:0, low:0};
+	static var VertexSampler  :PrecType = {high:0, medium:0, low:0};
+	static var FragmentFloat  :PrecType = {high:0, medium:0, low:0};
+	static var FragmentInt    :PrecType = {high:0, medium:0, low:0};
+	static var FragmentSampler:PrecType = {high:0, medium:0, low:0};
+	
+	static public inline function _init(gl:PeoteGL, shaderType:Int, t:PrecType) {
+		var p = gl.getShaderPrecisionFormat(shaderType, gl.HIGH_FLOAT);
+		if (p != null) t.high = p.precision;
+		p = gl.getShaderPrecisionFormat(shaderType, gl.MEDIUM_FLOAT);
+		if (p != null) t.medium = p.precision;
+		p = gl.getShaderPrecisionFormat(shaderType, gl.LOW_FLOAT);
+		if (p != null) t.low = p.precision;
+	}
+	
+	static public inline function init(gl:PeoteGL) {
+		_init(gl, gl.VERTEX_SHADER, VertexFloat);
+		_init(gl, gl.VERTEX_SHADER, VertexInt);
+		_init(gl, gl.VERTEX_SHADER, VertexSampler);
+		_init(gl, gl.FRAGMENT_SHADER, FragmentFloat);
+		_init(gl, gl.FRAGMENT_SHADER, FragmentInt);
+		_init(gl, gl.FRAGMENT_SHADER, FragmentSampler);
+	}
+	
+	static public inline function highest(t:PrecType, p:Null<String>):Null<String> {
+		if (p == null) return null;
+		if (t.high > 0 && p == "highp") return "highp";
+		else if (t.medium > 0 && (p == "highp" || p == "mediump")) return "mediump";
+		else if (t.low > 0) return "lowp";
+		else return null;
+	}
+	static public inline function availVertexFloat(precision:Null<String>):Null<String> return highest(VertexFloat, precision);
+	static public inline function availVertexInt(precision:Null<String>):Null<String> return highest(VertexInt, precision);
+	static public inline function availVertexSampler(precision:Null<String>):Null<String> return highest(VertexSampler, precision);
+	static public inline function availFragmentFloat(precision:Null<String>):Null<String> return highest(FragmentFloat, precision);
+	static public inline function availFragmentInt(precision:Null<String>):Null<String> return highest(FragmentInt, precision);
+	static public inline function availFragmentSampler(precision:Null<String>):Null<String> return highest(FragmentSampler, precision);
+}
+
+typedef PrecType = {high:Int, medium:Int, low:Int};

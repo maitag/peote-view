@@ -1,6 +1,5 @@
 package;
 #if sampleBunnyMark
-import haxe.Timer;
 
 import lime.ui.Window;
 import lime.ui.KeyCode;
@@ -86,8 +85,6 @@ class BunnyMark
 		
 		var program = new Program(buffer);
 		
-		var image = new Image();
-		
 		var future = Image.loadFromFile("assets/images/wabbit_alpha.png");
 		//future.onProgress (function (a:Int,b:Int) trace ('loading image $a/$b'));
 		future.onError (function (msg:String) trace ("Error: "+msg));
@@ -100,9 +97,8 @@ class BunnyMark
 			program.addTexture(texture, "custom");
 			
 			
-			//program.setFragmentFloatPrecision("high");
-			//program.setFragmentFloatPrecision("medium");
-			program.setFragmentFloatPrecision("low");
+			//program.setVertexFloatPrecision("low");
+			//program.setFragmentFloatPrecision("low");
 			
 			
 			display.addProgram(program);    // programm to display

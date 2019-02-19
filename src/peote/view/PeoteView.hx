@@ -160,20 +160,8 @@ class PeoteView
 		// to use internal 32 bit float-textures for webgl enable: gl.getExtension("EXT_color_buffer_float");
 		// or look here https://stackoverflow.com/questions/45571488/webgl-2-readpixels-on-framebuffers-with-float-textures
 		#end
-		// check precision
-		var precision = gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.HIGH_FLOAT);
-		if (precision != null) trace("vertexshader-precision HIGH_FLOAT",precision.precision, precision.rangeMin, precision.rangeMax);
-		precision = gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.MEDIUM_FLOAT);
-		if (precision != null) trace("vertexshader-precision MEDIUM_FLOAT",precision.precision, precision.rangeMin, precision.rangeMax);
-		precision = gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.LOW_FLOAT);
-		if (precision != null) trace("vertexshader-precision LOW_FLOAT",precision.precision, precision.rangeMin, precision.rangeMax);
-
-		precision = gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.HIGH_FLOAT);
-		if (precision != null) trace("fragmentshader-precision HIGH_FLOAT",precision.precision, precision.rangeMin, precision.rangeMax);
-		precision = gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.MEDIUM_FLOAT);
-		if (precision != null) trace("fragmentshader-precision MEDIUM_FLOAT",precision.precision, precision.rangeMin, precision.rangeMax);
-		precision = gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.LOW_FLOAT);
-		if (precision != null) trace("fragmentshader-precision LOW_FLOAT",precision.precision, precision.rangeMin, precision.rangeMax);
+		
+		PeoteGL.Precision.init(gl); // init precision		
 		
 		initGlPicking();
 		

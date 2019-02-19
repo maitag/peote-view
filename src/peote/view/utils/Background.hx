@@ -5,6 +5,7 @@ import peote.view.PeoteGL.GLProgram;
 import peote.view.PeoteGL.GLShader;
 import peote.view.PeoteGL.GLUniformLocation;
 import peote.view.PeoteGL.BytePointer;
+import peote.view.PeoteGL.Precision;
 
 import haxe.io.Bytes;
 
@@ -37,15 +38,19 @@ class Background
 		
 		buffer = gl.createBuffer ();
 		gl.bindBuffer (gl.ARRAY_BUFFER, buffer);
-		//gl.bufferData (gl.ARRAY_BUFFER, new Float32Array (data), gl.STATIC_DRAW);
 		gl.bufferData (gl.ARRAY_BUFFER, 8*4, new BytePointer(bytes), gl.STATIC_DRAW);
 		gl.bindBuffer (gl.ARRAY_BUFFER, null);
 	}
 	
 	public function createProgram():Void
 	{
+		var precision:String = "";
+		
+		if (Precision.availVertexFloat("lowp") != null) precision = "precision lowp float;";
+		else if (Precision.availVertexFloat("mediump") != null) precision = "precision mediump float;";
+		
 		var glVertexShader:GLShader = GLTool.compileGLShader(gl, gl.VERTEX_SHADER,
-		"	
+		precision + "	
 			attribute vec2 aPosition;
 			void main(void)
 			{
@@ -59,8 +64,11 @@ class Background
 		"
 		);
 		
+		if (Precision.availFragmentFloat("lowp") != null) precision = "precision lowp float;";
+		else if (Precision.availFragmentFloat("mediump") != null) precision = "precision mediump float;";
+		
 		var glFragmentShader:GLShader = GLTool.compileGLShader(gl, gl.FRAGMENT_SHADER,
-		"
+		precision + "
 			uniform vec4 uRGBA;
 			void main(void)
 			{
