@@ -157,9 +157,10 @@ class PeoteView
 		trace("GL.MAX_VERTEX_UNIFORM_VECTORS:" + gl.getParameter(gl.MAX_VERTEX_UNIFORM_VECTORS));
 		trace("GL.MAX_FRAGMENT_UNIFORM_VECTORS:" + gl.getParameter(gl.MAX_FRAGMENT_UNIFORM_VECTORS));
 		trace("EXTENSIONS:\n" + gl.getSupportedExtensions());
+		#end
 		// to use internal 32 bit float-textures for webgl enable: gl.getExtension("EXT_color_buffer_float");
 		// or look here https://stackoverflow.com/questions/45571488/webgl-2-readpixels-on-framebuffers-with-float-textures
-		#end
+		
 		
 		PeoteGL.Precision.init(gl); // init precision		
 		
@@ -334,7 +335,9 @@ class PeoteView
 	// ------------------------------------------------------------------------------
 	public function renderToTexture(display:Display, slot:Int = 0)
 	{
-		gl.bindFramebuffer(gl.FRAMEBUFFER, display.fbTexture.framebuffer); 
+		gl.bindFramebuffer(gl.FRAMEBUFFER, display.fbTexture.framebuffer);
+		
+		// TODO: on neko & android it is lost its DEPTH sometimes, better using RENDERBUFFER for DEPTH instead
 		
 		gl.viewport(
 			display.fbTexture.slotWidth * (slot % display.fbTexture.slotsX),

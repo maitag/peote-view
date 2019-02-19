@@ -134,6 +134,9 @@ class TextureMipmapFilter
 		else { timer = new Timer(40); zoomIn(); isStop = false; }
 	}
 
+	public function onMouseMove (x:Float, y:Float):Void {}
+	public function onWindowLeave ():Void {}
+
 	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
 	{
 		timer.stop();

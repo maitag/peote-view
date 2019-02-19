@@ -63,10 +63,9 @@ class Multidisplay
 
 	public function onPreloadComplete ():Void { trace("preload complete"); }
 
-	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
-	{
-		
-	}
+	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void {}
+	public function onMouseMove (x:Float, y:Float):Void {}
+	public function onWindowLeave ():Void {}
 	
 	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
 	{

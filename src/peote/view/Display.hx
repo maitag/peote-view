@@ -192,7 +192,7 @@ class Display
 	}
 	
 	public function setFramebuffer(texture:Texture) {
-		if (fbTexture == texture) throw("Error, texture already in use as Framebuffer for Display");
+		if (fbTexture == texture) throw("Error, texture is already in use as Framebuffer for Display");
 		if (fbTexture != null) fbTexture.removeFromDisplay(this);
 		fbTexture = texture;
 		fbTexture.addToDisplay(this);

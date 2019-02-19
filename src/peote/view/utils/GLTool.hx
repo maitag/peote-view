@@ -16,6 +16,7 @@ class GLTool
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
 		if (PeoteGL.Version.hasFRAMEBUFFER_DEPTH) {
 			depthTexture = TexUtils.createDepthTexture(gl, width, height);
+			// TODO: neko sometimes lost its depth (look at RenderToTexture-Sample!)
 			gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, depthTexture, 0);
 		}
 		if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE) throw("Error: Framebuffer not complete!");
@@ -26,6 +27,8 @@ class GLTool
 	
 	static public function hasFramebufferDepth(gl:PeoteGL):Bool
 	{
+		gl.getExtension("ARB_depth_texture"); // TODO
+		
 		var texture = TexUtils.createDepthTexture(gl, 1, 1); // depth-texture did not work here on IE11 with webgl1 (neko/cpp is ok!)
 		var fb = gl.createFramebuffer();
 		
@@ -35,7 +38,7 @@ class GLTool
 		if (!PeoteGL.Version.isES3) // check only for es2
 			if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE) {
 				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-				trace("Can not bind depth texture to FB for gl-picking");
+				trace("Can not bind depth texture to FB for gl-picking or RenderToTexture");
 				texture = null;
 				gl.deleteFramebuffer(fb);
 				return false;
@@ -45,7 +48,7 @@ class GLTool
 		return true;
 	}
 	
-	static public inline function compileGLShader(gl:PeoteGL, type:Int, shaderSrc:String, debug:Bool = true):GLShader
+	static public inline function compileGLShader(gl:PeoteGL, type:Int, shaderSrc:String, debug:Bool = false):GLShader
 	{
 		#if peoteview_debug_shader
 		if (debug) {

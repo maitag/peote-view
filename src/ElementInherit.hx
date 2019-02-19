@@ -97,6 +97,8 @@ class ElementInherit
 	}
 	public function update(deltaTime:Int):Void {}
 	public function onMouseUp (x:Float, y:Float, button:MouseButton):Void {}
+	public function onMouseMove (x:Float, y:Float):Void {}
+	public function onWindowLeave ():Void {}
 
 	public function render()
 	{

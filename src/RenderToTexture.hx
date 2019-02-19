@@ -81,13 +81,13 @@ class RenderToTexture
 		displayFrom.addProgram(programFrom);
 		
 		// rotation Elements
-		elementFrom = new Elem(120, 16, 16, 64, Color.RED);
-		elementFrom.setPivot(8, 96 + 16);
+		elementFrom = new Elem(120-8, 16, 32, 80, Color.RED);
+		elementFrom.setPivot(16, 96 + 16);
 		elementFrom.animRotation(0, 360);
 		elementFrom.timeRotation(0, 1);
 		bufferFrom.addElement(elementFrom);
 		
-		var elemBG = new Elem(64, 64, 128, 128, Color.BLUE); // TODO: problem if no support for framebuffer with depth-attachement
+		var elemBG = new Elem(64-45, 64-45, 128+90, 128+90, Color.YELLOW); // TODO: problem if no support for framebuffer with depth-attachement
 		elemBG.z = -1;
 		bufferFrom.addElement(elemBG);
 		
@@ -125,12 +125,11 @@ class RenderToTexture
 		bufferTo.addElement(elementTo);
 		
 		
-		var timer = new Timer(100);
+		var timer = new Timer(1);
 		timer.run = function() {
 			peoteView.renderToTexture(displayFrom, 1); // render into slot 1
 		}
-		
-		
+			
 		peoteView.start();
 		
 		} catch (msg:Dynamic) trace("Error:", msg);
@@ -146,6 +145,9 @@ class RenderToTexture
 	{
 		autoRenderToTexture = !autoRenderToTexture;
 	}
+	
+	public function onMouseMove (x:Float, y:Float):Void {}
+	public function onWindowLeave ():Void {}
 
 	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
 	{

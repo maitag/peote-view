@@ -187,6 +187,9 @@ class BunnyMark
 		addingBunnies = false;
 		trace ('${bunnies.length} bunnies @ ${fps.current} FPS');
 	}
+	
+	public function onMouseMove (x:Float, y:Float):Void {}
+	public function onWindowLeave ():Void {}
 
 	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
 	{

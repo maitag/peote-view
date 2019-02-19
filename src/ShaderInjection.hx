@@ -103,6 +103,9 @@ class ShaderInjection
 		display.zoom *= 2;	
 	}
 
+	public function onMouseMove (x:Float, y:Float):Void {}
+	public function onWindowLeave ():Void {}
+
 	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
 	{
 		switch (keyCode) {
