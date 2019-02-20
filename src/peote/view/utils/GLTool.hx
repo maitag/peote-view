@@ -1,5 +1,6 @@
 package peote.view.utils;
 
+import lime.graphics.opengl.GLRenderbuffer;
 import peote.view.PeoteGL.GLFramebuffer;
 import peote.view.PeoteGL.GLProgram;
 import peote.view.PeoteGL.GLShader;
@@ -8,7 +9,43 @@ import utils.MultipassTemplate;
 
 class GLTool 
 {
-	static public inline function createFramebuffer(gl:PeoteGL, texture:GLTexture, depthTexture:GLTexture, width:Int, height:Int):GLFramebuffer
+	// clear the error-queue
+	static public function clearGlErrorQueue(gl:PeoteGL) {
+		while ( gl.getError() != gl.NO_ERROR) {}
+	}
+	
+	// fetch last gl-error from queue
+	// error-catching can be disabled while context-creation so take care with
+	static public function getLastGlError(gl:PeoteGL):Int {
+		return gl.getError();
+	}
+	
+	static public inline function createFramebuffer(gl:PeoteGL, texture:GLTexture, depthBuffer:GLRenderbuffer, width:Int, height:Int):GLFramebuffer
+	{
+		var framebuffer = gl.createFramebuffer();
+		
+		depthBuffer = gl.createRenderbuffer();
+		gl.bindRenderbuffer(gl.RENDERBUFFER, depthBuffer);
+
+		// cpp:DEPTH_COMPONENT // FF/Chrome:DEPTH_COMPONENT24 // IE: DEPTH_COMPONENT16
+		clearGlErrorQueue(gl);
+		gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT24, width, height);
+		if (getLastGlError(gl) == gl.INVALID_ENUM)
+			gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, width, height);
+		
+		gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+		gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthBuffer);
+		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+
+		if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE) throw("Error: Framebuffer not complete!");
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+		
+		return (framebuffer);
+	}
+	
+	/*
+	static public inline function createFramebufferWithDepthTexture(gl:PeoteGL, texture:GLTexture, depthTexture:GLTexture, width:Int, height:Int):GLFramebuffer
 	{
 		var framebuffer = gl.createFramebuffer();
 		
@@ -27,8 +64,6 @@ class GLTool
 	
 	static public function hasFramebufferDepth(gl:PeoteGL):Bool
 	{
-		gl.getExtension("ARB_depth_texture"); // TODO
-		
 		var texture = TexUtils.createDepthTexture(gl, 1, 1); // depth-texture did not work here on IE11 with webgl1 (neko/cpp is ok!)
 		var fb = gl.createFramebuffer();
 		
@@ -47,6 +82,7 @@ class GLTool
 		
 		return true;
 	}
+	*/
 	
 	static public inline function compileGLShader(gl:PeoteGL, type:Int, shaderSrc:String, debug:Bool = false):GLShader
 	{

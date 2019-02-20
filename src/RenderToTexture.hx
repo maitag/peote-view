@@ -85,10 +85,11 @@ class RenderToTexture
 		elementFrom.setPivot(16, 96 + 16);
 		elementFrom.animRotation(0, 360);
 		elementFrom.timeRotation(0, 1);
+		elementFrom.z = 80;
 		bufferFrom.addElement(elementFrom);
 		
 		var elemBG = new Elem(64-45, 64-45, 128+90, 128+90, Color.YELLOW); // TODO: problem if no support for framebuffer with depth-attachement
-		elemBG.z = -1;
+		elemBG.z = 0;
 		bufferFrom.addElement(elemBG);
 		
 		texture = new Texture(256, 256 , 2, 4, true, 1, 1); // 2 Slots
@@ -125,7 +126,7 @@ class RenderToTexture
 		bufferTo.addElement(elementTo);
 		
 		
-		var timer = new Timer(1);
+		var timer = new Timer(80);
 		timer.run = function() {
 			peoteView.renderToTexture(displayFrom, 1); // render into slot 1
 		}

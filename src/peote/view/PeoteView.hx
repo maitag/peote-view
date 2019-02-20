@@ -2,6 +2,7 @@ package peote.view;
 
 import haxe.Timer;
 import haxe.ds.Vector;
+import lime.graphics.opengl.GLRenderbuffer;
 
 import peote.view.utils.Background;
 import peote.view.utils.GLTool;
@@ -40,8 +41,7 @@ class PeoteView
 	public function isTextureStateChange(activeTextureUnit:Int, texture:Texture):Bool {
 		if (texture.updated) {
 			texture.updated = false;
-			// TODO: should it update ALL other textures the program is in use?
-			// ..maybe program as param here and then set all glStateTexture of that program ?
+			// TODO: textures can be unbind inside texture or for renderTotexture!
 			glStateTexture = new Vector<GLTexture>(maxTextureImageUnits); // clear full -> todo: optimize
 			glStateTexture.set(activeTextureUnit, texture.glTexture);			
 			return true;
@@ -224,8 +224,7 @@ class PeoteView
 	{
 		this.width = width;
 		this.height = height;
-		// TODO: re-arange or resize all Displays
-		
+		// TODO: re-arange or resize Displays		
 		if (PeoteGL.Version.isUBO) uniformBuffer.updateResolution(gl, width, height);
 	}
 
@@ -236,11 +235,11 @@ class PeoteView
 	// ------------------------------------------------------------------------------
 	var pickFB:GLFramebuffer;
 	var pickTexture:GLTexture;
-	var pickDepthTexture:GLTexture;
+	var pickDepthBuffer:GLRenderbuffer;
 	var pickInt32:lime.utils.Int32Array;
 	var pickUInt8:lime.utils.UInt8Array;
 	
-	private inline function initGlPicking() // TODO: refactor more into GLTool!
+	private inline function initGlPicking()
 	{
 		if (PeoteGL.Version.isINSTANCED) {
 			pickInt32 = new lime.utils.Int32Array(4);
@@ -248,26 +247,16 @@ class PeoteView
 		} else {
 			pickUInt8  = new lime.utils.UInt8Array(4);
 			pickTexture = TexUtils.createPickingTexture(gl); // RGBA
-		}		
-		pickFB = GLTool.createFramebuffer(gl, pickTexture, pickDepthTexture, 1, 1); 
+		}
+		pickFB = GLTool.createFramebuffer(gl, pickTexture, pickDepthBuffer, 1, 1); 
 	}
-	
-	// TODO: function to call onClick eventhandler of all pickable
 	
 	public function getElementAt(mouseX:Float, mouseY:Float, display:Display, program:Program):Int
 	{
-		if (PeoteGL.Version.hasFRAMEBUFFER_DEPTH) {
-			gl.bindFramebuffer(gl.FRAMEBUFFER, pickFB);
-			var element = pick(mouseX, mouseY, display, program);
-			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-			return element;
-		} else {
-			var elements = getAllElementsAt(mouseX, mouseY, display, program);
-			//TODO -> sort z-depth
-			if (elements.length > 0) return program.buffer.getElementWithHighestZindex(elements);
-			else return -1;
-		}
-		
+		gl.bindFramebuffer(gl.FRAMEBUFFER, pickFB);
+		var element = pick(mouseX, mouseY, display, program);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		return element;
 	}
 
 	public function getAllElementsAt(mouseX:Float, mouseY:Float, display:Display, program:Program):Array<Int>
@@ -295,18 +284,13 @@ class PeoteView
 		// clear framebuffer
 		if (PeoteGL.Version.isINSTANCED) {
 			gl.clearBufferiv(gl.COLOR, 0, [0, 0, 0, 0]); // only the first value is the UInt32 value that clears the texture
-			if (PeoteGL.Version.hasFRAMEBUFFER_DEPTH) {
-				gl.clear(gl.DEPTH_BUFFER_BIT);
-				gl.depthFunc(gl.LEQUAL);
-			}
+			gl.clear(gl.DEPTH_BUFFER_BIT);
+			gl.depthFunc(gl.LEQUAL);
 		}
 		else {
 			gl.clearColor(0.0, 0.0, 0.0, 0.0);
-			if (PeoteGL.Version.hasFRAMEBUFFER_DEPTH) {
-				gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
-				gl.depthFunc(gl.LEQUAL);
-			}
-			else gl.clear( gl.COLOR_BUFFER_BIT );
+			gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
+			gl.depthFunc(gl.LEQUAL);
 		}
 				
 		var xOff:Float = xOffset - (xOffset + mouseX - xOffset) / xz;
@@ -336,8 +320,6 @@ class PeoteView
 	public function renderToTexture(display:Display, slot:Int = 0)
 	{
 		gl.bindFramebuffer(gl.FRAMEBUFFER, display.fbTexture.framebuffer);
-		
-		// TODO: on neko & android it is lost its DEPTH sometimes, better using RENDERBUFFER for DEPTH instead
 		
 		gl.viewport(
 			display.fbTexture.slotWidth * (slot % display.fbTexture.slotsX),

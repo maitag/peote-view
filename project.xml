@@ -64,7 +64,7 @@
 	<!-- <haxedef name="HXCPP_MSVC_VER=120" if="cpp" /> -->
 	<!-- <haxedef name="HXCPP_MSVC_VER=140" if="cpp" /> -->
 	
-	<assets path="assets" exclude="lime.svg" embed="false" /> <!-- for preloading like in sample "sampleDepthBlend" need to be embed=true --> 
+	<assets path="assets" exclude="lime.svg" embed="true" /> <!-- for preloading like in sample "sampleDepthBlend" need to be embed=true --> 
 	
 	<icon path="assets/lime.svg" />
 	

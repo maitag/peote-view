@@ -66,13 +66,28 @@ class GLPicking
 			peoteView.addDisplay(display);
 			
 			buffer = new Buffer<Elem>(1000);
-
-			for (i in 0...1000) {
+			
+			/*for (i in 0...1000) {
 				var size = random(100);
 				element[i] = new Elem(random(window.width), random(window.height), size, size, Color.random());
 				element[i].z = random(Elem.MAX_ZINDEX);
 				buffer.addElement(element[i]);
-			}
+			}*/
+			element[0] = new Elem(-100,   0, 512, 512, Color.RED);
+			element[1] = new Elem( 100, 200, 512, 512, Color.YELLOW);
+			element[2] = new Elem( 280, 100, 512, 512, Color.GREEN);
+			element[3] = new Elem( 480, 300, 512, 512, Color.MAGENTA);
+
+			element[0].z =  Elem.MAX_ZINDEX;
+			element[1].z =  Elem.MAX_ZINDEX - 1;
+			element[2].z = -Elem.MAX_ZINDEX + 1;
+			element[3].z = -Elem.MAX_ZINDEX;
+			
+			buffer.addElement(element[0]);
+			buffer.addElement(element[1]);
+			buffer.addElement(element[2]);
+			buffer.addElement(element[3]);
+			
 			
 			program = new Program(buffer);
 			
@@ -107,6 +122,7 @@ class GLPicking
 		if (pickedElement >= 0) {
 			var elem = buffer.getElement(pickedElement);
 			elem.color = Color.random();
+			elem.color.alpha = 255;
 			buffer.updateElement(elem);			
 		}
 		

@@ -64,8 +64,8 @@ class DepthBlend
 		displayR.addProgram(programR);
 		peoteView.addDisplay(displayR);
 		
-		element1 = new ElementSimple(100, 100, 100, 100, 0xFF0000ff); element1.z = ElementSimple.MAX_ZINDEX;
-		element2 = new ElementSimple(130, 130, 100, 100, 0x0000ffff); element2.z = ElementSimple.MAX_ZINDEX;
+		element1 = new ElementSimple(100, 100, 100, 100, 0xFF0000ff); element1.z = -ElementSimple.MAX_ZINDEX;
+		element2 = new ElementSimple(130, 130, 100, 100, 0x0000ffff); element2.z = -ElementSimple.MAX_ZINDEX;
 		bufferL.addElement(element1);
 		bufferL.addElement(element2);
 		

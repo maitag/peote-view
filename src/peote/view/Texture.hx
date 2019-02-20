@@ -1,5 +1,6 @@
 package peote.view;
 
+import lime.graphics.opengl.GLRenderbuffer;
 import peote.view.PeoteGL.Image;
 import peote.view.PeoteGL.GLTexture;
 import peote.view.PeoteGL.GLFramebuffer;
@@ -16,7 +17,7 @@ class Texture
 	public var glTexture(default, null):GLTexture = null;	
 	
 	var framebuffer:GLFramebuffer = null;
-	var glDepthTexture:GLTexture = null;	
+	var glDepthBuffer:GLRenderbuffer = null;	
 	
 	public var colorChannels(default, null):Int=4;
 	
@@ -105,7 +106,7 @@ class Texture
 			#if peoteview_debug_texture 
 			trace("Create Framebuffer");
 			#end
-			framebuffer = GLTool.createFramebuffer(gl, glTexture, glDepthTexture, width, height); 
+			framebuffer = GLTool.createFramebuffer(gl, glTexture, glDepthBuffer, width, height); 
 		}
 	}
 
@@ -115,9 +116,9 @@ class Texture
 			trace("Delete Framebuffer");
 			#end
 			gl.deleteFramebuffer(framebuffer);
-			if (glDepthTexture != null) gl.deleteTexture(glDepthTexture);
 			framebuffer = null;
-			glDepthTexture = null;
+			if (glDepthBuffer != null) gl.deleteRenderbuffer(glDepthBuffer);
+			glDepthBuffer = null;
 		}
 	}
 	

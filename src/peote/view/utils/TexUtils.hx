@@ -61,7 +61,7 @@ class TexUtils
 		
 		return glTexture;
 	}
-	
+	/*
 	public static function createDepthTexture(gl:PeoteGL, width:Int, height:Int):GLTexture
 	{
 		var glTexture:GLTexture = gl.createTexture();
@@ -85,7 +85,7 @@ class TexUtils
 		gl.bindTexture(gl.TEXTURE_2D, null);		
 		return glTexture;
 	}
-
+	*/
 	public static function createPickingTexture(gl:PeoteGL, isRGBA32I:Bool=false):GLTexture
 	{
 		var glTexture:GLTexture = gl.createTexture();

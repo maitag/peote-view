@@ -151,7 +151,7 @@ class Display
 			
 			// setNewGLContext for all programs
 			for (program in programList) program.setNewGLContext(newGl);			
-			//if (fbTexture != null) fbTexture.setNewGLContext(newGl);			
+			if (fbTexture != null) fbTexture.setNewGLContext(newGl);			
 		}
 	}
 
