@@ -19,11 +19,11 @@ import peote.view.Element;
 
 class Elem implements Element
 {
-	@posX public var x:Int = 0;	
-	@posY public var y:Int = 0;
+	@posX @anim("PosSize", "pingpong") public var x:Int = 0;	
+	@posY @anim("PosSize", "pingpong") public var y:Int = 0;
 		
-	@sizeX public var w:Int = 100;	
-	@sizeY public var h:Int = 100;
+	@sizeX @anim("PosSize", "pingpong") public var w:Int = 100;	
+	@sizeY @anim("PosSize", "pingpong") public var h:Int = 100;
 	
 	@zIndex public var z:Int = 0;	
 
@@ -53,99 +53,142 @@ class RenderToTexture
 {
 	var peoteView:PeoteView;
 	
-	var displayFrom:Display;
-	var bufferFrom:Buffer<Elem>;
-	var programFrom:Program;
-	var elementFrom:Elem;
+	var displayFrom1:Display;
+	var displayFrom2:Display;
 
 	var texture:Texture; // texture that will be used from both
 	
 	var displayTo:Display;
-	var bufferTo:Buffer<Elem>;
-	var programTo:Program;
-	var elementTo:Elem;
 	
 	var autoRenderToTexture = false;
 
 	public function new(window:Window)
 	{
 		try {
-		peoteView = new PeoteView(window.context, window.width, window.height);
+			peoteView = new PeoteView(window.context, window.width, window.height);
 
-		// display to renderToTexture:
-		displayFrom = new Display(0, 60, 256, 256, Color.GREEN);
-		peoteView.addDisplay(displayFrom);
-		
-		bufferFrom  = new Buffer<Elem>(100);
-		programFrom = new Program(bufferFrom);
-		displayFrom.addProgram(programFrom);
-		
-		// rotation Elements
-		elementFrom = new Elem(120-8, 16, 32, 80, Color.RED);
-		elementFrom.setPivot(16, 96 + 16);
-		elementFrom.animRotation(0, 360);
-		elementFrom.timeRotation(0, 1);
-		elementFrom.z = 80;
-		bufferFrom.addElement(elementFrom);
-		
-		var elemBG = new Elem(64-45, 64-45, 128+90, 128+90, Color.YELLOW); // TODO: problem if no support for framebuffer with depth-attachement
-		elemBG.z = 0;
-		bufferFrom.addElement(elemBG);
-		
-		texture = new Texture(256, 256 , 2, 4, true, 1, 1); // 2 Slots
+			// upper left display to renderToTexture:
+			displayFrom1 = new Display(0, 0, 256, 256, Color.GREEN);
+			peoteView.addDisplay(displayFrom1);
 			
-		displayFrom.setFramebuffer(texture);
-		//displayFrom.removeFramebuffer(); // need before using this texture with different gl-context!
-		
-		// --------------------------------------------
-		
-		// display that is using the Texture the other display is rendering In:
-		displayTo = new Display(260, 0, 512, 512, Color.BLUE);
-		peoteView.addDisplay(displayTo);
-		
-		bufferTo  = new Buffer<Elem>(100);
-		programTo = new Program(bufferTo);
-		programTo.setTexture(texture, "renderFrom");
-		programTo.setColorFormula('renderFrom');
-		programTo.discardAtAlpha(null);
-		displayTo.addProgram(programTo);
-		
-		peoteView.renderToTexture(displayFrom, 0); // render into slot 0
-		
-		// element in middle is using texture-slot 1
-		var elementTo1 = new Elem(256 - 32, 256 - 32, 64, 64, Color.CYAN);
-		elementTo1.slot = 0;
-		bufferTo.addElement(elementTo1);
-		
-		// rotating element is using texture-slot 1
-		elementTo = new Elem(256 - 32, 16, 64, 64, Color.CYAN);
-		elementTo.slot = 1;
-		elementTo.setPivot(32, 256 - 16);
-		elementTo.animRotation(0, 360);
-		elementTo.timeRotation(0, 8);
-		bufferTo.addElement(elementTo);
-		
-		
-		var timer = new Timer(80);
-		timer.run = function() {
-			peoteView.renderToTexture(displayFrom, 1); // render into slot 1
-		}
+			var bufferFrom  = new Buffer<Elem>(100);
+			var programFrom = new Program(bufferFrom);
 			
-		peoteView.start();
+			displayFrom1.addProgram(programFrom);
+			
+			// rotation Elements
+			var elementFrom = new Elem(120-8, 16, 32, 80, Color.RED);
+			elementFrom.setPivot(16, 96 + 16);
+			elementFrom.animRotation(0, 360);
+			elementFrom.timeRotation(0, 1);
+			elementFrom.z = 80;
+			bufferFrom.addElement(elementFrom);
+			
+			var elemBG = new Elem(64-45, 64-45, 128+90, 128+90, Color.YELLOW);
+			elemBG.z = 0;
+			bufferFrom.addElement(elemBG);
+			
+			// -------------------
+			
+			// bottom left display to renderToTexture:
+			displayFrom2 = new Display(0, 260, 256, 256, 0xdd3344aa);
+			displayFrom2.backgroundAlpha = true;
+			peoteView.addDisplay(displayFrom2);
+			
+			var bufferFrom  = new Buffer<Elem>(100);
+			var programFrom = new Program(bufferFrom);
+			
+			displayFrom2.addProgram(programFrom);
+			
+			// rotation Elements
+			var elementFrom = new Elem(120-8, 16, 32, 80, Color.BLUE);
+			elementFrom.setPivot(16, 96 + 16);
+			elementFrom.animRotation(0, 360);
+			elementFrom.timeRotation(0, 2);
+			elementFrom.z = 80;
+			bufferFrom.addElement(elementFrom);
+			
+			var elemBG = new Elem(64-45, 64-45, 128+90, 128+90, Color.CYAN);
+			elemBG.z = 0;
+			bufferFrom.addElement(elemBG);
+			
+			// ------------------------
+			// create texture with 2 slots and bind it to the Displays that should render into
+			texture = new Texture(256, 256 , 2, 4, true, 1, 1); // 2 Slots
+				
+			displayFrom1.setFramebuffer(texture);
+			displayFrom2.setFramebuffer(texture);
+			
+			// need to unbind before using this texture with different gl-context!
+			//displayFrom1.removeFramebuffer();
+			//displayFrom2.removeFramebuffer();
+			
+			// --------------------------------------------
+			
+			// display that is using the Texture the other displays is rendering In:
+			displayTo = new Display(260, 0, 512, 512, Color.BLUE);
+			peoteView.addDisplay(displayTo);
+			
+			var bufferTo  = new Buffer<Elem>(100);
+			var programTo = new Program(bufferTo);
+			
+			programTo.setTexture(texture, "renderFrom");
+			programTo.setColorFormula('renderFrom');
+			programTo.alphaEnabled = true;
+			programTo.discardAtAlpha(null);
+			displayTo.addProgram(programTo);
+			
+			// element in middle is using texture-slot 1
+			var elementTo = new Elem(64, 64, 384, 384);
+			elementTo.slot = 0;
+			elementTo.animPosSize(256-8, 256-8, 16, 16, 0, 0, 512, 512);
+			elementTo.timePosSize(0, 16);
+			bufferTo.addElement(elementTo);
+			
+			// rotating elements is using texture-slot 1
+			for (i in 0...8) {
+				var elementToRot = new Elem(256 - 32, 16, 64, 64, Color.CYAN);
+				elementToRot.slot = 1;
+				elementToRot.setPivot(32, 256 - 16);
+				elementToRot.animRotation(0, 360);
+				elementToRot.timeRotation(i, 8);
+				bufferTo.addElement(elementToRot);
+			}
+			
+			// ----------------------------------------------
+			// ------------  RenderToTexture  ---------------
+			// ----------------------------------------------
+			peoteView.renderToTexture(displayFrom1, 0); // render a shot into slot 0
+			
+			var timer = new Timer(80);
+			timer.run = function() {
+				peoteView.renderToTexture(displayFrom2, 1); // render into slot 1
+			}
+				
+			peoteView.start();
 		
-		} catch (msg:Dynamic) trace("Error:", msg);
+		} 
+		catch (msg:Dynamic) trace("Error:", msg);
 		// ---------------------------------------------------------------
-	}
-	
-	public function onPreloadComplete ():Void {
-		// sync loading did not work with html5 if assets is set to embed=false!
-		// texture.setImage(Assets.getImage("assets/images/wabbit_alpha.png"));
 	}
 	
 	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
 	{
-		autoRenderToTexture = !autoRenderToTexture;
+		autoRenderToTexture = !autoRenderToTexture; // start/stop RenderToTexture inside Renderloop
 	}
+	
+	public function render()
+	{
+		// ----------------------------------------------
+		// ------------  RenderToTexture  ---------------
+		// ----------------------------------------------
+		if (autoRenderToTexture) peoteView.renderToTexture(displayFrom1, 0); // render permanently into slot 1
+
+		peoteView.render();
+	}
+	
+	
+	// ---------------------------------------------------------------
 	
 	public function onMouseMove (x:Float, y:Float):Void {}
 	public function onWindowLeave ():Void {}
@@ -155,24 +198,18 @@ class RenderToTexture
 		switch (keyCode) {
 			case KeyCode.NUMPAD_PLUS:
 					if (modifier.shiftKey) peoteView.zoom+=0.01;
-					else displayFrom.zoom+=0.1;
+					else displayFrom1.zoom+=0.1;
 			case KeyCode.NUMPAD_MINUS:
 					if (modifier.shiftKey) peoteView.zoom-=0.01;
-					else displayFrom.zoom -= 0.1;
-			case KeyCode.UP: displayFrom.yOffset -= (modifier.shiftKey) ? 8 : 1;
-			case KeyCode.DOWN: displayFrom.yOffset += (modifier.shiftKey) ? 8 : 1;
-			case KeyCode.RIGHT: displayFrom.xOffset += (modifier.shiftKey) ? 8 : 1;
-			case KeyCode.LEFT: displayFrom.xOffset -= (modifier.shiftKey) ? 8 : 1;
+					else displayFrom1.zoom -= 0.1;
+			case KeyCode.UP: displayFrom1.yOffset -= (modifier.shiftKey) ? 8 : 1;
+			case KeyCode.DOWN: displayFrom1.yOffset += (modifier.shiftKey) ? 8 : 1;
+			case KeyCode.RIGHT: displayFrom1.xOffset += (modifier.shiftKey) ? 8 : 1;
+			case KeyCode.LEFT: displayFrom1.xOffset -= (modifier.shiftKey) ? 8 : 1;
 			default:
 		}
 	}
 
-	public function render()
-	{
-		if (autoRenderToTexture) peoteView.renderToTexture(displayFrom, 0); // render into slot 1
-		peoteView.render();
-	}
-	
 	public function update(deltaTime:Int):Void {}
 	
 	public function onMouseUp (x:Float, y:Float, button:MouseButton):Void {}
@@ -181,6 +218,9 @@ class RenderToTexture
 	{
 		peoteView.resize(width, height);
 	}
+	
+	public function onPreloadComplete ():Void {}
+	
 
 }
 #end

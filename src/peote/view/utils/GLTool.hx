@@ -30,8 +30,10 @@ class GLTool
 		// cpp:DEPTH_COMPONENT // FF/Chrome:DEPTH_COMPONENT24 // IE: DEPTH_COMPONENT16
 		clearGlErrorQueue(gl);
 		gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT24, width, height);
-		if (getLastGlError(gl) == gl.INVALID_ENUM)
+		if (getLastGlError(gl) == gl.INVALID_ENUM) {
+			trace("switching to DEPTH_COMPONENT16 for framebuffer");
 			gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, width, height);
+		}
 		
 		gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
 		gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthBuffer);

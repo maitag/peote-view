@@ -1554,7 +1554,7 @@ class ElementImpl
 				args: [],
 				expr: macro {
 					if (instanceBytes == null) {
-						trace("create bytes for instance GLbuffer");
+						//trace("create bytes for instance GLbuffer");
 						instanceBytes = utils.Bytes.alloc(VERTEX_COUNT * 2);
 						instanceBytes.set(0 , 1); instanceBytes.set(1,  1);
 						instanceBytes.set(2 , 1); instanceBytes.set(3,  1);
@@ -1577,7 +1577,7 @@ class ElementImpl
 				       {name:"glInstanceBuffer", type:macro:peote.view.PeoteGL.GLBuffer}
 				],
 				expr: macro {
-					trace("fill full instance GLbuffer");
+					//trace("fill full instance GLbuffer");
 					gl.bindBuffer (gl.ARRAY_BUFFER, glInstanceBuffer);
 					gl.bufferData (gl.ARRAY_BUFFER, instanceBytes.length, instanceBytes, gl.STATIC_DRAW);
 					gl.bindBuffer (gl.ARRAY_BUFFER, null);
