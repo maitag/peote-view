@@ -38,6 +38,8 @@ typedef Sample = FontrenderingGl3;
 typedef Sample = ShaderInjection;
 #elseif sampleBunnyMark
 typedef Sample = BunnyMark;
+#elseif sampleMouseEvents
+typedef Sample = MouseEvents;
 #elseif sampleUserInterface
 typedef Sample = UserInterface;
 #end 

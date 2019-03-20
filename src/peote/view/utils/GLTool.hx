@@ -17,7 +17,15 @@ class GLTool
 	// fetch last gl-error from queue
 	// error-catching can be disabled while context-creation so take care with
 	static public function getLastGlError(gl:PeoteGL):Int {
-		return gl.getError();
+		var err:Int = gl.getError();
+		if (err != gl.NO_ERROR) {
+			if (err == gl.INVALID_ENUM) trace("(GL-Error: INVALID_ENUM)");
+			else if (err == gl.INVALID_VALUE) trace("(GL-Error: INVALID_VALUE)");
+			else if (err == gl.INVALID_OPERATION) trace("(GL-Error: INVALID_OPERATION)");
+			else if (err == gl.OUT_OF_MEMORY) trace("(GL-Error: OUT_OF_MEMORY)");
+			else trace("GL-Error: " + err);
+		}
+		return err;	
 	}
 	
 	static public inline function createFramebuffer(gl:PeoteGL, texture:GLTexture, depthBuffer:GLRenderbuffer, width:Int, height:Int):GLFramebuffer

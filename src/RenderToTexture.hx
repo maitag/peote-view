@@ -67,7 +67,8 @@ class RenderToTexture
 		try {
 			peoteView = new PeoteView(window.context, window.width, window.height);
 
-			// upper left display to renderToTexture:
+			// ------------------- upper left display to renderToTexture -------------------
+			
 			displayFrom1 = new Display(0, 0, 256, 256, Color.GREEN);
 			peoteView.addDisplay(displayFrom1);
 			
@@ -88,9 +89,9 @@ class RenderToTexture
 			elemBG.z = 0;
 			bufferFrom.addElement(elemBG);
 			
-			// -------------------
 			
-			// bottom left display to renderToTexture:
+			// ------------ bottom left display to renderToTexture -------------
+			
 			displayFrom2 = new Display(0, 260, 256, 256, 0xdd3344aa);
 			displayFrom2.backgroundAlpha = true;
 			peoteView.addDisplay(displayFrom2);
@@ -112,20 +113,21 @@ class RenderToTexture
 			elemBG.z = 0;
 			bufferFrom.addElement(elemBG);
 			
-			// ------------------------
-			// create texture with 2 slots and bind it to the Displays that should render into
+			// --------------- texture with 2 slots to render into --------------
+			
 			texture = new Texture(256, 256 , 2, 4, true, 1, 1); // 2 Slots
-				
+			
+			// bind texture to the Displays that should render into
 			displayFrom1.setFramebuffer(texture);
 			displayFrom2.setFramebuffer(texture);
 			
-			// need to unbind before using this texture with different gl-context!
-			//displayFrom1.removeFramebuffer();
-			//displayFrom2.removeFramebuffer();
+			// to unbind (i need before using this texture with different gl-context!)
+			// displayFrom1.removeFramebuffer();
+			// displayFrom2.removeFramebuffer();
 			
-			// --------------------------------------------
 			
-			// display that is using the Texture the other displays is rendering In:
+			// ------- display with program that is using this texture -----------
+			
 			displayTo = new Display(260, 0, 512, 512, Color.BLUE);
 			peoteView.addDisplay(displayTo);
 			
@@ -138,7 +140,7 @@ class RenderToTexture
 			programTo.discardAtAlpha(null);
 			displayTo.addProgram(programTo);
 			
-			// element in middle is using texture-slot 1
+			// element in middle is using texture-slot 0
 			var elementTo = new Elem(64, 64, 384, 384);
 			elementTo.slot = 0;
 			elementTo.animPosSize(256-8, 256-8, 16, 16, 0, 0, 512, 512);
@@ -158,11 +160,11 @@ class RenderToTexture
 			// ----------------------------------------------
 			// ------------  RenderToTexture  ---------------
 			// ----------------------------------------------
-			peoteView.renderToTexture(displayFrom1, 0); // render a shot into slot 0
+			peoteView.renderToTexture(displayFrom1, 0);    // <- render only one shot into slot 0
 			
-			var timer = new Timer(80);
+			var timer = new Timer(100);
 			timer.run = function() {
-				peoteView.renderToTexture(displayFrom2, 1); // render into slot 1
+				peoteView.renderToTexture(displayFrom2, 1); // <- render every 1/10 second into slot 1
 			}
 				
 			peoteView.start();
@@ -182,7 +184,7 @@ class RenderToTexture
 		// ----------------------------------------------
 		// ------------  RenderToTexture  ---------------
 		// ----------------------------------------------
-		if (autoRenderToTexture) peoteView.renderToTexture(displayFrom1, 0); // render permanently into slot 1
+		if (autoRenderToTexture) peoteView.renderToTexture(displayFrom1, 0); // <- render permanently into slot 1
 
 		peoteView.render();
 	}
