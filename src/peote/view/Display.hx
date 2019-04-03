@@ -129,7 +129,7 @@ class Display
 		peoteView.displayList.remove(this);
 	}
 	
-	private inline function setNewGLContext(newGl:PeoteGL)
+	private function setNewGLContext(newGl:PeoteGL)
 	{
 		if (newGl != null && newGl != gl) // only if different GL - Context	
 		{

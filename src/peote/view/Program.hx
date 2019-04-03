@@ -39,7 +39,7 @@ class Program
 	var glVertexShaderPicking:GLShader = null;
 	var glFragmentShaderPicking:GLShader = null;
 	
-	var buffer:BufferInterface; // TODO: make public with getter/setter
+	public var buffer(default, null):BufferInterface; // TODO: setter for bufferswitching
 	
 	var glShaderConfig = {
 		isPICKING: false,

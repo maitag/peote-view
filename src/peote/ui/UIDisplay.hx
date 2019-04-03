@@ -3,6 +3,7 @@ package peote.ui;
 import lime.ui.KeyCode;
 import lime.ui.KeyModifier;
 import lime.ui.MouseButton;
+import peote.ui.skin.Skin;
 import peote.view.Color;
 import peote.view.Display;
 import peote.view.PeoteGL;
@@ -11,65 +12,46 @@ import peote.view.Display;
 import peote.view.Buffer;
 import peote.view.Program;
 import peote.view.Color;
-import peote.view.Element;
 //import peote.view.Texture;
 
 
-class Pickable implements Element
-{
-	public var uiElement:UIElement; 
-	
-	@posX public var x:Int=0;
-	@posY public var y:Int=0;	
-	@sizeX public var w:Int=100;
-	@sizeY public var h:Int=100;
-	@zIndex public var z:Int = 0;	
-	var OPTIONS = { picking:true };
-	
-	public function new(uiElement:UIElement, x:Int, y:Int, w:Int, h:Int, z:Int )
-	{
-		this.uiElement = uiElement;
-		this.x = x;
-		this.y = y;
-		this.w = w;
-		this.h = h;
-		this.z = z;
-	}
-
-}
-
-
+@:allow(peote.ui)
 class UIDisplay extends Display 
 {
 	var uiElements:Array<UIElement>;
 	
-	var clickBuffer:Buffer<Pickable>;
-	var clickProgram:Program;
-	
 	var overBuffer:Buffer<Pickable>;
 	var overProgram:Program;
 	
+	var clickBuffer:Buffer<Pickable>;
+	var clickProgram:Program;
+	
 	var lastOverIndex:Int = -1;
 	var lastDownIndex:Int = -1;
+	
+	var skins:Array<Skin>;
 
 	public function new(x:Int, y:Int, width:Int, height:Int, color:Color=0x00000000) 
 	{
 		super(x, y, width, height, color);
-		// elements for mouseDown/Up ----------------------
-
-		clickBuffer = new Buffer<Pickable>(16,8);
-		clickProgram = new Program(clickBuffer);
-		addProgram(clickProgram);
-	
+		
 		// elements for mouseOver/Out ----------------------
-		overBuffer = new Buffer<Pickable>(16, 8);
+		overBuffer = new Buffer<Pickable>(16, 8); // TODO: fill with constants
 		overProgram = new Program(overBuffer);
-		addProgram(overProgram);
 				
-		/*
-		var clickable = new Pickable(10, 10, 100, 50, 0);
-		clickBuffer.addElement(clickButton);
-		*/
+		// elements for mouseDown/Up ----------------------
+		clickBuffer = new Buffer<Pickable>(16,8); // TODO: fill with constants
+		clickProgram = new Program(clickBuffer);
+	
+		uiElements = new Array<UIElement>();
+		skins = new Array<Skin>();
+	}
+	
+	override private function setNewGLContext(newGl:PeoteGL)
+	{
+		super.setNewGLContext(newGl);
+		overProgram.setNewGLContext(newGl);
+		clickProgram.setNewGLContext(newGl);
 	}
 	
 	public function add(uiElement:UIElement):Void {
@@ -80,7 +62,8 @@ class UIDisplay extends Display
 	
 	public function remove(uiElement:UIElement):Void {
 		//TODO
-		uiElements.push(uiElement);
+		uiElements.remove(uiElement);
+		uiElement.onRemoveFromDisplay(this);
 	}
 	
 	public function removeAll():Void {
@@ -94,6 +77,9 @@ class UIDisplay extends Display
 	public function updateAll():Void {
 		//TODO
 	}
+	
+	// ----------------------------------------
+
 	
 	
 	// ----------------------------------------

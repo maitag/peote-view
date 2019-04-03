@@ -9,7 +9,7 @@ import peote.view.PeoteView;
 import peote.view.Color;
 import peote.ui.UIDisplay;
 import peote.ui.Button;
-
+import peote.ui.skin.Skin;
 
 class UserInterface 
 {
@@ -23,34 +23,38 @@ class UserInterface
 			ui = new UIDisplay(0, 0, window.width, window.height, Color.GREEN);
 			peoteView.addDisplay(ui);
 			
+			var mySkin = new Skin(Color.GREY3);
+			
 			trace("NEW BUTTON -----");
-			var b1:Button = new Button(10, 10, 100, 20);
-			
-			b1.test();
-			
-			trace("ADD 1 onMouseClick -----");
-			b1.onMouseClick = function(uiDisplay:UIDisplay, button:Button, x:Int, y:Int) {
-				trace(" -----> b1 on click", button.label);
-			}
-			
-			b1.test();
-			
-			trace("REMOVE onMouseClick-----");
-			b1.onMouseClick = null;
-			
-			b1.test();
-			
-			trace("ADD 2 onMouseClick -----");
-			b1.onMouseClick = function(uiDisplay:UIDisplay, button:Button, x:Int, y:Int) {
-				trace(" -----> b2 on click", button.label);
-			}
-			
-			b1.test();
-			
+			var b1:Button = new Button(10, 0, 300, 200, mySkin);
 			ui.add(b1);
-			ui.remove(b1);
-			ui.update(b1);
-			ui.updateAll();
+			
+			b1.onMouseOver = function(uiDisplay:UIDisplay, button:Button, x:Int, y:Int) {
+				trace(" -----> onMouseOver", button.label);
+			}
+			
+			b1.onMouseOut = function(uiDisplay:UIDisplay, button:Button, x:Int, y:Int) {
+				trace(" -----> onMouseOut", button.label);
+			}
+			
+			b1.onMouseUp = function(uiDisplay:UIDisplay, button:Button, x:Int, y:Int) {
+				trace(" -----> onMouseUp", button.label);
+			}
+			
+			b1.onMouseDown = function(uiDisplay:UIDisplay, button:Button, x:Int, y:Int) {
+				trace(" -----> onMouseDown", button.label);
+			}
+			
+			b1.onMouseClick = function(uiDisplay:UIDisplay, button:Button, x:Int, y:Int) {
+				trace(" -----> onMouseClick", button.label);
+			}
+			
+			//trace("REMOVE onMouseClick -----"); b1.onMouseClick = null;	
+			//ui.remove(b1);
+			//ui.add(b1);
+						
+			//ui.update(b1);
+			//ui.updateAll();
 			
 		}
 		catch (e:Dynamic) trace("ERROR:", e);

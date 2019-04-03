@@ -449,7 +449,7 @@ class ElementImpl
 		else if (hasMeta(f, "rotation"))checkMetas(f, macro:Float, null, type, val, conf.rotation, getter, setter);
 		else if (hasMeta(f, "zIndex"))  checkMetas(f, macro:Int,   null, type, val, conf.zIndex, getter, setter);
 		// color layer attributes
-		else if (checkColorLayerMetas("color", f, macro:Color, null, type, val, conf.colorDefault, conf.color, getter, setter) ) {}
+		else if (checkColorLayerMetas("color", f, macro:peote.view.Color, null, type, val, conf.colorDefault, conf.color, getter, setter) ) {}
 		// texture layer attributes
 		else if (checkTexLayerMetas("texX",    f, macro:Int, macro:Float, type, val, conf.texXDefault, conf.texX, getter, setter) ) {}
 		else if (checkTexLayerMetas("texY",    f, macro:Int, macro:Float, type, val, conf.texYDefault, conf.texY, getter, setter) ) {}
@@ -1081,7 +1081,7 @@ class ElementImpl
 				name:  "DEFAULT_FORMULA_VARS",
 				meta:  allowForBuffer,
 				access:  [Access.APrivate, Access.AStatic],
-				kind: FieldType.FVar(macro:haxe.ds.StringMap<Color>, macro new haxe.ds.StringMap<Color>()),
+				kind: FieldType.FVar(macro:haxe.ds.StringMap<peote.view.Color>, macro new haxe.ds.StringMap<peote.view.Color>()),
 				pos: Context.currentPos(),
 			});
 		}
@@ -1206,7 +1206,7 @@ class ElementImpl
 				}
 			}
 		}
-		createStartEndTexVar(conf.color, macro:Color);
+		createStartEndTexVar(conf.color, macro:peote.view.Color);
 		createStartEndTexVar(conf.texUnit, macro:Int);
 		createStartEndTexVar(conf.texSlot, macro:Int);
 		createStartEndTexVar(conf.texTile, macro:Int);
