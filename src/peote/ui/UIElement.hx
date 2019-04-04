@@ -26,8 +26,8 @@ class UIElement
 	var skin:Skin = null;
 	
 	var skinElement:Dynamic = null; // TODO: extend Element & Buffer with @buffIndex !
-	var pickableOver:Pickable = null;
-	var pickableClick:Pickable = null;
+	var pickableOver:Pickable = null; // TODO: put also into Skin to allow shaped over areas
+	var pickableClick:Pickable = null; // TODO: put also into Skin to allow shaped click areas
 	
 	public var x:Int;
 	public var y:Int;
@@ -62,12 +62,50 @@ class UIElement
 		mouseUp    = noOperation;
 		mouseClick = noOperation;
 	}
-		
-	private function noOperation(x:Int, y:Int):Void {
-		//trace("--NOP--");
+	
+	public function update():Void
+	{
+		if (uiDisplay != null) 
+		{
+			if (skin != null) skin.updateElement(uiDisplay, this);
+			if ( hasOverEvent  != 0 ) {
+				pickableOver.update(this);
+				uiDisplay.overBuffer.updateElement( pickableOver );
+			}
+			if ( hasClickEvent != 0 ) {
+				pickableClick.update(this);
+				uiDisplay.clickBuffer.updateElement( pickableClick );		
+			}
+		}
 	}
 	
-	// Event-Bindings
+	// -----------------
+	
+	private function onAddToDisplay(uiDisplay:UIDisplay)
+	{
+		this.uiDisplay = uiDisplay;
+		
+		if (skin != null) skin.addElement(uiDisplay, this);
+		if ( hasOverEvent  != 0 ) addPickableOver();	
+		if ( hasClickEvent != 0 ) addPickableClick();
+	}
+	
+	private function onRemoveFromDisplay(uiDisplay:UIDisplay)
+	{		
+		if (uiDisplay != this.uiDisplay) throw('Error, $this is not inside uiDisplay: $uiDisplay');
+		
+		if (skin != null) skin.removeElement(uiDisplay, this);
+		if ( hasOverEvent  != 0 ) removePickableOver();
+		if ( hasClickEvent != 0 ) removePickableClick();
+		
+		uiDisplay = null;
+	}
+	
+		
+	
+	// ----------------- Event-Bindings ----------------------
+
+	private function noOperation(x:Int, y:Int):Void {}
 	
 	private function rebindMouseOver(newBinding:UIEventParams, isNull:Bool):Void {
 		if ( !isNull ) {
@@ -137,50 +175,28 @@ class UIElement
 	}
 	
 	// -----------------
-	
-	public function onAddToDisplay(uiDisplay:UIDisplay)
-	{
-		this.uiDisplay = uiDisplay;
 		
-		if (skin != null) skin.addElement(uiDisplay, this);
-		if ( hasOverEvent  != 0 ) addPickableOver();	
-		if ( hasClickEvent != 0 ) addPickableClick();
-	}
-	
-	public function onRemoveFromDisplay(uiDisplay:UIDisplay)
-	{		
-		if (uiDisplay != this.uiDisplay) throw('Error, $this is not inside uiDisplay: $uiDisplay');
-		
-		if (skin != null) skin.removeElement(uiDisplay, this);
-		if ( hasOverEvent  != 0 ) removePickableOver();
-		if ( hasClickEvent != 0 ) removePickableClick();
-		
-		uiDisplay = null;
-	}
-	
-	// -----------------
-		
-	public function addPickableOver()
+	private function addPickableOver()
 	{
 		trace("addPickableOver");
-		if (pickableOver==null) pickableOver = new Pickable(this, x, y, w, h, z);
+		if (pickableOver==null) pickableOver = new Pickable(this);
 		if (uiDisplay!=null) uiDisplay.overBuffer.addElement( pickableOver );
 	}
 	
-	public function removePickableOver()
+	private function removePickableOver()
 	{
 		trace("removePickableOver");
 		if (uiDisplay!=null) uiDisplay.overBuffer.removeElement( pickableOver );  //pickableOver=null
 	}
 	
-	public function addPickableClick()
+	private function addPickableClick()
 	{
 		trace("addPickableClick");
-		if (pickableClick==null) pickableClick = new Pickable(this, x, y, w, h, z);
+		if (pickableClick==null) pickableClick = new Pickable(this);
 		if (uiDisplay!=null) uiDisplay.clickBuffer.addElement( pickableClick );
 	}
 	
-	public function removePickableClick()
+	private function removePickableClick()
 	{
 		trace("removePickableClick");
 		if (uiDisplay!=null) uiDisplay.clickBuffer.removeElement( pickableClick ); //pickableClick=null

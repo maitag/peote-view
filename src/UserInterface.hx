@@ -30,23 +30,29 @@ class UserInterface
 			ui.add(b1);
 			
 			b1.onMouseOver = function(uiDisplay:UIDisplay, button:Button, x:Int, y:Int) {
-				trace(" -----> onMouseOver", button.label);
+				trace(" -----> onMouseOver", x, y, button.label);
 			}
 			
 			b1.onMouseOut = function(uiDisplay:UIDisplay, button:Button, x:Int, y:Int) {
-				trace(" -----> onMouseOut", button.label);
+				trace(" -----> onMouseOut", x, y, button.label);
 			}
 			
 			b1.onMouseUp = function(uiDisplay:UIDisplay, button:Button, x:Int, y:Int) {
-				trace(" -----> onMouseUp", button.label);
+				trace(" -----> onMouseUp", x, y, button.label);
 			}
 			
 			b1.onMouseDown = function(uiDisplay:UIDisplay, button:Button, x:Int, y:Int) {
-				trace(" -----> onMouseDown", button.label);
+				button.x += 30;
+				button.update();
+				trace(" -----> onMouseDown", x, y, button.label);
+				ui.onMouseMove(peoteView, x, y);
 			}
 			
 			b1.onMouseClick = function(uiDisplay:UIDisplay, button:Button, x:Int, y:Int) {
-				trace(" -----> onMouseClick", button.label);
+				button.y += 30;
+				button.update();
+				trace(" -----> onMouseClick", x, y, button.label);
+				ui.onMouseMove(peoteView, x, y);
 			}
 			
 			//trace("REMOVE onMouseClick -----"); b1.onMouseClick = null;	
