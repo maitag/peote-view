@@ -1,4 +1,5 @@
 package;
+import peote.ui.skin.Style;
 #if sampleUserInterface
 import lime.ui.Window;
 import lime.ui.KeyCode;
@@ -23,17 +24,23 @@ class UserInterface
 			ui = new UIDisplay(0, 0, window.width, window.height, Color.GREEN);
 			peoteView.addDisplay(ui);
 			
-			var mySkin = new Skin(Color.GREY3);
+			var mySkin = new Skin();
+			var myStyle = new Style();
+			myStyle.borderColor = Color.GREY6;
 			
 			trace("NEW BUTTON -----");
-			var b1:Button = new Button(10, 0, 300, 200, mySkin);
+			var b1:Button = new Button(10, 0, 200, 100, mySkin, myStyle);
 			ui.add(b1);
 			
 			b1.onMouseOver = function(uiDisplay:UIDisplay, button:Button, x:Int, y:Int) {
+				button.style.color = Color.GREY5;
+				button.update();
 				trace(" -----> onMouseOver", x, y, button.label);
 			}
 			
 			b1.onMouseOut = function(uiDisplay:UIDisplay, button:Button, x:Int, y:Int) {
+				button.style.color = Color.GREY1;
+				button.update();
 				trace(" -----> onMouseOut", x, y, button.label);
 			}
 			

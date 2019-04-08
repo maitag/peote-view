@@ -1,7 +1,7 @@
 package peote.ui;
 
 import peote.ui.skin.Skin;
-import peote.view.Color;
+import peote.ui.skin.Style;
 
 // main class for all ui-widgets
 
@@ -23,18 +23,28 @@ typedef UIEventParams = Int->Int->Void;
 class UIElement
 {
 	var uiDisplay:UIDisplay = null;
-	var skin:Skin = null;
+	
+	public var skin:Skin = null;
+	public var style(default, set):Style = null;
+	inline function set_style(s:Style):Style {
+		trace("set style");
+		if (skin == null) throw ("Error, for styling the widget needs a skin");
+		if (s == null) {
+			s = skin.createDefaultStyle();
+		}
+		return style = s;
+	}
+	
 	
 	var skinElement:Dynamic = null; // TODO: extend Element & Buffer with @buffIndex !
-	var pickableOver:Pickable = null; // TODO: put also into Skin to allow shaped over areas
-	var pickableClick:Pickable = null; // TODO: put also into Skin to allow shaped click areas
+	var pickableOver:Pickable = null;
+	var pickableClick:Pickable = null;
 	
 	public var x:Int;
 	public var y:Int;
 	public var w:Int;
 	public var h:Int;
 	public var z:Int;
-	public var color:Null<Color> = null;
 	
 	var mouseOver :UIEventParams;
 	var mouseOut  :UIEventParams;
@@ -45,7 +55,7 @@ class UIElement
 	var mouseClick:UIEventParams;
 	var hasClickEvent:Int = 0;
 	
-	public function new(xPosition:Int, yPosition:Int, width:Int, height:Int, zIndex:Int, skin:Skin=null) 
+	public function new(xPosition:Int, yPosition:Int, width:Int, height:Int, zIndex:Int=0, skin:Skin=null, style:Style=null) 
 	{
 		x = xPosition;
 		y = yPosition;
@@ -54,6 +64,7 @@ class UIElement
 		z = zIndex;
 		
 		this.skin = skin;
+		this.style = style;
 		
 		mouseOver  = noOperation;
 		mouseOut   = noOperation;

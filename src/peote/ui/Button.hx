@@ -1,5 +1,6 @@
 package peote.ui;
 import peote.ui.skin.Skin;
+import peote.ui.skin.Style;
 
 class Button extends UIElement
 {
@@ -39,9 +40,9 @@ class Button extends UIElement
 	
 	
 	
-	public function new(xPosition:Int, yPosition:Int, width:Int, height:Int, zIndex:Int=0, skin:Skin = null) 
+	public function new(xPosition:Int, yPosition:Int, width:Int, height:Int, zIndex:Int=0, skin:Skin = null, style:Style = null) 
 	{
-		super(xPosition, yPosition, width, height, zIndex, skin);
+		super(xPosition, yPosition, width, height, zIndex, skin, style);
 		
 		// here defining for what events a Button needs over/click pickables
 		
