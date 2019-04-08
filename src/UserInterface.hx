@@ -21,34 +21,40 @@ class UserInterface
 	{
 		try {			
 			peoteView = new PeoteView(window.context, window.width, window.height);
-			ui = new UIDisplay(0, 0, window.width, window.height, Color.GREEN);
+			ui = new UIDisplay(0, 0, window.width, window.height, Color.BLACK);
 			peoteView.addDisplay(ui);
 			
 			var mySkin = new Skin();
 			var myStyle = new Style();
-			myStyle.borderColor = Color.GREY6;
+			myStyle.color = Color.GREY1;
+			myStyle.borderColor = Color.GREY5;
 			
 			trace("NEW BUTTON -----");
-			var b1:Button = new Button(10, 0, 200, 100, mySkin, myStyle);
+			var b1:Button = new Button(20, 10, 200, 100, mySkin, myStyle);
 			ui.add(b1);
 			
 			b1.onMouseOver = function(uiDisplay:UIDisplay, button:Button, x:Int, y:Int) {
-				button.style.color = Color.GREY5;
+				button.style.color = Color.GREY2;
+				button.style.borderColor = Color.GREY7;
 				button.update();
 				trace(" -----> onMouseOver", x, y, button.label);
 			}
 			
 			b1.onMouseOut = function(uiDisplay:UIDisplay, button:Button, x:Int, y:Int) {
 				button.style.color = Color.GREY1;
+				button.style.borderColor = Color.GREY5;
 				button.update();
 				trace(" -----> onMouseOut", x, y, button.label);
 			}
 			
 			b1.onMouseUp = function(uiDisplay:UIDisplay, button:Button, x:Int, y:Int) {
+				button.style.borderColor = Color.GREY5;
+				button.update();
 				trace(" -----> onMouseUp", x, y, button.label);
 			}
 			
 			b1.onMouseDown = function(uiDisplay:UIDisplay, button:Button, x:Int, y:Int) {
+				button.style.borderColor = Color.YELLOW;
 				button.x += 30;
 				button.update();
 				trace(" -----> onMouseDown", x, y, button.label);

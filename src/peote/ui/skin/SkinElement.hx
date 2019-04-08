@@ -10,7 +10,8 @@ class SkinElement implements Element
 	// @index public var buffIndex:Int;
 	
 	// from style
-	@color("color") public var c:Color;
+	@color("color") public var color:Color;
+	@color("borderColor") public var borderColor:Color;
 	
 	@texW() public var tw:Int=256;
 	@texH() public var th:Int=256;
@@ -34,6 +35,10 @@ class SkinElement implements Element
 		w = uiElement.w;
 		h = uiElement.h;
 		z = uiElement.z;
-		c = uiElement.style.color;
+		color = uiElement.style.color;
+		borderColor = uiElement.style.borderColor;
+		// TODO: optimize via Element-macro to use the size as a varying inside shader
+		tw = uiElement.w;
+		th = uiElement.h;
 	}
 }

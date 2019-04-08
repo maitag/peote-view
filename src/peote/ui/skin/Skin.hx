@@ -2,14 +2,12 @@ package peote.ui.skin;
 
 import peote.ui.UIDisplay;
 import peote.ui.UIElement;
-import peote.view.Color;
 import peote.view.Buffer;
 import peote.view.Program;
 
 @:allow(peote.ui)
 class Skin 
 {
-
 	var displayProgBuff= new Map<UIDisplay,{program:Program, buffer:Buffer<SkinElement>}>();
 	
 	public function new()
@@ -63,42 +61,54 @@ class Skin
 	private function createProgram(buffer:Buffer<SkinElement>):Program {
 		var program = new Program(buffer);
 		
+		// ------- ShaderStyle -------------
+		
 		program.injectIntoFragmentShader(
 			"
-			float roundedFrame (vec2 pos, vec2 size, float radius, float thickness)
+			float roundedBox (vec2 pos, vec2 size, float radius, float padding)
 			{
-				//float d = length(max(abs(pos), size) - size) - radius;
-				//return smoothstep(0.55, 0.45, abs(d / thickness) * 100.0);
-
-				//float d = (length(max(abs(pos*100.0), size*100.0) - size*100.0) ) - (radius * 100.0);
-				float d = length(max(abs(pos), size) - size)*100.0 - radius*100.0;
-				//float d = length(max(abs(pos), size) - size)*100.0 - radius*length(pos*vec2(200.0,100.0));
-				return smoothstep(0.55, 0.45, abs(d / thickness));
+				radius -= padding;
+				size = 0.5 * size - vec2(radius, radius) - vec2(padding, padding);
+				
+				float d = length(max(abs(pos), size) - size) - radius;
+				//return d;
+				//return step(0.5, d );
+				return smoothstep( 0.0, 1.0,  d );
 			}
 			
-			vec4 compose (vec4 c)
+			float roundedBorder (vec2 pos, vec2 size, float radius, float thickness)
 			{
-				float intensity = 0.0;
-				//--- rounded rectangle ---
-				//const vec3 rectColor = vec3(0.1, 0.8, 0.5);
-				//pos = vec2(-sin(time), 0.6);
-				//size = vec2(0.16, 0.02);
-				//intensity = 0.6 * roundedRectangle (pos, size, 0.1, 0.2);
-				//col = mix(col, rectColor, intensity);
 				
-				//--- rounded frame ---
-				vec4 frameColor = vec4(1.0, 0.8, 0.6, 1.0);
-				float thickness = 5.0;
-				float radius = 0.2;
-				vec2 pos = vTexCoord - vec2(0.5, 0.5);
-				vec2 size = vec2(0.5-radius-(thickness/100.0/2.0), 0.5-radius-(thickness/100.0/2.0));
-				intensity = roundedFrame (pos, size, radius, thickness);
-				c = mix(c, frameColor, intensity);
+				radius -= thickness/2.0;
+				size = 0.5 * (size - vec2(thickness, thickness)) - vec2(radius, radius);
+				
+				float s = 0.5 / thickness * 2.0;
+				
+				float d = length(max(abs(pos), size) - size) - radius;				
+				//return 1.0 - abs( d / thickness );
+				//return 1.0 - step(0.5, abs( d / thickness ));
+				return smoothstep( 0.5+s, 0.5-s, abs(d / thickness)  );
+				//return smoothstep( 0.5+s, 0.5-s, abs( d / thickness ) * (1.0 + s) );
+			}
+			
+			vec4 compose (vec4 c, vec4 borderColor)
+			{
+				vec2 vSize = vec2(vTexW0, vTexH0); // TODO: optimize via Element macro to use vSize as varying from vertexshader
+				vec2 pos= (vTexCoord - 0.5) * vSize;
+				vec2 size;
+				float radius = min(vTexW0, vTexH0) / 3.0;
+				float thickness = 2.0;
+				
+				// rounded rectangle
+				c = mix(c, vec4(0.0, 0.0, 0.0, 0.0), roundedBox(pos, vSize, radius, thickness));
+				
+				// border
+				c = mix(c, borderColor, roundedBorder(pos, vSize, radius, thickness));
 				return c;
 			}
 			"
 		);
-		program.setColorFormula('compose(color)');
+		program.setColorFormula('compose(color, borderColor)');
 
 		return program;
 	}
