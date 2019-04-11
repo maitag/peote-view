@@ -13,13 +13,10 @@ class SkinElement implements Element
 	@color("color") public var color:Color;
 	@color("borderColor") public var borderColor:Color;
 	
-	@texW() public var tw:Int=256;
-	@texH() public var th:Int=256;
-
 	@posX public var x:Int=0;
 	@posY public var y:Int=0;	
-	@sizeX public var w:Int=100;
-	@sizeY public var h:Int=100;
+	@sizeX @varying public var w:Int=100;
+	@sizeY @varying public var h:Int=100;
 	@zIndex public var z:Int = 0;	
 	//var OPTIONS = {  };
 	
@@ -37,8 +34,5 @@ class SkinElement implements Element
 		z = uiElement.z;
 		color = uiElement.style.color;
 		borderColor = uiElement.style.borderColor;
-		// TODO: optimize via Element-macro to use the size as a varying inside shader
-		tw = uiElement.w;
-		th = uiElement.h;
 	}
 }

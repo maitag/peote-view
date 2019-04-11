@@ -75,6 +75,7 @@ class Shader
 		::end::
 	::end::
 	
+	::OUT_VARYING::
 	::OUT_COLOR::
 	
 	::if hasTEXTURES::
@@ -179,6 +180,7 @@ class Shader
 		::end::
 	::end::
 	
+	::IN_VARYING::
 	::IN_COLOR::
 	
 	::if hasTEXTURES::

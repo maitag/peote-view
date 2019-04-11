@@ -41,7 +41,7 @@ typedef ConfParam =
 }
 typedef ConfSubParam =
 {
-	isAltType:Bool, vStart:Dynamic, vEnd:Dynamic, n:Int, isAnim:Bool, name:String, isStart:Bool, isEnd:Bool, time:String, pos:Position
+	isVarying:Bool, isAltType:Bool, vStart:Dynamic, vEnd:Dynamic, n:Int, isAnim:Bool, name:String, isStart:Bool, isEnd:Bool, time:String, pos:Position
 }
 
 typedef GLConfParam =
@@ -50,7 +50,7 @@ typedef GLConfParam =
 			ATTRIB_UNIT:String, ATTRIB_SLOT:String, ATTRIB_TILE:String,
 			ATTRIB_TEXX:String, ATTRIB_TEXY:String, ATTRIB_TEXW:String, ATTRIB_TEXH:String,
 			ATTRIB_TEXPOSX:String, ATTRIB_TEXPOSY:String,ATTRIB_TEXSIZEX:String, ATTRIB_TEXSIZEY:String,
-			OUT_COLOR:String, IN_COLOR:String, OUT_TEXCOORD:String, IN_TEXCOORD:String, ZINDEX:String,
+			OUT_VARYING:String, IN_VARYING:String, OUT_COLOR:String, IN_COLOR:String, OUT_TEXCOORD:String, IN_TEXCOORD:String, ZINDEX:String,
 			OUT_UNIT:String, IN_UNIT:String, OUT_SLOT:String, IN_SLOT:String, OUT_TILE:String, IN_TILE:String, 
 			OUT_TEXX:String, IN_TEXX:String, OUT_TEXY:String, IN_TEXY:String, OUT_TEXW:String, IN_TEXW:String, OUT_TEXH:String, IN_TEXH:String, 
 			OUT_TEXPOSX:String, IN_TEXPOSX:String, OUT_TEXPOSY:String, IN_TEXPOSY:String, OUT_TEXSIZEX:String, IN_TEXSIZEX:String, OUT_TEXSIZEY:String, IN_TEXSIZEY:String,
@@ -391,10 +391,10 @@ class ElementImpl
 			}							
 		}
 		// to make an attribute varying for fragmentshader
-		/*param = getMetaParam(f, "varying");
+		param = getMetaParam(f, "varying");
 		if (param != null) {
-			trace("IS VARYING");
-		}*/
+			confItem.isVarying = true;
+		}
 		//trace(confItem);
 	}
 	
@@ -420,7 +420,7 @@ class ElementImpl
 				confTextureLayer.set(name, layer);
 			}
 		}
-		var c = { isAltType:d.isAltType, vStart:d.vStart, vEnd:d.vEnd, n:d.n, isAnim:d.isAnim, name:d.name, isStart:d.isStart, isEnd:d.isEnd, time:d.time, pos:d.pos };
+		var c = { isVarying:d.isVarying, isAltType:d.isAltType, vStart:d.vStart, vEnd:d.vEnd, n:d.n, isAnim:d.isAnim, name:d.name, isStart:d.isStart, isEnd:d.isEnd, time:d.time, pos:d.pos };
 		checkMetas(f, expectedType, alternativeType, type, val, c , getter, setter);
 		confItem.push(c);
 		return true;
@@ -437,7 +437,7 @@ class ElementImpl
 		if (colorIdentifiers.indexOf(name) >= 0) throw Context.error('Error: "$name" is already used for a @color identifier', f.pos);
 		if (confTextureLayer.exists(name)) throw Context.error('Error: "$name" is already used as identifier for a texture-layer', f.pos);
 		colorIdentifiers.push(name);
-		var c = { isAltType:d.isAltType, vStart:d.vStart, vEnd:d.vEnd, n:d.n, isAnim:d.isAnim, name:d.name, isStart:d.isStart, isEnd:d.isEnd, time:d.time, pos:d.pos };
+		var c = { isVarying:d.isVarying, isAltType:d.isAltType, vStart:d.vStart, vEnd:d.vEnd, n:d.n, isAnim:d.isAnim, name:d.name, isStart:d.isStart, isEnd:d.isEnd, time:d.time, pos:d.pos };
 		checkMetas(f, expectedType, alternativeType, type, val, c , getter, setter);
 		confItem.push(c);
 		return true;
@@ -495,26 +495,26 @@ class ElementImpl
 	public static function build()
 	{
 		conf = {
-			posX :          { isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },
-			posY :          { isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },		
-			sizeX:          { isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },
-			sizeY:          { isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },
-			pivotX:         { isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
-			pivotY:         { isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
-			rotation:       { isAltType:false, vStart:0.0, vEnd:0.0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
-			zIndex:         { isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
-			texUnitDefault: { isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texUnit:[],
-			texSlotDefault: { isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texSlot:[],
-			texTileDefault: { isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texTile:[],
-			texXDefault:    { isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texX:[],
-			texYDefault:    { isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texY:[],
-			texWDefault:    { isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texW:[],
-			texHDefault:    { isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texH:[],
-			texPosXDefault: { isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texPosX:[],
-			texPosYDefault: { isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texPosY:[],
-			texSizeXDefault:{ isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texSizeX:[],
-			texSizeYDefault:{ isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texSizeY:[],
-			colorDefault:   { isAltType:false, vStart:0xFF0000FF, vEnd:0xFF0000FF, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, color:[],
+			posX :          { isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },
+			posY :          { isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },		
+			sizeX:          { isVarying:false, isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },
+			sizeY:          { isVarying:false, isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },
+			pivotX:         { isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
+			pivotY:         { isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
+			rotation:       { isVarying:false, isAltType:false, vStart:0.0, vEnd:0.0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
+			zIndex:         { isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
+			texUnitDefault: { isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texUnit:[],
+			texSlotDefault: { isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texSlot:[],
+			texTileDefault: { isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texTile:[],
+			texXDefault:    { isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texX:[],
+			texYDefault:    { isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texY:[],
+			texWDefault:    { isVarying:false, isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texW:[],
+			texHDefault:    { isVarying:false, isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texH:[],
+			texPosXDefault: { isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texPosX:[],
+			texPosYDefault: { isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texPosY:[],
+			texSizeXDefault:{ isVarying:false, isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texSizeX:[],
+			texSizeYDefault:{ isVarying:false, isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texSizeY:[],
+			colorDefault:   { isVarying:false, isAltType:false, vStart:0xFF0000FF, vEnd:0xFF0000FF, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, color:[],
 		};
 		
 		glConf = {
@@ -523,7 +523,7 @@ class ElementImpl
 			ATTRIB_UNIT:"", ATTRIB_SLOT:"", ATTRIB_TILE:"",
 			ATTRIB_TEXX:"", ATTRIB_TEXY:"", ATTRIB_TEXW:"", ATTRIB_TEXH:"",
 			ATTRIB_TEXPOSX:"", ATTRIB_TEXPOSY:"", ATTRIB_TEXSIZEX:"", ATTRIB_TEXSIZEY:"",
-			OUT_COLOR:"", IN_COLOR:"", OUT_TEXCOORD:"", IN_TEXCOORD:"", ZINDEX:"",
+			OUT_VARYING:"", IN_VARYING:"", OUT_COLOR:"", IN_COLOR:"", OUT_TEXCOORD:"", IN_TEXCOORD:"", ZINDEX:"",
 			OUT_UNIT:"", IN_UNIT:"", OUT_SLOT:"", IN_SLOT:"", OUT_TILE:"", IN_TILE:"", 
 			OUT_TEXX:"", IN_TEXX:"", OUT_TEXY:"", IN_TEXY:"", OUT_TEXW:"", IN_TEXW:"", OUT_TEXH:"", IN_TEXH:"", 
 			OUT_TEXPOSX:"", IN_TEXPOSX:"", OUT_TEXPOSY:"", IN_TEXPOSY:"", OUT_TEXSIZEX:"", IN_TEXSIZEX:"", OUT_TEXSIZEY:"", IN_TEXSIZEY:"", 
@@ -774,7 +774,7 @@ class ElementImpl
 		}
 		
 		glConf.OUT_TEXCOORD = "::VAROUT:: vec2 vTexCoord;";
-		glConf.IN_TEXCOORD  = "::VARIN::  vec2 vTexCoord;";
+		glConf.IN_TEXCOORD  = "::VARIN:: vec2 vTexCoord;";
 		
 		// CALC TIME-MUTLIPLICATORS:
 		for (i in 0...timers.length) {
@@ -837,7 +837,7 @@ class ElementImpl
 			conf.rotation.vStart = conf.rotation.vStart/180 * Math.PI;
 			conf.rotation.vEnd   = conf.rotation.vEnd/180 * Math.PI;
 			glConf.CALC_ROTZ  = "vec2 rotZ = " + pack2in1("aRotZ" , conf.rotation, conf.zIndex ) + ";";
-		}
+		}		
 		if (conf.rotation.name != "") {
 			var rotationmatrix = "mat2( vec2(cos(rotZ.x), -sin(rotZ.x)), vec2(sin(rotZ.x), cos(rotZ.x)) )";
 			if (conf.pivotX.name != "" || conf.pivotY.name != "") {
@@ -850,13 +850,31 @@ class ElementImpl
 			else glConf.CALC_POS = 'vec2 pos = aPosition * size * $rotationmatrix';
 		}
 		else glConf.CALC_POS = "vec2 pos = aPosition * size";
-		
-		if (conf.zIndex.name != "") glConf.ZINDEX = "rotZ.y" else glConf.ZINDEX = Util.toFloatString(conf.zIndex.vStart);
-		
+
 		// pos
 		glConf.CALC_POS += " + " + pack2in1("aPos" , conf.posX,  conf.posY ) + ";";
 		// glConf.CALC_POS = "vec2 pos  = size + " + pack2in1("aPos" , conf.posX,  conf.posY ) + ";";
+		
+		//z-index
+		if (conf.zIndex.name != "") glConf.ZINDEX = "rotZ.y" else glConf.ZINDEX = Util.toFloatString(conf.zIndex.vStart);
 
+		// set varyings for vSize, vRotZ or vPivot
+		if (conf.sizeX.isVarying || conf.sizeY.isVarying) {
+			glConf.CALC_SIZE += "vSize = size;";
+			glConf.OUT_VARYING += "::VAROUT:: vec2 vSize;";
+			glConf.IN_VARYING += "::VARIN:: vec2 vSize;";
+		}
+		if (conf.rotation.isVarying || conf.zIndex.isVarying) {
+			glConf.CALC_ROTZ += "vRotZ = rotZ;";
+			glConf.OUT_VARYING += "::VAROUT:: vec2 vRotZ;";
+			glConf.IN_VARYING += "::VARIN:: vec2 vRotZ;";
+		}
+		if (conf.pivotX.isVarying || conf.pivotY.isVarying) {
+			glConf.CALC_PIVOT += "vPivot = pivot;";
+			glConf.OUT_VARYING += "::VAROUT:: vec2 vPivot;";
+			glConf.IN_VARYING += "::VARIN:: vec2 vPivot;";
+		}
+		
 		// color
 		for (k in 0...conf.color.length) {
 			var start = (conf.color[k].isStart) ? 'aColorStart${k}.wzyx' : Util.color2vec4(conf.color[k].vStart);

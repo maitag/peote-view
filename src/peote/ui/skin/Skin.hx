@@ -93,10 +93,9 @@ class Skin
 			
 			vec4 compose (vec4 c, vec4 borderColor)
 			{
-				vec2 vSize = vec2(vTexW0, vTexH0); // TODO: optimize via Element macro to use vSize as varying from vertexshader
-				vec2 pos= (vTexCoord - 0.5) * vSize;
+				vec2 pos = (vTexCoord - 0.5) * vSize;
 				vec2 size;
-				float radius = min(vTexW0, vTexH0) / 3.0;
+				float radius = min(vSize.x, vSize.y) / 3.0;
 				float thickness = 2.0;
 				
 				// rounded rectangle
