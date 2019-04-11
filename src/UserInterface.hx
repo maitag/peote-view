@@ -33,40 +33,21 @@ class UserInterface
 			var b1:Button = new Button(20, 10, 200, 100, mySkin, myStyle);
 			ui.add(b1);
 			
-			b1.onMouseOver = function(uiDisplay:UIDisplay, button:Button, x:Int, y:Int) {
-				button.style.color = Color.GREY2;
-				button.style.borderColor = Color.GREY7;
-				button.update();
-				trace(" -----> onMouseOver", x, y, button.label);
-			}
+			b1.onMouseOver = onOver.bind(Color.GREY2);
+			b1.onMouseOut = onOut.bind(Color.GREY1);
+			b1.onMouseUp = onUp.bind(Color.GREY5);
+			b1.onMouseDown = onDown.bind(Color.YELLOW);
+			b1.onMouseClick = onClick;
 			
-			b1.onMouseOut = function(uiDisplay:UIDisplay, button:Button, x:Int, y:Int) {
-				button.style.color = Color.GREY1;
-				button.style.borderColor = Color.GREY5;
-				button.update();
-				trace(" -----> onMouseOut", x, y, button.label);
-			}
+			trace("NEW BUTTON -----");
+			var b2:Button = new Button(20, 120, 200, 100, mySkin, myStyle);
+			ui.add(b2);
 			
-			b1.onMouseUp = function(uiDisplay:UIDisplay, button:Button, x:Int, y:Int) {
-				button.style.borderColor = Color.GREY5;
-				button.update();
-				trace(" -----> onMouseUp", x, y, button.label);
-			}
-			
-			b1.onMouseDown = function(uiDisplay:UIDisplay, button:Button, x:Int, y:Int) {
-				button.style.borderColor = Color.YELLOW;
-				button.x += 30;
-				button.update();
-				trace(" -----> onMouseDown", x, y, button.label);
-				ui.onMouseMove(peoteView, x, y);
-			}
-			
-			b1.onMouseClick = function(uiDisplay:UIDisplay, button:Button, x:Int, y:Int) {
-				button.y += 30;
-				button.update();
-				trace(" -----> onMouseClick", x, y, button.label);
-				ui.onMouseMove(peoteView, x, y);
-			}
+			b2.onMouseOver = onOver.bind(Color.GREY2);
+			b2.onMouseOut = onOut.bind(Color.GREY1);
+			b2.onMouseUp = onUp.bind(Color.GREY5);
+			b2.onMouseDown = onDown.bind(Color.RED);
+			b2.onMouseClick = onClick;
 			
 			//trace("REMOVE onMouseClick -----"); b1.onMouseClick = null;	
 			//ui.remove(b1);
@@ -79,6 +60,40 @@ class UserInterface
 		catch (e:Dynamic) trace("ERROR:", e);
 	}
 	
+	// --------------------------------------------------
+	public function onOver(color:Color, uiDisplay:UIDisplay, button:Button, x:Int, y:Int) {
+		button.style.color = color;
+		button.style.borderColor = Color.GREY7;
+		button.update();
+		trace(" -----> onMouseOver", x, y, button.label);
+	}
+	
+	public function onOut(color:Color, uiDisplay:UIDisplay, button:Button, x:Int, y:Int) {
+		button.style.color = color;
+		button.style.borderColor = Color.GREY5;
+		button.update();
+		trace(" -----> onMouseOut", x, y, button.label);
+	}
+	
+	public function onUp(borderColor:Color, uiDisplay:UIDisplay, button:Button, x:Int, y:Int) {
+		button.style.borderColor = borderColor;
+		button.update();
+		trace(" -----> onMouseUp", x, y, button.label);
+	}
+	
+	public function onDown(borderColor:Color, uiDisplay:UIDisplay, button:Button, x:Int, y:Int) {
+		button.style.borderColor = borderColor;
+		//button.x += 30;
+		button.update();
+		trace(" -----> onMouseDown", x, y, button.label);
+		ui.onMouseMove(peoteView, x, y);
+	}
+	
+	public function onClick(uiDisplay:UIDisplay, button:Button, x:Int, y:Int) {
+		//button.y += 30; button.update();
+		trace(" -----> onMouseClick", x, y, button.label);
+		ui.onMouseMove(peoteView, x, y);
+	}
 	// --------------------------------------------------
 
 	// delegate mouse-events to UIDisplay

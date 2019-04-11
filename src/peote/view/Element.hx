@@ -25,6 +25,7 @@ typedef ConfParam =
 	pivotY:ConfSubParam,
 	rotation:ConfSubParam,
 	zIndex:ConfSubParam,
+	
 	texUnitDefault:ConfSubParam, texUnit:Array<ConfSubParam>,
 	texSlotDefault:ConfSubParam, texSlot:Array<ConfSubParam>,
 	texTileDefault:ConfSubParam, texTile:Array<ConfSubParam>,
@@ -389,6 +390,11 @@ class ElementImpl
 				confItem.n++;
 			}							
 		}
+		// to make an attribute varying for fragmentshader
+		/*param = getMetaParam(f, "varying");
+		if (param != null) {
+			trace("IS VARYING");
+		}*/
 		//trace(confItem);
 	}
 	
@@ -821,7 +827,8 @@ class ElementImpl
 		}
 		
 		// size
-		glConf.CALC_SIZE = "vec2 size = aPosition * " + pack2in1("aSize", conf.sizeX, conf.sizeY) + ";";
+		//glConf.CALC_SIZE = "vec2 size = aPosition * " + pack2in1("aSize", conf.sizeX, conf.sizeY) + ";";
+		glConf.CALC_SIZE = "vec2 size = " + pack2in1("aSize", conf.sizeX, conf.sizeY) + ";";
 		
 		// rotation and zIndex
 		conf.zIndex.vStart = Math.min(1.0,Math.max(-1.0, conf.zIndex.vStart/MAX_ZINDEX));
@@ -836,14 +843,19 @@ class ElementImpl
 			if (conf.pivotX.name != "" || conf.pivotY.name != "") {
 				// pivot
 				glConf.CALC_PIVOT = "vec2 pivot = " + pack2in1("aPivot" , conf.pivotX,  conf.pivotY ) + ";";
-				glConf.CALC_ROTZ += ' size = (size-pivot) * $rotationmatrix + pivot;';
+				//glConf.CALC_ROTZ += ' size = (size-pivot) * $rotationmatrix + pivot;';
+				glConf.CALC_POS = 'vec2 pos = (aPosition * size - pivot) * $rotationmatrix + pivot';
 			}
-			else glConf.CALC_ROTZ += ' size = size * $rotationmatrix;';
+			//else glConf.CALC_ROTZ += ' size = size * $rotationmatrix;';
+			else glConf.CALC_POS = 'vec2 pos = aPosition * size * $rotationmatrix';
 		}
+		else glConf.CALC_POS = "vec2 pos = aPosition * size";
+		
 		if (conf.zIndex.name != "") glConf.ZINDEX = "rotZ.y" else glConf.ZINDEX = Util.toFloatString(conf.zIndex.vStart);
 		
 		// pos
-		glConf.CALC_POS  = "vec2 pos  = size + " + pack2in1("aPos" , conf.posX,  conf.posY ) + ";";
+		glConf.CALC_POS += " + " + pack2in1("aPos" , conf.posX,  conf.posY ) + ";";
+		// glConf.CALC_POS = "vec2 pos  = size + " + pack2in1("aPos" , conf.posX,  conf.posY ) + ";";
 
 		// color
 		for (k in 0...conf.color.length) {
