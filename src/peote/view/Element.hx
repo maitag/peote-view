@@ -390,7 +390,7 @@ class ElementImpl
 				confItem.n++;
 			}							
 		}
-		// to make an attribute varying for fragmentshader
+		// to make an attribute varying for fragmentshader - only for vPos, vSize, vRotZ or vPivot
 		param = getMetaParam(f, "varying");
 		if (param != null) {
 			confItem.isVarying = true;
@@ -830,6 +830,16 @@ class ElementImpl
 		//glConf.CALC_SIZE = "vec2 size = aPosition * " + pack2in1("aSize", conf.sizeX, conf.sizeY) + ";";
 		glConf.CALC_SIZE = "vec2 size = " + pack2in1("aSize", conf.sizeX, conf.sizeY) + ";";
 		
+		// pos
+		glConf.CALC_POS = "vec2 pos = " + pack2in1("aPos" , conf.posX,  conf.posY ) + ";";
+		
+		// set varyings for vPos
+		if (conf.posX.isVarying || conf.posY.isVarying) {
+			glConf.CALC_POS += " vPos = pos;";
+			glConf.OUT_VARYING += "::VAROUT:: vec2 vPos;";
+			glConf.IN_VARYING += "::VARIN:: vec2 vPos;";
+		}
+		
 		// rotation and zIndex
 		conf.zIndex.vStart = Math.min(1.0,Math.max(-1.0, conf.zIndex.vStart/MAX_ZINDEX));
 		conf.zIndex.vEnd   = Math.min(1.0,Math.max(-1.0, conf.zIndex.vEnd/MAX_ZINDEX));
@@ -843,17 +853,11 @@ class ElementImpl
 			if (conf.pivotX.name != "" || conf.pivotY.name != "") {
 				// pivot
 				glConf.CALC_PIVOT = "vec2 pivot = " + pack2in1("aPivot" , conf.pivotX,  conf.pivotY ) + ";";
-				//glConf.CALC_ROTZ += ' size = (size-pivot) * $rotationmatrix + pivot;';
-				glConf.CALC_POS = 'vec2 pos = (aPosition * size - pivot) * $rotationmatrix + pivot';
+				glConf.CALC_POS += ' pos = pos + (aPosition * size - pivot) * $rotationmatrix + pivot;';
 			}
-			//else glConf.CALC_ROTZ += ' size = size * $rotationmatrix;';
-			else glConf.CALC_POS = 'vec2 pos = aPosition * size * $rotationmatrix';
+			else glConf.CALC_POS += ' pos = pos + aPosition * size * $rotationmatrix;';
 		}
-		else glConf.CALC_POS = "vec2 pos = aPosition * size";
-
-		// pos
-		glConf.CALC_POS += " + " + pack2in1("aPos" , conf.posX,  conf.posY ) + ";";
-		// glConf.CALC_POS = "vec2 pos  = size + " + pack2in1("aPos" , conf.posX,  conf.posY ) + ";";
+		else glConf.CALC_POS += " pos = pos + aPosition * size;";
 		
 		//z-index
 		if (conf.zIndex.name != "") glConf.ZINDEX = "rotZ.y" else glConf.ZINDEX = Util.toFloatString(conf.zIndex.vStart);

@@ -39,8 +39,12 @@ class UserInterface
 			b1.onMouseDown = onDown.bind(Color.YELLOW);
 			b1.onMouseClick = onClick;
 			
+			var myStyle2 = new Style();
+			myStyle2.color = Color.GREY1;
+			myStyle2.borderColor = Color.GREY5;
+
 			trace("NEW BUTTON -----");
-			var b2:Button = new Button(20, 120, 200, 100, mySkin, myStyle);
+			var b2:Button = new Button(20, 120, 200, 100, mySkin, myStyle2);
 			ui.add(b2);
 			
 			b2.onMouseOver = onOver.bind(Color.GREY2);
@@ -86,13 +90,13 @@ class UserInterface
 		//button.x += 30;
 		button.update();
 		trace(" -----> onMouseDown", x, y, button.label);
-		ui.onMouseMove(peoteView, x, y);
+		//ui.onMouseMove(peoteView, x, y);
 	}
 	
 	public function onClick(uiDisplay:UIDisplay, button:Button, x:Int, y:Int) {
 		//button.y += 30; button.update();
 		trace(" -----> onMouseClick", x, y, button.label);
-		ui.onMouseMove(peoteView, x, y);
+		//ui.onMouseMove(peoteView, x, y);
 	}
 	// --------------------------------------------------
 
