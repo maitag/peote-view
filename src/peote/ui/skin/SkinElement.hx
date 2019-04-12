@@ -13,6 +13,10 @@ class SkinElement implements Element
 	@color("color") public var color:Color;
 	@color("borderColor") public var borderColor:Color;
 	
+	//@custom("borderSize")   public var borderSize:Float;
+	//@custom("borderRadius") public var borderRadius:Float;
+	//@custom("borderColor")  public var borderColor:Float;
+	
 	@posX public var x:Int=0;
 	@posY public var y:Int=0;	
 	@sizeX @varying public var w:Int=100;

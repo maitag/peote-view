@@ -666,8 +666,8 @@ class ElementImpl
 			if (conf.color[k].isStart) glConf.ATTRIB_COLOR += '::IN:: vec4 aColorStart${k};';
 			if (conf.color[k].isEnd)   glConf.ATTRIB_COLOR += '::IN:: vec4 aColorEnd${k};';
 			if (conf.color[k].n > 0) {
-				glConf.OUT_COLOR += '::if isES3::flat::end:: ::VAROUT:: vec4 vColor${k};';
-				glConf.IN_COLOR  += '::if isES3::flat::end:: ::VARIN::  vec4 vColor${k};';
+				glConf.OUT_COLOR += '::if isES3::flat ::end::::VAROUT:: vec4 vColor${k};';
+				glConf.IN_COLOR  += '::if isES3::flat ::end::::VARIN:: vec4 vColor${k}; ';
 			}
 		}
 		
@@ -679,8 +679,8 @@ class ElementImpl
 				var type:String = (conf.texUnit[k].n == 1) ? "float" : "vec2";
 				glConf.ATTRIB_UNIT += '::IN:: $type aUnit${k};';
 			}
-			glConf.OUT_UNIT += '::if isES3::flat::end:: ::VAROUT:: float vUnit${k};';
-			glConf.IN_UNIT  += '::if isES3::flat::end:: ::VARIN::  float vUnit${k};';
+			glConf.OUT_UNIT += '::if isES3::flat ::end:: ::VAROUT:: float vUnit${k};';
+			glConf.IN_UNIT  += '::if isES3::flat ::end:: ::VARIN:: float vUnit${k};';
 		}
 		// slots
 		for (k in 0...conf.texSlot.length) {
@@ -688,8 +688,8 @@ class ElementImpl
 				var type:String = (conf.texSlot[k].n == 1) ? "float" : "vec2";
 				glConf.ATTRIB_SLOT += '::IN:: $type aSlot${k};';
 			}
-			glConf.OUT_SLOT += '::if isES3::flat::end:: ::VAROUT:: float vSlot${k};';
-			glConf.IN_SLOT  += '::if isES3::flat::end:: ::VARIN::  float vSlot${k};';
+			glConf.OUT_SLOT += '::if isES3::flat ::end:: ::VAROUT:: float vSlot${k};';
+			glConf.IN_SLOT  += '::if isES3::flat ::end:: ::VARIN:: float vSlot${k};';
 		}
 		// tiles
 		for (k in 0...conf.texTile.length) {
@@ -697,8 +697,8 @@ class ElementImpl
 				var type:String = (conf.texTile[k].n == 1) ? "float" : "vec2";
 				glConf.ATTRIB_TILE += '::IN:: $type aTile${k};';
 			}
-			glConf.OUT_TILE += '::if isES3::flat::end:: ::VAROUT:: float vTile${k};';
-			glConf.IN_TILE  += '::if isES3::flat::end:: ::VARIN::  float vTile${k};';
+			glConf.OUT_TILE += '::if isES3::flat ::end:: ::VAROUT:: float vTile${k};';
+			glConf.IN_TILE  += '::if isES3::flat ::end:: ::VARIN:: float vTile${k};';
 		}
 		// texX
 		for (k in 0...conf.texX.length) {
@@ -706,8 +706,8 @@ class ElementImpl
 				var type:String = (conf.texX[k].n == 1) ? "float" : "vec2";
 				glConf.ATTRIB_TEXX += '::IN:: $type aTexX${k};';
 			}
-			glConf.OUT_TEXX += '::if isES3::flat::end:: ::VAROUT:: float vTexX${k};';
-			glConf.IN_TEXX  += '::if isES3::flat::end:: ::VARIN::  float vTexX${k};';
+			glConf.OUT_TEXX += '::if isES3::flat ::end:: ::VAROUT:: float vTexX${k};';
+			glConf.IN_TEXX  += '::if isES3::flat ::end:: ::VARIN:: float vTexX${k};';
 		}
 		// texY
 		for (k in 0...conf.texY.length) {
@@ -715,8 +715,8 @@ class ElementImpl
 				var type:String = (conf.texY[k].n == 1) ? "float" : "vec2";
 				glConf.ATTRIB_TEXY += '::IN:: $type aTexY${k};';
 			}
-			glConf.OUT_TEXY += '::if isES3::flat::end:: ::VAROUT:: float vTexY${k};';
-			glConf.IN_TEXY  += '::if isES3::flat::end:: ::VARIN::  float vTexY${k};';
+			glConf.OUT_TEXY += '::if isES3::flat ::end:: ::VAROUT:: float vTexY${k};';
+			glConf.IN_TEXY  += '::if isES3::flat ::end:: ::VARIN:: float vTexY${k};';
 		}
 		// texW
 		for (k in 0...conf.texW.length) {
@@ -724,8 +724,8 @@ class ElementImpl
 				var type:String = (conf.texW[k].n == 1) ? "float" : "vec2";
 				glConf.ATTRIB_TEXW += '::IN:: $type aTexW${k};';
 			}
-			glConf.OUT_TEXW += '::if isES3::flat::end:: ::VAROUT:: float vTexW${k};';
-			glConf.IN_TEXW  += '::if isES3::flat::end:: ::VARIN::  float vTexW${k};';
+			glConf.OUT_TEXW += '::if isES3::flat ::end:: ::VAROUT:: float vTexW${k};';
+			glConf.IN_TEXW  += '::if isES3::flat ::end:: ::VARIN:: float vTexW${k};';
 		}
 		// texH
 		for (k in 0...conf.texH.length) {
@@ -733,8 +733,8 @@ class ElementImpl
 				var type:String = (conf.texH[k].n == 1) ? "float" : "vec2";
 				glConf.ATTRIB_TEXH += '::IN:: $type aTexH${k};';
 			}
-			glConf.OUT_TEXH += '::if isES3::flat::end:: ::VAROUT:: float vTexH${k};';
-			glConf.IN_TEXH  += '::if isES3::flat::end:: ::VARIN::  float vTexH${k};';
+			glConf.OUT_TEXH += '::if isES3::flat ::end:: ::VAROUT:: float vTexH${k};';
+			glConf.IN_TEXH  += '::if isES3::flat ::end:: ::VARIN:: float vTexH${k};';
 		}
 		// texPosX
 		for (k in 0...conf.texPosX.length) {
@@ -742,8 +742,8 @@ class ElementImpl
 				var type:String = (conf.texPosX[k].n == 1) ? "float" : "vec2";
 				glConf.ATTRIB_TEXPOSX += '::IN:: $type aTexPosX${k};';
 			}
-			glConf.OUT_TEXPOSX += '::if isES3::flat::end:: ::VAROUT:: float vTexPosX${k};';
-			glConf.IN_TEXPOSX  += '::if isES3::flat::end:: ::VARIN::  float vTexPosX${k};';
+			glConf.OUT_TEXPOSX += '::if isES3::flat ::end:: ::VAROUT:: float vTexPosX${k};';
+			glConf.IN_TEXPOSX  += '::if isES3::flat ::end:: ::VARIN:: float vTexPosX${k};';
 		}
 		// texPosY
 		for (k in 0...conf.texPosY.length) {
@@ -751,8 +751,8 @@ class ElementImpl
 				var type:String = (conf.texPosY[k].n == 1) ? "float" : "vec2";
 				glConf.ATTRIB_TEXPOSY += '::IN:: $type aTexPosY${k};';
 			}
-			glConf.OUT_TEXPOSY += '::if isES3::flat::end:: ::VAROUT:: float vTexPosY${k};';
-			glConf.IN_TEXPOSY  += '::if isES3::flat::end:: ::VARIN::  float vTexPosY${k};';
+			glConf.OUT_TEXPOSY += '::if isES3::flat ::end:: ::VAROUT:: float vTexPosY${k};';
+			glConf.IN_TEXPOSY  += '::if isES3::flat ::end:: ::VARIN:: float vTexPosY${k};';
 		}
 		// texSizeX
 		for (k in 0...conf.texSizeX.length) {
@@ -760,8 +760,8 @@ class ElementImpl
 				var type:String = (conf.texSizeX[k].n == 1) ? "float" : "vec2";
 				glConf.ATTRIB_TEXSIZEX += '::IN:: $type aTexSizeX${k};';
 			}
-			glConf.OUT_TEXSIZEX += '::if isES3::flat::end:: ::VAROUT:: float vTexSizeX${k};';
-			glConf.IN_TEXSIZEX  += '::if isES3::flat::end:: ::VARIN::  float vTexSizeX${k};';
+			glConf.OUT_TEXSIZEX += '::if isES3::flat ::end:: ::VAROUT:: float vTexSizeX${k};';
+			glConf.IN_TEXSIZEX  += '::if isES3::flat ::end:: ::VARIN:: float vTexSizeX${k};';
 		}
 		// texSizeY
 		for (k in 0...conf.texSizeY.length) {
@@ -769,8 +769,8 @@ class ElementImpl
 				var type:String = (conf.texSizeY[k].n == 1) ? "float" : "vec2";
 				glConf.ATTRIB_TEXSIZEY += '::IN:: $type aTexSizeY${k};';
 			}
-			glConf.OUT_TEXSIZEY += '::if isES3::flat::end:: ::VAROUT:: float vTexSizeY${k};';
-			glConf.IN_TEXSIZEY  += '::if isES3::flat::end:: ::VARIN::  float vTexSizeY${k};';
+			glConf.OUT_TEXSIZEY += '::if isES3::flat ::end:: ::VAROUT:: float vTexSizeY${k};';
+			glConf.IN_TEXSIZEY  += '::if isES3::flat ::end:: ::VARIN:: float vTexSizeY${k};';
 		}
 		
 		glConf.OUT_TEXCOORD = "::VAROUT:: vec2 vTexCoord;";
@@ -835,9 +835,9 @@ class ElementImpl
 		
 		// set varyings for vPos
 		if (conf.posX.isVarying || conf.posY.isVarying) {
-			glConf.CALC_POS += " vPos = pos;";
-			glConf.OUT_VARYING += "::VAROUT:: vec2 vPos;";
-			glConf.IN_VARYING += "::VARIN:: vec2 vPos;";
+			glConf.CALC_POS += "vPos = pos; ";
+			glConf.OUT_VARYING += "::if isES3::flat ::end::::VAROUT:: vec2 vPos;";
+			glConf.IN_VARYING += "::if isES3::flat ::end::::VARIN:: vec2 vPos;";
 		}
 		
 		// rotation and zIndex
@@ -853,11 +853,11 @@ class ElementImpl
 			if (conf.pivotX.name != "" || conf.pivotY.name != "") {
 				// pivot
 				glConf.CALC_PIVOT = "vec2 pivot = " + pack2in1("aPivot" , conf.pivotX,  conf.pivotY ) + ";";
-				glConf.CALC_POS += ' pos = pos + (aPosition * size - pivot) * $rotationmatrix + pivot;';
+				glConf.CALC_POS += 'pos = pos + (aPosition * size - pivot) * $rotationmatrix + pivot;';
 			}
-			else glConf.CALC_POS += ' pos = pos + aPosition * size * $rotationmatrix;';
+			else glConf.CALC_POS += 'pos = pos + aPosition * size * $rotationmatrix;';
 		}
-		else glConf.CALC_POS += " pos = pos + aPosition * size;";
+		else glConf.CALC_POS += "pos = pos + aPosition * size;";
 		
 		//z-index
 		if (conf.zIndex.name != "") glConf.ZINDEX = "rotZ.y" else glConf.ZINDEX = Util.toFloatString(conf.zIndex.vStart);
@@ -865,18 +865,18 @@ class ElementImpl
 		// set varyings for vSize, vRotZ or vPivot
 		if (conf.sizeX.isVarying || conf.sizeY.isVarying) {
 			glConf.CALC_SIZE += "vSize = size;";
-			glConf.OUT_VARYING += "::VAROUT:: vec2 vSize;";
-			glConf.IN_VARYING += "::VARIN:: vec2 vSize;";
+			glConf.OUT_VARYING += "::if isES3::flat ::end::::VAROUT:: vec2 vSize;";
+			glConf.IN_VARYING += "::if isES3::flat ::end::::VARIN:: vec2 vSize;";
 		}
 		if (conf.rotation.isVarying || conf.zIndex.isVarying) {
 			glConf.CALC_ROTZ += "vRotZ = rotZ;";
-			glConf.OUT_VARYING += "::VAROUT:: vec2 vRotZ;";
-			glConf.IN_VARYING += "::VARIN:: vec2 vRotZ;";
+			glConf.OUT_VARYING += "::if isES3::flat ::end::::VAROUT:: vec2 vRotZ;";
+			glConf.IN_VARYING += "::if isES3::flat ::end::::VARIN:: vec2 vRotZ;";
 		}
 		if (conf.pivotX.isVarying || conf.pivotY.isVarying) {
 			glConf.CALC_PIVOT += "vPivot = pivot;";
-			glConf.OUT_VARYING += "::VAROUT:: vec2 vPivot;";
-			glConf.IN_VARYING += "::VARIN:: vec2 vPivot;";
+			glConf.OUT_VARYING += "::if isES3::flat ::end::::VAROUT:: vec2 vPivot;";
+			glConf.IN_VARYING += "::if isES3::flat ::end::::VARIN:: vec2 vPivot;";
 		}
 		
 		// color
@@ -887,10 +887,10 @@ class ElementImpl
 				start = '$start + ($end - $start) * time' + timers.indexOf(conf.color[k].time);
 			}
 			if (conf.color[k].n > 0 || conf.color[k].isAnim) {
-				glConf.CALC_COLOR += 'vColor${k} = $start;';
-				glConf.FRAGMENT_CALC_COLOR += 'vec4 c${k} = vColor${k};';
+				glConf.CALC_COLOR += 'vColor${k} = $start; ';
+				glConf.FRAGMENT_CALC_COLOR += 'vec4 c${k} = vColor${k}; ';
 			} else
-				glConf.FRAGMENT_CALC_COLOR += 'vec4 c${k} = $start;';
+				glConf.FRAGMENT_CALC_COLOR += 'vec4 c${k} = $start; ';
 		}
 		
 		// ------- TODO make that packs all units, slots and tiles together into many aUnitSlotTile vec4 attributes --------- 
