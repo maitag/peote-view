@@ -28,6 +28,8 @@ class UserInterface
 			var myStyle = new Style();
 			myStyle.color = Color.GREY1;
 			myStyle.borderColor = Color.GREY5;
+			myStyle.borderSize = 4.0;
+			myStyle.borderRadius = 40.0;
 			
 			trace("NEW BUTTON -----");
 			var b1:Button = new Button(20, 10, 200, 100, mySkin, myStyle);
@@ -42,6 +44,7 @@ class UserInterface
 			var myStyle2 = new Style();
 			myStyle2.color = Color.GREY1;
 			myStyle2.borderColor = Color.GREY5;
+			myStyle2.borderSize = 2.0;
 
 			trace("NEW BUTTON -----");
 			var b2:Button = new Button(20, 120, 200, 100, mySkin, myStyle2);

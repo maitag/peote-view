@@ -102,13 +102,15 @@ class UIDisplay extends Display
 	}
 
 	public function onWindowLeave ():Void {
+		trace("onWindowLeave");
 		if (lastOverIndex >= 0) {
 			overBuffer.getElement(lastOverIndex).uiElement.mouseOut( -1, -1) ;
 			lastOverIndex = -1;
 		}
 		if (lastDownIndex >= 0) { 
 			clickBuffer.getElement(lastDownIndex).uiElement.mouseUp( -1, -1 );
-			lastDownIndex = -1;			
+			lastDownIndex = -1;
+			lockDown = false;
 		}
 	}
 	

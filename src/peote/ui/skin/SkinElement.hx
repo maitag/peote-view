@@ -13,9 +13,8 @@ class SkinElement implements Element
 	@color("color") public var color:Color;
 	@color("borderColor") public var borderColor:Color;
 	
-	//@custom("borderSize")   public var borderSize:Float;
-	//@custom("borderRadius") public var borderRadius:Float;
-	//@custom("borderColor")  public var borderColor:Float;
+	@custom("borderSize")   @varying public var borderSize:Float;
+	@custom("borderRadius") @varying public var borderRadius:Float;
 	
 	@posX public var x:Int=0;
 	@posY public var y:Int=0;	
@@ -38,5 +37,7 @@ class SkinElement implements Element
 		z = uiElement.z;
 		color = uiElement.style.color;
 		borderColor = uiElement.style.borderColor;
+		borderSize = uiElement.style.borderSize;
+		borderRadius = uiElement.style.borderRadius;
 	}
 }

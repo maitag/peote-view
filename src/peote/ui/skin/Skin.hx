@@ -65,9 +65,10 @@ class Skin
 		
 		program.injectIntoFragmentShader(
 			"
-			float roundedBox (vec2 pos, vec2 size, float radius, float padding)
+			float roundedBox (vec2 pos, vec2 size, float padding, float radius)
 			{
 				radius -= padding;
+				pos = (pos - 0.5) * size;
 				size = 0.5 * size - vec2(radius, radius) - vec2(padding, padding);
 				
 				float d = length(max(abs(pos), size) - size) - radius;
@@ -76,10 +77,11 @@ class Skin
 				return smoothstep( 0.0, 1.0,  d );
 			}
 			
-			float roundedBorder (vec2 pos, vec2 size, float radius, float thickness)
+			float roundedBorder (vec2 pos, vec2 size, float thickness, float radius)
 			{
 				
-				radius -= thickness/2.0;
+				radius -= thickness / 2.0;
+				pos = (pos - 0.5) * size;
 				size = 0.5 * (size - vec2(thickness, thickness)) - vec2(radius, radius);
 				
 				float s = 0.5 / thickness * 2.0;
@@ -91,23 +93,20 @@ class Skin
 				//return smoothstep( 0.5+s, 0.5-s, abs( d / thickness ) * (1.0 + s) );
 			}
 			
-			vec4 compose (vec4 c, vec4 borderColor)
+			vec4 compose (vec4 c, vec4 borderColor, float borderSize, float borderRadius)
 			{
-				vec2 pos = (vTexCoord - 0.5) * vSize;
-				vec2 size;
-				float radius = min(vSize.x, vSize.y) / 3.0;
-				float thickness = 2.0;
+				float radius =  max(borderSize+1.0, min(borderRadius, min(vSize.x, vSize.y) / 2.0));
 				
 				// rounded rectangle
-				c = mix(c, vec4(0.0, 0.0, 0.0, 0.0), roundedBox(pos, vSize, radius, thickness));
-				
+				c = mix(c, vec4(0.0, 0.0, 0.0, 0.0), roundedBox(vTexCoord, vSize, radius, borderSize));				
 				// border
-				c = mix(c, borderColor, roundedBorder(pos, vSize, radius, thickness));
+				c = mix(c, borderColor, roundedBorder(vTexCoord, vSize, borderSize, radius));
+				
 				return c;
 			}
 			"
 		);
-		program.setColorFormula('compose(color, borderColor)');
+		program.setColorFormula('compose(color, borderColor, vCustom0, vCustom1)');
 
 		return program;
 	}

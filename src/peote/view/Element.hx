@@ -37,7 +37,9 @@ typedef ConfParam =
 	texPosYDefault:ConfSubParam, texPosY:Array<ConfSubParam>,
 	texSizeXDefault:ConfSubParam, texSizeX:Array<ConfSubParam>,
 	texSizeYDefault:ConfSubParam, texSizeY:Array<ConfSubParam>,
+	
 	colorDefault:ConfSubParam, color:Array<ConfSubParam>,
+	customDefault:ConfSubParam, custom:Array<ConfSubParam>,
 }
 typedef ConfSubParam =
 {
@@ -46,19 +48,21 @@ typedef ConfSubParam =
 
 typedef GLConfParam =
 {			UNIFORM_TIME:String,
-			ATTRIB_TIME:String, ATTRIB_SIZE:String, ATTRIB_POS:String, ATTRIB_COLOR:String, ATTRIB_ROTZ:String, ATTRIB_PIVOT:String,
+			ATTRIB_TIME:String, ATTRIB_SIZE:String, ATTRIB_POS:String, ATTRIB_ROTZ:String, ATTRIB_PIVOT:String,
 			ATTRIB_UNIT:String, ATTRIB_SLOT:String, ATTRIB_TILE:String,
 			ATTRIB_TEXX:String, ATTRIB_TEXY:String, ATTRIB_TEXW:String, ATTRIB_TEXH:String,
-			ATTRIB_TEXPOSX:String, ATTRIB_TEXPOSY:String,ATTRIB_TEXSIZEX:String, ATTRIB_TEXSIZEY:String,
+			ATTRIB_TEXPOSX:String, ATTRIB_TEXPOSY:String, ATTRIB_TEXSIZEX:String, ATTRIB_TEXSIZEY:String,
+			ATTRIB_COLOR:String, ATTRIB_CUSTOM:String,
 			OUT_VARYING:String, IN_VARYING:String, OUT_COLOR:String, IN_COLOR:String, OUT_TEXCOORD:String, IN_TEXCOORD:String, ZINDEX:String,
 			OUT_UNIT:String, IN_UNIT:String, OUT_SLOT:String, IN_SLOT:String, OUT_TILE:String, IN_TILE:String, 
 			OUT_TEXX:String, IN_TEXX:String, OUT_TEXY:String, IN_TEXY:String, OUT_TEXW:String, IN_TEXW:String, OUT_TEXH:String, IN_TEXH:String, 
 			OUT_TEXPOSX:String, IN_TEXPOSX:String, OUT_TEXPOSY:String, IN_TEXPOSY:String, OUT_TEXSIZEX:String, IN_TEXSIZEX:String, OUT_TEXSIZEY:String, IN_TEXSIZEY:String,
 			FRAGMENT_CALC_COLOR:String,
-			CALC_TIME:String, CALC_SIZE:String, CALC_POS:String, CALC_COLOR:String, CALC_ROTZ:String, CALC_PIVOT:String, CALC_TEXCOORD:String,
+			CALC_TIME:String, CALC_SIZE:String, CALC_POS:String, CALC_ROTZ:String, CALC_PIVOT:String, CALC_TEXCOORD:String,
 			CALC_UNIT:String, CALC_SLOT:String, CALC_TILE:String,
 			CALC_TEXX:String, CALC_TEXY:String, CALC_TEXW:String, CALC_TEXH:String,
 			CALC_TEXPOSX:String, CALC_TEXPOSY:String, CALC_TEXSIZEX:String, CALC_TEXSIZEY:String,
+			CALC_COLOR:String, CALC_CUSTOM:String,
 			ELEMENT_LAYERS:Array<{UNIT:String, end_ELEMENT_LAYER:String, if_ELEMENT_LAYER:String, TEXCOORD:String}>,
 };
 
@@ -443,6 +447,22 @@ class ElementImpl
 		return true;
 	}
 	
+	static function checkCustomMetas(meta:String, f:Field, expectedType:ComplexType, alternativeType:ComplexType, type:ComplexType, val:Expr, d:ConfSubParam, confItem:Array<ConfSubParam>, getter:String, setter:String):Bool
+	{
+		var metas:Array<String> = getAllMetaParams(f, meta);
+		if (metas == null) return false;
+		if (metas.length > 1) throw Context.error('Error: @custom attributes needs only 1 identifier for use in custom shadercode (default is allways "custom")', f.pos);
+		if (metas.length == 0) metas.push("custom");
+		var name = metas[0];
+		if (Util.isWrongIdentifier(name)) throw Context.error('Error: "$name" is not an identifier, please use only letters/numbers or "_" (starting with a letter)', f.pos);
+		if (customIdentifiers.indexOf(name) >= 0) throw Context.error('Error: "$name" is already used for a @custom identifier', f.pos);
+		customIdentifiers.push(name);
+		var c = { isVarying:d.isVarying, isAltType:d.isAltType, vStart:d.vStart, vEnd:d.vEnd, n:d.n, isAnim:d.isAnim, name:d.name, isStart:d.isStart, isEnd:d.isEnd, time:d.time, pos:d.pos };
+		checkMetas(f, expectedType, alternativeType, type, val, c , getter, setter);
+		confItem.push(c);
+		return true;
+	}
+	
 	static inline function configure(f:Field, type:ComplexType, val:Expr, getter:String=null, setter:String=null)
 	{	//trace(f.name, type, val, getter, setter);
 		if      (hasMeta(f, "posX"))   checkMetas(f, macro:Int, macro:Float, type, val, conf.posX, getter, setter);
@@ -456,6 +476,8 @@ class ElementImpl
 		else if (hasMeta(f, "zIndex"))  checkMetas(f, macro:Int,   null, type, val, conf.zIndex, getter, setter);
 		// color layer attributes
 		else if (checkColorLayerMetas("color", f, macro:peote.view.Color, null, type, val, conf.colorDefault, conf.color, getter, setter) ) {}
+		// custom attributes
+		else if (checkCustomMetas("custom", f, macro:Int, macro:Float, type, val, conf.customDefault, conf.custom, getter, setter) ) {}
 		// texture layer attributes
 		else if (checkTexLayerMetas("texX",    f, macro:Int, macro:Float, type, val, conf.texXDefault, conf.texX, getter, setter) ) {}
 		else if (checkTexLayerMetas("texY",    f, macro:Int, macro:Float, type, val, conf.texYDefault, conf.texY, getter, setter) ) {}
@@ -489,6 +511,7 @@ class ElementImpl
 	static var confTextureLayer:StringMap<StringMap<Int>>;
 	static var textureIdentifiers:Array<String>;
 	static var colorIdentifiers:Array<String>;
+	static var customIdentifiers:Array<String>;
 	
 	//static var isChild:Bool = false;
 	// -------------------------------------- BUILD -------------------------------------------------
@@ -515,23 +538,26 @@ class ElementImpl
 			texSizeXDefault:{ isVarying:false, isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texSizeX:[],
 			texSizeYDefault:{ isVarying:false, isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texSizeY:[],
 			colorDefault:   { isVarying:false, isAltType:false, vStart:0xFF0000FF, vEnd:0xFF0000FF, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, color:[],
+			customDefault:  { isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, custom:[],
 		};
 		
 		glConf = {
 			UNIFORM_TIME:"",
-			ATTRIB_TIME:"", ATTRIB_SIZE:"", ATTRIB_POS:"", ATTRIB_COLOR:"", ATTRIB_ROTZ:"", ATTRIB_PIVOT:"",
+			ATTRIB_TIME:"", ATTRIB_SIZE:"", ATTRIB_POS:"", ATTRIB_ROTZ:"", ATTRIB_PIVOT:"",
 			ATTRIB_UNIT:"", ATTRIB_SLOT:"", ATTRIB_TILE:"",
 			ATTRIB_TEXX:"", ATTRIB_TEXY:"", ATTRIB_TEXW:"", ATTRIB_TEXH:"",
 			ATTRIB_TEXPOSX:"", ATTRIB_TEXPOSY:"", ATTRIB_TEXSIZEX:"", ATTRIB_TEXSIZEY:"",
+			ATTRIB_COLOR:"", ATTRIB_CUSTOM:"",
 			OUT_VARYING:"", IN_VARYING:"", OUT_COLOR:"", IN_COLOR:"", OUT_TEXCOORD:"", IN_TEXCOORD:"", ZINDEX:"",
 			OUT_UNIT:"", IN_UNIT:"", OUT_SLOT:"", IN_SLOT:"", OUT_TILE:"", IN_TILE:"", 
 			OUT_TEXX:"", IN_TEXX:"", OUT_TEXY:"", IN_TEXY:"", OUT_TEXW:"", IN_TEXW:"", OUT_TEXH:"", IN_TEXH:"", 
 			OUT_TEXPOSX:"", IN_TEXPOSX:"", OUT_TEXPOSY:"", IN_TEXPOSY:"", OUT_TEXSIZEX:"", IN_TEXSIZEX:"", OUT_TEXSIZEY:"", IN_TEXSIZEY:"", 
 			FRAGMENT_CALC_COLOR:"",
-			CALC_TIME:"", CALC_SIZE:"", CALC_POS:"", CALC_COLOR:"", CALC_ROTZ:"", CALC_PIVOT:"", CALC_TEXCOORD:"",
+			CALC_TIME:"", CALC_SIZE:"", CALC_POS:"", CALC_ROTZ:"", CALC_PIVOT:"", CALC_TEXCOORD:"",
 			CALC_UNIT:"", CALC_SLOT:"", CALC_TILE:"",
 			CALC_TEXX:"", CALC_TEXY:"", CALC_TEXW:"", CALC_TEXH:"", 
 			CALC_TEXPOSX:"", CALC_TEXPOSY:"", CALC_TEXSIZEX:"", CALC_TEXSIZEY:"", 
+			CALC_COLOR:"", CALC_CUSTOM:"", 
 			ELEMENT_LAYERS:[],
 		};
 		
@@ -548,6 +574,7 @@ class ElementImpl
 		confTextureLayer = new StringMap<StringMap<Int>>();
 		textureIdentifiers = new Array<String>();
 		colorIdentifiers = new Array<String>();
+		customIdentifiers = new Array<String>();
 		
 		fields = Context.getBuildFields();
 
@@ -660,6 +687,14 @@ class ElementImpl
 		if (n > 0) glConf.ATTRIB_PIVOT = '::IN:: ${ (n==1) ? "float" : "vec"+n } aPivot;';
 		n = conf.rotation.n + conf.zIndex.n;
 		if (n > 0) glConf.ATTRIB_ROTZ = '::IN:: ${ (n==1) ? "float" : "vec"+n } aRotZ;';
+		
+		// custom
+		for (k in 0...conf.custom.length) {
+			if (conf.custom[k].n > 0) {
+				var type:String = (conf.custom[k].n == 1) ? "float" : "vec2";
+				glConf.ATTRIB_CUSTOM += '::IN:: $type aCustom${k}; ';
+			} else glConf.ATTRIB_CUSTOM += 'const float aCustom${k} = ${conf.custom[k].vStart} ;';
+		}
 		
 		// color
 		for (k in 0...conf.color.length) {
@@ -836,8 +871,8 @@ class ElementImpl
 		// set varyings for vPos
 		if (conf.posX.isVarying || conf.posY.isVarying) {
 			glConf.CALC_POS += "vPos = pos; ";
-			glConf.OUT_VARYING += "::if isES3::flat ::end::::VAROUT:: vec2 vPos;";
-			glConf.IN_VARYING += "::if isES3::flat ::end::::VARIN:: vec2 vPos;";
+			glConf.OUT_VARYING += "::if isES3::flat ::end::::VAROUT:: vec2 vPos; ";
+			glConf.IN_VARYING += "::if isES3::flat ::end::::VARIN:: vec2 vPos; ";
 		}
 		
 		// rotation and zIndex
@@ -865,18 +900,18 @@ class ElementImpl
 		// set varyings for vSize, vRotZ or vPivot
 		if (conf.sizeX.isVarying || conf.sizeY.isVarying) {
 			glConf.CALC_SIZE += "vSize = size;";
-			glConf.OUT_VARYING += "::if isES3::flat ::end::::VAROUT:: vec2 vSize;";
-			glConf.IN_VARYING += "::if isES3::flat ::end::::VARIN:: vec2 vSize;";
+			glConf.OUT_VARYING += "::if isES3::flat ::end::::VAROUT:: vec2 vSize; ";
+			glConf.IN_VARYING += "::if isES3::flat ::end::::VARIN:: vec2 vSize; ";
 		}
 		if (conf.rotation.isVarying || conf.zIndex.isVarying) {
 			glConf.CALC_ROTZ += "vRotZ = rotZ;";
-			glConf.OUT_VARYING += "::if isES3::flat ::end::::VAROUT:: vec2 vRotZ;";
-			glConf.IN_VARYING += "::if isES3::flat ::end::::VARIN:: vec2 vRotZ;";
+			glConf.OUT_VARYING += "::if isES3::flat ::end::::VAROUT:: vec2 vRotZ; ";
+			glConf.IN_VARYING += "::if isES3::flat ::end::::VARIN:: vec2 vRotZ; ";
 		}
 		if (conf.pivotX.isVarying || conf.pivotY.isVarying) {
 			glConf.CALC_PIVOT += "vPivot = pivot;";
-			glConf.OUT_VARYING += "::if isES3::flat ::end::::VAROUT:: vec2 vPivot;";
-			glConf.IN_VARYING += "::if isES3::flat ::end::::VARIN:: vec2 vPivot;";
+			glConf.OUT_VARYING += "::if isES3::flat ::end::::VAROUT:: vec2 vPivot; ";
+			glConf.IN_VARYING += "::if isES3::flat ::end::::VARIN:: vec2 vPivot; ";
 		}
 		
 		// color
@@ -908,6 +943,18 @@ class ElementImpl
 		}
 		
 		// TODO: refactoring
+		
+		// custom
+		for (k in 0...conf.custom.length) {
+			//glConf.CALC_CUSTOM += 'float custom${customIdentifiers[k]} = ' + packTex("aCustom", conf.custom, k) + "; ";
+			glConf.CALC_CUSTOM += 'float custom${k} = ' + packTex("aCustom", conf.custom, k) + "; ";
+			// set varyings for vCustom
+			if (conf.custom[k].isVarying ) {
+				glConf.CALC_CUSTOM += 'vCustom$k = custom$k;';
+				glConf.OUT_VARYING += '::if isES3::flat ::end::::VAROUT:: float vCustom$k; ';
+				glConf.IN_VARYING += '::if isES3::flat ::end::::VARIN:: float vCustom$k; ';
+			}
+		}
 		
 		// texUnit
 		for (k in 0...conf.texUnit.length) {
@@ -1059,7 +1106,7 @@ class ElementImpl
 				debugLastField(fields);
 			}
 		}
-		// create static vars for texture identifiers that is additional inside DEFAULT_FORMULA_VARS
+		// create aditional static vars for texture identifiers
 		for (name in defaultFormulaVars) {
 			if (!confTextureLayer.exists(name)) {
 				fields.push({
@@ -1072,6 +1119,10 @@ class ElementImpl
 			}
 		}
 		
+		
+		// TODO: handle custom attribute-names for shader-injection
+		
+		// create static vars for color identifiers that is additional inside DEFAULT_COLOR_VARS
 		for (name in colorIdentifiers) // create static vars for color identifiers
 			fields.push({
 				name:  "COLOR_" + name, //.toUpperCase(),
@@ -1089,6 +1140,7 @@ class ElementImpl
 			kind: FieldType.FVar(macro:String, macro $v{textureIdentifiers.join(",")}), 
 			pos: Context.currentPos(),
 		});
+		
 		// put all color identifiers inside a static string for progam
 		// trace("colorIdentifiers", colorIdentifiers);
 		fields.push({
@@ -1268,6 +1320,8 @@ class ElementImpl
 		for (c in conf.texTile) buff_size_instanced += c.n * 2;
 		for (c in conf.texUnit) buff_size_instanced += c.n;
 		
+		for (c in conf.custom)   buff_size_instanced += c.n * ((c.isAltType) ? 4:2);
+
 		for (c in conf.texX)     buff_size_instanced += c.n * ((c.isAltType) ? 4:2);
 		for (c in conf.texY)     buff_size_instanced += c.n * ((c.isAltType) ? 4:2);
 		for (c in conf.texW)     buff_size_instanced += c.n * ((c.isAltType) ? 4:2);
@@ -1482,6 +1536,16 @@ class ElementImpl
 				});
 			}			
 		}
+		for (k in 0...conf.custom.length) {
+			if (conf.custom[k].n > 0) {
+				fields.push({
+					name:  "aCUSTOM"+k,
+					access:  [Access.APrivate, Access.AStatic, Access.AInline],
+					kind: FieldType.FVar(macro:Int, macro $v{attrNumber++}), 
+					pos: Context.currentPos(),
+				});
+			}			
+		}
 		for (k in 0...conf.texX.length) {
 			if (conf.texX[k].n > 0) {
 				fields.push({
@@ -1670,7 +1734,7 @@ class ElementImpl
 				write2packedFloat(conf.sizeX , conf.sizeY);
 				write2packedFloat(conf.pivotX, conf.pivotY);
 				
-				// TEXCOORDS -> Floats
+				// CUSTOM and TEXCOORDS -> Floats
 				function writeTexFloat(tex:Array<ConfSubParam>) {
 					for (k in 0...tex.length) {
 						if (tex[k].isAltType) {  // -> only the Float ones
@@ -1679,7 +1743,9 @@ class ElementImpl
 							if (tex[k].isAnim && tex[k].isEnd)   { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{tex[k].name+"End"})   ); i+=4; }
 						}
 					}
-				}
+				}				
+				writeTexFloat(conf.custom);
+				
 				writeTexFloat(conf.texX);
 				writeTexFloat(conf.texY);
 				writeTexFloat(conf.texW);
@@ -1705,7 +1771,7 @@ class ElementImpl
 				write2packedInt(conf.sizeX , conf.sizeY);
 				write2packedInt(conf.pivotX, conf.pivotY);
 				
-				// TEXCOORDS -> INT
+				// CUSTOM and TEXCOORDS -> INT
 				function writeTexInt(tex:Array<ConfSubParam>) {
 					for (k in 0...tex.length) {
 						if (! tex[k].isAltType) { // -> only the Int ones
@@ -1715,6 +1781,8 @@ class ElementImpl
 						}
 					}
 				}
+				writeTexInt(conf.custom);
+				
 				writeTexInt(conf.texX);
 				writeTexInt(conf.texY);
 				writeTexInt(conf.texW);
@@ -1821,6 +1889,8 @@ class ElementImpl
 			if (conf.posX.n  + conf.posY.n  > 0 ) exprBlock.push( macro gl.bindAttribLocation(glProgram, aPOS,  "aPos" ) );
 			if (conf.sizeX.n + conf.sizeY.n > 0 ) exprBlock.push( macro gl.bindAttribLocation(glProgram, aSIZE, "aSize") );
 			if (conf.pivotX.n + conf.pivotY.n > 0 ) exprBlock.push( macro gl.bindAttribLocation(glProgram, aPIVOT, "aPivot") );
+			// CUSTOM
+			for (k in 0...conf.custom.length) if (conf.custom[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aCUSTOM"+k}, $v{"aCustom"+k} ) );
 			// TEXCOORDS
 			for (k in 0...conf.texX.length) if (conf.texX[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTEXX"+k}, $v{"aTexX"+k} ) );
 			for (k in 0...conf.texY.length) if (conf.texY[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aTEXY"+k}, $v{"aTexY"+k} ) );
@@ -1932,7 +2002,7 @@ class ElementImpl
 			enable2packFloat("aSIZE", conf.sizeX, conf.sizeY);
 			enable2packFloat("aPIVOT", conf.pivotX, conf.pivotY);
 
-			// TEXTURE COORDS -> FLOAT
+			// CUSTOM and TEXTURE COORDS -> FLOAT
 			function enableTexFloat(attr:String, tex:Array<ConfSubParam>) {
 				for (k in 0...tex.length) {
 					if (tex[k].isAltType) {  // -> only the Float ones
@@ -1945,6 +2015,8 @@ class ElementImpl
 					}
 				}
 			}
+			enableTexFloat("aCUSTOM", conf.custom);
+			
 			enableTexFloat("aTEXX", conf.texX);
 			enableTexFloat("aTEXY", conf.texY);
 			enableTexFloat("aTEXW", conf.texW);
@@ -1971,7 +2043,7 @@ class ElementImpl
 			enable2packInt("aSIZE", conf.sizeX, conf.sizeY);
 			enable2packInt("aPIVOT", conf.pivotX, conf.pivotY);
 
-			// TEXTURE COORDS -> INT
+			// CUSTOM and TEXTURE COORDS -> INT
 			function enableTexInt(attr:String, tex:Array<ConfSubParam>) {
 				for (k in 0...tex.length) {
 					if (! tex[k].isAltType) { // -> only the Int ones
@@ -1984,6 +2056,8 @@ class ElementImpl
 					}
 				}
 			}
+			enableTexInt("aCUSTOM", conf.custom);
+			
 			enableTexInt("aTEXX", conf.texX);
 			enableTexInt("aTEXY", conf.texY);
 			enableTexInt("aTEXW", conf.texW);
@@ -2078,6 +2152,8 @@ class ElementImpl
 			if (conf.posX.n  + conf.posY.n  > 0 ) exprBlock.push( macro gl.disableVertexAttribArray (aPOS) );
 			if (conf.sizeX.n + conf.sizeY.n > 0 ) exprBlock.push( macro gl.disableVertexAttribArray (aSIZE) );
 			if (conf.pivotX.n + conf.pivotY.n > 0 ) exprBlock.push( macro gl.disableVertexAttribArray (aPIVOT) );
+			// CUSTOM
+			for (k in 0...conf.custom.length) if (conf.custom[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aCUSTOM"+k}) );
 			// TEXTURE COORDS
 			for (k in 0...conf.texX.length) if (conf.texX[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTEXX"+k}) );
 			for (k in 0...conf.texY.length) if (conf.texY[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aTEXY"+k}) );

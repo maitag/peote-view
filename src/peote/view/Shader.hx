@@ -62,9 +62,9 @@ class Shader
 	::ATTRIB_TEXPOSY::
 	::ATTRIB_TEXSIZEX::
 	::ATTRIB_TEXSIZEY::
-		
+	
 	// custom Attributes --
-	//aCustom0
+	::ATTRIB_CUSTOM::
 	
 	// Varyings ---------------------------
 	::if isPICKING::
@@ -103,6 +103,7 @@ class Shader
 		::CALC_ROTZ::
 		::CALC_POS::
 		::CALC_COLOR::
+		::CALC_CUSTOM::
 		::if hasTEXTURES::
 			::CALC_TEXCOORD::
 			::CALC_UNIT::
