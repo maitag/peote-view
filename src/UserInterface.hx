@@ -25,6 +25,7 @@ class UserInterface
 			peoteView.addDisplay(ui);
 			
 			var mySkin = new Skin();
+			
 			var myStyle = new Style();
 			myStyle.color = Color.GREY1;
 			myStyle.borderColor = Color.GREY5;
@@ -47,7 +48,7 @@ class UserInterface
 			myStyle2.borderSize = 2.0;
 
 			trace("NEW BUTTON -----");
-			var b2:Button = new Button(20, 120, 200, 100, mySkin, myStyle2);
+			var b2:Button = new Button(120, 60, 200, 100, mySkin, myStyle2);
 			ui.add(b2);
 			
 			b2.onMouseOver = onOver.bind(Color.GREY2);

@@ -98,7 +98,7 @@ class Skin
 				float radius =  max(borderSize+1.0, min(borderRadius, min(vSize.x, vSize.y) / 2.0));
 				
 				// rounded rectangle
-				c = mix(c, vec4(0.0, 0.0, 0.0, 0.0), roundedBox(vTexCoord, vSize, radius, borderSize));				
+				c = mix(c, vec4(0.0, 0.0, 0.0, 0.0), roundedBox(vTexCoord, vSize, borderSize, radius));				
 				// border
 				c = mix(c, borderColor, roundedBorder(vTexCoord, vSize, borderSize, radius));
 				

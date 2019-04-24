@@ -32,8 +32,10 @@ typedef Sample = ElementInherit;
 typedef Sample = GLPicking;
 #elseif sampleRenderToTexture
 typedef Sample = RenderToTexture;
-#elseif sampleFontrenderingGl3
-typedef Sample = FontrenderingGl3;
+#elseif sampleGl3FontRendering
+typedef Sample = Gl3FontRendering;
+#elseif sampleTextRendering
+typedef Sample = TextRendering;
 #elseif sampleShaderInjection
 typedef Sample = ShaderInjection;
 #elseif sampleBunnyMark

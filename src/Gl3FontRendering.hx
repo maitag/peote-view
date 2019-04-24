@@ -1,5 +1,5 @@
 package;
-#if sampleFontrenderingGl3
+#if sampleGl3FontRendering
 import haxe.Timer;
 import haxe.io.Bytes;
 
@@ -7,9 +7,9 @@ import lime.ui.Window;
 import lime.ui.KeyCode;
 import lime.ui.KeyModifier;
 import lime.ui.MouseButton;
-import lime.graphics.Image;
 
 import peote.view.PeoteGL;
+import peote.view.PeoteGL.Image;
 import peote.view.PeoteView;
 import peote.view.Display;
 import peote.view.Buffer;
@@ -19,7 +19,7 @@ import peote.view.Texture;
 import peote.view.utils.Util;
 import peote.view.Element;
 
-import peote.ui.Gl3Font;
+import peote.text.Gl3Font;
 
 #if isInt
 class Elem implements Element { // signed 2 bytes integer
@@ -63,7 +63,7 @@ class Elem implements Element { // 4 bytes float
 }
 #end
 
-class FontrenderingGl3
+class Gl3FontRendering
 {
 	var peoteView:PeoteView;
 	var element:Elem;

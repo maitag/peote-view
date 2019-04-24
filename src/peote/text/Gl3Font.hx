@@ -1,4 +1,4 @@
-package peote.ui;
+package peote.text;
 
 /**
  * by semmi
