@@ -13,7 +13,7 @@ import peote.view.Color;
 
 import peote.text.Font;
 import peote.text.FontProgram;
-import peote.text.Letter;
+import peote.text.Glyph;
 import peote.text.Line;
 import peote.text.Page;
 
@@ -43,13 +43,13 @@ class TextRendering
 			
 			// -------- Letters --------
 			
-			var letter = new Letter("A");
+			var glyph = new Glyph("A");
 			
 			
 			// -------- Lines  ---------
 			
 			var line = new Line("Hello Word!");
-			//line.addLetter( new Letter("B") );
+			//line.addGlyph( new Glyph("B") );
 			
 			
 			// -------- Pages ??? (namespace!!!) <--------

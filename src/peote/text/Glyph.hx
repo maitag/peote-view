@@ -1,7 +1,7 @@
 package peote.text;
 
 
-class Letter 
+class Glyph 
 {
 
 	public function new() 
