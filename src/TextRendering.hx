@@ -13,6 +13,9 @@ import peote.view.Color;
 
 import peote.text.Font;
 import peote.text.FontProgram;
+import peote.text.Letter;
+import peote.text.Line;
+import peote.text.Page;
 
 
 class TextRendering
@@ -28,13 +31,46 @@ class TextRendering
 			display   = new Display(10,10, window.width-20, window.height-20, Color.GREY1);
 			peoteView.addDisplay(display);  // display to peoteView
 			
+			
+			
+			
+			
 			// TODO:
 			
-			// init Font
+			var font = new Font();
+			var fontProgramm = new FontProgram (font); // glsl program to render each Letter-GLYPHE
 			
-			// init FontProgramm (and buffer)
 			
-			// add Letters, and TextLines
+			// -------- Letters --------
+			
+			var letter = new Letter("A");
+			
+			
+			// -------- Lines  ---------
+			
+			var line = new Line("Hello Word!");
+			//line.addLetter( new Letter("B") );
+			
+			
+			// -------- Pages ??? (namespace!!!) <--------
+			
+			var page = new Page(
+				  "Um einen Feuerball rast eine Kotkugel, auf der Damenseidenstrümpfe verkauft und Gauguins geschätzt werden."
+			    + "\n"
+				+ "Ein fürwahr überaus betrüblicher Aspekt, der aber immerhin ein wenig unterschiedlich ist: Seidenstrümpfe können begriffen werden, Gauguins nicht."
+			);
+			//page.addLine( new Line("(Bernheim als prestigieuser Biologe zu imaginieren.)") );
+
+			
+			
+			
+
+			fontProgramm.addLetter(letter);
+			fontProgramm.addLine(line);
+			fontProgramm.addPage(page);
+			
+			
+			
 			
 			
 		} catch (e:Dynamic) trace("ERROR:", e);

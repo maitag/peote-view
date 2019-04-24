@@ -1,10 +1,7 @@
 package peote.text;
 
-/**
- * ...
- * @author 
- */
-class Area 
+
+class Letter 
 {
 
 	public function new() 
