@@ -1,6 +1,5 @@
 package;
 #if sampleTextureSimple
-import haxe.Timer;
 
 import lime.ui.Window;
 import lime.ui.KeyCode;
@@ -8,7 +7,9 @@ import lime.ui.KeyModifier;
 import lime.ui.MouseButton;
 import lime.graphics.Image;
 
-import peote.view.PeoteGL;
+import utils.Loader;
+//import lime.utils.Assets;
+
 import peote.view.PeoteView;
 import peote.view.Display;
 import peote.view.Buffer;
@@ -80,12 +81,7 @@ class TextureSimple
 		element  = new Elem(0, 0);
 		buffer.addElement(element);     // element to buffer
 		
-		var future = Image.loadFromFile("assets/images/peote_tiles.png");
-		future.onProgress (function (a:Int,b:Int) trace ('loading image $a/$b'));
-		future.onError (function (msg:String) trace ("Error: "+msg));
-		future.onComplete (function (image:Image) {
-			trace("loading complete");
-			
+		Loader.imageFromFile ("assets/images/peote_tiles.png", true, function (image:Image) {
 			//texture = new Texture(image.width, image.height);
 			texture.setImage(image,0);
 			texture.setImage(image.clone(),1); // TODO: throw Error if same image inside multi slot
@@ -100,17 +96,21 @@ class TextureSimple
 			display.addProgram(program);    // programm to display
 
 			
-			element.w = image.width;
-			element.h = image.height;
-			buffer.updateElement(element);
-			
+			element.w = 512;// image.width;
+			element.h = 512;// image.height;
+			buffer.updateElement(element);			
 		});
 				
 		// ---------------------------------------------------------------
 	}
 	public function onPreloadComplete ():Void {
-		// sync loading did not work with html5!
-		// texture.setImage(Assets.getImage("assets/images/wabbit_alpha.png"));
+		/*
+		trace("preload complete");
+		// sync loading for HTML5 only works with embed=true for assets inside project.xml !
+		texture = new Texture(512, 512, 2);
+		texture.setImage(Assets.getImage("assets/images/peote_tiles.png"));
+		program.setTexture(texture, "custom");
+		*/
 	}
 	
 	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void

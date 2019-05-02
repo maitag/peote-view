@@ -6,7 +6,6 @@ import lime.ui.Window;
 import lime.ui.KeyCode;
 import lime.ui.KeyModifier;
 import lime.ui.MouseButton;
-import lime.graphics.Image;
 
 import peote.view.PeoteGL;
 import peote.view.PeoteView;

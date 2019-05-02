@@ -8,7 +8,8 @@ import lime.ui.KeyModifier;
 import lime.ui.MouseButton;
 import lime.graphics.Image;
 
-import peote.view.PeoteGL;
+import utils.Loader;
+
 import peote.view.PeoteView;
 import peote.view.Display;
 import peote.view.Buffer;
@@ -129,12 +130,7 @@ class TextureSlotTiles
 	}
 	
 	public function loadImage(texture:Texture, filename:String, slot:Int=0):Void {
-		trace('load image $filename');
-		var future = Image.loadFromFile(filename);
-		future.onProgress (function (a:Int,b:Int) trace ('...loading image $a/$b'));
-		future.onError (function (msg:String) trace ("Error: "+msg));
-		future.onComplete (function (image:Image) {
-			trace('loading $filename complete');
+		Loader.imageFromFile(filename, true, function(image:Image) {
 			texture.setImage(image, slot);
 		});		
 	}

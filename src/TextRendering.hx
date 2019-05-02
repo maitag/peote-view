@@ -12,10 +12,11 @@ import peote.view.Display;
 import peote.view.Color;
 
 import peote.text.Font;
-import peote.text.FontProgram;
-import peote.text.Glyph;
-import peote.text.Line;
-import peote.text.Page;
+
+//import peote.text.FontProgram;
+//import peote.text.Glyph;
+//import peote.text.Line;
+//import peote.text.Page;
 
 
 class TextRendering
@@ -26,7 +27,7 @@ class TextRendering
 	
 	public function new(window:Window)
 	{
-		try{	
+		try {	
 			peoteView = new PeoteView(window.context, window.width, window.height);
 			display   = new Display(10,10, window.width-20, window.height-20, Color.GREY1);
 			peoteView.addDisplay(display);  // display to peoteView
@@ -36,38 +37,51 @@ class TextRendering
 			
 			
 			// TODO:
+			/*
+			var font = new Font("assets/gl3fonts/unifont/unifont_0000-0fff");
 			
-			var font = new Font();
+			font.load( function() {
+				
+				trace("Font loaded");
+				
+				
+			} );
+			
+			
+			
+			
+			
+			
 			var fontProgramm = new FontProgram (font); // glsl program to render each Letter-GLYPHE
 			
 			
 			// -------- Letters --------
 			
-			var glyph = new Glyph("A");
+			var glyph = new Glyph(0, 0, "A");
+			fontProgramm.addGlyph(glyph);
 			
 			
 			// -------- Lines  ---------
 			
-			var line = new Line("Hello Word!");
+			var line = new Line(0, 100, "Hello Word!");
 			//line.addGlyph( new Glyph("B") );
+			fontProgramm.addLine(line);
 			
 			
 			// -------- Pages ??? (namespace!!!) <--------
 			
-			var page = new Page(
+			var page = new Page( 0, 200,
 				  "Um einen Feuerball rast eine Kotkugel, auf der Damenseidenstrümpfe verkauft und Gauguins geschätzt werden."
 			    + "\n"
 				+ "Ein fürwahr überaus betrüblicher Aspekt, der aber immerhin ein wenig unterschiedlich ist: Seidenstrümpfe können begriffen werden, Gauguins nicht."
 			);
 			//page.addLine( new Line("(Bernheim als prestigieuser Biologe zu imaginieren.)") );
 
+			fontProgramm.addPage(page);
 			
-			
+			*/
 			
 
-			fontProgramm.addLetter(letter);
-			fontProgramm.addLine(line);
-			fontProgramm.addPage(page);
 			
 			
 			

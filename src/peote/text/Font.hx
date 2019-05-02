@@ -2,20 +2,27 @@ package peote.text;
 
 import peote.view.PeoteGL.Image;
 import haxe.io.Bytes;
+import peote.view.Texture;
 
 class Font 
 {
 
-	public function new() 
+	public var filename:String;
+	
+	var texture:Texture;
+	
+	
+	public function new(filename:String, isKerning:Bool) 
 	{
+		// load the font
 		
 	}
 	
 	
-	public function loadFont(font:String, isKerning:Bool, onLoad:Gl3Font->Image->Bool->Void)
+	public function loadFont(font:String, isKerning:Bool, onLoad:Gl3FontData->Image->Bool->Void)
 	{
 		bytesFromFile(font+".dat", function(bytes:Bytes) {
-			var gl3font = new Gl3Font(bytes, isKerning); // TODO: use a Future here to calculate while loading image!
+			var gl3font = new Gl3FontData(bytes, isKerning); // TODO: use a Future here to calculate while loading image!
 			imageFromFile(font+".png", function(image:Image) {
 				onLoad(gl3font, image, isKerning);
 			});

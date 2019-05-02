@@ -5,6 +5,9 @@ import lime.ui.Window;
 import lime.ui.KeyCode;
 import lime.ui.KeyModifier;
 import lime.ui.MouseButton;
+import lime.graphics.Image;
+
+import utils.Loader;
 
 import peote.view.PeoteView;
 import peote.view.Display;
@@ -12,7 +15,6 @@ import peote.view.Buffer;
 import peote.view.Program;
 import peote.view.Color;
 import peote.view.Texture;
-import lime.graphics.Image;
 
 import peote.view.Element;
 
@@ -85,22 +87,16 @@ class BunnyMark
 		
 		var program = new Program(buffer);
 		
-		var future = Image.loadFromFile("assets/images/wabbit_alpha.png");
-		//future.onProgress (function (a:Int,b:Int) trace ('loading image $a/$b'));
-		future.onError (function (msg:String) trace ("Error: "+msg));
-		future.onComplete (function (image:Image) {
-			
+		Loader.imageFromFile ("assets/images/wabbit_alpha.png", true, function (image:Image) {			
 			var texture = new Texture(image.width, image.height);
 			
 			texture.setImage(image);
 			
 			program.addTexture(texture, "custom");
-			
-			
+					
 			//program.setVertexFloatPrecision("low");
 			//program.setFragmentFloatPrecision("low");
-			
-			
+						
 			display.addProgram(program);    // programm to display
 			peoteView.addDisplay(display);  // display to peoteView
 			

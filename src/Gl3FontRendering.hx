@@ -7,9 +7,10 @@ import lime.ui.Window;
 import lime.ui.KeyCode;
 import lime.ui.KeyModifier;
 import lime.ui.MouseButton;
+import lime.graphics.Image;
 
-import peote.view.PeoteGL;
-import peote.view.PeoteGL.Image;
+import utils.Loader;
+
 import peote.view.PeoteView;
 import peote.view.Display;
 import peote.view.Buffer;
@@ -19,7 +20,7 @@ import peote.view.Texture;
 import peote.view.utils.Util;
 import peote.view.Element;
 
-import peote.text.Gl3Font;
+import peote.text.Gl3FontData;
 
 #if isInt
 class Elem implements Element { // signed 2 bytes integer
@@ -90,7 +91,7 @@ class Gl3FontRendering
 			loadFont("assets/gl3fonts/unifont/unifont_0000-0fff", false, 
 			//loadFont("assets/gl3fonts/unifont/unifont_1000-1fff", false,
 			//loadFont("assets/gl3fonts/unifont/unifont_3000-3fff", false,
-				function(gl3font:Gl3Font, image:Image, isKerning:Bool)
+				function(gl3font:Gl3FontData, image:Image, isKerning:Bool)
 				{
 					var texture = new Texture(image.width, image.height, 1, 4, false, 1, 1);
 					texture.setImage(image);
@@ -119,11 +120,9 @@ class Gl3FontRendering
 					var l:Int = 90;
 					var c:Int = 0;
 					var s = new haxe.Utf8();
-					for (char in gl3font.idmap)
+					for (char in gl3font.idmap.keys())
 					{
 						s.addChar( char );
-						//s.addChar( char + 0x1000);
-						//s.addChar( char + 0x3000);
 						i++; c++;
 						if (i > 100) {
 							//trace("charnumber:",c,"line:",l);
@@ -143,17 +142,17 @@ class Gl3FontRendering
 		// ---------------------------------------------------------------
 	}
 
-	public function loadFont(font:String, isKerning:Bool, onLoad:Gl3Font->Image->Bool->Void)
+	public function loadFont(font:String, isKerning:Bool, onLoad:Gl3FontData->Image->Bool->Void)
 	{
-		bytesFromFile(font+".dat", function(bytes:Bytes) {
-			var gl3font = new Gl3Font(bytes, isKerning); // TODO: use a Future here to calculate while loading image!
-			imageFromFile(font+".png", function(image:Image) {
+		Loader.bytesFromFile(font+".dat", true, function(bytes:Bytes) {
+			var gl3font = new Gl3FontData(bytes, isKerning);
+			Loader.imageFromFile(font+".png", true, function(image:Image) {
 				onLoad(gl3font, image, isKerning);
 			});
 		});						
 	}
 	
-	public function renderTextLine(x:Float, y:Float, scale:Float, gl3font:Gl3Font, imgWidth:Int, imgHeight:Int, isKerning:Bool, text:String)
+	public function renderTextLine(x:Float, y:Float, scale:Float, gl3font:Gl3FontData, imgWidth:Int, imgHeight:Int, isKerning:Bool, text:String)
 	{
 		var penX:Float = x;
 		var penY:Float = y;
@@ -216,28 +215,7 @@ class Gl3FontRendering
 			});
 		} catch (e:Dynamic) trace("ERR", e); // <-- problem with utf8 and neko breaks haxe.Utf8.iter()
 	}
-	
-	public function imageFromFile(filename:String, onLoad:Image->Void):Void {
-		trace('load image $filename');
-		var future = Image.loadFromFile(filename);
-		future.onProgress (function (a:Int,b:Int) trace ('...loading image $a/$b'));
-		future.onError (function (msg:String) trace ("Error: "+msg));
-		future.onComplete (function (image:Image) {
-			trace('loading $filename complete');
-			onLoad(image);
-		});		
-	}
-	
-	public function bytesFromFile(filename:String, onLoad:Bytes->Void):Void {
-		var future = lime.utils.Bytes.loadFromFile(filename);
-		future.onProgress (function (a:Int,b:Int) trace ('loading bytes $a/$b'));
-		future.onError (function (msg:String) trace ("Error: "+msg));
-		future.onComplete (function (bytes:Bytes) {
-			trace("loading bytes complete");
-			onLoad(bytes);
-		});
-	}	
-	
+		
 	var isZooming:Bool = false;
 	public function zoomIn() {
 		var fz:Float = 1.0;		
@@ -259,10 +237,7 @@ class Gl3FontRendering
 		}
 	}
 	
-	public function onPreloadComplete ():Void {
-		// sync loading did not work with html5!
-		// texture.setImage(Assets.getImage("assets/images/wabbit_alpha.png"));
-	}
+	public function onPreloadComplete ():Void {}
 	
 	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
 	{

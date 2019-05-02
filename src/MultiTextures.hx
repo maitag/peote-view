@@ -1,5 +1,4 @@
 package;
-import haxe.ds.StringMap;
 #if sampleMultiTextures
 import haxe.Timer;
 
@@ -9,7 +8,8 @@ import lime.ui.KeyModifier;
 import lime.ui.MouseButton;
 import lime.graphics.Image;
 
-import peote.view.PeoteGL;
+import utils.Loader;
+
 import peote.view.PeoteView;
 import peote.view.Display;
 import peote.view.Buffer;
@@ -116,8 +116,7 @@ class MultiTextures
 			*/
 			
 			program.updateTextures(); // updates gl-textures and rebuilding shadercode
-			
-			
+					
 			loadImage(texture0, "assets/images/peote_tiles.png");
 			loadImage(texture1, "assets/images/peote_tiles_bunnys.png");
 			loadImage(texture2, "assets/images/peote_font_white.png");
@@ -127,14 +126,9 @@ class MultiTextures
 		// ---------------------------------------------------------------		
 	}
 	
-	public function loadImage(texture:Texture, filename:String):Void {
-		trace('load image $filename');
-		var future = Image.loadFromFile(filename);
-		future.onProgress (function (a:Int,b:Int) trace ('...loading image $a/$b'));
-		future.onError (function (msg:String) trace ("Error: "+msg));
-		future.onComplete (function (image:Image) {
-			trace('loading $filename complete');
-			texture.setImage(image);
+	public function loadImage(texture:Texture, filename:String, slot:Int=0):Void {
+		Loader.imageFromFile(filename, true, function(image:Image) {
+			texture.setImage(image, slot);
 		});		
 	}
 	
@@ -171,6 +165,7 @@ class MultiTextures
 	{
 		peoteView.render();
 	}
+	
 	public function update(deltaTime:Int):Void {}
 	public function onMouseUp (x:Float, y:Float, button:MouseButton):Void {}
 	public function onMouseMove (x:Float, y:Float):Void {}

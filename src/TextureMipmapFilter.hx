@@ -8,7 +8,8 @@ import lime.ui.KeyModifier;
 import lime.ui.MouseButton;
 import lime.graphics.Image;
 
-import peote.view.PeoteGL;
+import utils.Loader;
+
 import peote.view.PeoteView;
 import peote.view.Display;
 import peote.view.Buffer;
@@ -82,12 +83,7 @@ class TextureMipmapFilter
 		texture[2] = new Texture(512, 512, 1, 4, true, 0, 0);
 		texture[3] = new Texture(512, 512, 1, 4, true, 1, 1);
 		
-		var future = Image.loadFromFile("assets/images/peote_font_white.png");
-		future.onProgress (function (a:Int,b:Int) trace ('loading image $a/$b'));
-		future.onError (function (msg:String) trace ("Error: "+msg));
-		future.onComplete (function (image:Image) {
-			trace("loading complete");
-			
+		Loader.imageFromFile("assets/images/peote_font_white.png", true, function (image:Image) {
 			texture[0].setImage(image);
 			texture[1].setImage(image);
 			texture[2].setImage(image);
@@ -109,7 +105,9 @@ class TextureMipmapFilter
 		// ---------------------------------------------------------------
 	}
 	
-	public function onPreloadComplete ():Void { trace("preload complete"); }
+	public function onPreloadComplete ():Void {
+		//trace("preload complete");
+	}
 
 	public function zoomIn() {
 		var fz:Float = 0.1;		

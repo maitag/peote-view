@@ -195,6 +195,11 @@ class PeoteView
 		display.removeFromPeoteView(this);
 	}
 
+    /**
+        Changes the gl-context of the View and all contained Displays
+		
+        @param  newGl new opengl context
+    **/
 	public function setNewGLContext(newGl:PeoteGL)
 	{
 		if (newGl != null && newGl != gl) // only if different GL - Context	
@@ -251,28 +256,44 @@ class PeoteView
 		pickFB = GLTool.createFramebuffer(gl, pickTexture, pickDepthBuffer, 1, 1); 
 	}
 	
-	public function getElementAt(mouseX:Float, mouseY:Float, display:Display, program:Program):Int
+    /**
+        Gets the Element-Index at a defined position on screen
+		
+        @param  posX x position in pixel
+        @param  posY y position in pixel
+        @param  display Display that contains the Program
+        @param  program Program that contains the Buffer with Elements
+    **/
+	public function getElementAt(posX:Float, posY:Float, display:Display, program:Program):Int
 	{
 		gl.bindFramebuffer(gl.FRAMEBUFFER, pickFB);
-		var element = pick(mouseX, mouseY, display, program);
+		var element = pick(posX, posY, display, program);
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		return element;
 	}
 
-	public function getAllElementsAt(mouseX:Float, mouseY:Float, display:Display, program:Program):Array<Int>
+    /**
+        Gets an array of Element-Indices at a defined position on screen.
+		
+        @param  posX x position in pixel
+        @param  posY y position in pixel
+        @param  display Display that contains the Program
+        @param  program Program that contains the Buffer with Elements
+    **/
+	public function getAllElementsAt(posX:Float, posY:Float, display:Display, program:Program):Array<Int>
 	{
 		var elements = new Array<Int>();
 		var toElement = -2;
 		gl.bindFramebuffer(gl.FRAMEBUFFER, pickFB);
 		do {
-			toElement = pick(mouseX, mouseY, display, program, toElement);
+			toElement = pick(posX, posY, display, program, toElement);
 			if (toElement >= 0) elements.push(toElement);
 		} while (toElement > 0);
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		return elements;
 	}
 	
-	private function pick(mouseX:Float, mouseY:Float, display:Display, program:Program, toElement:Int = -1):Int
+	private function pick(posX:Float, posY:Float, display:Display, program:Program, toElement:Int = -1):Int
 	{
 		if (! program.hasPicking()) throw("Error: opengl-Picking - type of buffer/element is not pickable !");
 		
@@ -293,8 +314,8 @@ class PeoteView
 			gl.depthFunc(gl.LEQUAL);
 		}
 				
-		var xOff:Float = xOffset - (xOffset + mouseX - xOffset) / xz;
-		var yOff:Float = yOffset - (yOffset + mouseY - yOffset) / xz;
+		var xOff:Float = xOffset - (xOffset + posX - xOffset) / xz;
+		var yOff:Float = yOffset - (yOffset + posY - yOffset) / xz;
 
 		display.pick(xOff, yOff, this, program, toElement); // render with picking shader
 		

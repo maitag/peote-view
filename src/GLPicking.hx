@@ -6,9 +6,10 @@ import lime.ui.Window;
 import lime.ui.KeyCode;
 import lime.ui.KeyModifier;
 import lime.ui.MouseButton;
-import lime.utils.Assets;
+import lime.graphics.Image;
 
-import peote.view.PeoteGL;
+import utils.Loader;
+
 import peote.view.PeoteView;
 import peote.view.Display;
 import peote.view.Buffer;
@@ -93,10 +94,7 @@ class GLPicking
 			
 			display.addProgram(program);
 			
-			var future = Image.loadFromFile("assets/images/wabbit_alpha.png");
-			future.onProgress (function (a:Int,b:Int) trace ('loading image $a/$b'));
-			future.onError (function (msg:String) trace ("Error: "+msg));
-			future.onComplete (function (image:Image) {
+			Loader.imageFromFile("assets/images/wabbit_alpha.png", true, function (image:Image) {
 				trace("loading complete");
 				var texture = new Texture(26, 37);
 				texture.setImage(image);
@@ -108,11 +106,7 @@ class GLPicking
 	}
 	
 	public function onPreloadComplete():Void {
-		trace("preload complete");
-		// syncload with javascript needs <!assets embed=true> in project.xml!
-		/*var texture = new Texture(26, 37);
-		texture.setImage(Assets.getImage("assets/images/wabbit_alpha.png"));
-		programLeft.setTexture(texture, "custom");*/
+		//trace("preload complete");
 	}
 
 	public function onMouseDown(x:Float, y:Float, button:MouseButton):Void

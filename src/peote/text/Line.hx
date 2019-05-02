@@ -12,7 +12,7 @@ class Line
 		
 	}
 
-	public function renderTextLine(x:Float, y:Float, scale:Float, gl3font:Gl3Font, imgWidth:Int, imgHeight:Int, isKerning:Bool, text:String)
+	public function renderTextLine(x:Float, y:Float, scale:Float, gl3font:Gl3FontData, imgWidth:Int, imgHeight:Int, isKerning:Bool, text:String)
 	{
 		var penX:Float = x;
 		var penY:Float = y;

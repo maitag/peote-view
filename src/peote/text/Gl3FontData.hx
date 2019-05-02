@@ -6,7 +6,7 @@ package peote.text;
 
 // thanks to deltalucas gl3font lib -> https://github.com/deltaluca/gl3font
 
-class Gl3Font 
+class Gl3FontData 
 {
     public var idmap:Map<Int,Int>; // map glyph to id
 

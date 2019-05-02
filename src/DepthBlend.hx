@@ -11,7 +11,8 @@ import lime.ui.KeyModifier;
 import lime.ui.MouseButton;
 import lime.graphics.Image;
 
-import peote.view.PeoteGL;
+import utils.Loader;
+
 import peote.view.PeoteView;
 import peote.view.Display;
 import peote.view.Buffer;
@@ -46,14 +47,18 @@ class DepthBlend
 
 		peoteView = new PeoteView(window.context, window.width, window.height);
 		
-		//var texture = new Texture(26, 37);
-		//texture.setImage(Assets.getImage("assets/images/wabbit_alpha.png"));
-		
-		
 		displayL  = new Display(0, 0, 400, 400);
 		displayL.color = Color.GREY3;
 		bufferL  = new Buffer<ElementSimple>(100);
 		programL = new Program(bufferL);
+		Loader.imageFromFile("assets/images/peote_tiles.png", true, function(image:Image) {
+			var texture = new Texture(32, 32);
+			var flower = new Image(null, 0, 0, 32, 32);
+			flower.copyPixels(image, new Rectangle(128+32, 0, 32, 32), new Vector2(0, 0));
+			texture.setImage(flower);
+			programL.setTexture(texture, "custom");
+		});
+		
 		displayL.addProgram(programL);
 		peoteView.addDisplay(displayL);
 		
@@ -77,13 +82,8 @@ class DepthBlend
 		activeElement = element1;
 	}
 	
-	public function onPreloadComplete ():Void {  // for HTML5 this needs <assets ...embed="true"> inside project.xml !!!
-		trace("preload complete");
-		var texture = new Texture(32, 32);
-		var image = new Image(null, 0, 0, 32, 32);
-		image.copyPixels(Assets.getImage("assets/images/peote_tiles.png"), new Rectangle(128+32, 0, 32, 32), new Vector2(0, 0));
-		texture.setImage(image);
-		programL.setTexture(texture, "custom");
+	public function onPreloadComplete ():Void {
+		//trace("preload complete");
 	}
 
 	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
