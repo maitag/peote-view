@@ -56,8 +56,8 @@ class TexUtils
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 		
 		if (createMipmaps) { // re-create for full texture ?
-			//gl.hint(GL.GENERATE_MIPMAP_HINT, gl.NICEST);
-			//gl.hint(GL.GENERATE_MIPMAP_HINT, gl.FASTEST);
+			//gl.hint(gl.GENERATE_MIPMAP_HINT, gl.NICEST);
+			//gl.hint(gl.GENERATE_MIPMAP_HINT, gl.FASTEST);
 			gl.generateMipmap(gl.TEXTURE_2D); // again after texSubImage2D!
 		}
 

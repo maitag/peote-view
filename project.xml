@@ -8,12 +8,15 @@
 	
 	<app main="Main" path="bin" file="Main" />
 	<haxedef name="sampleBunnyMark" />
-	<!-- sampleTest, sampleMultidisplay, sampleMultibuffer, sampleElementInherit, sampleDepthBlend,
+	<!--
+		sampleTest, sampleMultidisplay, sampleMultibuffer, sampleElementInherit, sampleDepthBlend,
 		sampleTextureSimple, sampleTextureSlotTiles, sampleMultiTextures, sampleTextureMipmapFilter,
-		sampleRenderToTexture, sampleShaderInjection,
+		sampleTextureCaching, sampleRenderToTexture, sampleShaderInjection,
 		sampleAnimation, sampleGLPicking, sampleBunnyMark
 		sampleGl3FontRendering, sampleTextRendering,
-		sampleMouseEvents, sampleUserInterface, ... -->
+		sampleMouseEvents, sampleUserInterface,
+		...
+	-->
 	<define name="bunnies" value="60000" />
 	<define name="bunnies"  value="14000" if="neko" />
 	<define name="stats" if="html5" />
@@ -49,7 +52,7 @@
 
 	<haxedef name="peoteview_debug_macro" />
 	<!--<haxedef name="peoteview_debug_buffer" />-->
-	<!--<haxedef name="peoteview_debug_texture" />-->
+	<haxedef name="peoteview_debug_texture" />
 	<!--<haxedef name="peoteview_debug_program" />-->
 	<!--<haxedef name="peoteview_debug_display" />-->
 	<!--<haxedef name="peoteview_debug_view" />-->
@@ -66,7 +69,7 @@
 	<!-- <haxedef name="HXCPP_MSVC_VER=140" if="cpp" /> -->
 	
 	
-	<!-- for preloading like in sample "sampleDepthBlend" the assets need to be embed=true --> 
+	<!-- for html5 and loading inside onPreloadComplete-event the assets need to be embed=true --> 
 	<assets path="assets" exclude="lime.svg" embed="false" />
 	
 	<icon path="assets/lime.svg" />

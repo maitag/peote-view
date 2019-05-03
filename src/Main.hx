@@ -18,6 +18,8 @@ typedef Sample = TextureSimple;
 typedef Sample = TextureSlotTiles;
 #elseif sampleMultiTextures
 typedef Sample = MultiTextures;
+#elseif sampleTextureCaching
+typedef Sample = TextureCaching;
 #elseif sampleTextureMipmapFilter
 typedef Sample = TextureMipmapFilter;
 #elseif sampleMultidisplay

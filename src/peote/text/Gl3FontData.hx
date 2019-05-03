@@ -8,7 +8,7 @@ package peote.text;
 
 class Gl3FontData 
 {
-    public var idmap:Map<Int,Int>; // map glyph to id
+    public var idmap:Map<Int,Int>; // map charcode to glyph-id
 
     public var metrics:Array<Metric>;
     public var kerning:Array<Array<Float>>;

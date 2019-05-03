@@ -1,4 +1,5 @@
 package;
+import haxe.Json;
 #if sampleTextRendering
 import haxe.Timer;
 
@@ -6,6 +7,8 @@ import lime.ui.Window;
 import lime.ui.KeyCode;
 import lime.ui.KeyModifier;
 import lime.ui.MouseButton;
+
+import utils.Loader;
 
 import peote.view.PeoteView;
 import peote.view.Display;
@@ -33,12 +36,22 @@ class TextRendering
 			peoteView.addDisplay(display);  // display to peoteView
 			
 			
-			
+			Loader.jsonFromFile("assets/gl3fonts/unifont/config.json", true, function(json:Json) {
+				
+				var ranges = Reflect.field(json, "ranges");
+				for( fn in Reflect.fields(ranges) )
+				{
+					var range:Array<String> = Reflect.field(ranges, fn);
+					trace(fn, Std.parseInt(range[0]), Std.parseInt(range[1]));
+				}
+				
+				trace(json);
+			});
 			
 			
 			// TODO:
 			/*
-			var font = new Font("assets/gl3fonts/unifont/unifont_0000-0fff");
+			var font = new Font("assets/gl3fonts/unifont/config.json");
 			
 			font.load( function() {
 				

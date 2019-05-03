@@ -85,10 +85,9 @@ class Gl3FontRendering
 			program = new Program(buffer);
 			
 			
-			//loadFont("assets/gl3fonts/DejavuSans", true,
-			
 			// no kerning (much faster then to convert fontdata!) for the u n i glyphes
-			loadFont("assets/gl3fonts/unifont/unifont_0000-0fff", false, 
+			//loadFont("assets/gl3fonts/DejavuSans", true,
+			loadFont("assets/gl3fonts/unifont/unifont_0000-0fff", false,
 			//loadFont("assets/gl3fonts/unifont/unifont_1000-1fff", false,
 			//loadFont("assets/gl3fonts/unifont/unifont_3000-3fff", false,
 				function(gl3font:Gl3FontData, image:Image, isKerning:Bool)
@@ -98,10 +97,14 @@ class Gl3FontRendering
 					program.setTexture(texture, "TEX");
 					display.addProgram(program);    // programm to display
 					
-					var bold = Util.toFloatString(0.48);
+					var bold = Util.toFloatString(0.5);
 					var sharp = Util.toFloatString(0.5);
 					
 					program.setColorFormula('COL * smoothstep( $bold - $sharp * fwidth(TEX.r), $bold + $sharp * fwidth(TEX.r), TEX.r)');
+					//program.setColorFormula('vec4(COL.rgb,  smoothstep( $bold - $sharp * fwidth(TEX.r), $bold + $sharp * fwidth(TEX.r), TEX.r) )');
+					//program.setColorFormula('vec4(COL.rgb,  smoothstep( 0.5 - fwidth(TEX.r), 0.5 + fwidth(TEX.r), TEX.r) )');
+					//program.alphaEnabled = true;
+					//program.discardAtAlpha( 0.0 );
 					
 					// for unifont + INT is this best readable (but good not scalable and not not for all letters!!!) at fixed scale 16 ( or 32.. etc)
 					//program.setColorFormula('COL * smoothstep( 0.5, 0.5, TEX.r)');
