@@ -9,6 +9,7 @@ typedef GLShader            = lime.graphics.opengl.GLShader;
 typedef GLUniformLocation   = lime.graphics.opengl.GLUniformLocation;
 typedef GLBuffer            = lime.graphics.opengl.GLBuffer;
 typedef GLVertexArrayObject = lime.graphics.opengl.GLVertexArrayObject;
+typedef GLRenderbuffer      = lime.graphics.opengl.GLRenderbuffer;
 
 typedef Image = lime.graphics.Image;
 

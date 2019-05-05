@@ -34,6 +34,16 @@ class Loader
 		future.onComplete( onLoad );		
 	}
 	
+	public static inline function imagesFromFiles( filenames:Array<String>, debug=false, ?onProgress:Int->Int->Void, ?onError:String->Void, onLoad:Array<Image>->Void):Void {
+		var images = new Array<Image>();
+		for (fn in filenames) {
+			imageFromFile( fn, debug, onProgress, onError, function(image:Image) {
+				images.push(image);
+				if (images.length == filenames.length) onLoad(images);
+			});
+		}
+	}
+	
 	public static inline function bytesFromFile( filename:String, debug=false, ?onProgress:Int->Int->Void, ?onError:String->Void, onLoad:Bytes->Void):Void {
 		var future = Bytes.loadFromFile(filename);
 		

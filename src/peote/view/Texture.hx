@@ -1,9 +1,11 @@
 package peote.view;
 
-import lime.graphics.opengl.GLRenderbuffer;
+import lime.utils.UInt8Array;
+
 import peote.view.PeoteGL.Image;
 import peote.view.PeoteGL.GLTexture;
 import peote.view.PeoteGL.GLFramebuffer;
+import peote.view.PeoteGL.GLRenderbuffer;
 import peote.view.utils.GLTool;
 import peote.view.utils.TexUtils;
 
@@ -170,10 +172,35 @@ class Texture
 		#if peoteview_debug_texture
 		trace("Set Image into Texture Slot" + imageSlot);
 		#end
-		images.set(image, {imageSlot:imageSlot}); // TODO: is already set?
+		if (images.exists(image))
+			throw("Error, image is already inside texture inside slot "+images.get(image).imageSlot);
+		images.set(image, {imageSlot:imageSlot});
 		if (gl != null) {
 			if (glTexture == null) createTexture();
 			bufferImage(image, {imageSlot:imageSlot});
+		}
+	}
+	
+	public function removeImage(image:Image) {
+		#if peoteview_debug_texture
+		trace("Remove Image from Texture");
+		#end
+		var imgProp = images.get(image);
+		if (imgProp == null)
+			throw("Error, image did not exists inside texture");
+		images.remove(image);
+		if (gl != null) {
+			// TODO
+			var data = new UInt8Array(image.width * image.height * 4);
+			gl.bindTexture(gl.TEXTURE_2D, glTexture);
+			gl.texSubImage2D(gl.TEXTURE_2D, 0, 
+				slotWidth * (imgProp.imageSlot % slotsX),
+		        slotHeight * Math.floor(imgProp.imageSlot / slotsX),
+		        image.width, image.height,
+				gl.RGBA, gl.UNSIGNED_BYTE,  data );
+			gl.bindTexture(gl.TEXTURE_2D, null);
+			
+			updated = true; // to reset peoteView.glStateTexture  <-- TODO: check isTextureStateChange()
 		}
 	}
 	

@@ -1,4 +1,5 @@
 package;
+import peote.view.utils.TextureCache;
 #if sampleTextureCaching
 
 import lime.ui.Window;
@@ -21,25 +22,27 @@ class Elem implements Element
 {
 	@posX public var x:Int=0;
 	@posY public var y:Int=0;
-	
 	@sizeX public var w:Int=100;
 	@sizeY public var h:Int=100;
-	
-	@texSlot var slot:Int = 0;
+	@texW public var tw:Int=100;
+	@texH public var th:Int=100;	
+	@texSlot public var slot:Int=0;
 		
-	public function new(positionX:Int=0, positionY:Int=0, width:Int=100, height:Int=100)
+	public function new(positionX:Int, positionY:Int, width:Int, height:Int, texW:Int, texH:Int, slot:Int)
 	{
 		this.x = positionX;
 		this.y = positionY;
 		this.w = width;
 		this.h = height;
+		this.tw = texW;
+		this.th = texH;
+		this.slot = slot;
 	}
 }
 
 class TextureCaching
 {
 	var peoteView:PeoteView;
-	var element:Elem;
 	var buffer:Buffer<Elem>;
 	var display:Display;
 	var program:Program;
@@ -53,29 +56,45 @@ class TextureCaching
 		
 		buffer  = new Buffer<Elem>(100);
 		program = new Program(buffer);
+		display.addProgram(program);    // programm to display			
 		
-		element  = new Elem(0, 0);
-		buffer.addElement(element);     // element to buffer
+		texture = new Texture(512, 512, 4);
+		program.setTexture(texture, "custom");
 		
-		Loader.imageFromFile ("assets/images/peote_tiles.png", true, function (image:Image) {
-			texture = new Texture(image.width, image.height);
-			texture.setImage(image,0);
-			texture.setImage(image.clone(),1); // TODO: throw Error if same image inside multi slot
-			
-			//program.autoUpdateTextures = false;
-			program.setTexture(texture, "custom");
-			//program.updateTextures();
-
-			//program.setActiveTextureGlIndex(texture, 2);// only after update
-
-			display.addProgram(program);    // programm to display
-
-			
-			element.w = image.width;
-			element.h = image.height;
-			buffer.updateElement(element);			
+		var textureCache = new TextureCache(
+			[
+				{imageWidth:400, imageHeight:300, maxSlots:10},
+				{imageWidth:26, imageHeight:37, maxSlots:1},
+			],
+			peoteView.gl.getParameter(peoteView.gl.MAX_TEXTURE_SIZE)
+		);
+		// TODO
+		Loader.imagesFromFiles([
+			"assets/images/test0.png",
+			"assets/images/test1.png",
+			"assets/images/test2.png"
+			],
+			true,
+			function (images:Array<Image>) {
+				// TODO
+				//p = textureCache.addImage(image);
+				// trace(p.slot);
+			}
+		);
+		
+		Loader.imageFromFile ("assets/images/test0.png", true, function (image:Image) {
+			texture.setImage(image, 0);
+			//haxe.Timer.delay( function() { texture.removeImage(image); }, 2000);
 		});
-				
+		var e0  = new Elem(0, 0, 256, 256, 400, 300, 0);
+		buffer.addElement(e0);
+
+		Loader.imageFromFile ("assets/images/wabbit_alpha.png", true, function (image:Image) {
+			texture.setImage(image,1);
+		});
+		var e1  = new Elem(256, 0, 256, 256, 26, 37, 1);
+		buffer.addElement(e1);
+
 		// ---------------------------------------------------------------
 	}
 	public function onPreloadComplete ():Void {
