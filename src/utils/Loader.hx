@@ -58,8 +58,7 @@ class Loader
 		if (onError != null) future.onError( onError );
 		future.onComplete( onLoad );		
 	}
-	
-	
+		
 	public static inline function jsonFromFile( filename:String, debug=false, ?onProgress:Int->Int->Void, ?onError:String->Void, onLoad:Json->Void):Void {
 		var future = Bytes.loadFromFile(filename);
 		

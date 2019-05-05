@@ -8,15 +8,16 @@ class TextureCache
 {
 
 	static var textureMap:Map<Image,TextureImageProp>; // image filenames to textures
-	static var imageSizes:Array <{imageWidth:Int, imageHeight:Int}>;
+	static var imageSizes = new Array <{imageWidth:Int, imageHeight:Int, maxSlots:Int}>();
 	
 	public function new(imageSizes:Array<{imageWidth:Int, imageHeight:Int, maxSlots:Int}>, maxTextureSize:Int = 4096) 
 	{
-		// TODO
+		textureMap = new Map<Image, TextureImageProp>();
+		TextureCache.imageSizes = imageSizes;
 	}
 	
 	// looks if there is already a texture with that image
-	// creates a new texture on demand and returns it
+	// creates a new texture on demand
 	// returns the texture and slot
 	public function addImage(image:Image):TextureImageProp
 	{
@@ -27,6 +28,8 @@ class TextureCache
 			// immer die texture auswaehlen die am besten passt von der slot-size
 			
 			// create texture - falls es nirgendwo passt dann neue texture erzeugen
+			
+			// how many fit into one texture
 			trace("TODO:", peote.view.utils.TexUtils.optimalTextureSize(40, 250, 256, 512, false));
 			
 			prop = {texture:null, slot:23, users:0};

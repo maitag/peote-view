@@ -61,6 +61,7 @@ class TextureCaching
 		texture = new Texture(512, 512, 4);
 		program.setTexture(texture, "custom");
 		
+		// TODO
 		var textureCache = new TextureCache(
 			[
 				{imageWidth:400, imageHeight:300, maxSlots:10},
@@ -73,33 +74,31 @@ class TextureCaching
 			"assets/images/test0.png",
 			"assets/images/test1.png",
 			"assets/images/test2.png"
-			],
-			true,
+			], //true,
 			function (images:Array<Image>) {
-				// TODO
-				//p = textureCache.addImage(image);
-				// trace(p.slot);
+				for (image in images) {
+					var p = textureCache.addImage(image);
+					trace(p.slot);
+					// TODO
+				}
 			}
 		);
 		
 		Loader.imageFromFile ("assets/images/test0.png", true, function (image:Image) {
 			texture.setImage(image, 0);
 			//haxe.Timer.delay( function() { texture.removeImage(image); }, 2000);
+			buffer.addElement(new Elem(0, 0, 256, 256, 400, 300, 0));
 		});
-		var e0  = new Elem(0, 0, 256, 256, 400, 300, 0);
-		buffer.addElement(e0);
 
 		Loader.imageFromFile ("assets/images/wabbit_alpha.png", true, function (image:Image) {
 			texture.setImage(image,1);
+			buffer.addElement(new Elem(256, 0, 256, 256, 26, 37, 1));
 		});
-		var e1  = new Elem(256, 0, 256, 256, 26, 37, 1);
-		buffer.addElement(e1);
 
 		// ---------------------------------------------------------------
 	}
-	public function onPreloadComplete ():Void {
-		//trace("preload complete");
-	}
+	
+	public function onPreloadComplete ():Void {}
 	
 	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
 	{
@@ -112,7 +111,7 @@ class TextureCaching
 	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
 	{
 		switch (keyCode) {
-			case KeyCode.NUMBER_1: // todo: create another element with image 1
+			case KeyCode.NUMBER_1: // todo: testing here to add/remove images from textureCache
 			case KeyCode.NUMBER_2:
 			default:
 		}
