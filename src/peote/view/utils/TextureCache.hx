@@ -1,30 +1,39 @@
 package peote.view.utils;
 
+import haxe.ds.ArraySort;
+
 import peote.view.PeoteGL.Image;
 import peote.view.Program;
 import peote.view.Texture;
+import peote.view.utils.TexUtils;
 
 class TextureCache 
 {
-	// TODO: alle Texturen erzeugen um es direkt fuer multitextures zu benutzen (units bestimmen)
 	var imageMap = new Map<Image, {texSize:Int, unit:Int, slot:Int}>();
 	var texSizes = new Array <{
 			width:Int, height:Int, slots:Int, freeSlots:Int,
 			textures:Array<{unit:Int, freeSlots:Array<Int>}>
 		}> ();
 		
-	var textures = new Array<Texture>();
+	public var textures = new Array<Texture>();
 	
 	public function new(imageSizes:Array<{width:Int, height:Int, slots:Int}>, maxTextureSize:Int = 4096) 
 	{
-		for (size in imageSizes) { // TODO: sort sizes
+		// sort sizes
+		ArraySort.sort(imageSizes, function(x, y) {
+			if (x.width * x.height > y.width * y.height) return 1;
+			else if (x.width * x.height < y.width * y.height) return -1;
+			else return 0;
+		});
+		
+		for (size in imageSizes) {
 			var t = new Array<{unit:Int, freeSlots:Array<Int>}>();
 			// create empty textures
 			var slots = size.slots;
 			while (slots > 0) {
 				// how many fit into one texture
-				var s = peote.view.utils.TexUtils.optimalTextureSize(slots, size.width, size.height, maxTextureSize, false).imageSlots;
-				t.push( {unit:textures.length, freeSlots:[for (i in 0...s) i]} );
+				var s = TexUtils.optimalTextureSize(slots, size.width, size.height, maxTextureSize, false, false).imageSlots;
+				t.push( {unit:textures.length, freeSlots:[for (i in 0...s) s-1-i]} );
 				textures.push( new Texture(size.width, size.height, s) ); // TODO: mipmaps ...
 				slots -= s;
 			}
@@ -39,9 +48,9 @@ class TextureCache
 		trace("textureSizes:", texSizes);
 	}
 	
-	// looks if there is already a texture with that image
-	// creates a new texture on demand
-	// returns the texture and slot
+	// if there is not already a textureslot with that image
+	// it puts the image into next free texture and slot where it best fits
+	// returns the texture-unit (index of textures-array) and slot
 	public function addImage(image:Image):{unit:Int, slot:Int}
 	{
 		var prop = imageMap.get(image);
@@ -55,6 +64,7 @@ class TextureCache
 							s.freeSlots--;
 							var p = {texSize:i, unit:t.unit, slot:t.freeSlots.pop()};
 							imageMap.set(image, p);
+							textures[p.unit].setImage(image, p.slot);
 							return {unit:p.unit, slot:p.slot};
 						}
 					}
@@ -68,7 +78,12 @@ class TextureCache
 			return {unit:prop.unit, slot:prop.slot};
 		}
 	}
-	
+
+	/*public function addImages(images:Array<Image>, ):Void
+	{
+		for (image in images) onAdd()
+	}*/
+
 	// removes image from cache
 	public function removeImage(image:Image)
 	{

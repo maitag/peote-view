@@ -69,38 +69,40 @@ class TextureSimple
 	
 	public function new(window:Window)
 	{	
-		peoteView = new PeoteView(window.context, window.width, window.height);
-		display   = new Display(10,10, window.width-20, window.height-20, Color.GREEN);
-		peoteView.addDisplay(display);  // display to peoteView
-		
-		buffer  = new Buffer<Elem>(100);
-		program = new Program(buffer);
-		
-		texture = new Texture(512, 512, 2);
-		
-		element  = new Elem(0, 0);
-		buffer.addElement(element);     // element to buffer
-		
-		Loader.imageFromFile ("assets/images/peote_tiles.png", true, function (image:Image) {
-			//texture = new Texture(image.width, image.height);
-			texture.setImage(image,0);
-			texture.setImage(image.clone(),1); // TODO: throw Error if same image inside multi slot
+		try {
+			peoteView = new PeoteView(window.context, window.width, window.height);
+			display   = new Display(10,10, window.width-20, window.height-20, Color.GREEN);
+			peoteView.addDisplay(display);  // display to peoteView
 			
-			//program.autoUpdateTextures = false;
-			program.setTexture(texture, "custom");
-			//program.updateTextures();
-			program.discardAtAlpha(0.1);
-			//program.alphaEnabled = true;
-			//program.setActiveTextureGlIndex(texture, 2);// only after update
-
-			display.addProgram(program);    // programm to display
-
+			buffer  = new Buffer<Elem>(100);
+			program = new Program(buffer);
 			
-			element.w = 512;// image.width;
-			element.h = 512;// image.height;
-			buffer.updateElement(element);			
-		});
+			texture = new Texture(512, 512, 2);
+			
+			element  = new Elem(0, 0);
+			buffer.addElement(element);     // element to buffer
+			
+			Loader.imageFromFile ("assets/images/peote_tiles.png", true, function (image:Image) {
+				//texture = new Texture(image.width, image.height);
+				texture.setImage(image,0);
+				texture.setImage(image.clone(),1); // TODO: throw Error if same image inside multi slot
 				
+				//program.autoUpdateTextures = false;
+				program.setTexture(texture, "custom");
+				//program.updateTextures();
+				program.discardAtAlpha(0.1);
+				//program.alphaEnabled = true;
+				//program.setActiveTextureGlIndex(texture, 2);// only after update
+
+				display.addProgram(program);    // programm to display
+
+				
+				element.w = 512;// image.width;
+				element.h = 512;// image.height;
+				buffer.updateElement(element);			
+			});
+		}
+		catch (msg:String) {trace("ERROR", msg); }				
 		// ---------------------------------------------------------------
 	}
 	public function onPreloadComplete ():Void {

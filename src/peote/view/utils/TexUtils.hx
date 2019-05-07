@@ -111,7 +111,7 @@ class TexUtils
 		return glTexture;
 	}
 	
-	public static function optimalTextureSize(imageSlots:Int, slotWidth:Int, slotHeight:Int, maxTextureSize:Int, errorIfNotFit=true):{width:Int, height:Int, slotsX:Int, slotsY:Int, imageSlots:Int}
+	public static function optimalTextureSize(imageSlots:Int, slotWidth:Int, slotHeight:Int, maxTextureSize:Int, errorIfNotFit=true, debug=true):{width:Int, height:Int, slotsX:Int, slotsY:Int, imageSlots:Int}
 
     {
         var mts = Math.ceil( Math.log(maxTextureSize) / Math.log(2) );
@@ -172,7 +172,7 @@ class TexUtils
 		}
 		
 		#if peoteview_debug_texture
-		trace('${Std.int(w/slotWidth) * Std.int(h/slotHeight)} imageSlots (${Std.int(w/slotWidth)} * ${Std.int(h/slotHeight)}) on a ${w} x ${h} Texture');
+		if (debug) trace('${Std.int(w/slotWidth) * Std.int(h/slotHeight)} imageSlots (${Std.int(w/slotWidth)} * ${Std.int(h/slotHeight)}) on a ${w} x ${h} Texture');
 		#end
 		
 		return ({

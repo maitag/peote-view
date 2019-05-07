@@ -15,7 +15,6 @@ import peote.view.Display;
 import peote.view.Buffer;
 import peote.view.Program;
 import peote.view.Color;
-import peote.view.Texture;
 import peote.view.Element;
 
 class Elem implements Element
@@ -26,9 +25,10 @@ class Elem implements Element
 	@sizeY public var h:Int=100;
 	@texW public var tw:Int=100;
 	@texH public var th:Int=100;	
+	@texUnit public var unit:Int=0;
 	@texSlot public var slot:Int=0;
 		
-	public function new(positionX:Int, positionY:Int, width:Int, height:Int, texW:Int, texH:Int, slot:Int)
+	public function new(positionX:Int, positionY:Int, width:Int, height:Int, texW:Int, texH:Int, unit:Int, slot:Int)
 	{
 		this.x = positionX;
 		this.y = positionY;
@@ -36,6 +36,7 @@ class Elem implements Element
 		this.h = height;
 		this.tw = texW;
 		this.th = texH;
+		this.unit = unit;
 		this.slot = slot;
 	}
 }
@@ -46,59 +47,56 @@ class TextureCaching
 	var buffer:Buffer<Elem>;
 	var display:Display;
 	var program:Program;
-	var texture:Texture;
 	
 	public function new(window:Window)
-	{	
-		peoteView = new PeoteView(window.context, window.width, window.height);
-		display   = new Display(10,10, window.width-20, window.height-20, Color.GREEN);
-		peoteView.addDisplay(display);  // display to peoteView
-		
-		buffer  = new Buffer<Elem>(100);
-		program = new Program(buffer);
-		display.addProgram(program);    // programm to display			
-		
-		texture = new Texture(512, 512, 4);
-		program.setTexture(texture, "custom");
-		
-		// TODO
-		var textureCache = new TextureCache(
-			[
-				//{width:26,  height:37,  slots:4},
-				{width:256, height:256, slots:4},
-				//{width:400, height:300, slots:4},
-				{width:512, height:512, slots:2},
-			],
-			512
-			//peoteView.gl.getParameter(peoteView.gl.MAX_TEXTURE_SIZE)
-		);
-		// TODO
-		Loader.imagesFromFiles([
-			"assets/images/test0.png",
-			"assets/images/test1.png",
-			"assets/images/test2.png"
-			], //true,
-			function (images:Array<Image>) {
-				// do it sync now
-				for (image in images) {
-					var p = textureCache.addImage(image);
-					trace(p.unit,p.slot);
-					// TODO
+	{
+		try {
+			peoteView = new PeoteView(window.context, window.width, window.height);
+			display   = new Display(10,10, window.width-20, window.height-20, Color.GREEN);
+			peoteView.addDisplay(display);
+			
+			buffer  = new Buffer<Elem>(100);
+			program = new Program(buffer);
+			display.addProgram(program);		
+			
+			var textureCache = new TextureCache(
+				[
+					{width:64,  height:64,  slots:8},
+					{width:256, height:256, slots:2},
+					{width:512, height:512, slots:2},
+					{width:400, height:300, slots:4},
+				],
+				512 //peoteView.gl.getParameter(peoteView.gl.MAX_TEXTURE_SIZE)
+			);
+			
+			Loader.imagesFromFiles([
+				"assets/images/test0.png",
+				"assets/images/test1.png",
+				"assets/images/peote_font_green.png",
+				"assets/images/test2.png",
+				"assets/images/wabbit_alpha.png",
+				"assets/images/test3.png",
+				], //true,
+				function (images:Array<Image>) {
+					// do it sync now
+					var x = 0;
+					var y = 0;
+					for (image in images) {
+						var p = textureCache.addImage(image);
+						trace("texture-unit:"+p.unit,"texture-slot"+p.slot);
+						buffer.addElement(new Elem(x, y, 100, 100, image.width, image.height, p.unit, p.slot));
+						x += 100;
+						if (x >= 800) {
+							x = 0;
+							y += 100;
+						}
+					}
+					program.setMultiTexture(textureCache.textures, "custom");
 				}
-			}
-		);
-		
-		Loader.imageFromFile ("assets/images/test0.png", true, function (image:Image) {
-			texture.setImage(image, 0);
-			//haxe.Timer.delay( function() { texture.removeImage(image); }, 2000);
-			buffer.addElement(new Elem(0, 0, 256, 256, image.width, image.height, 0));
-		});
-
-		Loader.imageFromFile ("assets/images/wabbit_alpha.png", true, function (image:Image) {
-			texture.setImage(image,1);
-			buffer.addElement(new Elem(256, 0, 256, 256, image.width, image.height, 1));
-		});
-
+			);
+			
+		}
+		catch (msg:String) {trace("ERROR", msg); }
 		// ---------------------------------------------------------------
 	}
 	
