@@ -36,10 +36,17 @@ class Loader
 	
 	public static inline function imagesFromFiles( filenames:Array<String>, debug=false, ?onProgress:Int->Int->Void, ?onError:String->Void, onLoad:Array<Image>->Void):Void {
 		var images = new Array<Image>();
-		for (fn in filenames) {
+		/*for (fn in filenames) {
 			imageFromFile( fn, debug, onProgress, onError, function(image:Image) {
 				images.push(image);
 				if (images.length == filenames.length) onLoad(images);
+			});
+		}*/
+		var loaded:Int = filenames.length;
+		for (i in 0...filenames.length) {
+			imageFromFile( filenames[i], debug, onProgress, onError, function(image:Image) {
+				images[i] = image;
+				if (--loaded == 0) onLoad(images);
 			});
 		}
 	}
