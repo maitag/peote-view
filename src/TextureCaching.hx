@@ -64,10 +64,13 @@ class TextureCaching
 		// TODO
 		var textureCache = new TextureCache(
 			[
-				{imageWidth:400, imageHeight:300, maxSlots:10},
-				{imageWidth:26, imageHeight:37, maxSlots:1},
+				//{width:26,  height:37,  slots:4},
+				{width:256, height:256, slots:4},
+				//{width:400, height:300, slots:4},
+				{width:512, height:512, slots:2},
 			],
-			peoteView.gl.getParameter(peoteView.gl.MAX_TEXTURE_SIZE)
+			512
+			//peoteView.gl.getParameter(peoteView.gl.MAX_TEXTURE_SIZE)
 		);
 		// TODO
 		Loader.imagesFromFiles([
@@ -76,9 +79,10 @@ class TextureCaching
 			"assets/images/test2.png"
 			], //true,
 			function (images:Array<Image>) {
+				// do it sync now
 				for (image in images) {
 					var p = textureCache.addImage(image);
-					trace(p.slot);
+					trace(p.unit,p.slot);
 					// TODO
 				}
 			}
@@ -87,12 +91,12 @@ class TextureCaching
 		Loader.imageFromFile ("assets/images/test0.png", true, function (image:Image) {
 			texture.setImage(image, 0);
 			//haxe.Timer.delay( function() { texture.removeImage(image); }, 2000);
-			buffer.addElement(new Elem(0, 0, 256, 256, 400, 300, 0));
+			buffer.addElement(new Elem(0, 0, 256, 256, image.width, image.height, 0));
 		});
 
 		Loader.imageFromFile ("assets/images/wabbit_alpha.png", true, function (image:Image) {
 			texture.setImage(image,1);
-			buffer.addElement(new Elem(256, 0, 256, 256, 26, 37, 1));
+			buffer.addElement(new Elem(256, 0, 256, 256, image.width, image.height, 1));
 		});
 
 		// ---------------------------------------------------------------

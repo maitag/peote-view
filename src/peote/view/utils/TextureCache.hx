@@ -6,42 +6,81 @@ import peote.view.Texture;
 
 class TextureCache 
 {
-
-	static var textureMap:Map<Image,TextureImageProp>; // image filenames to textures
-	static var imageSizes = new Array <{imageWidth:Int, imageHeight:Int, maxSlots:Int}>();
+	// TODO: alle Texturen erzeugen um es direkt fuer multitextures zu benutzen (units bestimmen)
+	var imageMap = new Map<Image, {texSize:Int, unit:Int, slot:Int}>();
+	var texSizes = new Array <{
+			width:Int, height:Int, slots:Int, freeSlots:Int,
+			textures:Array<{unit:Int, freeSlots:Array<Int>}>
+		}> ();
+		
+	var textures = new Array<Texture>();
 	
-	public function new(imageSizes:Array<{imageWidth:Int, imageHeight:Int, maxSlots:Int}>, maxTextureSize:Int = 4096) 
+	public function new(imageSizes:Array<{width:Int, height:Int, slots:Int}>, maxTextureSize:Int = 4096) 
 	{
-		textureMap = new Map<Image, TextureImageProp>();
-		TextureCache.imageSizes = imageSizes;
+		for (size in imageSizes) { // TODO: sort sizes
+			var t = new Array<{unit:Int, freeSlots:Array<Int>}>();
+			// create empty textures
+			var slots = size.slots;
+			while (slots > 0) {
+				// how many fit into one texture
+				var s = peote.view.utils.TexUtils.optimalTextureSize(slots, size.width, size.height, maxTextureSize, false).imageSlots;
+				t.push( {unit:textures.length, freeSlots:[for (i in 0...s) i]} );
+				textures.push( new Texture(size.width, size.height, s) ); // TODO: mipmaps ...
+				slots -= s;
+			}
+			texSizes.push({
+				width: size.width,
+				height: size.height,
+				freeSlots: size.slots,
+				slots: size.slots,
+				textures: t
+			});
+		}
+		trace("textureSizes:", texSizes);
 	}
 	
 	// looks if there is already a texture with that image
 	// creates a new texture on demand
 	// returns the texture and slot
-	public function addImage(image:Image):TextureImageProp
+	public function addImage(image:Image):{unit:Int, slot:Int}
 	{
-		var prop = textureMap.get(image);
+		var prop = imageMap.get(image);
 		if (prop == null) {
 			// look for free texture + slot
-			
-			// immer die texture auswaehlen die am besten passt von der slot-size
-			
-			// create texture - falls es nirgendwo passt dann neue texture erzeugen
-			
-			// how many fit into one texture
-			trace("TODO:", peote.view.utils.TexUtils.optimalTextureSize(40, 250, 256, 512, false));
-			
-			prop = {texture:null, slot:23, users:0};
+			for (s in texSizes) {
+				if (s.width >= image.width && s.height >= image.height && s.freeSlots>0) { // image fits
+					for (i in 0...s.textures.length) {
+						var t = s.textures[i];
+						if (t.freeSlots.length > 0) { // texture has free slot
+							s.freeSlots--;
+							var p = {texSize:i, unit:t.unit, slot:t.freeSlots.pop()};
+							imageMap.set(image, p);
+							return {unit:p.unit, slot:p.slot};
+						}
+					}
+				}
+			}
+			// TODO: Error if no more free texture/slot
+			return {unit:-1, slot:-1};
+		} 
+		else {
+			imageMap.set(image, prop);
+			return {unit:prop.unit, slot:prop.slot};
 		}
-		return prop;
 	}
 	
 	// removes image from cache
-	// if there are not more users there will be a new free place into TextureCache to use
 	public function removeImage(image:Image)
 	{
-		// TODO
+		var prop = imageMap.get(image);
+		var s = texSizes[prop.texSize];
+		s.freeSlots++;
+		for (t in s.textures) {
+			if (prop.unit == t.unit) {
+				t.freeSlots.push(prop.slot);
+			}
+		}
+		imageMap.remove(image);
 	}
 	
 	// sets all textures from cache to textures of a Program
@@ -51,10 +90,4 @@ class TextureCache
 		// TODO
 	}
 	
-}
-
-typedef TextureImageProp = {
-	texture:Texture,
-	slot:Int,
-	users:Int // how much is using this texture
 }

@@ -73,12 +73,14 @@ class Loader
 		if (onError != null) future.onError( onError );
 		future.onComplete( function(bytes:Bytes) {
 			
-			var regex = new EReg("//.*?$", "gm");
-			//trace(regex.replace( bytes.toString(), "") );
+			var rComments = new EReg("//.*?$", "gm");
+			var rEmptylines:EReg = new EReg("([ \t]*\r?\n)+", "g");
+			var rStartspaces:EReg = new EReg("^([ \t]*\r?\n)+", "g");
+			
 			var json:Json;
 			
 			try {
-				json = Json.parse( regex.replace( bytes.toString(), "") );
+				json = Json.parse( rStartspaces.replace(rEmptylines.replace(rComments.replace(bytes.toString(), ""), "\n"), ""));
 				onLoad(json);
 			} catch (msg:Dynamic) trace('Error while parsing json of file "$filename"\n   ' + msg);			
 		});

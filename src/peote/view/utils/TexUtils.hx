@@ -111,7 +111,8 @@ class TexUtils
 		return glTexture;
 	}
 	
-	public static function optimalTextureSize(imageSlots:Int, slotWidth:Int, slotHeight:Int, maxTextureSize:Int, errorIfNotFit=true):Dynamic
+	public static function optimalTextureSize(imageSlots:Int, slotWidth:Int, slotHeight:Int, maxTextureSize:Int, errorIfNotFit=true):{width:Int, height:Int, slotsX:Int, slotsY:Int, imageSlots:Int}
+
     {
         var mts = Math.ceil( Math.log(maxTextureSize) / Math.log(2) );
         
@@ -165,7 +166,8 @@ class TexUtils
         }
         else
 		{
-			if (errorIfNotFit) throw("Error: texture size can not be calculated");
+			if (errorIfNotFit) throw('Error: max texture-size ($maxTextureSize) is to small for $imageSlots images ($slotWidth x $slotHeight)');
+			if (slotWidth>maxTextureSize || slotHeight>maxTextureSize) throw('Error: max texture-size ($maxTextureSize) is to small for image ($slotWidth x $slotHeight)');
 			w = h = maxTextureSize;
 		}
 		

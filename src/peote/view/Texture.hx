@@ -27,6 +27,7 @@ class Texture
 	public var height(default, null):Int = 0;
 	
 	public var imageSlots(default, null):Int = 1;
+	public var freeSlots(default, null):Int = 1;
 	
 	public var slotsX(default, null):Int = 1;
 	public var slotsY(default, null):Int = 1;
@@ -51,7 +52,7 @@ class Texture
 	{
 		this.slotWidth = slotWidth;
 		this.slotHeight = slotHeight;
-		this.imageSlots = imageSlots;
+		this.imageSlots = this.freeSlots = imageSlots;
 		this.colorChannels = colorChannels;
 		this.createMipmaps = createMipmaps;
 		this.magFilter = magFilter;
@@ -175,6 +176,7 @@ class Texture
 		if (images.exists(image))
 			throw("Error, image is already inside texture inside slot "+images.get(image).imageSlot);
 		images.set(image, {imageSlot:imageSlot});
+		freeSlots--;
 		if (gl != null) {
 			if (glTexture == null) createTexture();
 			bufferImage(image, {imageSlot:imageSlot});
@@ -189,6 +191,7 @@ class Texture
 		if (imgProp == null)
 			throw("Error, image did not exists inside texture");
 		images.remove(image);
+		freeSlots++;
 		if (gl != null) {
 			// TODO
 			var data = new UInt8Array(image.width * image.height * 4);
