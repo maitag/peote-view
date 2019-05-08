@@ -26,7 +26,9 @@ class Elem implements Element
 	@texW public var tw:Int=100;
 	@texH public var th:Int=100;	
 	@texUnit public var unit:Int=0;
-	@texSlot public var slot:Int=0;
+	@texSlot public var slot:Int = 0;
+	
+	//var OPTIONS = { alpha:false };
 		
 	public function new(positionX:Int, positionY:Int, width:Int, height:Int, texW:Int, texH:Int, unit:Int, slot:Int)
 	{
@@ -62,28 +64,46 @@ class TextureCaching
 			var textureCache = new TextureCache(
 				[
 					{width:64,  height:64,  slots:8},
-					{width:256, height:256, slots:2},
-					{width:512, height:512, slots:2},
-					{width:400, height:300, slots:4},
+					{width:256, height:256, slots:4},
+					{width:512, height:512, slots:8},
+					{width:1024, height:1024, slots:16},
 				],
-				512 //peoteView.gl.getParameter(peoteView.gl.MAX_TEXTURE_SIZE)
+				peoteView.gl.getParameter(peoteView.gl.MAX_TEXTURE_SIZE)
 			);
 			
-			Loader.imagesFromFiles([
+			Loader.corsServer = "cors-anywhere.herokuapp.com";
+			
+			Loader.imageArray([
 				"assets/images/test0.png",
 				"assets/images/test1.png",
 				"assets/images/peote_font_green.png",
 				"assets/images/test2.png",
 				"assets/images/wabbit_alpha.png",
 				"assets/images/test3.png",
+				"http://maitag.de/semmi/blender/hxMeat.jpg",
+				"http://maitag.de/semmi/blender/mandelbulb/mandelbulb_volume_1001f.blend.png",
+				"http://maitag.de/semmi/blender/lyapunov/example_images/displace-FOSSIL-13.blend.png",
+				"https://upload.wikimedia.org/wikipedia/commons/8/80/Salvador_Dali_The_Rainbow_1972.jpg",
 				], //true,
-				function (images:Array<Image>) {
+				function(loaded:Int, size:Int) {
+					// TODO: name param
+					trace(Std.int(loaded/size * 100) + "%" ,' ($loaded / $size)');
+				},
+				//function(image:Image) { // after every single image is loaded
+					// TODO: name param
+				//},
+				function(images:Array<Image>) { // after all images is loaded
 					// do it sync now
+					// TODO: name param
 					var x = 0;
 					var y = 0;
 					for (image in images) {
+						//image.premultiplied = true;
+						//trace("BPP: "+image.buffer.bitsPerPixel);
+						//trace("FORMAT: "+image.buffer.format);
+						//trace("TRANSPARENT: " + image.buffer.transparent);
 						var p = textureCache.addImage(image);
-						trace("texture-unit:"+p.unit,"texture-slot"+p.slot);
+						trace( '${image.width}x${image.height}', "texture-unit:"+p.unit,"texture-slot"+p.slot);
 						buffer.addElement(new Elem(x, y, 100, 100, image.width, image.height, p.unit, p.slot));
 						x += 100;
 						if (x >= 800) {

@@ -147,9 +147,9 @@ class Gl3FontRendering
 
 	public function loadFont(font:String, isKerning:Bool, onLoad:Gl3FontData->Image->Bool->Void)
 	{
-		Loader.bytesFromFile(font+".dat", true, function(bytes:Bytes) {
+		Loader.bytes(font+".dat", true, function(bytes:Bytes) {
 			var gl3font = new Gl3FontData(bytes, isKerning);
-			Loader.imageFromFile(font+".png", true, function(image:Image) {
+			Loader.image(font+".png", true, function(image:Image) {
 				onLoad(gl3font, image, isKerning);
 			});
 		});						

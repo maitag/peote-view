@@ -36,7 +36,7 @@ class TextRendering
 			peoteView.addDisplay(display);  // display to peoteView
 			
 			
-			Loader.jsonFromFile("assets/gl3fonts/unifont/config.json", true, function(json:Json) {
+			Loader.json("assets/gl3fonts/unifont/config.json", true, function(json:Json) {
 				
 				var ranges = Reflect.field(json, "ranges");
 				for( fn in Reflect.fields(ranges) )

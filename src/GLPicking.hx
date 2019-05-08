@@ -94,7 +94,7 @@ class GLPicking
 			
 			display.addProgram(program);
 			
-			Loader.imageFromFile("assets/images/wabbit_alpha.png", true, function (image:Image) {
+			Loader.image("assets/images/wabbit_alpha.png", true, function (image:Image) {
 				trace("loading complete");
 				var texture = new Texture(26, 37);
 				texture.setImage(image);

@@ -82,7 +82,7 @@ class TextureSimple
 			element  = new Elem(0, 0);
 			buffer.addElement(element);     // element to buffer
 			
-			Loader.imageFromFile ("assets/images/peote_tiles.png", true, function (image:Image) {
+			Loader.image ("assets/images/peote_tiles.png", true, function (image:Image) {
 				//texture = new Texture(image.width, image.height);
 				texture.setImage(image,0);
 				texture.setImage(image.clone(),1); // TODO: throw Error if same image inside multi slot

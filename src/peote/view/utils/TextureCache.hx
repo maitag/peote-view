@@ -45,7 +45,7 @@ class TextureCache
 				textures: t
 			});
 		}
-		trace("textureSizes:", texSizes);
+		//trace("textureSizes:", texSizes);
 	}
 	
 	// if there is not already a textureslot with that image

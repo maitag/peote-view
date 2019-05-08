@@ -127,7 +127,7 @@ class MultiTextures
 	}
 	
 	public function loadImage(texture:Texture, filename:String, slot:Int=0):Void {
-		Loader.imageFromFile(filename, true, function(image:Image) {
+		Loader.image(filename, true, function(image:Image) {
 			texture.setImage(image, slot);
 		});		
 	}

@@ -51,7 +51,7 @@ class DepthBlend
 		displayL.color = Color.GREY3;
 		bufferL  = new Buffer<ElementSimple>(100);
 		programL = new Program(bufferL);
-		Loader.imageFromFile("assets/images/peote_tiles.png", true, function(image:Image) {
+		Loader.image("assets/images/peote_tiles.png", true, function(image:Image) {
 			var texture = new Texture(32, 32);
 			var flower = new Image(null, 0, 0, 32, 32);
 			flower.copyPixels(image, new Rectangle(128+32, 0, 32, 32), new Vector2(0, 0));

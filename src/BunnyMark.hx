@@ -87,7 +87,7 @@ class BunnyMark
 		
 		var program = new Program(buffer);
 		
-		Loader.imageFromFile ("assets/images/wabbit_alpha.png", true, function (image:Image) {			
+		Loader.image ("assets/images/wabbit_alpha.png", true, function (image:Image) {			
 			var texture = new Texture(image.width, image.height);
 			
 			texture.setImage(image);
