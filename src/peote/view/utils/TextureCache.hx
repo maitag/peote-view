@@ -79,10 +79,10 @@ class TextureCache
 		}
 	}
 
-	/*public function addImages(images:Array<Image>, ):Void
+	public function addImages(images:Array<Image>):Void
 	{
-		for (image in images) onAdd()
-	}*/
+		for (image in images) addImage(image);
+	}
 
 	// removes image from cache
 	public function removeImage(image:Image)

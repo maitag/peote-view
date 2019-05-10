@@ -28,6 +28,8 @@ typedef Sample = Multidisplay;
 typedef Sample = Multibuffer;
 #elseif sampleAnimation
 typedef Sample = Animation;
+#elseif sampleHitTest
+typedef Sample = HitTest;
 #elseif sampleElementInherit
 typedef Sample = ElementInherit;
 #elseif sampleGLPicking
