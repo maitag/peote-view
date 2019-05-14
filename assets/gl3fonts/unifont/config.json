@@ -1,0 +1,7 @@
+{
+"ranges": 
+	{
+		"unifont_0000-0fff": ["0x0000", "0x0fff"],
+		"unifont_1000-1fff": ["0x1000", "0x1fff"]
+	}
+}

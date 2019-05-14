@@ -82,7 +82,7 @@ class TextureCaching
 			Loader.imageArray([
 				"assets/images/test0.png",
 				"assets/images/test1.png",
-				"assets/images/peote_font_green.png",
+				"assets/images/peote_tiles.png",
 				"assets/images/test2.png",
 				"assets/images/wabbit_alpha.png",
 				"assets/images/test3.png",

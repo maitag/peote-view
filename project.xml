@@ -7,7 +7,7 @@
 	<!-- <meta build-number="714" /> --> <!-- let set the buildnumber manual (android) -->
 	
 	<app main="Main" path="bin" file="Main" />
-	<haxedef name="sampleHitTest" />
+	<haxedef name="sampleBunnyMark" />
 	<!--
 		sampleTest, sampleMultidisplay, sampleMultibuffer, sampleElementInherit, sampleDepthBlend,
 		sampleTextureSimple, sampleTextureSlotTiles, sampleMultiTextures, sampleTextureMipmapFilter,

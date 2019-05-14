@@ -3,6 +3,8 @@ package peote.text;
 import peote.view.PeoteGL.Image;
 import haxe.io.Bytes;
 import peote.view.Texture;
+import utils.Loader;
+import haxe.Json;
 
 class Font 
 {
@@ -11,44 +13,38 @@ class Font
 	
 	var texture:Texture;
 	
+	var rParseFolder = new EReg("/*$", "gm");
 	
-	public function new(filename:String, isKerning:Bool) 
+	public function new(fontFolder:String, isKerning:Bool=true) 
 	{
-		// load the font
+		fontFolder = rParseFolder.replace(fontFolder, '');
+		Loader.json(fontFolder+"/config.json", true, function(json:Json) {
+			
+			var ranges = Reflect.field(json, "ranges");
+			for( fn in Reflect.fields(ranges) )
+			{
+				var range:Array<String> = Reflect.field(ranges, fn);
+				trace(fn, Std.parseInt(range[0]), Std.parseInt(range[1]));
+			}
+			
+			trace(json);
+		});
+			
+		// TODO
 		
 	}
 	
 	
-	public function loadFont(font:String, isKerning:Bool, onLoad:Gl3FontData->Image->Bool->Void)
+	function loadFont(font:String, isKerning:Bool, onLoad:Gl3FontData->Image->Bool->Void)
 	{
-		bytesFromFile(font+".dat", function(bytes:Bytes) {
-			var gl3font = new Gl3FontData(bytes, isKerning); // TODO: use a Future here to calculate while loading image!
-			imageFromFile(font+".png", function(image:Image) {
+		Loader.bytes(font+".dat", true, function(bytes:Bytes) {
+			var gl3font = new Gl3FontData(bytes, isKerning);
+			Loader.image(font+".png", true, function(image:Image) {
 				onLoad(gl3font, image, isKerning);
 			});
 		});						
 	}
 	
 	
-	public function imageFromFile(filename:String, onLoad:Image->Void):Void {
-		trace('load image $filename');
-		var future = Image.loadFromFile(filename);
-		future.onProgress (function (a:Int,b:Int) trace ('...loading image $a/$b'));
-		future.onError (function (msg:String) trace ("Error: "+msg));
-		future.onComplete (function (image:Image) {
-			trace('loading $filename complete');
-			onLoad(image);
-		});		
-	}
-	
-	public function bytesFromFile(filename:String, onLoad:Bytes->Void):Void {
-		var future = lime.utils.Bytes.loadFromFile(filename);
-		future.onProgress (function (a:Int,b:Int) trace ('loading bytes $a/$b'));
-		future.onError (function (msg:String) trace ("Error: "+msg));
-		future.onComplete (function (bytes:Bytes) {
-			trace("loading bytes complete");
-			onLoad(bytes);
-		});
-	}	
 	
 }

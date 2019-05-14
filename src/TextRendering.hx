@@ -1,5 +1,4 @@
 package;
-import haxe.Json;
 #if sampleTextRendering
 import haxe.Timer;
 
@@ -8,16 +7,14 @@ import lime.ui.KeyCode;
 import lime.ui.KeyModifier;
 import lime.ui.MouseButton;
 
-import utils.Loader;
-
 import peote.view.PeoteView;
 import peote.view.Display;
 import peote.view.Color;
 
 import peote.text.Font;
 
-//import peote.text.FontProgram;
-//import peote.text.Glyph;
+import peote.text.Glyphes;
+import peote.text.Glyph;
 //import peote.text.Line;
 //import peote.text.Page;
 
@@ -35,45 +32,18 @@ class TextRendering
 			display   = new Display(10,10, window.width-20, window.height-20, Color.GREY1);
 			peoteView.addDisplay(display);  // display to peoteView
 			
-			
-			Loader.json("assets/gl3fonts/unifont/config.json", true, function(json:Json) {
-				
-				var ranges = Reflect.field(json, "ranges");
-				for( fn in Reflect.fields(ranges) )
-				{
-					var range:Array<String> = Reflect.field(ranges, fn);
-					trace(fn, Std.parseInt(range[0]), Std.parseInt(range[1]));
-				}
-				
-				trace(json);
-			});
+			var font = new Font("assets/gl3fonts/unifont/");
+						
+			var glyphes = new Glyphes(font, 16, 16, Color.YELLOW); // glsl program to render each Letter-GLYPHE
+			display.addProgram(glyphes.program);
 			
 			
-			// TODO:
+			// -------- Letters --------			
+			var glyph = new Glyph(65, 0, 0);
+			glyphes.add(glyph);
+			
+			
 			/*
-			var font = new Font("assets/gl3fonts/unifont/config.json");
-			
-			font.load( function() {
-				
-				trace("Font loaded");
-				
-				
-			} );
-			
-			
-			
-			
-			
-			
-			var fontProgramm = new FontProgram (font); // glsl program to render each Letter-GLYPHE
-			
-			
-			// -------- Letters --------
-			
-			var glyph = new Glyph(0, 0, "A");
-			fontProgramm.addGlyph(glyph);
-			
-			
 			// -------- Lines  ---------
 			
 			var line = new Line(0, 100, "Hello Word!");
