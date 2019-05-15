@@ -107,7 +107,6 @@ class Skin
 			"
 		);
 		program.setColorFormula('compose(color, borderColor, vCustom0, vCustom1)');
-
 		return program;
 	}
 }

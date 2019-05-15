@@ -93,11 +93,13 @@ class Shader
 		::OUT_TEXSIZEY::
 	::end::
 
+	// custom functions -------------------
 	::VERTEX_INJECTION::
 
+	// --------- vertex main --------------
 	void main(void)
 	{
-		::CALC_TIME::		
+		::CALC_TIME::
 		::CALC_SIZE::
 		::CALC_PIVOT::		
 		::CALC_ROTZ::
@@ -208,8 +210,10 @@ class Shader
 		::end::
 	::end::
 
+	// custom functions -------------------
 	::FRAGMENT_INJECTION::
 	
+	// --------- fragment main ------------
 	void main(void)
 	{	
 		::FRAGMENT_CALC_COLOR::

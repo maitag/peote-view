@@ -10,6 +10,9 @@ class Glyph implements Element
 	@posX public var x:Int=0;
 	@posY public var y:Int=0;
 	
+	@sizeX public var w:Int=16;
+	@sizeY public var h:Int=16;
+	
 	public function new(charcode:Int, x:Int, y:Int) 
 	{
 		this.charcode = charcode;

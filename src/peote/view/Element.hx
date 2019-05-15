@@ -114,6 +114,7 @@ class ElementImpl
 				switch (p.expr) {
 					case EConst(CString(value)): return value;
 					case EConst(CInt(value)): return value;
+					case EConst(CFloat(value)): return value;
 					default: return "";
 				}
 			}
@@ -153,7 +154,7 @@ class ElementImpl
 		else return null;
 	}
 	
-	static inline function getAllMetaParams(f:Field, s:String):Null<Array<String>> {
+	static inline function getIdentifiersByMetaParams(f:Field, s:String):Null<Array<String>> {
 		var pa:Null<Array<Expr>> = null;
 		var found = false;
 		for (m in f.meta) if (m.name == s || m.name == ':$s') { pa = m.params; found = true; break; }
@@ -163,8 +164,7 @@ class ElementImpl
 				for (p in pa)
 					switch (p.expr) {
 						case EConst(CString(value)): ret.push(value);
-						case EConst(CInt(value)): ret.push(value);
-						default:
+						default: throw Context.error('Error: identifiers has to be Strings', f.pos); // TODO: test!!
 					}
 			return ret;
 		}
@@ -381,7 +381,12 @@ class ElementImpl
 			param = getMetaParam(f, "const");
 			if (param != null) {
 				if (param == "") confItem.vStart = defaultVal;
-				else confItem.vStart = (expType=="Int") ? Std.parseInt(param) : Std.parseFloat(param);
+				else {
+					confItem.vStart = (expType == "Int") ? Std.parseInt(param) : Std.parseFloat(param);
+					// trace("CHECK-:",confItem.name, expType, confItem.vStart); // TODO: same for constStart/end, check Color-consts
+					if (confItem.vStart == null) 
+						throw Context.error('Error: value of constant ${f.name} has to be of type "$expType"', f.pos);
+				}
 				if (getter == "null")
 					throw Context.error('Error: for constant ${f.name} the getter has to be "default", "never" or "get"', f.pos);
 				if (setter != null && setter != "never")
@@ -404,10 +409,10 @@ class ElementImpl
 	
 	static function checkTexLayerMetas(meta:String, f:Field, expectedType:ComplexType, alternativeType:ComplexType, type:ComplexType, val:Expr, d:ConfSubParam, confItem:Array<ConfSubParam>, getter:String, setter:String):Bool
 	{
-		var metas:Array<String> = getAllMetaParams(f, meta);
-		if (metas == null) return false;
-		if (metas.length == 0) metas.push("__default__");
-		for (name in metas) {
+		var identifiers:Array<String> = getIdentifiersByMetaParams(f, meta);
+		if (identifiers == null) return false;
+		if (identifiers.length == 0) identifiers.push("__default__");
+		for (name in identifiers) {
 			if (colorIdentifiers.indexOf(name) >= 0) throw Context.error('Error: "$name" is already used for a @color identifier', f.pos);
 			if (name != "__default__" && Util.isWrongIdentifier(name)) throw Context.error('Error: "$name" is not an identifier, please use only letters/numbers or "_" (starting with a letter)', f.pos);
 			var layer = confTextureLayer.get(name);
@@ -432,11 +437,11 @@ class ElementImpl
 	
 	static function checkColorLayerMetas(meta:String, f:Field, expectedType:ComplexType, alternativeType:ComplexType, type:ComplexType, val:Expr, d:ConfSubParam, confItem:Array<ConfSubParam>, getter:String, setter:String):Bool
 	{
-		var metas:Array<String> = getAllMetaParams(f, meta);
-		if (metas == null) return false;
-		if (metas.length > 1) throw Context.error('Error: @color attributes needs only 1 identifier for use in colorFormula (default is allways "color")', f.pos);
-		if (metas.length == 0) metas.push("color");
-		var name = metas[0];
+		var identifiers:Array<String> = getIdentifiersByMetaParams(f, meta);
+		if (identifiers == null) return false;
+		if (identifiers.length > 1) throw Context.error('Error: @color attributes needs only 1 identifier for use in colorFormula (default is allways "color")', f.pos);
+		if (identifiers.length == 0) identifiers.push("color");
+		var name = identifiers[0];
 		if (Util.isWrongIdentifier(name)) throw Context.error('Error: "$name" is not an identifier, please use only letters/numbers or "_" (starting with a letter)', f.pos);
 		if (colorIdentifiers.indexOf(name) >= 0) throw Context.error('Error: "$name" is already used for a @color identifier', f.pos);
 		if (confTextureLayer.exists(name)) throw Context.error('Error: "$name" is already used as identifier for a texture-layer', f.pos);
@@ -449,11 +454,11 @@ class ElementImpl
 	
 	static function checkCustomMetas(meta:String, f:Field, expectedType:ComplexType, alternativeType:ComplexType, type:ComplexType, val:Expr, d:ConfSubParam, confItem:Array<ConfSubParam>, getter:String, setter:String):Bool
 	{
-		var metas:Array<String> = getAllMetaParams(f, meta);
-		if (metas == null) return false;
-		if (metas.length > 1) throw Context.error('Error: @custom attributes needs only 1 identifier for use in custom shadercode (default is allways "custom")', f.pos);
-		if (metas.length == 0) metas.push("custom");
-		var name = metas[0];
+		var identifiers:Array<String> = getIdentifiersByMetaParams(f, meta);
+		if (identifiers == null) return false;
+		if (identifiers.length > 1) throw Context.error('Error: @custom attributes needs only 1 identifier for use in custom shadercode (default is allways "custom")', f.pos);
+		if (identifiers.length == 0) identifiers.push("custom");
+		var name = identifiers[0];
 		if (Util.isWrongIdentifier(name)) throw Context.error('Error: "$name" is not an identifier, please use only letters/numbers or "_" (starting with a letter)', f.pos);
 		if (customIdentifiers.indexOf(name) >= 0) throw Context.error('Error: "$name" is already used for a @custom identifier', f.pos);
 		customIdentifiers.push(name);
@@ -840,7 +845,7 @@ class ElementImpl
 				start = 'vec2( ${Util.toFloatString(x.vStart)}, $start )';
 			}
 			else if (!x.isStart && !y.isStart)
-				start= 'vec2( ${Util.toFloatString(x.vStart)}, ${Util.toFloatString(y.vStart)} )';
+				start = 'vec2( ${Util.toFloatString(x.vStart)}, ${Util.toFloatString(y.vStart)} )';
 			else if (n > 2) {
 				start += ".xy"; end += ".z";
 			}
@@ -855,10 +860,11 @@ class ElementImpl
 				}
 				var tx = timers.indexOf(x.time);
 				var ty = timers.indexOf(y.time);
-				if (tx == -1)      return '( $start + ($end - $start) * vec2( 0.0, time$ty ) )';
-				else if (ty == -1) return '( $start + ($end - $start) * vec2( time$tx, 0.0 ) )';
-				else               return '( $start + ($end - $start) * vec2( time$tx, time$ty ) )';
-			} else return start;
+				if (tx == -1)      start = '( $start + ($end - $start) * vec2( 0.0, time$ty ) )';
+				else if (ty == -1) start = '( $start + ($end - $start) * vec2( time$tx, 0.0 ) )';
+				else               start = '( $start + ($end - $start) * vec2( time$tx, time$ty ) )';
+			}
+			return start;
 		}
 		
 		// size
@@ -1718,16 +1724,16 @@ class ElementImpl
 				if (conf.zIndex.isAnim && conf.zIndex.isEnd)       { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, Math.min(1.0,Math.max(-1.0, $i{conf.zIndex.name+"End"}/MAX_ZINDEX))) ); i+=4; }
 				
 				// POS, SIZE, PIVOT -> Floats
-				function write2packedFloat(x:ConfSubParam, y:ConfSubParam) {
+				function write2packedFloat(a:ConfSubParam, b:ConfSubParam) {
 					// attributes that are packed together should use same type
-					if (x.isAltType != y.isAltType) throw Context.error('Error: ${x.name} and ${y.name} has to be of the same type', x.pos);
-					if (x.isAltType) { // -> only the Float ones
-						if (x.isAnim && x.isStart) { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{x.name+"Start"}) ); i+=4; }
-						if (!x.isAnim && x.isStart){ exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{x.name })        ); i+=4; }
-						if (y.isAnim && y.isStart) { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{y.name+"Start"}) ); i+=4; }
-						if (!y.isAnim && y.isStart){ exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{y.name })        ); i+=4; }
-						if (x.isAnim && x.isEnd)   { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{x.name+"End"})   ); i+=4; }
-						if (y.isAnim && y.isEnd)   { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{y.name+"End"})   ); i+=4; }
+					if ((a.name != "" && b.name != "") && (a.isAltType != b.isAltType)) throw Context.error('Error: ${a.name} and ${b.name} has to be of the same type', a.pos);
+					if ((a.name != "" && a.isAltType) || (b.name != "" && b.isAltType)) { // -> only the Float ones
+						if (a.isAnim && a.isStart) { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{a.name+"Start"}) ); i+=4; }
+						if (!a.isAnim && a.isStart){ exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{a.name })        ); i+=4; }
+						if (b.isAnim && b.isStart) { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{b.name+"Start"}) ); i+=4; }
+						if (!b.isAnim && b.isStart){ exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{b.name })        ); i+=4; }
+						if (a.isAnim && a.isEnd)   { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{a.name+"End"})   ); i+=4; }
+						if (b.isAnim && b.isEnd)   { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{b.name+"End"})   ); i+=4; }
 					}
 				}
 				write2packedFloat(conf.posX  , conf.posY);
@@ -1757,14 +1763,14 @@ class ElementImpl
 				
 				// -------------- setUInt16 ------------------------------
 				// POS, SIZE, PIVOT -> INT
-				function write2packedInt(x:ConfSubParam, y:ConfSubParam) {
-					if (! x.isAltType) {  // -> only the Int ones
-						if (x.isAnim && x.isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{x.name+"Start"}) ); i+=2; }
-						if (!x.isAnim && x.isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{x.name })        ); i+=2; }
-						if (y.isAnim && y.isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{y.name+"Start"}) ); i+=2; }
-						if (!y.isAnim && y.isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{y.name })        ); i+=2; }
-						if (x.isAnim && x.isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{x.name+"End"})   ); i+=2; }
-						if (y.isAnim && y.isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{y.name+"End"})   ); i+=2; }
+				function write2packedInt(a:ConfSubParam, b:ConfSubParam) {
+					if ((a.name != "" && !a.isAltType) || (b.name != "" && !b.isAltType)) {  // -> only the Int ones
+						if (a.isAnim && a.isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{a.name+"Start"}) ); i+=2; }
+						if (!a.isAnim && a.isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{a.name })        ); i+=2; }
+						if (b.isAnim && b.isStart) { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{b.name+"Start"}) ); i+=2; }
+						if (!b.isAnim && b.isStart){ exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{b.name })        ); i+=2; }
+						if (a.isAnim && a.isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{a.name+"End"})   ); i+=2; }
+						if (b.isAnim && b.isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{b.name+"End"})   ); i+=2; }
 					}
 				}
 				write2packedInt(conf.posX  , conf.posY);
@@ -1988,9 +1994,9 @@ class ElementImpl
 			}
 			
 			// POS, SIZE, PIVOT -> FLOAT
-			function enable2packFloat(attr:String, x:ConfSubParam, y:ConfSubParam) {
-				if (x.isAltType) { // -> only the Float ones
-					n = x.n + y.n;
+			function enable2packFloat(attr:String, a:ConfSubParam, b:ConfSubParam) {
+				if ((a.name != "" && a.isAltType) || (b.name != "" && b.isAltType)) { // -> only the Float ones
+					n = a.n + b.n;
 					if (n > 0 ) {
 						exprBlock.push( macro gl.enableVertexAttribArray ($i{attr}) );
 						exprBlock.push( macro gl.vertexAttribPointer($i{attr}, $v{n}, gl.FLOAT, false, $v{stride}, $v{i} ) ); i += n * 4;
@@ -2029,9 +2035,9 @@ class ElementImpl
 			// -------------- setUInt16 ------------------------------
 
 			// POS, SIZE, PIVOT -> INT
-			function enable2packInt(attr:String, x:ConfSubParam, y:ConfSubParam) {
-				if (! x.isAltType) {  // -> only the Int ones
-					n = x.n + y.n;
+			function enable2packInt(attr:String, a:ConfSubParam, b:ConfSubParam) {
+				if ((a.name != "" && !a.isAltType) || (b.name != "" && !b.isAltType)) {  // -> only the Int ones
+					n = a.n + b.n;
 					if (n > 0 ) {
 						exprBlock.push( macro gl.enableVertexAttribArray ($i{attr}) );
 						exprBlock.push( macro gl.vertexAttribPointer($i{attr}, $v{n}, gl.SHORT, false, $v{stride}, $v{i} ) ); i += n * 2;
