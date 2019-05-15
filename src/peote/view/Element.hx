@@ -833,6 +833,58 @@ class ElementImpl
 		if (timers.length > 0) glConf.UNIFORM_TIME = "uniform float uTime;";
 		
 		// pack -----------------------------------------------------------------------
+		
+		// TODO: parse identifiers for @formula
+/*		var packedStart = new StringMap<String>();
+		var packedEnd = new StringMap<String>();
+		
+		function insertPacked(name:String, x:ConfSubParam, y:ConfSubParam) {
+			var ending = ["",".x", ".y", ".z", ".w"];
+			var i = (x.n+y.n>1) ? 1 : 0;
+			if (x.isStart) {
+				packedStart.set(x.name, name + ending[i++]);
+			} else packedStart.set(x.name, Util.toFloatString(x.vStart));
+			
+			if (y.isStart) {
+				packedStart.set(y.name, name + ending[i++]);
+			} else packedStart.set(y.name, Util.toFloatString(y.vStart));
+						
+			// ANIM
+			if (x.isAnim || y.isAnim) {
+				if (x.isEnd) {
+					packedEnd.set(x.name, name + ending[i++]);
+				} 
+				else if (x.isAnim) packedEnd.set(x.name, Util.toFloatString(x.vEnd));
+				else packedEnd.set(x.name, packedStart.get(x.name));
+				
+				if (y.isEnd) {
+					packedEnd.set(y.name, name + ending[i]);
+				}
+				else if (y.isAnim) packedEnd.set(y.name, Util.toFloatString(y.vEnd));
+				else packedEnd.set(y.name, packedStart.get(y.name));
+			}		
+		}
+		
+		insertPacked("aSize", conf.sizeX, conf.sizeY); 
+		insertPacked("aPos" , conf.posX, conf.posY ); //trace(packedStart);trace(packedEnd);
+		insertPacked("aRotZ" , conf.rotation, conf.zIndex );
+		insertPacked("aPivot", conf.pivotX, conf.pivotY );
+		
+		function packForFormula(name:String, x:ConfSubParam, y:ConfSubParam):String {
+			var start = 'vec2( ${packedStart.get(x.name)}, ${packedStart.get(y.name)} )';
+			// ANIM
+			if (x.isAnim || y.isAnim) {
+				var end = 'vec2( ${packedEnd.get(x.name)}, ${packedEnd.get(y.name)} )';
+				// TODO: not the same as before...set param into vec2 to 0.0 if it is non-anim
+				var tx = timers.indexOf(x.time);
+				var ty = timers.indexOf(y.time);
+				if (tx == -1)      start = '$start + ($end - $start) * vec2( 0.0, time$ty )';
+				else if (ty == -1) start = '$start + ($end - $start) * vec2( time$tx, 0.0 )';
+				else               start = '$start + ($end - $start) * vec2( time$tx, time$ty )';
+			}
+			return start;
+		}		
+*/		
 		function pack2in1(name:String, x:ConfSubParam, y:ConfSubParam):String {
 			var start = name; var end = name;
 			var n:Int = x.n + y.n;
@@ -860,21 +912,20 @@ class ElementImpl
 				}
 				var tx = timers.indexOf(x.time);
 				var ty = timers.indexOf(y.time);
-				if (tx == -1)      start = '( $start + ($end - $start) * vec2( 0.0, time$ty ) )';
-				else if (ty == -1) start = '( $start + ($end - $start) * vec2( time$tx, 0.0 ) )';
-				else               start = '( $start + ($end - $start) * vec2( time$tx, time$ty ) )';
+				if (tx == -1)      start = '$start + ($end - $start) * vec2( 0.0, time$ty )';
+				else if (ty == -1) start = '$start + ($end - $start) * vec2( time$tx, 0.0 )';
+				else               start = '$start + ($end - $start) * vec2( time$tx, time$ty )';
 			}
 			return start;
 		}
-		
+	
 		// size
-		//glConf.CALC_SIZE = "vec2 size = aPosition * " + pack2in1("aSize", conf.sizeX, conf.sizeY) + ";";
 		glConf.CALC_SIZE = "vec2 size = " + pack2in1("aSize", conf.sizeX, conf.sizeY) + ";";
 		
 		// pos
-		glConf.CALC_POS = "vec2 pos = " + pack2in1("aPos" , conf.posX,  conf.posY ) + ";";
+		glConf.CALC_POS += "vec2 pos = " + pack2in1("aPos" , conf.posX,  conf.posY ) + ";" + "\n";
 		
-		// set varyings for vPos
+		// set varyings for vPos (before pos will be rotated!)
 		if (conf.posX.isVarying || conf.posY.isVarying) {
 			glConf.CALC_POS += "vPos = pos; ";
 			glConf.OUT_VARYING += "::if isES3::flat ::end::::VAROUT:: vec2 vPos; ";

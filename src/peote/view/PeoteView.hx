@@ -91,7 +91,7 @@ class PeoteView
 	
 	var uniformBuffer:UniformBufferView;
 	
-	var isRun:Bool = false;
+	public var isRun(default, null):Bool = false;
 	var startTime:Float = 0;
 	var stopTime:Float = 0;
 	var speed:Float = 1.0;
@@ -107,13 +107,17 @@ class PeoteView
 	}
 	public function start():Void
 	{
-		time = stopTime;
-		isRun = true;
+		if (!isRun) {
+			time = stopTime;
+			isRun = true;
+		}
 	}
 	public function stop():Void
 	{
-		stopTime = time;
-		isRun = false;
+		if (isRun) {
+			stopTime = time;
+			isRun = false;
+		}
 	}
 
 	public function new(gl:PeoteGL, width:Int, height:Int, color:Color = 0x000000FF)

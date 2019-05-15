@@ -19,7 +19,7 @@ import peote.view.Element;
 
 
 // --------------------------------------------------- fragment color-spectrum
-class Elem0 implements Element
+/*class Elem0 implements Element
 {
 	@posX public var x:Int=0;
 	@posY public var y:Int=0;
@@ -139,17 +139,17 @@ class Elem2 implements Element
 		this.x = positionX;	this.y = positionY;	buffer.addElement(this);
 	}	
 }
-
-// --------------------------------------------------- changing attribute calc formulas
+*/
+// --------------------------------------------------- custom formula for attributes
 class Elem3 implements Element
 {
 	@posX public var x:Int=0;
-	@posY public var y:Int=0;
+	@posY @anim public var y:Int=0; // @anim @constStart(0) @constEnd(100)
 	
 	@sizeX public var w:Int=100;
-	// TODO: @sizeX @const @formula("posX + sizeX") public var w:Int=100;
+	// TODO: @sizeX @formula("x + w") public var w:Int=100;
 	@sizeY public var h:Int=100;
-	// TODO: @sizeY @formula public var h:Int=100;  // use default or changed by program
+	// TODO: @sizeY @const @formula("y + h") public var h:Int=100;
 	
 	static public var buffer:Buffer<Elem3>;
 	static public var program:Program;
@@ -163,12 +163,15 @@ class Elem3 implements Element
 				return fract(sin(dot(co.xy, vec2(12.9898,78.233))) * seed);
 			}		
 		");
-		// TODO: program.setSizeYFormula('pos.y + 50');
+		// TODO: program.setSizeYFormula('x + 50');
 		display.addProgram(program);
 	}
 	
 	public function new(positionX:Int=0, positionY:Int=0) {
-		this.x = positionX;	this.y = positionY;	buffer.addElement(this);
+		this.x = positionX; //this.xEnd = 100;
+		this.y = positionY; this.yEnd = 100;
+		this.timeStart = 0.0; this.timeDuration = 4.0;
+		buffer.addElement(this);
 	}	
 }
 
@@ -187,10 +190,10 @@ class ShaderInjection
 			peoteView = new PeoteView(window.context, window.width, window.height);
 			display   = new Display(10,10, window.width-20, window.height-20, Color.GREEN);
 			peoteView.addDisplay(display);
-			
+			/*
 			Elem0.init(display); new Elem0(  0, 0);
 			Elem1.init(display); new Elem1(110, 0);		
-			Elem2.init(display); new Elem2(220, 0);		
+			Elem2.init(display); new Elem2(220, 0);	*/	
 			Elem3.init(display); new Elem3(330, 0);		
 		} 
 		catch (e:Dynamic) trace("ERROR:", e);
@@ -200,7 +203,8 @@ class ShaderInjection
 	
 	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
 	{
-		peoteView.start();	
+		if (!peoteView.isRun) peoteView.start();
+		else peoteView.stop();
 	}
 
 	public function onMouseMove (x:Float, y:Float):Void {}
