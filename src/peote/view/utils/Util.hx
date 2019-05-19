@@ -1,5 +1,7 @@
 package peote.view.utils;
 
+import haxe.ds.StringMap;
+
 class Util 
 {
 
@@ -19,6 +21,57 @@ class Util
 	static inline public function isWrongIdentifier(identifier:String):Bool {
 		var regexp:EReg = ~/^([a-zA-z_]+\d*)+$/g;
 		return( ! regexp.match(identifier) );
+	}
+	
+	static public function resolveFormulaCyclic(formulas:StringMap<String>) {
+		var resolved = new Array<String>();
+		for (k in formulas.keys())
+		{
+			var err = resolveFormulaKey(k, formulas, resolved);
+			if (err.errKey != null) throw(err);
+			//trace("---");
+		}
+		for (k in formulas.keys()) {
+			formulas.set( k, new EReg('___:::___', "g").replace( formulas.get(k), "" ) );
+		}
+	}
+	
+	static function resolveFormulaKey(key:String, formulas:StringMap<String>, resolved:Array<String>, ?fromKeys:Array<String>):{formula:String, errKey:String, errVar:String} {
+		if (fromKeys == null) fromKeys = [key];
+		if (resolved == null) resolved = [];
+		
+		var formula = formulas.get(key);
+		if (resolved.indexOf(key) >= 0) return {formula:formula, errKey:null, errVar:null};
+		//trace("RESOLVE:",fromKeys,key);
+		
+		for (k in formulas.keys()) if ( k != key ) 
+		{
+				var regexp = new EReg('(.*?\\b)$k(\\b.*?)', "g");
+				if (regexp.match(formula))
+				{
+					if (fromKeys.indexOf(k) >= 0) return {formula:formula, errKey:key, errVar:k}; // cyclic error
+					
+					var f = resolveFormulaKey(k, formulas, resolved, fromKeys.concat([k])); // < -- recursion
+					if (f.errKey != null) return f; // cyclic error inside
+
+					formula = regexp.replace( formula, '$1(___:::___' + f.formula +'___:::___)$2' );
+				}
+		}
+
+		formulas.set(key, formula);
+		resolved.push(key);
+		return {formula:formula, errKey:null, errVar:null};
+	}
+	
+	static public function resolveFormulaVars(formulas:StringMap<String>, attribs:StringMap<String>) {
+		for (key in formulas.keys()) {
+			var formula = formulas.get(key);
+			for (k in attribs.keys()) {
+				var regexp = new EReg('(.*?\\b)$k(\\b.*?)', "g");
+				formula = regexp.replace( formula, '$1' + attribs.get(k) + '$2' );
+			}
+			formulas.set(key, formula);
+		}
 	}
 	
 }

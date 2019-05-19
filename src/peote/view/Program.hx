@@ -68,6 +68,14 @@ class Program
 		// TODO: headers to share functions between glPrograms
 		//VERTEX_FUNCTION_HEADERS : "",
 		//FRAGMENT_FUNCTION_HEADERS : "",
+		SIZEX_FORMULA : null,
+		SIZEY_FORMULA : null,
+		POSX_FORMULA : null,
+		POSY_FORMULA : null,
+		ROTZX_FORMULA : null,
+		ROTZY_FORMULA : null,
+		PIVOTX_FORMULA : null,
+		PIVOTY_FORMULA : null,
 		FRAGMENT_EXTENSIONS: [],
 	};
 	

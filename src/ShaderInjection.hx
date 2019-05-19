@@ -143,13 +143,13 @@ class Elem2 implements Element
 // --------------------------------------------------- custom formula for attributes
 class Elem3 implements Element
 {
-	@posX public var x:Int=0;
-	@posY @anim public var y:Int=0; // @anim @constStart(0) @constEnd(100)
+	@posX @formula("cos(y)") public var x:Int=0;
+	@posY @formula("y*3", "tan(h)") @anim public var y:Int=0; // @anim @constStart(0) @constEnd(100)
 	
-	@sizeX public var w:Int=100;
-	// TODO: @sizeX @formula("x + w") public var w:Int=100;
-	@sizeY public var h:Int=100;
-	// TODO: @sizeY @const @formula("y + h") public var h:Int=100;
+	//@sizeX public var w:Int=100;
+	@sizeX @formula("sin(x+w)") public var w:Int=100;
+	//@sizeY public var h:Int=100;
+	@sizeY @const @formula("h*x") public var h:Int=100;
 	
 	static public var buffer:Buffer<Elem3>;
 	static public var program:Program;
