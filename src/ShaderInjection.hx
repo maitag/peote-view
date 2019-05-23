@@ -143,13 +143,16 @@ class Elem2 implements Element
 // --------------------------------------------------- custom formula for attributes
 class Elem3 implements Element
 {
-	@posX @formula("cos(y)") public var x:Int=0;
-	@posY @formula("y*3", "tan(h)") @anim public var y:Int=0; // @anim @constStart(0) @constEnd(100)
+	@posX @formula("x - sin(y*0.1)*20.0") public var x:Int=0;
+	@posY @anim("Y","pingpong") public var y:Int=0; // @constStart(0) @constEnd(100)
 	
-	//@sizeX public var w:Int=100;
-	@sizeX @formula("sin(x+w)") public var w:Int=100;
-	//@sizeY public var h:Int=100;
-	@sizeY @const @formula("h*x") public var h:Int=100;
+	@sizeX @const @formula("100.0 + sin(y*0.1)*40.0") public var w:Int=100;
+	@sizeY @const @formula("45.0+time0*45.0")  public var h:Int = 110;
+	
+	@rotation @const @formula("(h-45.0)*8.0") var r:Float = 30.0;
+	
+	@pivotX @const @formula("w/2.0") public var px:Int=50;
+	@pivotY @const @formula("h/2.0") public var py:Int=50;
 	
 	static public var buffer:Buffer<Elem3>;
 	static public var program:Program;
@@ -169,8 +172,8 @@ class Elem3 implements Element
 	
 	public function new(positionX:Int=0, positionY:Int=0) {
 		this.x = positionX; //this.xEnd = 100;
-		this.y = positionY; this.yEnd = 100;
-		this.timeStart = 0.0; this.timeDuration = 4.0;
+		this.y = positionY; this.yEnd = 500;
+		this.timeYStart = 0.0; this.timeYDuration = 3.0;
 		buffer.addElement(this);
 	}	
 }

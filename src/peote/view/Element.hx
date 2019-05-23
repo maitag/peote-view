@@ -43,7 +43,7 @@ typedef ConfParam =
 }
 typedef ConfSubParam =
 {
-	formulaStart:String, formulaEnd:String, isVarying:Bool, isAltType:Bool, vStart:Dynamic, vEnd:Dynamic, n:Int, isAnim:Bool, name:String, isStart:Bool, isEnd:Bool, time:String, pos:Position
+	formula:String, isVarying:Bool, isAltType:Bool, vStart:Dynamic, vEnd:Dynamic, n:Int, isAnim:Bool, name:String, isStart:Bool, isEnd:Bool, time:String, pos:Position
 }
 
 typedef GLConfParam =
@@ -406,8 +406,8 @@ class ElementImpl
 		}
 		var fparam = getIdentifiersByMetaParams(f, "formula");
 		if (fparam != null) {
-			confItem.formulaStart = fparam[0];
-			if (fparam.length>1) confItem.formulaEnd = fparam[1];
+			confItem.formula = fparam[0];
+			//if (fparam.length>1) // TODO: options?
 		}
 		//trace(confItem);
 	}
@@ -434,7 +434,7 @@ class ElementImpl
 				confTextureLayer.set(name, layer);
 			}
 		}
-		var c = { formulaStart:d.formulaStart, formulaEnd:d.formulaEnd, isVarying:d.isVarying, isAltType:d.isAltType, vStart:d.vStart, vEnd:d.vEnd, n:d.n, isAnim:d.isAnim, name:d.name, isStart:d.isStart, isEnd:d.isEnd, time:d.time, pos:d.pos };
+		var c = { formula:d.formula, isVarying:d.isVarying, isAltType:d.isAltType, vStart:d.vStart, vEnd:d.vEnd, n:d.n, isAnim:d.isAnim, name:d.name, isStart:d.isStart, isEnd:d.isEnd, time:d.time, pos:d.pos };
 		checkMetas(f, expectedType, alternativeType, type, val, c , getter, setter);
 		confItem.push(c);
 		return true;
@@ -451,7 +451,7 @@ class ElementImpl
 		if (colorIdentifiers.indexOf(name) >= 0) throw Context.error('Error: "$name" is already used for a @color identifier', f.pos);
 		if (confTextureLayer.exists(name)) throw Context.error('Error: "$name" is already used as identifier for a texture-layer', f.pos);
 		colorIdentifiers.push(name);
-		var c = { formulaStart:d.formulaStart, formulaEnd:d.formulaEnd, isVarying:d.isVarying, isAltType:d.isAltType, vStart:d.vStart, vEnd:d.vEnd, n:d.n, isAnim:d.isAnim, name:d.name, isStart:d.isStart, isEnd:d.isEnd, time:d.time, pos:d.pos };
+		var c = { formula:d.formula, isVarying:d.isVarying, isAltType:d.isAltType, vStart:d.vStart, vEnd:d.vEnd, n:d.n, isAnim:d.isAnim, name:d.name, isStart:d.isStart, isEnd:d.isEnd, time:d.time, pos:d.pos };
 		checkMetas(f, expectedType, alternativeType, type, val, c , getter, setter);
 		confItem.push(c);
 		return true;
@@ -467,7 +467,7 @@ class ElementImpl
 		if (Util.isWrongIdentifier(name)) throw Context.error('Error: "$name" is not an identifier, please use only letters/numbers or "_" (starting with a letter)', f.pos);
 		if (customIdentifiers.indexOf(name) >= 0) throw Context.error('Error: "$name" is already used for a @custom identifier', f.pos);
 		customIdentifiers.push(name);
-		var c = { formulaStart:d.formulaStart, formulaEnd:d.formulaEnd, isVarying:d.isVarying, isAltType:d.isAltType, vStart:d.vStart, vEnd:d.vEnd, n:d.n, isAnim:d.isAnim, name:d.name, isStart:d.isStart, isEnd:d.isEnd, time:d.time, pos:d.pos };
+		var c = { formula:d.formula, isVarying:d.isVarying, isAltType:d.isAltType, vStart:d.vStart, vEnd:d.vEnd, n:d.n, isAnim:d.isAnim, name:d.name, isStart:d.isStart, isEnd:d.isEnd, time:d.time, pos:d.pos };
 		checkMetas(f, expectedType, alternativeType, type, val, c , getter, setter);
 		confItem.push(c);
 		return true;
@@ -528,27 +528,27 @@ class ElementImpl
 	public static function build()
 	{
 		conf = {
-			posX :          { formulaStart:"", formulaEnd:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },
-			posY :          { formulaStart:"", formulaEnd:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },		
-			sizeX:          { formulaStart:"", formulaEnd:"", isVarying:false, isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },
-			sizeY:          { formulaStart:"", formulaEnd:"", isVarying:false, isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },
-			pivotX:         { formulaStart:"", formulaEnd:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
-			pivotY:         { formulaStart:"", formulaEnd:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
-			rotation:       { formulaStart:"", formulaEnd:"", isVarying:false, isAltType:false, vStart:0.0, vEnd:0.0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
-			zIndex:         { formulaStart:"", formulaEnd:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
-			texUnitDefault: { formulaStart:"", formulaEnd:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texUnit:[],
-			texSlotDefault: { formulaStart:"", formulaEnd:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texSlot:[],
-			texTileDefault: { formulaStart:"", formulaEnd:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texTile:[],
-			texXDefault:    { formulaStart:"", formulaEnd:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texX:[],
-			texYDefault:    { formulaStart:"", formulaEnd:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texY:[],
-			texWDefault:    { formulaStart:"", formulaEnd:"", isVarying:false, isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texW:[],
-			texHDefault:    { formulaStart:"", formulaEnd:"", isVarying:false, isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texH:[],
-			texPosXDefault: { formulaStart:"", formulaEnd:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texPosX:[],
-			texPosYDefault: { formulaStart:"", formulaEnd:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texPosY:[],
-			texSizeXDefault:{ formulaStart:"", formulaEnd:"", isVarying:false, isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texSizeX:[],
-			texSizeYDefault:{ formulaStart:"", formulaEnd:"", isVarying:false, isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texSizeY:[],
-			colorDefault:   { formulaStart:"", formulaEnd:"", isVarying:false, isAltType:false, vStart:0xFF0000FF, vEnd:0xFF0000FF, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, color:[],
-			customDefault:  { formulaStart:"", formulaEnd:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, custom:[],
+			posX :          { formula:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },
+			posY :          { formula:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },		
+			sizeX:          { formula:"", isVarying:false, isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },
+			sizeY:          { formula:"", isVarying:false, isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },
+			pivotX:         { formula:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
+			pivotY:         { formula:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
+			rotation:       { formula:"", isVarying:false, isAltType:false, vStart:0.0, vEnd:0.0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
+			zIndex:         { formula:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
+			texUnitDefault: { formula:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texUnit:[],
+			texSlotDefault: { formula:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texSlot:[],
+			texTileDefault: { formula:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texTile:[],
+			texXDefault:    { formula:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texX:[],
+			texYDefault:    { formula:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texY:[],
+			texWDefault:    { formula:"", isVarying:false, isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texW:[],
+			texHDefault:    { formula:"", isVarying:false, isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texH:[],
+			texPosXDefault: { formula:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texPosX:[],
+			texPosYDefault: { formula:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texPosY:[],
+			texSizeXDefault:{ formula:"", isVarying:false, isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texSizeX:[],
+			texSizeYDefault:{ formula:"", isVarying:false, isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texSizeY:[],
+			colorDefault:   { formula:"", isVarying:false, isAltType:false, vStart:0xFF0000FF, vEnd:0xFF0000FF, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, color:[],
+			customDefault:  { formula:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, custom:[],
 		};
 		
 		glConf = {
@@ -839,13 +839,11 @@ class ElementImpl
 		
 		// pack -----------------------------------------------------------------------
 		
-		// TODO: CUSTOM @formulas
+		// CUSTOM @formulas
 		
-/*		var formulaStart = new StringMap<String>();
-		var formulaEnd = new StringMap<String>();
+		var formula = new StringMap<String>();
 		var formulaErrPos = new StringMap<Position>();
-		var attribStart = new StringMap<String>();
-		var attribEnd = new StringMap<String>();
+		var attrib = new StringMap<String>();
 		
 		function resolveFormulas(name:String, x:ConfSubParam, y:ConfSubParam)
 		{				
@@ -853,44 +851,48 @@ class ElementImpl
 			var i = (x.n + y.n > 1) ? 1 : 0;
 			
 			if (x.name != "") {
-				if (x.formulaStart != "") {
+				if (x.formula != "") {
 					formulaErrPos.set(x.name, x.pos);
-					formulaStart.set(x.name, x.formulaStart);
+					formula.set(x.name, x.formula);
 				}				
 				if (x.isStart) {
-					attribStart.set(x.name, name + ending[i++]);
-				} else attribStart.set(x.name, Util.toFloatString(x.vStart));
+					attrib.set(x.name+"Start", name + ending[i++]);
+				} else attrib.set(x.name+"Start", Util.toFloatString(x.vStart));
 			}
 			
 			if (y.name != "") {
-				if (y.formulaStart != "") {
-					formulaStart.set(y.name, y.formulaStart);
+				if (y.formula != "") {
+					formula.set(y.name, y.formula);
 					formulaErrPos.set(y.name, y.pos);
 				}
 				if (y.isStart) {
-					attribStart.set(y.name, name + ending[i++]);
-				} else attribStart.set(y.name, Util.toFloatString(y.vStart));
+					attrib.set(y.name+"Start", name + ending[i++]);
+				} else attrib.set(y.name+"Start", Util.toFloatString(y.vStart));
 			}
 			
 			// ANIM
-			if (x.isAnim || y.isAnim) 
-			{
-				if (x.name != "") {
-					if (x.formulaEnd != "") formulaEnd.set(x.name, x.formulaEnd);
-
-					if (x.isEnd) attribEnd.set(x.name, name + ending[i++]);
-					else if (x.isAnim) attribEnd.set(x.name, Util.toFloatString(x.vEnd));
-					else attribEnd.set(x.name, attribStart.get(x.name));
-				}
+			if (x.name != "") {
+				if (x.isEnd) attrib.set(x.name+"End", name + ending[i++]);
+				else if (x.isAnim) attrib.set(x.name+"End", Util.toFloatString(x.vEnd));
+				else attrib.set(x.name+"End", attrib.get(x.name+"Start"));
 				
-				if (y.name != "") {
-					if (y.formulaEnd != "") formulaEnd.set(y.name, y.formulaEnd);
+				if (x.isAnim) {
+					var tx = timers.indexOf(x.time);
+					attrib.set(x.name, '${attrib.get(x.name+"Start")}+(${attrib.get(x.name+"End")}-${attrib.get(x.name+"Start")})*time$tx');
+				} else attrib.set(x.name, attrib.get(x.name+"Start"));
+			}
+			
+			if (y.name != "") {
+				if (y.isEnd) attrib.set(y.name+"End", name + ending[i]);
+				else if (y.isAnim) attrib.set(y.name+"End", Util.toFloatString(y.vEnd));
+				else attrib.set(y.name+"End", attrib.get(y.name+"Start"));
 
-					if (y.isEnd) attribEnd.set(y.name, name + ending[i]);
-					else if (y.isAnim) attribEnd.set(y.name, Util.toFloatString(y.vEnd));
-					else attribEnd.set(y.name, attribStart.get(y.name));
-				}
-			}		
+				if (y .isAnim) {
+					var ty = timers.indexOf(y.time);
+					attrib.set(y.name, '${attrib.get(y.name+"Start")}+(${attrib.get(y.name+"End")}-${attrib.get(y.name+"Start")})*time$ty');					
+				} else attrib.set(y.name, attrib.get(y.name+"Start"));
+			}
+				
 		}
 		
 		resolveFormulas("aSize", conf.sizeX, conf.sizeY); 
@@ -898,53 +900,21 @@ class ElementImpl
 		resolveFormulas("aRotZ" , conf.rotation, conf.zIndex );
 		resolveFormulas("aPivot", conf.pivotX, conf.pivotY );
 		
-		trace("START -----------");
-		trace("attribStart", attribStart);
-		trace("formulaStart", formulaStart);		
-		try Util.resolveFormulaCyclic(formulaStart)	catch(e:Dynamic) throw Context.error('Error: cyclic usage of "${e.errVar}" inside @formula "${e.formula}" for "${e.errKey}"', formulaErrPos.get(e.errKey));
-		trace("RESOLVE Cyclic", formulaStart);
-		Util.resolveFormulaVars(formulaStart, attribStart);
-		trace("RESOLVE Vars", formulaStart);
+		//trace("attrib", attrib);
+		//trace("formula", formula);		
+		try Util.resolveFormulaCyclic(formula) catch(e:Dynamic) throw Context.error('Error: cyclic usage of "${e.errVar}" inside @formula "${e.formula}" for "${e.errKey}"', formulaErrPos.get(e.errKey));
+		//trace("RESOLVE Cyclic", formula);
+		Util.resolveFormulaVars(formula, attrib);
+		//trace("RESOLVE Attrib", formula);
 		
-		trace("END - -----------");
-		trace("attribEnd", attribEnd);
-		trace("formulaEnd", formulaEnd);
-		try Util.resolveFormulaCyclic(formulaEnd)	catch(e:Dynamic) throw Context.error('Error: cyclic usage of "${e.errVar}" inside @formula "${e.formula}" for "${e.errKey}"', formulaErrPos.get(e.errKey));
-		trace("RESOLVE Cyclic", formulaEnd);
-		Util.resolveFormulaVars(formulaEnd, attribEnd);
-		trace("RESOLVE Vars", formulaEnd);
+		// TODO: resolve time-identifiers!
 		
-		// TODO: generate formula-map(anim includet!) from formula-start/end
+		// TODO: generate static fields for changing formulas inside program at runtime!
 		
-		function packForFormula(name:String, x:ConfSubParam, y:ConfSubParam):String {
-			var tmplvar = name.substr(1).toUpperCase();
-			var vecXstart = '::if ${tmplvar}X_FORMULA::::${tmplvar}X_FORMULA::::else::${attribStart.get(x.name)}::end::';
-			var vecYstart = '::if ${tmplvar}Y_FORMULA::::${tmplvar}Y_FORMULA::::else::${attribStart.get(y.name)}::end::';
-			//var start = 'vec2( ${attribStart.get(x.name)}, ${attribStart.get(y.name)} )';
-			//var start = 'vec2($vecXstart, $vecYstart)';
-			// ANIM
-			if (x.isAnim || y.isAnim) {
-				var vecXend = '::if ${tmplvar}X_FORMULA::::${tmplvar}X_FORMULA::::else::${attribEnd.get(x.name)}::end::';
-				var vecYend = '::if ${tmplvar}Y_FORMULA::::${tmplvar}Y_FORMULA::::else::${attribEnd.get(y.name)}::end::';
-				
-				//var end = 'vec2( ${attribEnd.get(x.name)}, ${attribEnd.get(y.name)} )';
-				//var end = 'vec2( $vecXend, $vecYend )';
-				
-				var tx = timers.indexOf(x.time);
-				var ty = timers.indexOf(y.time);
-				//if (tx == -1)      start = '$start + ($end - $start) * vec2( 0.0, time$ty )';
-				//else if (ty == -1) start = '$start + ($end - $start) * vec2( time$tx, 0.0 )';
-				//else               start = '$start + ($end - $start) * vec2( time$tx, time$ty )';
-				// TODO: optimized:
-				if (tx == -1)      return 'vec2($vecXstart, $vecYstart+($vecYend-$vecYstart)*time$ty)';
-				else if (ty == -1) return 'vec2($vecXstart+($vecXend-$vecXstart)*time$tx, $vecYstart)';
-				else               return 'vec2($vecXstart, $vecYstart) + (vec2($vecXend, $vecYend) - vec2($vecXstart, $vecYstart)) * vec2( time$tx, time$ty )';
-			}
-			else return 'vec2($vecXstart, $vecYstart)';
-			//return start;
-		}		
-*/		
-		function pack2in1(name:String, x:ConfSubParam, y:ConfSubParam):String {
+		// TODO: generate getter for animated values by using formulas
+		
+		function pack2in1(name:String, x:ConfSubParam, y:ConfSubParam):String
+		{
 			var start = name; var end = name;
 			var n:Int = x.n + y.n;
 			if (x.isStart && !y.isStart) {
@@ -978,13 +948,36 @@ class ElementImpl
 			return start;
 		}
 	
+		
+		function packForFormula(name:String, x:ConfSubParam, y:ConfSubParam):String
+		{	
+			if (x.formula == "" && y.formula == "" ) return pack2in1(name, x, y);
+			
+			var tmplvar = name.substr(1).toUpperCase();
+			
+			var fx = (x.name != "") ? formula.get(x.name) : Util.toFloatString(x.vStart);
+			if (fx == null) fx = attrib.get(x.name);
+			
+			var fy = (y.name != "") ? formula.get(y.name) : Util.toFloatString(y.vStart);
+			if (fy == null) fy = attrib.get(y.name);
+			
+			if (name == "aRotZ") {
+				if (x.formula != "") fx = '($fx)/180.0*${Math.PI}';
+				if (y.formula != "") fy = 'clamp( $fy/${Util.toFloatString(MAX_ZINDEX)}, -1.0, 1.0)';
+			}
+			
+			var vecXstart = '::if ${tmplvar}X_FORMULA::::${tmplvar}X_FORMULA::::else::$fx::end::';
+			var vecYstart = '::if ${tmplvar}Y_FORMULA::::${tmplvar}Y_FORMULA::::else::$fy::end::';
+			return 'vec2($vecXstart, $vecYstart)';
+		}		
+		
 		// size
-		glConf.CALC_SIZE = "vec2 size = " + pack2in1("aSize", conf.sizeX, conf.sizeY) + ";";
-		//glConf.CALC_SIZE += "\n// vec2 size = " + packForFormula("aSize", conf.sizeX, conf.sizeY) + ";";
+		//glConf.CALC_SIZE = "vec2 size = " + pack2in1("aSize", conf.sizeX, conf.sizeY) + ";";
+		glConf.CALC_SIZE = "vec2 size = " + packForFormula("aSize", conf.sizeX, conf.sizeY) + ";";
 		
 		// pos
-		glConf.CALC_POS = "vec2 pos = " + pack2in1("aPos" , conf.posX,  conf.posY ) + ";" + "\n";
-		//glConf.CALC_POS += "\n//vec2 pos = " + packForFormula("aPos" , conf.posX,  conf.posY ) + ";" + "\n";
+		//glConf.CALC_POS = "vec2 pos = " + pack2in1("aPos" , conf.posX,  conf.posY ) + ";" + "\n";
+		glConf.CALC_POS = "vec2 pos = " + packForFormula("aPos", conf.posX,  conf.posY ) + ";" + "\n";
 		
 		// set varyings for vPos (before pos will be rotated!)
 		if (conf.posX.isVarying || conf.posY.isVarying) {
@@ -999,13 +992,15 @@ class ElementImpl
 		if (conf.rotation.name != "" || conf.zIndex.name != "") {
 			conf.rotation.vStart = conf.rotation.vStart/180 * Math.PI;
 			conf.rotation.vEnd   = conf.rotation.vEnd/180 * Math.PI;
-			glConf.CALC_ROTZ  = "vec2 rotZ = " + pack2in1("aRotZ" , conf.rotation, conf.zIndex ) + ";";
+			//glConf.CALC_ROTZ  = "vec2 rotZ = " + pack2in1("aRotZ", conf.rotation, conf.zIndex ) + ";";
+			glConf.CALC_ROTZ  = "vec2 rotZ = " + packForFormula("aRotZ", conf.rotation, conf.zIndex ) + ";";
 		}		
 		if (conf.rotation.name != "") {
 			var rotationmatrix = "mat2( vec2(cos(rotZ.x), -sin(rotZ.x)), vec2(sin(rotZ.x), cos(rotZ.x)) )";
 			if (conf.pivotX.name != "" || conf.pivotY.name != "") {
 				// pivot
-				glConf.CALC_PIVOT = "vec2 pivot = " + pack2in1("aPivot" , conf.pivotX,  conf.pivotY ) + ";";
+				//glConf.CALC_PIVOT = "vec2 pivot = " + pack2in1("aPivot", conf.pivotX,  conf.pivotY ) + ";";
+				glConf.CALC_PIVOT = "vec2 pivot = " + packForFormula("aPivot", conf.pivotX,  conf.pivotY ) + ";";
 				glConf.CALC_POS += 'pos = pos + (aPosition * size - pivot) * $rotationmatrix + pivot;';
 			}
 			else glConf.CALC_POS += 'pos = pos + aPosition * size * $rotationmatrix;';
@@ -1047,7 +1042,8 @@ class ElementImpl
 		}
 		
 		// ------- TODO make that packs all units, slots and tiles together into many aUnitSlotTile vec4 attributes --------- 
-		function packTex(name:String, confItems:Array<ConfSubParam>, index:Int):String {
+		function packTex(name:String, confItems:Array<ConfSubParam>, index:Int):String
+		{
 			name += index;
 			var confItem:ConfSubParam = confItems[index];
 			var start = (confItem.isStart) ? name : Util.toFloatString(confItem.vStart);
@@ -1060,7 +1056,7 @@ class ElementImpl
 			return start;
 		}
 		
-		// TODO: refactoring
+		// TODO: refactoring and including formulas
 		
 		// custom
 		for (k in 0...conf.custom.length) {
