@@ -7,17 +7,18 @@
 	<!-- <meta build-number="714" /> --> <!-- let set the buildnumber manual (android) -->
 	
 	<app main="Main" path="bin" file="Main" />
-	<haxedef name="sampleBunnyMark" />
+	<haxedef name="sampleBunnyMarkGPU" />
 	<!--
 		sampleTest, sampleMultidisplay, sampleMultibuffer, sampleElementInherit, sampleDepthBlend,
 		sampleTextureSimple, sampleTextureSlotTiles, sampleMultiTextures, sampleTextureMipmapFilter,
 		sampleTextureCaching, sampleRenderToTexture, sampleShaderInjection,
-		sampleAnimation, sampleGLPicking, sampleBunnyMark, sampleHitTest,
+		sampleAnimation, sampleGLPicking, sampleHitTest,
 		sampleGl3FontRendering, sampleTextRendering,
 		sampleMouseEvents, sampleUserInterface,
+		sampleBunnyMark, sampleBunnyMarkGPU, 
 		...
 	-->
-	<define name="bunnies" value="60000" />
+	<define name="bunnies" value="40000" />
 	<define name="bunnies"  value="14000" if="neko" />
 	<define name="stats" if="html5" />
 	
@@ -50,13 +51,13 @@
 	<haxedef name="peoteview_vertexarrayobjects" />
 
 
-	<!--<haxedef name="peoteview_debug_macro" />-->
+	<haxedef name="peoteview_debug_macro" />
 	<!--<haxedef name="peoteview_debug_buffer" />-->
-	<!--<haxedef name="peoteview_debug_texture" />-->
-	<!--<haxedef name="peoteview_debug_program" />-->
-	<!--<haxedef name="peoteview_debug_display" />-->
 	<!--<haxedef name="peoteview_debug_view" />-->
-	<!--<haxedef name="peoteview_debug_shader" />-->
+	<!--<haxedef name="peoteview_debug_display" />-->
+	<!--<haxedef name="peoteview_debug_program" />-->
+	<!--<haxedef name="peoteview_debug_texture" />-->
+	<haxedef name="peoteview_debug_shader" />
 
 	<!-- <haxedef name="webgl-debug" /> --> <!-- try with chrome and look here: https://www.khronos.org/webgl/wiki/Debugging -->
 	<!-- <haxedef name="source-map-content" /> --> <!-- to debug with chrome id needs also "-debug" -->

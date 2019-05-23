@@ -44,6 +44,8 @@ typedef Sample = TextRendering;
 typedef Sample = ShaderInjection;
 #elseif sampleBunnyMark
 typedef Sample = BunnyMark;
+#elseif sampleBunnyMarkGPU
+typedef Sample = BunnyMarkGPU;
 #elseif sampleMouseEvents
 typedef Sample = MouseEvents;
 #elseif sampleUserInterface
