@@ -63,7 +63,7 @@ class BunnyMarkGPU
 		
 		#if bunnies 
 		bunnyCount = Std.parseInt (haxe.macro.Compiler.getDefine ("bunnies"));
-		bunnyCount *= 5;
+		//bunnyCount *= 5;
 		#end
 		//trace("Bunnies:", bunnyCount);
 		

@@ -698,14 +698,6 @@ class ElementImpl
 		n = conf.rotation.n + conf.zIndex.n;
 		if (n > 0) glConf.ATTRIB_ROTZ = '::IN:: ${ (n==1) ? "float" : "vec"+n } aRotZ;';
 		
-		// custom
-		for (k in 0...conf.custom.length) {
-			if (conf.custom[k].n > 0) {
-				var type:String = (conf.custom[k].n == 1) ? "float" : "vec2";
-				glConf.ATTRIB_CUSTOM += '::IN:: $type aCustom${k}; ';
-			} else glConf.ATTRIB_CUSTOM += 'const float aCustom${k} = ${conf.custom[k].vStart} ;';
-		}
-		
 		// color
 		for (k in 0...conf.color.length) {
 			if (conf.color[k].isStart) glConf.ATTRIB_COLOR += '::IN:: vec4 aColorStart${k};';
@@ -715,8 +707,6 @@ class ElementImpl
 				glConf.IN_COLOR  += '::if isES3::flat ::end::::VARIN:: vec4 vColor${k}; ';
 			}
 		}
-		
-		//TODO: better pack the attributes here ------------------------- 
 		
 		// units
 		for (k in 0...conf.texUnit.length) {
@@ -745,6 +735,18 @@ class ElementImpl
 			glConf.OUT_TILE += '::if isES3::flat ::end:: ::VAROUT:: float vTile${k};';
 			glConf.IN_TILE  += '::if isES3::flat ::end:: ::VARIN:: float vTile${k};';
 		}
+
+		
+		//TODO: better pack the attributes here ------------------------- 
+		
+		// custom
+		for (k in 0...conf.custom.length) {
+			if (conf.custom[k].n > 0) {
+				var type:String = (conf.custom[k].n == 1) ? "float" : "vec2";
+				glConf.ATTRIB_CUSTOM += '::IN:: $type aCustom${k}; ';
+			} else glConf.ATTRIB_CUSTOM += 'const float aCustom${k} = ${conf.custom[k].vStart} ;';
+		}
+		
 		// texX
 		for (k in 0...conf.texX.length) {
 			if (conf.texX[k].n > 0) {
@@ -843,7 +845,13 @@ class ElementImpl
 		
 		var formula = new StringMap<String>();
 		var formulaErrPos = new StringMap<Position>();
+		
 		var attrib = new StringMap<String>();
+				
+		// TODO: better packing rest of attributes
+		//        // [   aVar:"aINT0", aName:"aInt0", mapping:[ {glslName:"texX0", isStart:true, conf:conf.texX[0] },  y,z,w...]   ]
+		//var packedIntAttribs = new Array<{aVar:String, aName:String, mapping:Array<{glslName:String, isStart:Bool, conf:ConfSubParam}>}>();
+		//var packedFloatAttribs = new Array<{}>();
 		
 		function resolveFormulas(name:String, x:ConfSubParam, y:ConfSubParam)
 		{				
@@ -902,7 +910,7 @@ class ElementImpl
 		
 		//trace("attrib", attrib);
 		//trace("formula", formula);		
-		try Util.resolveFormulaCyclic(formula) catch(e:Dynamic) throw Context.error('Error: cyclic usage of "${e.errVar}" inside @formula "${e.formula}" for "${e.errKey}"', formulaErrPos.get(e.errKey));
+		try Util.resolveFormulaCyclic(formula) catch(e:Dynamic) throw Context.error('Error: cyclic reference of "${e.errVar}" inside @formula "${e.formula}" for "${e.errKey}"', formulaErrPos.get(e.errKey));
 		//trace("RESOLVE Cyclic", formula);
 		Util.resolveFormulaVars(formula, attrib);
 		//trace("RESOLVE Attrib", formula);
@@ -1057,18 +1065,10 @@ class ElementImpl
 		}
 		
 		// TODO: refactoring and including formulas
+
 		
-		// custom
-		for (k in 0...conf.custom.length) {
-			//glConf.CALC_CUSTOM += 'float custom${customIdentifiers[k]} = ' + packTex("aCustom", conf.custom, k) + "; ";
-			glConf.CALC_CUSTOM += 'float custom${k} = ' + packTex("aCustom", conf.custom, k) + "; ";
-			// set varyings for vCustom
-			if (conf.custom[k].isVarying ) {
-				glConf.CALC_CUSTOM += 'vCustom$k = custom$k;';
-				glConf.OUT_VARYING += '::if isES3::flat ::end::::VAROUT:: float vCustom$k; ';
-				glConf.IN_VARYING += '::if isES3::flat ::end::::VARIN:: float vCustom$k; ';
-			}
-		}
+		
+		
 		
 		// texUnit
 		for (k in 0...conf.texUnit.length) {
@@ -1082,6 +1082,30 @@ class ElementImpl
 		for (k in 0...conf.texTile.length) {
 			glConf.CALC_TILE += 'vTile$k = ' + packTex("aTile", conf.texTile, k) + ";";
 		}
+		
+		
+		
+		// TODO: better packing
+/*		for (attrib in packedFloatAttribs) {
+			
+		}		
+		for (attrib in packedIntAttribs) {
+			 
+		}
+*/			
+	
+		// custom
+		for (k in 0...conf.custom.length) {
+			//glConf.CALC_CUSTOM += 'float custom${customIdentifiers[k]} = ' + packTex("aCustom", conf.custom, k) + "; ";
+			glConf.CALC_CUSTOM += 'float custom${k} = ' + packTex("aCustom", conf.custom, k) + "; ";
+			// set varyings for vCustom
+			if (conf.custom[k].isVarying ) {
+				glConf.CALC_CUSTOM += 'vCustom$k = custom$k;';
+				glConf.OUT_VARYING += '::if isES3::flat ::end::::VAROUT:: float vCustom$k; ';
+				glConf.IN_VARYING += '::if isES3::flat ::end::::VARIN:: float vCustom$k; ';
+			}
+		}
+		
 		// texX
 		for (k in 0...conf.texX.length) {
 			glConf.CALC_TEXX += 'vTexX$k = ' + packTex("aTexX", conf.texX, k) + ";";
@@ -1398,6 +1422,25 @@ class ElementImpl
 		createStartEndVar(conf.pivotX, macro:Int, macro:Float);
 		createStartEndVar(conf.pivotY, macro:Int, macro:Float);		
 		
+		
+		// TODO: better packing rest of attributes
+/*		for (attrib in packedFloatAttribs) {
+			for (m in attrib,mapping) {
+				if (m.isStart)
+					genVar(macro:Float, p.name+"Start", m.conf.vStart, !m.conf.isStart);
+				else genVar(macro:Float, p.name+"End",   m.conf.vEnd,  !m.conf.isEnd);
+			}
+		}		
+		for (attrib in packedIntAttribs) {
+			for (m in attrib.mapping) {
+				if (m.isStart)
+					genVar(macro:Int, p.name+"Start", m.conf.vStart, !m.conf.isStart);
+				else genVar(macro:Int, p.name+"End",   m.conf.vEnd,  !m.conf.isEnd);
+			}
+		}
+*/			
+
+		
 		function createStartEndTexVar(pa:Array<ConfSubParam>, type:ComplexType, altType:ComplexType=null) {
 			for (p in pa) if (p.isAnim) {
 				if (! p.isAltType) {
@@ -1409,10 +1452,12 @@ class ElementImpl
 				}
 			}
 		}
+		
 		createStartEndTexVar(conf.color, macro:peote.view.Color);
 		createStartEndTexVar(conf.texUnit, macro:Int);
 		createStartEndTexVar(conf.texSlot, macro:Int);
 		createStartEndTexVar(conf.texTile, macro:Int);
+		createStartEndTexVar(conf.custom, macro:Int, macro:Float);		
 		createStartEndTexVar(conf.texX, macro:Int, macro:Float);		
 		createStartEndTexVar(conf.texY, macro:Int, macro:Float);		
 		createStartEndTexVar(conf.texW, macro:Int, macro:Float);		
@@ -1436,6 +1481,15 @@ class ElementImpl
 		for (c in conf.texSlot) buff_size_instanced += c.n * 2;
 		for (c in conf.texTile) buff_size_instanced += c.n * 2;
 		for (c in conf.texUnit) buff_size_instanced += c.n;
+		
+		// TODO: better packing
+/*		for (attrib in packedFloatAttribs) {
+			 buff_size_instanced += attrib.mapping.length * 4;
+		}		
+		for (attrib in packedIntAttribs) {
+			 buff_size_instanced += attrib.mapping.length * 2;
+		}
+*/			
 		
 		for (c in conf.custom)   buff_size_instanced += c.n * ((c.isAltType) ? 4:2);
 
@@ -1653,6 +1707,19 @@ class ElementImpl
 				});
 			}			
 		}
+
+			
+		// TODO: better packing
+/*		for (attrib in packedIntAttribs) {
+			fields.push({
+				name:  attrib.aVar,
+				access:  [Access.APrivate, Access.AStatic, Access.AInline],
+				kind: FieldType.FVar(macro:Int, macro $v{attrNumber++}), 
+				pos: Context.currentPos(),
+			});
+		}
+*/			
+			
 		for (k in 0...conf.custom.length) {
 			if (conf.custom[k].n > 0) {
 				fields.push({
@@ -1851,6 +1918,20 @@ class ElementImpl
 				write2packedFloat(conf.sizeX , conf.sizeY);
 				write2packedFloat(conf.pivotX, conf.pivotY);
 				
+			
+				// TODO: better packing
+/*				for (attrib in packedFloatAttribs) {
+					for (m in attrib.mapping) {	
+						if (m.isStart) {
+							if (m.conf.isAnim)
+							     { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{m.conf.name+"Start"}) ); i+=4; }
+							else { exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{m.conf.name})         ); i+=4; }
+						}
+						else {     exprBlock.push( macro bytes.setFloat(bytePos + $v{i}, $i{m.conf.name+"End"})   ); i+=4; }
+					}
+				}
+*/			
+			
 				// CUSTOM and TEXCOORDS -> Floats
 				function writeTexFloat(tex:Array<ConfSubParam>) {
 					for (k in 0...tex.length) {
@@ -1888,6 +1969,21 @@ class ElementImpl
 				write2packedInt(conf.sizeX , conf.sizeY);
 				write2packedInt(conf.pivotX, conf.pivotY);
 				
+
+			
+				// TODO: better packing
+/*				for (attrib in packedIntAttribs) {
+					for (m in attrib.mapping) {	
+						if (m.isStart) {
+							if (m.conf.isAnim)
+							     { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{m.conf.name+"Start"}) ); i+=2; }
+							else { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{m.conf.name})         ); i+=2; }
+						}
+						else {     exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{m.conf.name+"End"})   ); i+=2; }
+					}
+				}
+*/			
+			
 				// CUSTOM and TEXCOORDS -> INT
 				function writeTexInt(tex:Array<ConfSubParam>) {
 					for (k in 0...tex.length) {
@@ -2006,6 +2102,12 @@ class ElementImpl
 			if (conf.posX.n  + conf.posY.n  > 0 ) exprBlock.push( macro gl.bindAttribLocation(glProgram, aPOS,  "aPos" ) );
 			if (conf.sizeX.n + conf.sizeY.n > 0 ) exprBlock.push( macro gl.bindAttribLocation(glProgram, aSIZE, "aSize") );
 			if (conf.pivotX.n + conf.pivotY.n > 0 ) exprBlock.push( macro gl.bindAttribLocation(glProgram, aPIVOT, "aPivot") );
+			
+			// TODO: better packing
+/*			for (attrib in packedFloatAttribs.join(packedIntAttribs))
+				exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{attrib.aVar}, $v{attrib.aName} ) );
+*/			
+			
 			// CUSTOM
 			for (k in 0...conf.custom.length) if (conf.custom[k].n > 0) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aCUSTOM"+k}, $v{"aCustom"+k} ) );
 			// TEXCOORDS
@@ -2119,6 +2221,17 @@ class ElementImpl
 			enable2packFloat("aSIZE", conf.sizeX, conf.sizeY);
 			enable2packFloat("aPIVOT", conf.pivotX, conf.pivotY);
 
+			
+			// TODO: better packing
+/*			for (attrib in packedFloatAttribs) {
+				n = attrib.mapping.length;
+				exprBlock.push( macro gl.enableVertexAttribArray ($i{attrib.aVar}) );
+				exprBlock.push( macro gl.vertexAttribPointer($i{attrib.aVar}, $v{n}, gl.FLOAT, false, $v{stride}, $v{i} ) ); i += n * 4;
+				if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{attrib.aVar}, 1) );
+			}
+*/			
+			
+			
 			// CUSTOM and TEXTURE COORDS -> FLOAT
 			function enableTexFloat(attr:String, tex:Array<ConfSubParam>) {
 				for (k in 0...tex.length) {
@@ -2160,6 +2273,17 @@ class ElementImpl
 			enable2packInt("aSIZE", conf.sizeX, conf.sizeY);
 			enable2packInt("aPIVOT", conf.pivotX, conf.pivotY);
 
+			
+			// TODO: better packing
+/*			for (attrib in packedIntAttribs) {
+				n = attrib.mapping.length;
+				exprBlock.push( macro gl.enableVertexAttribArray ($i{attrib.aVar}) );
+				exprBlock.push( macro gl.vertexAttribPointer($i{attrib.aVar}, $v{n}, gl.SHORT, false, $v{stride}, $v{i} ) ); i += n * 2;
+				if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{attrib.aVar}, 1) );
+			}
+*/			
+			
+			
 			// CUSTOM and TEXTURE COORDS -> INT
 			function enableTexInt(attr:String, tex:Array<ConfSubParam>) {
 				for (k in 0...tex.length) {
@@ -2269,6 +2393,14 @@ class ElementImpl
 			if (conf.posX.n  + conf.posY.n  > 0 ) exprBlock.push( macro gl.disableVertexAttribArray (aPOS) );
 			if (conf.sizeX.n + conf.sizeY.n > 0 ) exprBlock.push( macro gl.disableVertexAttribArray (aSIZE) );
 			if (conf.pivotX.n + conf.pivotY.n > 0 ) exprBlock.push( macro gl.disableVertexAttribArray (aPIVOT) );
+
+			
+			// TODO: better packing
+/*			for (attrib in packedIntAttribs) {
+				exprBlock.push( macro gl.disableVertexAttribArray ($i{attrib.aVar}) );
+			}
+*/			
+			
 			// CUSTOM
 			for (k in 0...conf.custom.length) if (conf.custom[k].n > 0) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aCUSTOM"+k}) );
 			// TEXTURE COORDS
