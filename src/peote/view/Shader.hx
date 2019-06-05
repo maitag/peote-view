@@ -50,10 +50,17 @@ class Shader
 	::ATTRIB_TIME::
 	::ATTRIB_ROTZ::
 	::ATTRIB_PIVOT::
+	
 	::ATTRIB_COLOR::
-	::ATTRIB_UNIT::
+	
+	::ATTRIB_UNIT::	
 	::ATTRIB_SLOT::
 	::ATTRIB_TILE::
+	
+	::ATTRIB_CUSTOM::
+	
+	//::ATTRIB_TEX::
+	
 	::ATTRIB_TEXX::
 	::ATTRIB_TEXY::
 	::ATTRIB_TEXW::
@@ -62,9 +69,6 @@ class Shader
 	::ATTRIB_TEXPOSY::
 	::ATTRIB_TEXSIZEX::
 	::ATTRIB_TEXSIZEY::
-	
-	// custom Attributes --
-	::ATTRIB_CUSTOM::
 	
 	// Varyings ---------------------------
 	::if isPICKING::
@@ -80,6 +84,9 @@ class Shader
 	
 	::if hasTEXTURES::
 		::OUT_TEXCOORD::
+		
+		//::OUT_TEX::
+	
 		::OUT_UNIT::
 		::OUT_SLOT::
 		::OUT_TILE::
@@ -188,6 +195,9 @@ class Shader
 	
 	::if hasTEXTURES::
 		::IN_TEXCOORD::
+		
+		//::IN_TEX::
+		
 		::IN_UNIT::
 		::IN_SLOT::
 		::IN_TILE::

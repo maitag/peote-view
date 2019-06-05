@@ -33,16 +33,16 @@ class Elem implements Element
 	//@zIndex public var z:Int = 0;	
 	
 	// manual texture coordinates inside a slot (or inside all slots if no slot available)
-	@texX public var tx:Int=32;
+	@texX @anim @constStart(3) public var tx:Int = 32;
 	@texY public var ty:Int=0;
-	@texW() public var tw:Int=256;
-	@texH() public var th:Int=64;
+	//@texW public var tw:Int=256;
+	//@texH public var th:Int=64;
 	
 	//let the texture shift/resize inside slot/texCoords/tile area of Element
-	@texPosX public var txOffset:Int = 10;
-	@texPosY public var tyOffset:Int = 10;
-	@texSizeX public var twOffset:Int = 256;
-	@texSizeY public var thOffset:Int = 16;
+	//@texPosX public var txOffset:Int = 10;
+	//@texPosY public var tyOffset:Int = 10;
+	//@texSizeX public var twOffset:Int = 256;
+	//@texSizeY public var thOffset:Int = 16;
 	
 	var OPTIONS = { texRepeatX:true, texRepeatY:true, alpha:true };
 	

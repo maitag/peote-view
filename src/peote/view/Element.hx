@@ -50,6 +50,7 @@ typedef GLConfParam =
 {			UNIFORM_TIME:String,
 			ATTRIB_TIME:String, ATTRIB_SIZE:String, ATTRIB_POS:String, ATTRIB_ROTZ:String, ATTRIB_PIVOT:String,
 			ATTRIB_UNIT:String, ATTRIB_SLOT:String, ATTRIB_TILE:String,
+			ATTRIB_TEX:String,
 			ATTRIB_TEXX:String, ATTRIB_TEXY:String, ATTRIB_TEXW:String, ATTRIB_TEXH:String,
 			ATTRIB_TEXPOSX:String, ATTRIB_TEXPOSY:String, ATTRIB_TEXSIZEX:String, ATTRIB_TEXSIZEY:String,
 			ATTRIB_COLOR:String, ATTRIB_CUSTOM:String,
@@ -523,6 +524,10 @@ class ElementImpl
 	static var colorIdentifiers:Array<String>;
 	static var customIdentifiers:Array<String>;
 	
+	static var formula:StringMap<String>;
+	static var formulaErrPos:StringMap<Position>;		
+	static var attrib:StringMap<String>;
+
 	//static var isChild:Bool = false;
 	// -------------------------------------- BUILD -------------------------------------------------
 	public static function build()
@@ -555,6 +560,7 @@ class ElementImpl
 			UNIFORM_TIME:"",
 			ATTRIB_TIME:"", ATTRIB_SIZE:"", ATTRIB_POS:"", ATTRIB_ROTZ:"", ATTRIB_PIVOT:"",
 			ATTRIB_UNIT:"", ATTRIB_SLOT:"", ATTRIB_TILE:"",
+			ATTRIB_TEX:"",
 			ATTRIB_TEXX:"", ATTRIB_TEXY:"", ATTRIB_TEXW:"", ATTRIB_TEXH:"",
 			ATTRIB_TEXPOSX:"", ATTRIB_TEXPOSY:"", ATTRIB_TEXSIZEX:"", ATTRIB_TEXSIZEY:"",
 			ATTRIB_COLOR:"", ATTRIB_CUSTOM:"",
@@ -585,6 +591,10 @@ class ElementImpl
 		textureIdentifiers = new Array<String>();
 		colorIdentifiers = new Array<String>();
 		customIdentifiers = new Array<String>();
+		
+		formula = new StringMap<String>();
+		formulaErrPos = new StringMap<Position>();		
+		attrib = new StringMap<String>();
 		
 		fields = Context.getBuildFields();
 
@@ -737,8 +747,6 @@ class ElementImpl
 		}
 
 		
-		//TODO: better pack the attributes here ------------------------- 
-		
 		// custom
 		for (k in 0...conf.custom.length) {
 			if (conf.custom[k].n > 0) {
@@ -747,6 +755,83 @@ class ElementImpl
 			} else glConf.ATTRIB_CUSTOM += 'const float aCustom${k} = ${conf.custom[k].vStart} ;';
 		}
 		
+		
+		
+		// TODO: better packing texture-attributes
+		/*
+		[ aVar:"aTEX0", aName:"aTex0", mapping:[
+					{ isStart:true,  conf:conf.texX[0] }, //x  
+					{ isStart:false, conf:conf.texX[0] }, //y
+					{ isStart:true,  conf:conf.texX[1] }, //z
+					{ isStart:false, conf:conf.texX[1] }, //w
+				] 
+		]
+		*/
+		var packedAttribs = {
+			int: new Array<{aVar:String, aName:String, mapping:Array<{isStart:Bool, conf:ConfSubParam}>}>(),
+			float: new Array<{aVar:String, aName:String, mapping:Array<{isStart:Bool, conf:ConfSubParam}>}>() 
+		};
+		
+		var varyings = new StringMap<String>();
+		
+		function resolvePackedAttribs(name:String, conf:Array<ConfSubParam>)
+		{
+			var m = ['.x','.y','.w','.z'];
+			for (k in 0...conf.length) {
+				var pa = (conf[k].isAltType) ? packedAttribs.float : packedAttribs.int;
+				var i = pa.length - 1;
+				// packed attribs
+				if (conf[k].isStart) {
+					if (i < 0 || pa[i].mapping.length >= 4) {
+						i++;
+						pa.push({aVar:"aTEX" + i, aName:"aTex" + i, mapping:new Array<{isStart:Bool, conf:ConfSubParam}>()});
+					}
+					attrib.set(conf[k].name+"Start", "aTex" + i + m[pa[i].mapping.length]);
+					pa[i].mapping.push({isStart:true, conf:conf[k]});
+				}
+				else attrib.set(conf[k].name+"Start", Util.toFloatString(conf[k].vStart));
+				
+				if (conf[k].isEnd) {
+					if (i < 0 || pa[i].mapping.length >= 4) {
+						i++;
+						pa.push({aVar:"aTEX" + i, aName:"aTex" + i, mapping:new Array<{isStart:Bool, conf:ConfSubParam}>()});
+					}
+					attrib.set(conf[k].name+"End", "aTex" + i + m[pa[i].mapping.length]);
+					pa[i].mapping.push({isStart:false, conf:conf[k]});
+				}
+				else {
+					if (conf[k].isAnim)	attrib.set(conf[k].name+"End", Util.toFloatString(conf[k].vEnd));
+					else attrib.set(conf[k].name+"End", attrib.get(conf[k].name+"Start"));
+				}
+				
+				// formulas for tex-attribs
+				if (conf[k].formula != "") {
+					formulaErrPos.set(conf[k].name, conf[k].pos);
+					formula.set(conf[k].name, conf[k].formula);
+				}
+				
+				if (conf[k].isAnim) {
+					var t = timers.indexOf(conf[k].time);
+					attrib.set(conf[k].name, '${attrib.get(conf[k].name+"Start")}+(${attrib.get(conf[k].name+"End")}-${attrib.get(conf[k].name+"Start")})*time$t');
+				} else attrib.set(conf[k].name, attrib.get(conf[k].name+"Start"));
+				
+			}
+		}
+		
+		resolvePackedAttribs("TexX", conf.texX);
+		resolvePackedAttribs("TexY", conf.texY);
+		resolvePackedAttribs("TexW", conf.texW);
+		resolvePackedAttribs("TexH", conf.texH);
+		resolvePackedAttribs("TexPosX", conf.texPosX);
+		resolvePackedAttribs("TexPosY", conf.texPosY);
+		resolvePackedAttribs("TexSizeX", conf.texSizeX);
+		resolvePackedAttribs("TexSizeY", conf.texSizeY);
+		
+/*		trace("packedAttribs.int:"); for (a in packedAttribs.int) trace('${a.aVar} => ${[for(b in a.mapping) b.conf.name + ((b.isStart) ? "Start":"End")]}');
+		trace("packedAttribs.float:"); for (a in packedAttribs.float) trace('${a.aVar} => ${[for(b in a.mapping) b.conf.name + ((b.isStart) ? "Start":"End")]}');
+		trace(formula);
+		for (a in attrib.keys()) trace('$a => ${attrib.get(a)}');
+*/		
 		// texX
 		for (k in 0...conf.texX.length) {
 			if (conf.texX[k].n > 0) {
@@ -841,18 +926,8 @@ class ElementImpl
 		
 		// pack -----------------------------------------------------------------------
 		
-		// CUSTOM @formulas
-		
-		var formula = new StringMap<String>();
-		var formulaErrPos = new StringMap<Position>();
-		
-		var attrib = new StringMap<String>();
+		// formulas
 				
-		// TODO: better packing rest of attributes
-		//        // [   aVar:"aINT0", aName:"aInt0", mapping:[ {glslName:"texX0", isStart:true, conf:conf.texX[0] },  y,z,w...]   ]
-		//var packedIntAttribs = new Array<{aVar:String, aName:String, mapping:Array<{glslName:String, isStart:Bool, conf:ConfSubParam}>}>();
-		//var packedFloatAttribs = new Array<{}>();
-		
 		function resolveFormulas(name:String, x:ConfSubParam, y:ConfSubParam)
 		{				
 			var ending = ["",".x", ".y", ".z", ".w"];
@@ -1049,6 +1124,9 @@ class ElementImpl
 				glConf.FRAGMENT_CALC_COLOR += 'vec4 c${k} = $start; ';
 		}
 		
+		
+		
+		
 		// ------- TODO make that packs all units, slots and tiles together into many aUnitSlotTile vec4 attributes --------- 
 		function packTex(name:String, confItems:Array<ConfSubParam>, index:Int):String
 		{
@@ -1069,7 +1147,6 @@ class ElementImpl
 		
 		
 		
-		
 		// texUnit
 		for (k in 0...conf.texUnit.length) {
 			glConf.CALC_UNIT += 'vUnit$k = ' + packTex("aUnit", conf.texUnit, k) + ";";
@@ -1084,15 +1161,6 @@ class ElementImpl
 		}
 		
 		
-		
-		// TODO: better packing
-/*		for (attrib in packedFloatAttribs) {
-			
-		}		
-		for (attrib in packedIntAttribs) {
-			 
-		}
-*/			
 	
 		// custom
 		for (k in 0...conf.custom.length) {
@@ -1106,6 +1174,14 @@ class ElementImpl
 			}
 		}
 		
+		// TODO: better packing
+/*		for (attrib in packedFloatAttribs) {
+			
+		}		
+		for (attrib in packedIntAttribs) {
+			 
+		}
+*/			
 		// texX
 		for (k in 0...conf.texX.length) {
 			glConf.CALC_TEXX += 'vTexX$k = ' + packTex("aTexX", conf.texX, k) + ";";
@@ -1140,6 +1216,8 @@ class ElementImpl
 		}
 		// default texcoords
 		glConf.CALC_TEXCOORD  = "vTexCoord = aPosition;";
+
+		
 		
 		// texture layers
 		if (!confTextureLayer.exists("__default__")) confTextureLayer.set("__default__",new StringMap<Int>());
