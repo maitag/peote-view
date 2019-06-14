@@ -55,11 +55,13 @@ typedef GLConfParam =
 			ATTRIB_TEXPOSX:String, ATTRIB_TEXPOSY:String, ATTRIB_TEXSIZEX:String, ATTRIB_TEXSIZEY:String,
 			ATTRIB_COLOR:String, ATTRIB_CUSTOM:String,
 			OUT_VARYING:String, IN_VARYING:String, OUT_COLOR:String, IN_COLOR:String, OUT_TEXCOORD:String, IN_TEXCOORD:String, ZINDEX:String,
-			OUT_UNIT:String, IN_UNIT:String, OUT_SLOT:String, IN_SLOT:String, OUT_TILE:String, IN_TILE:String, 
+			OUT_UNIT:String, IN_UNIT:String, OUT_SLOT:String, IN_SLOT:String, OUT_TILE:String, IN_TILE:String,
+			OUT_TEX:String, IN_TEX:String,
 			OUT_TEXX:String, IN_TEXX:String, OUT_TEXY:String, IN_TEXY:String, OUT_TEXW:String, IN_TEXW:String, OUT_TEXH:String, IN_TEXH:String, 
 			OUT_TEXPOSX:String, IN_TEXPOSX:String, OUT_TEXPOSY:String, IN_TEXPOSY:String, OUT_TEXSIZEX:String, IN_TEXSIZEX:String, OUT_TEXSIZEY:String, IN_TEXSIZEY:String,
 			FRAGMENT_CALC_COLOR:String,
 			CALC_TIME:String, CALC_SIZE:String, CALC_POS:String, CALC_ROTZ:String, CALC_PIVOT:String, CALC_TEXCOORD:String,
+			CALC_TEX:String,
 			CALC_UNIT:String, CALC_SLOT:String, CALC_TILE:String,
 			CALC_TEXX:String, CALC_TEXY:String, CALC_TEXW:String, CALC_TEXH:String,
 			CALC_TEXPOSX:String, CALC_TEXPOSY:String, CALC_TEXSIZEX:String, CALC_TEXSIZEY:String,
@@ -565,12 +567,14 @@ class ElementImpl
 			ATTRIB_TEXPOSX:"", ATTRIB_TEXPOSY:"", ATTRIB_TEXSIZEX:"", ATTRIB_TEXSIZEY:"",
 			ATTRIB_COLOR:"", ATTRIB_CUSTOM:"",
 			OUT_VARYING:"", IN_VARYING:"", OUT_COLOR:"", IN_COLOR:"", OUT_TEXCOORD:"", IN_TEXCOORD:"", ZINDEX:"",
-			OUT_UNIT:"", IN_UNIT:"", OUT_SLOT:"", IN_SLOT:"", OUT_TILE:"", IN_TILE:"", 
+			OUT_UNIT:"", IN_UNIT:"", OUT_SLOT:"", IN_SLOT:"", OUT_TILE:"", IN_TILE:"",
+			OUT_TEX:"", IN_TEX:"",
 			OUT_TEXX:"", IN_TEXX:"", OUT_TEXY:"", IN_TEXY:"", OUT_TEXW:"", IN_TEXW:"", OUT_TEXH:"", IN_TEXH:"", 
 			OUT_TEXPOSX:"", IN_TEXPOSX:"", OUT_TEXPOSY:"", IN_TEXPOSY:"", OUT_TEXSIZEX:"", IN_TEXSIZEX:"", OUT_TEXSIZEY:"", IN_TEXSIZEY:"", 
 			FRAGMENT_CALC_COLOR:"",
 			CALC_TIME:"", CALC_SIZE:"", CALC_POS:"", CALC_ROTZ:"", CALC_PIVOT:"", CALC_TEXCOORD:"",
 			CALC_UNIT:"", CALC_SLOT:"", CALC_TILE:"",
+			CALC_TEX:"",
 			CALC_TEXX:"", CALC_TEXY:"", CALC_TEXW:"", CALC_TEXH:"", 
 			CALC_TEXPOSX:"", CALC_TEXPOSY:"", CALC_TEXSIZEX:"", CALC_TEXSIZEY:"", 
 			CALC_COLOR:"", CALC_CUSTOM:"", 
@@ -772,66 +776,112 @@ class ElementImpl
 			float: new Array<{aVar:String, aName:String, mapping:Array<{isStart:Bool, conf:ConfSubParam}>}>() 
 		};
 		
-		var varyings = new StringMap<String>();
-		
-		function resolvePackedAttribs(name:String, conf:Array<ConfSubParam>)
+		function resolvePackedAttribs(confArray:Array<Array<ConfSubParam>>)
 		{
-			var m = ['.x','.y','.w','.z'];
-			for (k in 0...conf.length) {
-				var pa = (conf[k].isAltType) ? packedAttribs.float : packedAttribs.int;
-				var i = pa.length - 1;
-				// packed attribs
-				if (conf[k].isStart) {
-					if (i < 0 || pa[i].mapping.length >= 4) {
-						i++;
-						pa.push({aVar:"aTEX" + i, aName:"aTex" + i, mapping:new Array<{isStart:Bool, conf:ConfSubParam}>()});
+			var m = ['.x', '.y', '.w', '.z'];
+			for (conf in confArray)
+			{
+				for (k in 0...conf.length) {
+					var pa = (conf[k].isAltType) ? packedAttribs.float : packedAttribs.int;
+					var i = pa.length - 1;
+					// packed attribs
+					if (conf[k].isStart) {
+						if (i < 0 || pa[i].mapping.length >= 4) {
+							i++;
+							pa.push({aVar:"aTEX" + i, aName:"aTex" + i, mapping:new Array<{isStart:Bool, conf:ConfSubParam}>()});
+						}
+						//attrib.set(conf[k].name+"Start", "aTex" + i + m[pa[i].mapping.length]);
+						pa[i].mapping.push({isStart:true, conf:conf[k]});
 					}
-					attrib.set(conf[k].name+"Start", "aTex" + i + m[pa[i].mapping.length]);
-					pa[i].mapping.push({isStart:true, conf:conf[k]});
-				}
-				else attrib.set(conf[k].name+"Start", Util.toFloatString(conf[k].vStart));
-				
-				if (conf[k].isEnd) {
-					if (i < 0 || pa[i].mapping.length >= 4) {
-						i++;
-						pa.push({aVar:"aTEX" + i, aName:"aTex" + i, mapping:new Array<{isStart:Bool, conf:ConfSubParam}>()});
+					//else attrib.set(conf[k].name+"Start", Util.toFloatString(conf[k].vStart));
+					
+					if (conf[k].isEnd) {
+						if (i < 0 || pa[i].mapping.length >= 4) {
+							i++;
+							pa.push({aVar:"aTEX" + i, aName:"aTex" + i, mapping: new Array<{isStart:Bool, conf:ConfSubParam}>()});
+						}
+						//attrib.set(conf[k].name+"End", "aTex" + i + m[pa[i].mapping.length]);
+						pa[i].mapping.push({isStart:false, conf:conf[k]});
 					}
-					attrib.set(conf[k].name+"End", "aTex" + i + m[pa[i].mapping.length]);
-					pa[i].mapping.push({isStart:false, conf:conf[k]});
-				}
-				else {
-					if (conf[k].isAnim)	attrib.set(conf[k].name+"End", Util.toFloatString(conf[k].vEnd));
-					else attrib.set(conf[k].name+"End", attrib.get(conf[k].name+"Start"));
-				}
-				
-				// formulas for tex-attribs
-				if (conf[k].formula != "") {
-					formulaErrPos.set(conf[k].name, conf[k].pos);
-					formula.set(conf[k].name, conf[k].formula);
-				}
-				
-				if (conf[k].isAnim) {
-					var t = timers.indexOf(conf[k].time);
-					attrib.set(conf[k].name, '${attrib.get(conf[k].name+"Start")}+(${attrib.get(conf[k].name+"End")}-${attrib.get(conf[k].name+"Start")})*time$t');
-				} else attrib.set(conf[k].name, attrib.get(conf[k].name+"Start"));
-				
+/*					else {
+						if (conf[k].isAnim)	attrib.set(conf[k].name+"End", Util.toFloatString(conf[k].vEnd));
+						//else attrib.set(conf[k].name+"End", attrib.get(conf[k].name+"Start"));
+						else if (!conf[k].isStart) attrib.set(conf[k].name+"End", Util.toFloatString(conf[k].vStart));
+					}
+					
+					// formulas for tex-attribs
+					if (conf[k].formula != "") {
+						formulaErrPos.set(conf[k].name, conf[k].pos);
+						formula.set(conf[k].name, conf[k].formula);
+					}
+					
+					if (conf[k].isAnim) {
+						var t = timers.indexOf(conf[k].time);
+						attrib.set(conf[k].name, '${attrib.get(conf[k].name+"Start")}+(${attrib.get(conf[k].name+"End")}-${attrib.get(conf[k].name+"Start")})*time$t');
+					} else attrib.set(conf[k].name, attrib.get(conf[k].name+"Start"));
+*/				}
 			}
+		}		
+		resolvePackedAttribs([conf.texX, conf.texY, conf.texW, conf.texH, conf.texPosX, conf.texPosY, conf.texSizeX, conf.texSizeY]);
+
+		trace("packedAttribs.int:"); for (a in packedAttribs.int) trace('  ${a.aVar} => ${[for(b in a.mapping) b.conf.name + ((b.isStart) ? "Start":"End")]}');
+		trace("packedAttribs.float:"); for (a in packedAttribs.float) trace('  ${a.aVar} => ${[for(b in a.mapping) b.conf.name + ((b.isStart) ? "Start":"End")]}');
+		
+		// TODO: auch in 2 Schritten um bei letzen jeweils in attrib und formula die letzten ".x" wegzulassen
+		for (i in 0...packedAttribs.int.length) {
+			var pa = packedAttribs.int[i];
+			var m = ['.x', '.y', '.w', '.z'];
+			//trace(pa.aVar, pa.aName);
+			var type = (pa.mapping.length == 1) ? "float" : "vec" + pa.mapping.length;
+			glConf.ATTRIB_TEX += '::IN:: $type aTex${i};';
+			
+			for (j in 0...pa.mapping.length) {
+				var mapping = pa.mapping[j];
+				var ending = (i == packedAttribs.int.length-1 && pa.mapping.length == 1) ? "" : m[j];
+				if (mapping.isStart)
+					attrib.set(mapping.conf.name+"Start", "aTex" + i + ending);
+				else attrib.set(mapping.conf.name+"End",  "aTex" + i + ending);
+			}
+		}	
+		for (i in 0...packedAttribs.float.length) {
+			var pa = packedAttribs.float[i];
+			trace(pa.aVar, pa.aName);
+			// TODO
 		}
+			
+		function resolvePackedFormulas(confArray:Array<Array<ConfSubParam>>)
+		{
+			for (conf in confArray)
+			{
+				for (k in 0...conf.length) {
+					if (!conf[k].isStart)
+						attrib.set(conf[k].name+"Start", Util.toFloatString(conf[k].vStart));
+					
+					if (!conf[k].isEnd) {
+						if (conf[k].isAnim)	attrib.set(conf[k].name+"End", Util.toFloatString(conf[k].vEnd));
+						else attrib.set(conf[k].name+"End", attrib.get(conf[k].name+"Start"));
+					}
+					
+					// formulas for tex-attribs
+					if (conf[k].formula != "") {
+						formulaErrPos.set(conf[k].name, conf[k].pos);
+						formula.set(conf[k].name, conf[k].formula);
+					}
+					
+					if (conf[k].isAnim) {
+						var t = timers.indexOf(conf[k].time);
+						attrib.set(conf[k].name, '${attrib.get(conf[k].name+"Start")}+(${attrib.get(conf[k].name+"End")}-${attrib.get(conf[k].name+"Start")})*time$t');
+					} else attrib.set(conf[k].name, attrib.get(conf[k].name+"Start"));
+				}
+			}
+		}		
+		resolvePackedFormulas([conf.texX, conf.texY, conf.texW, conf.texH, conf.texPosX, conf.texPosY, conf.texSizeX, conf.texSizeY]);
 		
-		resolvePackedAttribs("TexX", conf.texX);
-		resolvePackedAttribs("TexY", conf.texY);
-		resolvePackedAttribs("TexW", conf.texW);
-		resolvePackedAttribs("TexH", conf.texH);
-		resolvePackedAttribs("TexPosX", conf.texPosX);
-		resolvePackedAttribs("TexPosY", conf.texPosY);
-		resolvePackedAttribs("TexSizeX", conf.texSizeX);
-		resolvePackedAttribs("TexSizeY", conf.texSizeY);
 		
-/*		trace("packedAttribs.int:"); for (a in packedAttribs.int) trace('${a.aVar} => ${[for(b in a.mapping) b.conf.name + ((b.isStart) ? "Start":"End")]}');
-		trace("packedAttribs.float:"); for (a in packedAttribs.float) trace('${a.aVar} => ${[for(b in a.mapping) b.conf.name + ((b.isStart) ? "Start":"End")]}');
-		trace(formula);
-		for (a in attrib.keys()) trace('$a => ${attrib.get(a)}');
-*/		
+		trace("formula:"); for (f in formula.keys()) trace('  $f => ${formula.get(f)}');
+		trace("attrib:"); for (a in attrib.keys()) trace('  $a => ${attrib.get(a)}');
+		trace("-----");
+		
 		// texX
 		for (k in 0...conf.texX.length) {
 			if (conf.texX[k].n > 0) {
@@ -983,18 +1033,19 @@ class ElementImpl
 		resolveFormulas("aRotZ" , conf.rotation, conf.zIndex );
 		resolveFormulas("aPivot", conf.pivotX, conf.pivotY );
 		
-		//trace("attrib", attrib);
-		//trace("formula", formula);		
 		try Util.resolveFormulaCyclic(formula) catch(e:Dynamic) throw Context.error('Error: cyclic reference of "${e.errVar}" inside @formula "${e.formula}" for "${e.errKey}"', formulaErrPos.get(e.errKey));
-		//trace("RESOLVE Cyclic", formula);
+		//trace("formula cyclic resolved:"); for (f in formula.keys()) trace('  $f => ${formula.get(f)}');
 		Util.resolveFormulaVars(formula, attrib);
-		//trace("RESOLVE Attrib", formula);
-		
+
+		trace("formula resolved:"); for (f in formula.keys()) trace('  $f => ${formula.get(f)}');
+		trace("attrib:"); for (a in attrib.keys()) trace('  $a => ${attrib.get(a)}');
+				
 		// TODO: resolve time-identifiers!
 		
 		// TODO: generate static fields for changing formulas inside program at runtime!
 		
 		// TODO: generate getter for animated values by using formulas
+
 		
 		function pack2in1(name:String, x:ConfSubParam, y:ConfSubParam):String
 		{
@@ -1030,8 +1081,7 @@ class ElementImpl
 			}
 			return start;
 		}
-	
-		
+			
 		function packForFormula(name:String, x:ConfSubParam, y:ConfSubParam):String
 		{	
 			if (x.formula == "" && y.formula == "" ) return pack2in1(name, x, y);
@@ -1173,8 +1223,51 @@ class ElementImpl
 				glConf.IN_VARYING += '::if isES3::flat ::end::::VARIN:: float vCustom$k; ';
 			}
 		}
+
 		
-		// TODO: better packing
+						
+		// TODO:  erst in ein Array<{name:String, ending:String, value:String}>
+		var varyings = new StringMap<String>();		
+		var vIndex = 0;
+		function resolveVaryings(confArray:Array<Array<ConfSubParam>>)
+		{
+			var m = ['.x', '.y', '.w', '.z'];
+			for (conf in confArray)
+			{
+				for (k in 0...conf.length) {
+					// varyings mapping
+					var f = formula.get(conf[k].name);
+					if (f == null) f = attrib.get(conf[k].name);
+
+					//trace("XX: ", conf[k].name, f);
+					
+					if (conf[k].isAnim || (conf[k].isStart || conf[k].formula != "")) {
+						var ending:String = Std.int(vIndex / 4) + m[vIndex % 4];
+						//if (isLast && k == conf.length - 1) ending = "";
+						glConf.CALC_TEX += "vTex" + ending + ' = ' + f + ";";
+						varyings.set(conf[k].name, "vTex" + ending); vIndex++;
+					} else varyings.set(conf[k].name, f);
+					
+				}
+			}
+		}		
+		resolveVaryings([conf.texX, conf.texY, conf.texW, conf.texH, conf.texPosX, conf.texPosY, conf.texSizeX, conf.texSizeY]);
+		
+		
+		// TODO nochmal das Array traversieren und die restlichen in den varyings Map einfuegen (ausser wenn es der letze einzeln ist)
+		// wenn letzer wert im array und index % 4 == 1
+		/*for (i in 0...) {
+			var typ = (index % 4 == 1) ? "float" : "vec" + ???.length;
+			glConf.OUT_TEX += '::if isES3::flat ::end:: ::VAROUT:: $typ vTex${i};';
+			glConf.IN_TEX  += '::if isES3::flat ::end:: ::VARIN:: $typ vTex${i};';
+			for (j in 0...) {
+				
+			}
+		}	
+		*/
+		
+		trace("varyings:"); for (v in varyings.keys()) trace('  $v => ${varyings.get(v)}');			
+		trace("-------"); 
 /*		for (attrib in packedFloatAttribs) {
 			
 		}		
@@ -1229,6 +1322,12 @@ class ElementImpl
 			return(varyingName);
 		}
 		
+/*		var resolveVaryingName = function(c:Array<ConfSubParam, name:String, v:StringMap<Int>, dv:StringMap<Int>, d:String=""):String {
+			if (v.exists(name)) return varyings.get(c[v.get(name)].name);
+			else if (dv.exists(name)) return varyings.get(c[dv.get(name)].name);
+			else return(d);
+		}
+*/		
 		var dv = confTextureLayer.get("__default__");
 		for (name in confTextureLayer.keys()) {
 			//trace(name, confTextureLayer.get(name));
@@ -1236,7 +1335,7 @@ class ElementImpl
 			
 			var layer = (name == "__default__") ? maxLayer : v.get("layer");
 			
-			var unit = resolveVaryingName("vUnit", "texUnit", v, dv, "0.0");
+			var unit = resolveVaryingName("vUnit", "texUnit", v, dv, "0.0"); // TODO: statt "vUnit" die conf.texUnit uebergeben
 
 			var x  = "0.0";
 			var y  = "0.0";

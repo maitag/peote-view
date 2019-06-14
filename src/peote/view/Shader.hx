@@ -115,6 +115,9 @@ class Shader
 		::CALC_CUSTOM::
 		::if hasTEXTURES::
 			::CALC_TEXCOORD::
+			
+			//::CALC_TEX::
+			
 			::CALC_UNIT::
 			::CALC_SLOT::
 			::CALC_TILE::
