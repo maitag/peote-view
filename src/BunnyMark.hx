@@ -82,30 +82,29 @@ class BunnyMark
 		#end
 		//trace("Bunnies:", bunnyCount);
 		buffer = new Buffer<Bunny>(bunnyCount, 4096); // automatic grow buffersize about 4096
-		
-		var display = new Display(0, 0, window.width, window.height, Color.GREEN);
-		
-		var program = new Program(buffer);
-		
-		Loader.image ("assets/images/wabbit_alpha.png", true, function (image:Image) {			
-			var texture = new Texture(image.width, image.height);
-			
-			texture.setImage(image);
-			
-			program.addTexture(texture, "custom");
-					
-			//program.setVertexFloatPrecision("low");
-			//program.setFragmentFloatPrecision("low");
-						
-			display.addProgram(program);    // programm to display
-			peoteView.addDisplay(display);  // display to peoteView
-			
-			for (i in 0...bunnyCount) {
-				addBunny ();
-			}
-			isStart = true;
-		});
+
+		Loader.image ("assets/images/wabbit_alpha.png", true, onImageLoad);
 	}
+
+    private function onImageLoad(image:Image) {
+        var texture = new Texture(image.width, image.height);
+        texture.setImage(image);
+
+        var program = new Program(buffer);
+        program.addTexture(texture, "custom");
+
+        //program.setVertexFloatPrecision("low");
+        //program.setFragmentFloatPrecision("low");
+
+        var display = new Display(0, 0, window.width, window.height, Color.GREEN);
+        display.addProgram(program);    // program to display
+        peoteView.addDisplay(display);  // display to peoteView
+
+        for (i in 0...bunnyCount) {
+            addBunny ();
+        }
+        isStart = true;
+    }
 		
 	private function addBunny():Void
 	{
