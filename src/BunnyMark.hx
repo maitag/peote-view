@@ -89,8 +89,8 @@ class BunnyMark
         var texture = new Texture(image.width, image.height);
         texture.setImage(image);
 
-        var program = new Program(buffer);
-        program.addTexture(texture, "custom");
+        var program = new Program(buffer); //Sprite buffer
+        program.addTexture(texture, "custom"); //Sets image for the sprites
 
         //program.setVertexFloatPrecision("low");
         //program.setFragmentFloatPrecision("low");
