@@ -79,8 +79,8 @@ class BunnyMark
 		gravity = 0.5;
 		fps = new FPS ();
 		bunnies = new Array ();
+		peoteView = new PeoteView(window.context, window.width, window.height); // at now this should stay first ( to initialize PeoteGL from gl-context! )
         buffer = new Buffer<Bunny>(bunnyCount, 4096); // automatic grow buffersize about 4096
-		peoteView = new PeoteView(window.context, window.width, window.height);
 
 		Loader.image ("assets/images/wabbit_alpha.png", true, onImageLoad);
 	}
@@ -95,7 +95,7 @@ class BunnyMark
         //program.setVertexFloatPrecision("low");
         //program.setFragmentFloatPrecision("low");
 
-        var display = new Display(0, 0, window.width, window.height, Color.GREEN);
+        var display = new Display(0, 0, maxX, maxY, Color.GREEN);
         display.addProgram(program);    // program to display
 
         peoteView.addDisplay(display);  // display to peoteView
