@@ -41,7 +41,7 @@ class Elem implements Element
 	
 	//let the texture shift/resize inside slot/texCoords/tile area of Element
 	@texPosX public var txOffset:Int = 10;
-	@texPosY public var tyOffset:Int = 10;
+	@texPosY public var tyOffset:Float = 10.0;
 	//@texSizeX public var twOffset:Int = 256;
 	//@texSizeY public var thOffset:Int = 16;
 	

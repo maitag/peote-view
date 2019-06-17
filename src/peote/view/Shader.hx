@@ -53,13 +53,13 @@ class Shader
 	
 	::ATTRIB_COLOR::
 	
+	//::ATTRIB_PACK::
+	
 	::ATTRIB_UNIT::	
 	::ATTRIB_SLOT::
 	::ATTRIB_TILE::
 	
 	::ATTRIB_CUSTOM::
-	
-	//::ATTRIB_TEX::
 	
 	::ATTRIB_TEXX::
 	::ATTRIB_TEXY::
@@ -79,13 +79,15 @@ class Shader
 		::end::
 	::end::
 	
+	// todo: OUT_PACK to OUT_VARYING
+	//::OUT_PACK::
 	::OUT_VARYING::
 	::OUT_COLOR::
 	
 	::if hasTEXTURES::
 		::OUT_TEXCOORD::
 		
-		//::OUT_TEX::
+		//::OUT_TEXVARYING::
 	
 		::OUT_UNIT::
 		::OUT_SLOT::
@@ -113,10 +115,13 @@ class Shader
 		::CALC_POS::
 		::CALC_COLOR::
 		::CALC_CUSTOM::
+
+		//::CALC_VARYING::
+
 		::if hasTEXTURES::
 			::CALC_TEXCOORD::
 			
-			//::CALC_TEX::
+			//::CALC_TEXVARYING::
 			
 			::CALC_UNIT::
 			::CALC_SLOT::
@@ -192,14 +197,17 @@ class Shader
 			::VARIN:: vec4 vElement;
 		::end::
 	::end::
-	
+
+	// todo: IN_PACK to IN_VARYING
+	//::IN_PACK::
 	::IN_VARYING::
 	::IN_COLOR::
 	
+		
 	::if hasTEXTURES::
 		::IN_TEXCOORD::
 		
-		//::IN_TEX::
+		//::IN_TEXVARYING::
 		
 		::IN_UNIT::
 		::IN_SLOT::

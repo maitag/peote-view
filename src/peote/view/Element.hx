@@ -50,18 +50,19 @@ typedef GLConfParam =
 {			UNIFORM_TIME:String,
 			ATTRIB_TIME:String, ATTRIB_SIZE:String, ATTRIB_POS:String, ATTRIB_ROTZ:String, ATTRIB_PIVOT:String,
 			ATTRIB_UNIT:String, ATTRIB_SLOT:String, ATTRIB_TILE:String,
-			ATTRIB_TEX:String,
+			ATTRIB_PACK:String,
 			ATTRIB_TEXX:String, ATTRIB_TEXY:String, ATTRIB_TEXW:String, ATTRIB_TEXH:String,
 			ATTRIB_TEXPOSX:String, ATTRIB_TEXPOSY:String, ATTRIB_TEXSIZEX:String, ATTRIB_TEXSIZEY:String,
 			ATTRIB_COLOR:String, ATTRIB_CUSTOM:String,
+			OUT_PACK:String, IN_PACK:String,
 			OUT_VARYING:String, IN_VARYING:String, OUT_COLOR:String, IN_COLOR:String, OUT_TEXCOORD:String, IN_TEXCOORD:String, ZINDEX:String,
+			OUT_TEXVARYING:String, IN_TEXVARYING:String,
 			OUT_UNIT:String, IN_UNIT:String, OUT_SLOT:String, IN_SLOT:String, OUT_TILE:String, IN_TILE:String,
-			OUT_TEX:String, IN_TEX:String,
 			OUT_TEXX:String, IN_TEXX:String, OUT_TEXY:String, IN_TEXY:String, OUT_TEXW:String, IN_TEXW:String, OUT_TEXH:String, IN_TEXH:String, 
 			OUT_TEXPOSX:String, IN_TEXPOSX:String, OUT_TEXPOSY:String, IN_TEXPOSY:String, OUT_TEXSIZEX:String, IN_TEXSIZEX:String, OUT_TEXSIZEY:String, IN_TEXSIZEY:String,
 			FRAGMENT_CALC_COLOR:String,
 			CALC_TIME:String, CALC_SIZE:String, CALC_POS:String, CALC_ROTZ:String, CALC_PIVOT:String, CALC_TEXCOORD:String,
-			CALC_TEX:String,
+			CALC_VARYING:String, CALC_TEXVARYING:String,
 			CALC_UNIT:String, CALC_SLOT:String, CALC_TILE:String,
 			CALC_TEXX:String, CALC_TEXY:String, CALC_TEXW:String, CALC_TEXH:String,
 			CALC_TEXPOSX:String, CALC_TEXPOSY:String, CALC_TEXSIZEX:String, CALC_TEXSIZEY:String,
@@ -543,38 +544,41 @@ class ElementImpl
 			pivotY:         { formula:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
 			rotation:       { formula:"", isVarying:false, isAltType:false, vStart:0.0, vEnd:0.0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
 			zIndex:         { formula:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
-			texUnitDefault: { formula:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texUnit:[],
-			texSlotDefault: { formula:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texSlot:[],
-			texTileDefault: { formula:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texTile:[],
-			texXDefault:    { formula:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texX:[],
-			texYDefault:    { formula:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texY:[],
-			texWDefault:    { formula:"", isVarying:false, isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texW:[],
-			texHDefault:    { formula:"", isVarying:false, isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texH:[],
-			texPosXDefault: { formula:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texPosX:[],
-			texPosYDefault: { formula:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texPosY:[],
-			texSizeXDefault:{ formula:"", isVarying:false, isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texSizeX:[],
-			texSizeYDefault:{ formula:"", isVarying:false, isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texSizeY:[],
+
 			colorDefault:   { formula:"", isVarying:false, isAltType:false, vStart:0xFF0000FF, vEnd:0xFF0000FF, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, color:[],
-			customDefault:  { formula:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, custom:[],
+			
+			texUnitDefault: { formula:"", isVarying:true, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texUnit:[],
+			texSlotDefault: { formula:"", isVarying:true, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texSlot:[],
+			texTileDefault: { formula:"", isVarying:true, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texTile:[],
+			texXDefault:    { formula:"", isVarying:true, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texX:[],
+			texYDefault:    { formula:"", isVarying:true, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texY:[],
+			texWDefault:    { formula:"", isVarying:true, isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texW:[],
+			texHDefault:    { formula:"", isVarying:true, isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texH:[],
+			texPosXDefault: { formula:"", isVarying:true, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texPosX:[],
+			texPosYDefault: { formula:"", isVarying:true, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texPosY:[],
+			texSizeXDefault:{ formula:"", isVarying:true, isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texSizeX:[],
+			texSizeYDefault:{ formula:"", isVarying:true, isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texSizeY:[],
+			customDefault:  { formula:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,  n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, custom:[],
 		};
 		
 		glConf = {
 			UNIFORM_TIME:"",
 			ATTRIB_TIME:"", ATTRIB_SIZE:"", ATTRIB_POS:"", ATTRIB_ROTZ:"", ATTRIB_PIVOT:"",
 			ATTRIB_UNIT:"", ATTRIB_SLOT:"", ATTRIB_TILE:"",
-			ATTRIB_TEX:"",
+			ATTRIB_PACK:"",
 			ATTRIB_TEXX:"", ATTRIB_TEXY:"", ATTRIB_TEXW:"", ATTRIB_TEXH:"",
 			ATTRIB_TEXPOSX:"", ATTRIB_TEXPOSY:"", ATTRIB_TEXSIZEX:"", ATTRIB_TEXSIZEY:"",
 			ATTRIB_COLOR:"", ATTRIB_CUSTOM:"",
+			OUT_PACK:"", IN_PACK:"",
+			OUT_TEXVARYING:"", IN_TEXVARYING:"",
 			OUT_VARYING:"", IN_VARYING:"", OUT_COLOR:"", IN_COLOR:"", OUT_TEXCOORD:"", IN_TEXCOORD:"", ZINDEX:"",
 			OUT_UNIT:"", IN_UNIT:"", OUT_SLOT:"", IN_SLOT:"", OUT_TILE:"", IN_TILE:"",
-			OUT_TEX:"", IN_TEX:"",
 			OUT_TEXX:"", IN_TEXX:"", OUT_TEXY:"", IN_TEXY:"", OUT_TEXW:"", IN_TEXW:"", OUT_TEXH:"", IN_TEXH:"", 
 			OUT_TEXPOSX:"", IN_TEXPOSX:"", OUT_TEXPOSY:"", IN_TEXPOSY:"", OUT_TEXSIZEX:"", IN_TEXSIZEX:"", OUT_TEXSIZEY:"", IN_TEXSIZEY:"", 
 			FRAGMENT_CALC_COLOR:"",
 			CALC_TIME:"", CALC_SIZE:"", CALC_POS:"", CALC_ROTZ:"", CALC_PIVOT:"", CALC_TEXCOORD:"",
 			CALC_UNIT:"", CALC_SLOT:"", CALC_TILE:"",
-			CALC_TEX:"",
+			CALC_VARYING:"", CALC_TEXVARYING:"",
 			CALC_TEXX:"", CALC_TEXY:"", CALC_TEXW:"", CALC_TEXH:"", 
 			CALC_TEXPOSX:"", CALC_TEXPOSY:"", CALC_TEXSIZEX:"", CALC_TEXSIZEY:"", 
 			CALC_COLOR:"", CALC_CUSTOM:"", 
@@ -721,6 +725,122 @@ class ElementImpl
 				glConf.IN_COLOR  += '::if isES3::flat ::end::::VARIN:: vec4 vColor${k}; ';
 			}
 		}
+				
+		// custom
+		for (k in 0...conf.custom.length) {
+			if (conf.custom[k].n > 0) {
+				var type:String = (conf.custom[k].n == 1) ? "float" : "vec2";
+				glConf.ATTRIB_CUSTOM += '::IN:: $type aCustom${k}; ';
+			} else glConf.ATTRIB_CUSTOM += 'const float aCustom${k} = ${conf.custom[k].vStart} ;';
+		}
+		
+		
+		
+		// TODO: better packing texture-attributes
+		/*
+		[ aVar:"aTEX0", aName:"aTex0", mapping:[
+					{ isStart:true,  conf:conf.texX[0] }, //x  
+					{ isStart:false, conf:conf.texX[0] }, //y
+					{ isStart:true,  conf:conf.texX[1] }, //z
+					{ isStart:false, conf:conf.texX[1] }, //w
+				] 
+		]
+		*/
+		var packedAttribs = {
+			float: new Array<Array<{isStart:Bool, conf:ConfSubParam}>>(),
+			short: new Array<Array<{isStart:Bool, conf:ConfSubParam}>>(),
+			byte:  new Array<Array<{isStart:Bool, conf:ConfSubParam}>>() 
+		};
+		
+		function createPackedAttribs(type:Array<Array<{isStart:Bool, conf:ConfSubParam}>>, altype:Array<Array<{isStart:Bool, conf:ConfSubParam}>> ,confArray:Array<Array<ConfSubParam>>)
+		{
+			var m = ['.x', '.y', '.w', '.z']; // TODO: make static for all functions that using it
+			for (conf in confArray)
+			{
+				for (k in 0...conf.length) {
+					var pa = (conf[k].isAltType) ? altype : type;
+					var i = pa.length - 1;
+					// packed attribs
+					if (conf[k].isStart) {
+						if (i < 0 || pa[i].length >= 4) {
+							i++;
+							pa.push(new Array<{isStart:Bool, conf:ConfSubParam}>());
+						}
+						pa[i].push({isStart:true, conf:conf[k]});
+					}
+					
+					if (conf[k].isEnd) {
+						if (i < 0 || pa[i].length >= 4) {
+							i++;
+							pa.push(new Array<{isStart:Bool, conf:ConfSubParam}>());
+						}
+						pa[i].push({isStart:false, conf:conf[k]});
+					}
+				}
+			}
+		}		
+		createPackedAttribs(packedAttribs.byte , packedAttribs.byte,  [conf.texUnit]);
+		createPackedAttribs(packedAttribs.short, packedAttribs.byte,  [conf.texSlot, conf.texTile]);
+		createPackedAttribs(packedAttribs.short, packedAttribs.float, [conf.custom, conf.texX, conf.texY, conf.texW, conf.texH, conf.texPosX, conf.texPosY, conf.texSizeX, conf.texSizeY]);
+
+		trace("packedAttribs.float:"); for (a in packedAttribs.float) trace('  ${[for(b in a) b.conf.name + ((b.isStart) ? "Start":"End")]}');
+		trace("packedAttribs.short:"); for (a in packedAttribs.short) trace('  ${[for(b in a) b.conf.name + ((b.isStart) ? "Start":"End")]}');
+		trace("packedAttribs.byte:");  for (a in packedAttribs.byte)  trace('  ${[for(b in a) b.conf.name + ((b.isStart) ? "Start":"End")]}');
+		
+		function resolvePackedAttribs(paType:Array<Array<{isStart:Bool, conf:ConfSubParam}>>, aName:String)
+		{
+			for (i in 0...paType.length) {
+				var pa = paType[i];
+				var m = ['.x', '.y', '.w', '.z']; // TODO: make static for all functions that using it
+				
+				var type = (pa.length == 1) ? "float" : "vec" + pa.length;
+				glConf.ATTRIB_PACK += '::IN:: $type ' + aName + i + ";";
+				
+				for (j in 0...pa.length) {
+					var mapping = pa[j];
+					var ending = (i == paType.length-1 && pa.length == 1) ? "" : m[j];
+					if (mapping.isStart)
+						attrib.set(mapping.conf.name+"Start", aName + i + ending);
+					else attrib.set(mapping.conf.name+"End",  aName + i + ending);
+				}
+			}
+		}
+		resolvePackedAttribs(packedAttribs.float, "aFloat"); 
+		resolvePackedAttribs(packedAttribs.short, "aShort"); 
+		resolvePackedAttribs(packedAttribs.byte,  "aByte"); 
+			
+		function resolvePackedFormulas(confArray:Array<Array<ConfSubParam>>)
+		{
+			for (conf in confArray)
+			{
+				for (k in 0...conf.length) {
+					if (!conf[k].isStart)
+						attrib.set(conf[k].name+"Start", Util.toFloatString(conf[k].vStart));
+					
+					if (!conf[k].isEnd) {
+						if (conf[k].isAnim)	attrib.set(conf[k].name+"End", Util.toFloatString(conf[k].vEnd));
+						else attrib.set(conf[k].name+"End", attrib.get(conf[k].name+"Start"));
+					}
+					
+					// formulas for tex-attribs
+					if (conf[k].formula != "") {
+						formulaErrPos.set(conf[k].name, conf[k].pos);
+						formula.set(conf[k].name, conf[k].formula);
+					}
+					
+					if (conf[k].isAnim) {
+						var t = timers.indexOf(conf[k].time);
+						attrib.set(conf[k].name, '${attrib.get(conf[k].name+"Start")}+(${attrib.get(conf[k].name+"End")}-${attrib.get(conf[k].name+"Start")})*time$t');
+					} else attrib.set(conf[k].name, attrib.get(conf[k].name+"Start"));
+				}
+			}
+		}		
+		resolvePackedFormulas([conf.texUnit, conf.texSlot, conf.texTile, conf.texX, conf.texY, conf.texW, conf.texH, conf.texPosX, conf.texPosY, conf.texSizeX, conf.texSizeY]);
+		
+		
+		trace("formula:"); for (f in formula.keys()) trace('  $f => ${formula.get(f)}');
+		trace("attrib:"); for (a in attrib.keys()) trace('  $a => ${attrib.get(a)}');
+		trace("-----");
 		
 		// units
 		for (k in 0...conf.texUnit.length) {
@@ -750,119 +870,6 @@ class ElementImpl
 			glConf.IN_TILE  += '::if isES3::flat ::end:: ::VARIN:: float vTile${k};';
 		}
 
-		
-		// custom
-		for (k in 0...conf.custom.length) {
-			if (conf.custom[k].n > 0) {
-				var type:String = (conf.custom[k].n == 1) ? "float" : "vec2";
-				glConf.ATTRIB_CUSTOM += '::IN:: $type aCustom${k}; ';
-			} else glConf.ATTRIB_CUSTOM += 'const float aCustom${k} = ${conf.custom[k].vStart} ;';
-		}
-		
-		
-		
-		// TODO: better packing texture-attributes
-		/*
-		[ aVar:"aTEX0", aName:"aTex0", mapping:[
-					{ isStart:true,  conf:conf.texX[0] }, //x  
-					{ isStart:false, conf:conf.texX[0] }, //y
-					{ isStart:true,  conf:conf.texX[1] }, //z
-					{ isStart:false, conf:conf.texX[1] }, //w
-				] 
-		]
-		*/
-		var packedAttribs = {
-			int: new Array<{aVar:String, aName:String, mapping:Array<{isStart:Bool, conf:ConfSubParam}>}>(),
-			float: new Array<{aVar:String, aName:String, mapping:Array<{isStart:Bool, conf:ConfSubParam}>}>() 
-		};
-		
-		function resolvePackedAttribs(confArray:Array<Array<ConfSubParam>>)
-		{
-			var m = ['.x', '.y', '.w', '.z'];
-			for (conf in confArray)
-			{
-				for (k in 0...conf.length) {
-					var pa = (conf[k].isAltType) ? packedAttribs.float : packedAttribs.int;
-					var i = pa.length - 1;
-					// packed attribs
-					if (conf[k].isStart) {
-						if (i < 0 || pa[i].mapping.length >= 4) {
-							i++;
-							pa.push({aVar:"aTEX" + i, aName:"aTex" + i, mapping:new Array<{isStart:Bool, conf:ConfSubParam}>()});
-						}
-						pa[i].mapping.push({isStart:true, conf:conf[k]});
-					}
-					
-					if (conf[k].isEnd) {
-						if (i < 0 || pa[i].mapping.length >= 4) {
-							i++;
-							pa.push({aVar:"aTEX" + i, aName:"aTex" + i, mapping: new Array<{isStart:Bool, conf:ConfSubParam}>()});
-						}
-						pa[i].mapping.push({isStart:false, conf:conf[k]});
-					}
-				}
-			}
-		}		
-		resolvePackedAttribs([conf.texX, conf.texY, conf.texW, conf.texH, conf.texPosX, conf.texPosY, conf.texSizeX, conf.texSizeY]);
-
-		trace("packedAttribs.int:"); for (a in packedAttribs.int) trace('  ${a.aVar} => ${[for(b in a.mapping) b.conf.name + ((b.isStart) ? "Start":"End")]}');
-		trace("packedAttribs.float:"); for (a in packedAttribs.float) trace('  ${a.aVar} => ${[for(b in a.mapping) b.conf.name + ((b.isStart) ? "Start":"End")]}');
-		
-		for (i in 0...packedAttribs.int.length) {
-			var pa = packedAttribs.int[i];
-			var m = ['.x', '.y', '.w', '.z']; // TODO: make static for all functions that using it
-			
-			var type = (pa.mapping.length == 1) ? "float" : "vec" + pa.mapping.length;
-			glConf.ATTRIB_TEX += '::IN:: $type aTex${i};';
-			
-			for (j in 0...pa.mapping.length) {
-				var mapping = pa.mapping[j];
-				var ending = (i == packedAttribs.int.length-1 && pa.mapping.length == 1) ? "" : m[j];
-				if (mapping.isStart)
-					attrib.set(mapping.conf.name+"Start", "aTex" + i + ending);
-				else attrib.set(mapping.conf.name+"End",  "aTex" + i + ending);
-			}
-		}
-		// TODO:
-		for (i in 0...packedAttribs.float.length) {
-			var pa = packedAttribs.float[i];
-			trace(pa.aVar, pa.aName);
-			// TODO
-		}
-			
-		function resolvePackedFormulas(confArray:Array<Array<ConfSubParam>>)
-		{
-			for (conf in confArray)
-			{
-				for (k in 0...conf.length) {
-					if (!conf[k].isStart)
-						attrib.set(conf[k].name+"Start", Util.toFloatString(conf[k].vStart));
-					
-					if (!conf[k].isEnd) {
-						if (conf[k].isAnim)	attrib.set(conf[k].name+"End", Util.toFloatString(conf[k].vEnd));
-						else attrib.set(conf[k].name+"End", attrib.get(conf[k].name+"Start"));
-					}
-					
-					// formulas for tex-attribs
-					if (conf[k].formula != "") {
-						formulaErrPos.set(conf[k].name, conf[k].pos);
-						formula.set(conf[k].name, conf[k].formula);
-					}
-					
-					if (conf[k].isAnim) {
-						var t = timers.indexOf(conf[k].time);
-						attrib.set(conf[k].name, '${attrib.get(conf[k].name+"Start")}+(${attrib.get(conf[k].name+"End")}-${attrib.get(conf[k].name+"Start")})*time$t');
-					} else attrib.set(conf[k].name, attrib.get(conf[k].name+"Start"));
-				}
-			}
-		}		
-		resolvePackedFormulas([conf.texX, conf.texY, conf.texW, conf.texH, conf.texPosX, conf.texPosY, conf.texSizeX, conf.texSizeY]);
-		
-		
-		trace("formula:"); for (f in formula.keys()) trace('  $f => ${formula.get(f)}');
-		trace("attrib:"); for (a in attrib.keys()) trace('  $a => ${attrib.get(a)}');
-		trace("-----");
-		
 		// texX
 		for (k in 0...conf.texX.length) {
 			if (conf.texX[k].n > 0) {
@@ -1157,55 +1164,9 @@ class ElementImpl
 		
 		
 		
-		
-		// ------- TODO make that packs all units, slots and tiles together into many aUnitSlotTile vec4 attributes --------- 
-		function packTex(name:String, confItems:Array<ConfSubParam>, index:Int):String
-		{
-			name += index;
-			var confItem:ConfSubParam = confItems[index];
-			var start = (confItem.isStart) ? name : Util.toFloatString(confItem.vStart);
-			if (confItem.isAnim) {
-				var end = (confItem.isEnd) ? name : Util.toFloatString(confItem.vEnd);				
-				if (confItem.isStart && confItem.isEnd) { start += ".x"; end += ".y"; }
-				else if (confItem.isEnd) { end += ".x"; }
-				start = '$start + ($end - $start) * time' + timers.indexOf(confItem.time);
-			}
-			return start;
-		}
-		
+		// ---------------- Varyings packing ---------
 		// TODO: refactoring and including formulas
 
-		
-		
-		
-		// texUnit
-		for (k in 0...conf.texUnit.length) {
-			glConf.CALC_UNIT += 'vUnit$k = ' + packTex("aUnit", conf.texUnit, k) + ";";
-		}		
-		// texSlot
-		for (k in 0...conf.texSlot.length) {
-			glConf.CALC_SLOT += 'vSlot$k = ' + packTex("aSlot", conf.texSlot, k) + ";";
-		}		
-		// texTile
-		for (k in 0...conf.texTile.length) {
-			glConf.CALC_TILE += 'vTile$k = ' + packTex("aTile", conf.texTile, k) + ";";
-		}
-		
-		
-	
-		// custom
-		for (k in 0...conf.custom.length) {
-			//glConf.CALC_CUSTOM += 'float custom${customIdentifiers[k]} = ' + packTex("aCustom", conf.custom, k) + "; ";
-			glConf.CALC_CUSTOM += 'float custom${k} = ' + packTex("aCustom", conf.custom, k) + "; ";
-			// set varyings for vCustom
-			if (conf.custom[k].isVarying ) {
-				glConf.CALC_CUSTOM += 'vCustom$k = custom$k;';
-				glConf.OUT_VARYING += '::if isES3::flat ::end::::VAROUT:: float vCustom$k; ';
-				glConf.IN_VARYING += '::if isES3::flat ::end::::VARIN:: float vCustom$k; ';
-			}
-		}
-
-		
 		var packedVaryings = new Array<{conf:ConfSubParam, formula:String}>();
 		var varyings = new StringMap<String>();		
 						
@@ -1221,7 +1182,9 @@ class ElementImpl
 					else varyings.set(c.name, f);
 				}
 		}	
-		resolveVaryings([conf.texX, conf.texY, conf.texW, conf.texH, conf.texPosX, conf.texPosY, conf.texSizeX, conf.texSizeY]);
+		resolveVaryings([conf.texUnit, conf.texSlot, conf.texTile, conf.texX, conf.texY, conf.texW, conf.texH, conf.texPosX, conf.texPosY, conf.texSizeX, conf.texSizeY]);
+		
+		//TODO: customs
 		
 		// traverse packedVaryings again and fill rest of varyings
 		for (i in 0...packedVaryings.length) {
@@ -1232,20 +1195,60 @@ class ElementImpl
 			
 			if (i % 4 == 0) {
 				var type = (isLast && (packedVaryings.length-1)%4 ==0 ) ? "float" : "vec"+((isLast) ? packedVaryings.length-i : 4);
-				glConf.OUT_TEX += '::if isES3::flat ::end:: ::VAROUT:: $type vTex${Std.int(i / 4)};';
-				glConf.IN_TEX  += '::if isES3::flat ::end:: ::VARIN:: $type vTex${Std.int(i / 4)};';
+				glConf.OUT_TEXVARYING += '::if isES3::flat ::end:: ::VAROUT:: $type vTexPack${Std.int(i / 4)};';
+				glConf.IN_TEXVARYING  += '::if isES3::flat ::end:: ::VARIN:: $type vTexPack${Std.int(i / 4)};';
 			}
 			
 			var ending:String = (isLast && (packedVaryings.length-1)%4 ==0 ) ? "" : m[i % 4];
 			
-			glConf.CALC_TEX += "vTex" + Std.int(i / 4) + ending + ' = ' + packedVaryings[i].formula + ";";
-			varyings.set(c.name, "vTex" + Std.int(i / 4) + ending);
+			glConf.CALC_TEXVARYING += "vTexPack" + Std.int(i / 4) + ending + ' = ' + packedVaryings[i].formula + ";";
+			varyings.set(c.name, "vTexPack" + Std.int(i / 4) + ending);
 		}	
 		
 		
 		trace("varyings:"); for (v in varyings.keys()) trace('  $v => ${varyings.get(v)}');			
 		trace("-------"); 
-
+		
+		
+		function packTex(name:String, confItems:Array<ConfSubParam>, index:Int):String
+		{
+			name += index;
+			var confItem:ConfSubParam = confItems[index];
+			var start = (confItem.isStart) ? name : Util.toFloatString(confItem.vStart);
+			if (confItem.isAnim) {
+				var end = (confItem.isEnd) ? name : Util.toFloatString(confItem.vEnd);				
+				if (confItem.isStart && confItem.isEnd) { start += ".x"; end += ".y"; }
+				else if (confItem.isEnd) { end += ".x"; }
+				start = '$start + ($end - $start) * time' + timers.indexOf(confItem.time);
+			}
+			return start;
+		}
+		
+		// texUnit
+		for (k in 0...conf.texUnit.length) {
+			glConf.CALC_UNIT += 'vUnit$k = ' + packTex("aUnit", conf.texUnit, k) + ";";
+		}		
+		// texSlot
+		for (k in 0...conf.texSlot.length) {
+			glConf.CALC_SLOT += 'vSlot$k = ' + packTex("aSlot", conf.texSlot, k) + ";";
+		}		
+		// texTile
+		for (k in 0...conf.texTile.length) {
+			glConf.CALC_TILE += 'vTile$k = ' + packTex("aTile", conf.texTile, k) + ";";
+		}
+			
+		// custom
+		for (k in 0...conf.custom.length) {
+			//glConf.CALC_CUSTOM += 'float custom${customIdentifiers[k]} = ' + packTex("aCustom", conf.custom, k) + "; ";
+			glConf.CALC_CUSTOM += 'float custom${k} = ' + packTex("aCustom", conf.custom, k) + "; ";
+			// set varyings for vCustom
+			if (conf.custom[k].isVarying ) {
+				glConf.CALC_CUSTOM += 'vCustom$k = custom$k;';
+				glConf.OUT_VARYING += '::if isES3::flat ::end::::VAROUT:: float vCustom$k; ';
+				glConf.IN_VARYING += '::if isES3::flat ::end::::VARIN:: float vCustom$k; ';
+			}
+		}
+		
 		// texX
 		for (k in 0...conf.texX.length) {
 			glConf.CALC_TEXX += 'vTexX$k = ' + packTex("aTexX", conf.texX, k) + ";";
@@ -1570,25 +1573,6 @@ class ElementImpl
 		createStartEndVar(conf.pivotX, macro:Int, macro:Float);
 		createStartEndVar(conf.pivotY, macro:Int, macro:Float);		
 		
-		
-		// TODO: better packing rest of attributes
-/*		for (attrib in packedFloatAttribs) {
-			for (m in attrib,mapping) {
-				if (m.isStart)
-					genVar(macro:Float, p.name+"Start", m.conf.vStart, !m.conf.isStart);
-				else genVar(macro:Float, p.name+"End",   m.conf.vEnd,  !m.conf.isEnd);
-			}
-		}		
-		for (attrib in packedIntAttribs) {
-			for (m in attrib.mapping) {
-				if (m.isStart)
-					genVar(macro:Int, p.name+"Start", m.conf.vStart, !m.conf.isStart);
-				else genVar(macro:Int, p.name+"End",   m.conf.vEnd,  !m.conf.isEnd);
-			}
-		}
-*/			
-
-		
 		function createStartEndTexVar(pa:Array<ConfSubParam>, type:ComplexType, altType:ComplexType=null) {
 			for (p in pa) if (p.isAnim) {
 				if (! p.isAltType) {
@@ -1626,18 +1610,16 @@ class ElementImpl
 			+ ((conf.pivotX.isAltType) ? 4:2) * (conf.pivotX.n + conf.pivotY.n)
 		);
 		for (c in conf.color)   buff_size_instanced += c.n * 4;
+		
+		// TODO: better packing
+/*		for (attrib in packedAttribs.float) buff_size_instanced += attrib.mapping.length * 4;	
+		for (attrib in packedAttribs.short) buff_size_instanced += attrib.mapping.length * 2;
+		for (attrib in packedAttribs.byte)  buff_size_instanced += attrib.mapping.length;
+*/			
+		
 		for (c in conf.texSlot) buff_size_instanced += c.n * 2;
 		for (c in conf.texTile) buff_size_instanced += c.n * 2;
 		for (c in conf.texUnit) buff_size_instanced += c.n;
-		
-		// TODO: better packing
-/*		for (attrib in packedFloatAttribs) {
-			 buff_size_instanced += attrib.mapping.length * 4;
-		}		
-		for (attrib in packedIntAttribs) {
-			 buff_size_instanced += attrib.mapping.length * 2;
-		}
-*/			
 		
 		for (c in conf.custom)   buff_size_instanced += c.n * ((c.isAltType) ? 4:2);
 
@@ -1747,21 +1729,7 @@ class ElementImpl
 		
 		// ---------------------- vertex attribute bindings ----------------------------------
 		var attrNumber = 0;
-		/*
-		function createAttribVar(name:String) {
-			fields.push({
-				name:  name,
-				access: [Access.APrivate, Access.AStatic, Access.AInline],
-				kind: FieldType.FVar(macro:Int, macro $v{attrNumber++}), 
-				pos: Context.currentPos(),
-			});
-		}
-		
-		function createAttrib2pack(name:String, x:ConfSubParam, y:ConfSubParam) {
-			if (x.n + y.n > 0) createAttribVar(name);
-		}
-		*/
-		// TODO: refactoring
+
 		fields.push({
 			name:  "aPOSITION",
 			access:  [Access.APrivate, Access.AStatic, Access.AInline],
@@ -1825,6 +1793,33 @@ class ElementImpl
 			}
 		}
 		// --------
+		// TODO: better packing
+/*
+		for (i in 0...packedAttribs.float.length) {
+			fields.push({
+				name:  "aFLOAT"+i,
+				access:  [Access.APrivate, Access.AStatic, Access.AInline],
+				kind: FieldType.FVar(macro:Int, macro $v{attrNumber++}), 
+				pos: Context.currentPos(),
+			});
+		}
+		for (i in 0...packedAttribs.short.length) {
+			fields.push({
+				name:  "aSHORT"+i,
+				access:  [Access.APrivate, Access.AStatic, Access.AInline],
+				kind: FieldType.FVar(macro:Int, macro $v{attrNumber++}), 
+				pos: Context.currentPos(),
+			});
+		}
+		for (i in 0...packedAttribs.byte.length) {
+			fields.push({
+				name:  "aBYTE"+i,
+				access:  [Access.APrivate, Access.AStatic, Access.AInline],
+				kind: FieldType.FVar(macro:Int, macro $v{attrNumber++}), 
+				pos: Context.currentPos(),
+			});
+		}
+*/			
 		for (k in 0...conf.texUnit.length) {
 			if (conf.texUnit[k].n > 0) {
 				fields.push({
@@ -1856,18 +1851,6 @@ class ElementImpl
 			}			
 		}
 
-			
-		// TODO: better packing
-/*		for (attrib in packedIntAttribs) {
-			fields.push({
-				name:  attrib.aVar,
-				access:  [Access.APrivate, Access.AStatic, Access.AInline],
-				kind: FieldType.FVar(macro:Int, macro $v{attrNumber++}), 
-				pos: Context.currentPos(),
-			});
-		}
-*/			
-			
 		for (k in 0...conf.custom.length) {
 			if (conf.custom[k].n > 0) {
 				fields.push({
@@ -2068,7 +2051,7 @@ class ElementImpl
 				
 			
 				// TODO: better packing
-/*				for (attrib in packedFloatAttribs) {
+/*				for (attrib in packedAttribs.float) {
 					for (m in attrib.mapping) {	
 						if (m.isStart) {
 							if (m.conf.isAnim)
@@ -2120,7 +2103,7 @@ class ElementImpl
 
 			
 				// TODO: better packing
-/*				for (attrib in packedIntAttribs) {
+/*				for (attrib in packedAttribs.short) {
 					for (m in attrib.mapping) {	
 						if (m.isStart) {
 							if (m.conf.isAnim)
@@ -2172,6 +2155,18 @@ class ElementImpl
 					if (conf.texTile[k].isAnim && conf.texTile[k].isEnd)   { exprBlock.push( macro bytes.setUInt16(bytePos + $v{i}, $i{conf.texTile[k].name+"End"}) ); i+=2; }
 				}
 				// ----------------- Bytes --------------------------------
+				// TODO: better packing
+/*				for (attrib in packedAttribs.byte) {
+					for (m in attrib.mapping) {	
+						if (m.isStart) {
+							if (m.conf.isAnim)
+							     { exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{m.conf.name+"Start"}) ); i++; }
+							else { exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{m.conf.name})         ); i++; }
+						}
+						else {     exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{m.conf.name+"End"})   ); i++; }
+					}
+				}
+*/			
 				// UNITS
 				for (k in 0...conf.texUnit.length) {
 					if (conf.texUnit[k].isAnim && conf.texUnit[k].isStart) { exprBlock.push( macro bytes.set(bytePos + $v{i}, $i{conf.texUnit[k].name+"Start"}) ); i++; }
@@ -2252,8 +2247,10 @@ class ElementImpl
 			if (conf.pivotX.n + conf.pivotY.n > 0 ) exprBlock.push( macro gl.bindAttribLocation(glProgram, aPIVOT, "aPivot") );
 			
 			// TODO: better packing
-/*			for (attrib in packedFloatAttribs.join(packedIntAttribs))
-				exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{attrib.aVar}, $v{attrib.aName} ) );
+/*			
+			for (k in 0...packedAttribs.float.length) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aFLOAT"+k}, $v{"aFloat"+k} ) );
+			for (k in 0...packedAttribs.short.length) exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aSHORT"+k}, $v{"aShort"+k} ) );
+			for (k in 0...packedAttribs.byte.length)  exprBlock.push( macro gl.bindAttribLocation(glProgram, $i{"aBYTE"+k},  $v{"aBYTE"+k} ) );
 */			
 			
 			// CUSTOM
@@ -2371,11 +2368,11 @@ class ElementImpl
 
 			
 			// TODO: better packing
-/*			for (attrib in packedFloatAttribs) {
-				n = attrib.mapping.length;
-				exprBlock.push( macro gl.enableVertexAttribArray ($i{attrib.aVar}) );
-				exprBlock.push( macro gl.vertexAttribPointer($i{attrib.aVar}, $v{n}, gl.FLOAT, false, $v{stride}, $v{i} ) ); i += n * 4;
-				if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{attrib.aVar}, 1) );
+/*			for (k in 0...packedAttribs.float.length) {
+				n = packedAttribs.float[k].mapping.length;
+				exprBlock.push( macro gl.enableVertexAttribArray ($i{"aFLOAT"+k}) );
+				exprBlock.push( macro gl.vertexAttribPointer($i{"aFLOAT"+k}, $v{n}, gl.FLOAT, false, $v{stride}, $v{i} ) ); i += n * 4;
+				if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{"aFLOAT"+k}, 1) );
 			}
 */			
 			
@@ -2423,11 +2420,11 @@ class ElementImpl
 
 			
 			// TODO: better packing
-/*			for (attrib in packedIntAttribs) {
-				n = attrib.mapping.length;
-				exprBlock.push( macro gl.enableVertexAttribArray ($i{attrib.aVar}) );
-				exprBlock.push( macro gl.vertexAttribPointer($i{attrib.aVar}, $v{n}, gl.SHORT, false, $v{stride}, $v{i} ) ); i += n * 2;
-				if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{attrib.aVar}, 1) );
+/*			for (k in 0...packedAttribs.short.length) {
+				n = packedAttribs.short[k].mapping.length;
+				exprBlock.push( macro gl.enableVertexAttribArray ($i{"aSHORT"+k}) );
+				exprBlock.push( macro gl.vertexAttribPointer($i{"aSHORT"+k}, $v{n}, gl.SHORT, false, $v{stride}, $v{i} ) ); i += n * 2;
+				if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{"aSHORT"+k}, 1) );
 			}
 */			
 			
@@ -2479,6 +2476,14 @@ class ElementImpl
 					if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{"aTILE"+k}, 1) );
 				}
 			}
+			// TODO: better packing
+/*			for (k in 0...packedAttribs.byte.length) {
+				n = packedAttribs.byte[k].mapping.length;
+				exprBlock.push( macro gl.enableVertexAttribArray ($i{"aBYTE"+k}) );
+				exprBlock.push( macro gl.vertexAttribPointer($i{"aBYTE"+k}, $v{n}, gl.UNSIGNED_BYTE, false, $v{stride}, $v{i} ) ); i += n;
+				if (isInstanced) exprBlock.push( macro gl.vertexAttribDivisor($i{"aBYTE"+k}, 1) );
+			}
+*/			
 			// UNIT
 			for (k in 0...conf.texUnit.length) {
 				n = conf.texUnit[k].n;
@@ -2544,9 +2549,10 @@ class ElementImpl
 
 			
 			// TODO: better packing
-/*			for (attrib in packedIntAttribs) {
-				exprBlock.push( macro gl.disableVertexAttribArray ($i{attrib.aVar}) );
-			}
+/*			
+			for (k in 0...packedAttribs.float.length) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aFLOAT"+k}) );
+			for (k in 0...packedAttribs.short.length) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aSHORT"+k}) );
+			for (k in 0...packedAttribs.byte.length)  exprBlock.push( macro gl.disableVertexAttribArray ($i{"aBYTE"+k}) );			
 */			
 			
 			// CUSTOM

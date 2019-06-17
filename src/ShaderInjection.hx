@@ -50,6 +50,7 @@ import peote.view.Element;
 		this.x = positionX;	this.y = positionY;	buffer.addElement(this);
 	}	
 }
+*/
 
 // --------------------------------------------------- fragment rounded border
 class Elem1 implements Element
@@ -109,7 +110,7 @@ class Elem1 implements Element
 		this.x = positionX;	this.y = positionY;	buffer.addElement(this);
 	}	
 }
-
+/*
 // --------------------------------------------------- simple random noise
 class Elem2 implements Element
 {
@@ -140,6 +141,7 @@ class Elem2 implements Element
 	}	
 }
 */
+/*
 // --------------------------------------------------- custom formula for attributes
 class Elem3 implements Element
 {
@@ -177,7 +179,7 @@ class Elem3 implements Element
 		buffer.addElement(this);
 	}	
 }
-
+*/
 // -------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------
@@ -193,11 +195,11 @@ class ShaderInjection
 			peoteView = new PeoteView(window.context, window.width, window.height);
 			display   = new Display(10,10, window.width-20, window.height-20, Color.GREEN);
 			peoteView.addDisplay(display);
-			/*
-			Elem0.init(display); new Elem0(  0, 0);
-			Elem1.init(display); new Elem1(110, 0);		
-			Elem2.init(display); new Elem2(220, 0);	*/	
-			Elem3.init(display); new Elem3(330, 0);		
+			
+			//Elem0.init(display); new Elem0(  0, 0);
+			Elem1.init(display); new Elem1(110, 0);
+			//Elem2.init(display); new Elem2(220, 0);	
+			//Elem3.init(display); new Elem3(330, 0);		
 		} 
 		catch (e:Dynamic) trace("ERROR:", e);
 	}
