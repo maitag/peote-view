@@ -101,7 +101,7 @@ class Elem1 implements Element
 				return c;
 			}
 		");
-		program.setColorFormula('compose(color, borderColor, vCustom0, vCustom1)');
+		program.setColorFormula('compose(color, borderColor, vPack0.x, vPack0.y)'); // TODO: identifiers for custom varyings
 		program.alphaEnabled = true;
 		display.addProgram(program);
 	}

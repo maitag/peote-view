@@ -53,22 +53,7 @@ class Shader
 	
 	::ATTRIB_COLOR::
 	
-	//::ATTRIB_PACK::
-	
-	::ATTRIB_UNIT::	
-	::ATTRIB_SLOT::
-	::ATTRIB_TILE::
-	
-	::ATTRIB_CUSTOM::
-	
-	::ATTRIB_TEXX::
-	::ATTRIB_TEXY::
-	::ATTRIB_TEXW::
-	::ATTRIB_TEXH::
-	::ATTRIB_TEXPOSX::
-	::ATTRIB_TEXPOSY::
-	::ATTRIB_TEXSIZEX::
-	::ATTRIB_TEXSIZEY::
+	::ATTRIB_PACK::
 	
 	// Varyings ---------------------------
 	::if isPICKING::
@@ -79,27 +64,12 @@ class Shader
 		::end::
 	::end::
 	
-	// todo: OUT_PACK to OUT_VARYING
-	//::OUT_PACK::
-	::OUT_VARYING::
 	::OUT_COLOR::
+	::OUT_VARYING::
 	
 	::if hasTEXTURES::
 		::OUT_TEXCOORD::
-		
-		//::OUT_TEXVARYING::
-	
-		::OUT_UNIT::
-		::OUT_SLOT::
-		::OUT_TILE::
-		::OUT_TEXX::
-		::OUT_TEXY::
-		::OUT_TEXW::
-		::OUT_TEXH::
-		::OUT_TEXPOSX::
-		::OUT_TEXPOSY::
-		::OUT_TEXSIZEX::
-		::OUT_TEXSIZEY::
+		::OUT_TEXVARYING::
 	::end::
 
 	// custom functions -------------------
@@ -114,26 +84,12 @@ class Shader
 		::CALC_ROTZ::
 		::CALC_POS::
 		::CALC_COLOR::
-		::CALC_CUSTOM::
 
-		//::CALC_VARYING::
+		::CALC_VARYING::
 
 		::if hasTEXTURES::
-			::CALC_TEXCOORD::
-			
-			//::CALC_TEXVARYING::
-			
-			::CALC_UNIT::
-			::CALC_SLOT::
-			::CALC_TILE::
-			::CALC_TEXX::
-			::CALC_TEXY::
-			::CALC_TEXW::
-			::CALC_TEXH::
-			::CALC_TEXPOSX::
-			::CALC_TEXPOSY::
-			::CALC_TEXSIZEX::
-			::CALC_TEXSIZEY::
+			::CALC_TEXCOORD::			
+			::CALC_TEXVARYING::
 		::end::
 		
 		::if isPICKING::
@@ -198,28 +154,12 @@ class Shader
 		::end::
 	::end::
 
-	// todo: IN_PACK to IN_VARYING
-	//::IN_PACK::
-	::IN_VARYING::
 	::IN_COLOR::
-	
-		
+	::IN_VARYING::
+			
 	::if hasTEXTURES::
 		::IN_TEXCOORD::
-		
-		//::IN_TEXVARYING::
-		
-		::IN_UNIT::
-		::IN_SLOT::
-		::IN_TILE::
-		::IN_TEXX::
-		::IN_TEXY::
-		::IN_TEXW::
-		::IN_TEXH::
-		::IN_TEXPOSX::
-		::IN_TEXPOSY::
-		::IN_TEXSIZEX::
-		::IN_TEXSIZEY::
+		::IN_TEXVARYING::
 	::end::
 	
 	

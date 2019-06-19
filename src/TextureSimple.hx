@@ -33,15 +33,15 @@ class Elem implements Element
 	//@zIndex public var z:Int = 0;	
 	
 	// manual texture coordinates inside a slot (or inside all slots if no slot available)
-	@texX @anim @constStart(3) public var tx:Int = 32;
-	@texY public var ty:Int=0;
-	@texW @const @formula("ty*2.0") public var tw:Int=256;
+	@texX @anim @constStart(5) public var tx:Int = 6;
+	@texY public var ty:Int=11;
+	@texW @const @formula("tw - tx") public var tw:Int=256;
 	@texH("A") @const public var thA:Int=64;
 	@texH("B") public var thB:Int=128;
 	
 	//let the texture shift/resize inside slot/texCoords/tile area of Element
 	@texPosX public var txOffset:Int = 10;
-	@texPosY public var tyOffset:Float = 10.0;
+	@texPosY public var tyOffset:Float = 3.0;
 	//@texSizeX public var twOffset:Int = 256;
 	//@texSizeY public var thOffset:Int = 16;
 	
