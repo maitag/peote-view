@@ -765,10 +765,10 @@ class ElementImpl
 		createPackedAttribs(packedAttribs.short, packedAttribs.byte,  [conf.texSlot, conf.texTile]);
 		createPackedAttribs(packedAttribs.short, packedAttribs.float, [conf.custom, conf.texX, conf.texY, conf.texW, conf.texH, conf.texPosX, conf.texPosY, conf.texSizeX, conf.texSizeY]);
 
-		trace("packedAttribs.float:"); for (a in packedAttribs.float) trace('  ${[for(b in a) b.conf.name + ((b.isStart) ? "Start":"End")]}');
+/*		trace("packedAttribs.float:"); for (a in packedAttribs.float) trace('  ${[for(b in a) b.conf.name + ((b.isStart) ? "Start":"End")]}');
 		trace("packedAttribs.short:"); for (a in packedAttribs.short) trace('  ${[for(b in a) b.conf.name + ((b.isStart) ? "Start":"End")]}');
 		trace("packedAttribs.byte:");  for (a in packedAttribs.byte)  trace('  ${[for(b in a) b.conf.name + ((b.isStart) ? "Start":"End")]}');
-		
+*/		
 		function resolvePackedAttribs(paType:Array<Array<{isStart:Bool, conf:ConfSubParam}>>, aName:String)
 		{
 			for (i in 0...paType.length) {
@@ -818,12 +818,11 @@ class ElementImpl
 			}
 		}		
 		resolvePackedFormulas([conf.custom, conf.texUnit, conf.texSlot, conf.texTile, conf.texX, conf.texY, conf.texW, conf.texH, conf.texPosX, conf.texPosY, conf.texSizeX, conf.texSizeY]);
-		
-		
-		trace("formula:"); for (f in formula.keys()) trace('  $f => ${formula.get(f)}');
+				
+/*		trace("formula:"); for (f in formula.keys()) trace('  $f => ${formula.get(f)}');
 		trace("attrib:"); for (a in attrib.keys()) trace('  $a => ${attrib.get(a)}');
 		trace("-----");
-		
+*/		
 		glConf.OUT_TEXCOORD = "::VAROUT:: vec2 vTexCoord;";
 		glConf.IN_TEXCOORD  = "::VARIN:: vec2 vTexCoord;";
 		// default texcoords
@@ -845,10 +844,7 @@ class ElementImpl
 		}
 		if (timers.length > 0) glConf.UNIFORM_TIME = "uniform float uTime;";
 		
-		// pack -----------------------------------------------------------------------
-		
-		// formulas
-				
+		// pack & formulas -------------------------------------------------------
 		function resolveFormulas(name:String, x:ConfSubParam, y:ConfSubParam)
 		{				
 			var ending = ["",".x", ".y", ".z", ".w"];
@@ -908,9 +904,9 @@ class ElementImpl
 		//trace("formula cyclic resolved:"); for (f in formula.keys()) trace('  $f => ${formula.get(f)}');
 		Util.resolveFormulaVars(formula, attrib);
 
-		trace("formula resolved:"); for (f in formula.keys()) trace('  $f => ${formula.get(f)}');
+/*		trace("formula resolved:"); for (f in formula.keys()) trace('  $f => ${formula.get(f)}');
 		trace("attrib:"); for (a in attrib.keys()) trace('  $a => ${attrib.get(a)}');
-				
+*/				
 		// TODO: resolve time-identifiers!
 		
 		// TODO: generate static fields for changing formulas inside program at runtime!
@@ -1107,13 +1103,6 @@ class ElementImpl
 		// texture layers
 		if (!confTextureLayer.exists("__default__")) confTextureLayer.set("__default__",new StringMap<Int>());
 		
-/*		var resolveVaryingName = function(varyingName:String, name:String, v:StringMap<Int>, dv:StringMap<Int>, d:String=""):String {
-			if (v.exists(name)) varyingName += v.get(name);
-			else if (dv.exists(name)) varyingName += dv.get(name);
-			else varyingName = d;
-			return(varyingName);
-		}
-*/		
 		var resolveVaryingName = function(c:Array<ConfSubParam>, name:String, v:StringMap<Int>, dv:StringMap<Int>, d:String=""):String {
 			if (v.exists(name)) return texVaryings.get(c[v.get(name)].name);
 			else if (dv.exists(name)) return texVaryings.get(c[dv.get(name)].name);
@@ -1127,15 +1116,13 @@ class ElementImpl
 			
 			var layer = (name == "__default__") ? maxLayer : v.get("layer");
 			
-			//var unit = resolveVaryingName("vUnit", "texUnit", v, dv, "0.0"); // TODO: statt "vUnit" die conf.texUnit uebergeben
-			var unit = resolveVaryingName(conf.texUnit, "texUnit", v, dv, "0.0"); // TODO: statt "vUnit" die conf.texUnit uebergeben
+			var unit = resolveVaryingName(conf.texUnit, "texUnit", v, dv, "0.0");
 
 			var x  = "0.0";
 			var y  = "0.0";
 			var w = "::SLOTS_WIDTH::";
 			var h = "::SLOTS_HEIGHT::";
 
-			//var slot = resolveVaryingName("vSlot", "texSlot", v, dv);
 			var slot = resolveVaryingName(conf.texSlot, "texSlot", v, dv);
 			if (slot != "") {
 				w = '::SLOT_WIDTH::';
@@ -1145,21 +1132,16 @@ class ElementImpl
 				y  = 'floor(floor($slot)/::SLOTS_X::) * $h';
 			}
 			
-			//var texX = resolveVaryingName("vTexX", "texX", v, dv);
-			//var texY = resolveVaryingName("vTexY", "texY", v, dv);
 			var texX = resolveVaryingName(conf.texX, "texX", v, dv);
 			var texY = resolveVaryingName(conf.texY, "texY", v, dv);
 			if (texX != "") x = ((x != "0.0") ? '$x + ' : "") + "(" + texX + " / ::TEXTURE_WIDTH::)";
 			if (texY != "") y = ((y != "0.0") ? '$y + ' : "") + "(" + texY + " / ::TEXTURE_HEIGHT::)";
 			
-			//var texW = resolveVaryingName("vTexW", "texW", v, dv);
-			//var texH = resolveVaryingName("vTexH", "texH", v, dv);
 			var texW = resolveVaryingName(conf.texW, "texW", v, dv);
 			var texH = resolveVaryingName(conf.texH, "texH", v, dv);
 			if (texW != "") w = '($texW / ::TEXTURE_WIDTH::)';
 			if (texH != "") h = '($texH / ::TEXTURE_HEIGHT::)';
 			
-			//var tile = resolveVaryingName("vTile", "texTile", v, dv);
 			var tile = resolveVaryingName(conf.texTile, "texTile", v, dv);
 			if (tile != "") {
 				w = '$w / ::TILES_X::';
@@ -1177,15 +1159,11 @@ class ElementImpl
 			var texCoordX = 'vTexCoord.x * $w';
 			var texCoordY = 'vTexCoord.y * $h';
 			
-			//var texPosX  = resolveVaryingName("vTexPosX" , "texPosX" , v, dv, "0.0");
-			//var texPosY  = resolveVaryingName("vTexPosY" , "texPosY" , v, dv, "0.0");
-			var texPosX  = resolveVaryingName(conf.texX , "texPosX" , v, dv, "0.0");
-			var texPosY  = resolveVaryingName(conf.texY , "texPosY" , v, dv, "0.0");
+			var texPosX  = resolveVaryingName(conf.texPosX , "texPosX" , v, dv, "0.0");
+			var texPosY  = resolveVaryingName(conf.texPosY , "texPosY" , v, dv, "0.0");
 			if (texPosX != "0.0") texCoordX = '($texCoordX - $texPosX / ::TEXTURE_WIDTH::)';
 			if (texPosY != "0.0") texCoordY = '($texCoordY - $texPosY / ::TEXTURE_HEIGHT::)';
 			
-			//var texSizeX = resolveVaryingName("vTexSizeX", "texSizeX", v, dv);
-			//var texSizeY = resolveVaryingName("vTexSizeY", "texSizeY", v, dv);
 			var texSizeX = resolveVaryingName(conf.texSizeX, "texSizeX", v, dv);
 			var texSizeY = resolveVaryingName(conf.texSizeY, "texSizeY", v, dv);
 			if (texSizeX != "") texCoordX = '$w * ::TEXTURE_WIDTH:: / $texSizeX * $texCoordX';
@@ -1210,8 +1188,7 @@ class ElementImpl
 				TEXCOORD: 'vec2($texCoordX, $texCoordY)',
 				if_ELEMENT_LAYER:  '::if (LAYER ${(name == "__default__") ? ">" : "="}= $layer)::',
 				end_ELEMENT_LAYER: "::end::"
-			});
-			
+			});			
 			
 			// create static vars for texture identifiers
 			if (name != "__default__") {
@@ -1224,6 +1201,7 @@ class ElementImpl
 				debugLastField(fields);
 			}
 		}
+		
 		// create aditional static vars for texture identifiers
 		for (name in defaultFormulaVars) {
 			if (!confTextureLayer.exists(name)) {
@@ -1739,8 +1717,7 @@ class ElementImpl
 				}
 				write2packedFloat(conf.posX  , conf.posY);
 				write2packedFloat(conf.sizeX , conf.sizeY);
-				write2packedFloat(conf.pivotX, conf.pivotY);
-				
+				write2packedFloat(conf.pivotX, conf.pivotY);				
 			
 				// packed float attribs
 				for (attrib in packedAttribs.float) {
@@ -1769,9 +1746,7 @@ class ElementImpl
 				write2packedInt(conf.posX  , conf.posY);
 				write2packedInt(conf.sizeX , conf.sizeY);
 				write2packedInt(conf.pivotX, conf.pivotY);
-				
-
-			
+							
 				// packed short attribs
 				for (attrib in packedAttribs.short) {
 					for (m in attrib) {	
@@ -2006,7 +1981,6 @@ class ElementImpl
 			enable2packInt("aPOS", conf.posX, conf.posY);
 			enable2packInt("aSIZE", conf.sizeX, conf.sizeY);
 			enable2packInt("aPIVOT", conf.pivotX, conf.pivotY);
-
 			
 			// packed short attribs
 			for (k in 0...packedAttribs.short.length) {
@@ -2082,7 +2056,6 @@ class ElementImpl
 			if (conf.posX.n  + conf.posY.n  > 0 ) exprBlock.push( macro gl.disableVertexAttribArray (aPOS) );
 			if (conf.sizeX.n + conf.sizeY.n > 0 ) exprBlock.push( macro gl.disableVertexAttribArray (aSIZE) );
 			if (conf.pivotX.n + conf.pivotY.n > 0 ) exprBlock.push( macro gl.disableVertexAttribArray (aPIVOT) );
-
 			
 			// packed attribs		
 			for (k in 0...packedAttribs.float.length) exprBlock.push( macro gl.disableVertexAttribArray ($i{"aFLOAT"+k}) );
@@ -2135,8 +2108,7 @@ class ElementImpl
 			kind: FieldType.FVar(macro:String, macro $v{parseShader(Shader.fragmentShader)}),
 			pos: Context.currentPos(),
 		});
-		
-		
+				
 		return fields; // <------ classgeneration complete !
 	}
 
