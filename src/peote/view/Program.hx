@@ -87,6 +87,8 @@ class Program
 	var activeUnits = new Array<Int>();
 
 	var colorIdentifiers:Array<String>;
+	var customIdentifiers:Array<String>;
+	var customVaryings:Array<String>;
 
 	var textureIdentifiers:Array<String>;
 	var customTextureIdentifiers = new Array<String>();
@@ -106,6 +108,8 @@ class Program
 		zIndexEnabled = buffer.hasZindex();
 		
 		colorIdentifiers = buffer.getColorIdentifiers();
+		customIdentifiers = buffer.getCustomIdentifiers();
+		customVaryings = buffer.getCustomVaryings();
 		textureIdentifiers = buffer.getTextureIdentifiers();
 		
 		defaultColorFormula = buffer.getDefaultColorFormula();
@@ -331,6 +335,12 @@ class Program
 			if (regexp.match(formula))
 				if (regexp.matched(1).substr(-1,1) != ".")
 					formula = regexp.replace( formula, '$1' + "c" + i +'$2' );
+		}
+		for (i in 0...customIdentifiers.length) {
+			var regexp = new EReg('(.*?\\b)${customIdentifiers[i]}(\\b.*?)', "g");
+			if (regexp.match(formula))
+				if (regexp.matched(1).substr(-1,1) != ".")
+					formula = regexp.replace( formula, '$1' + customVaryings[i] +'$2' );
 		}
 		for (i in 0...textureIdentifiers.length) {
 			var regexp = new EReg('(.*?\\b)${textureIdentifiers[i]}(\\b.*?)', "g");

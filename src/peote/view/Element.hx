@@ -449,7 +449,7 @@ class ElementImpl
 		var identifiers:Array<String> = getIdentifiersByMetaParams(f, meta);
 		if (identifiers == null) return false;
 		if (identifiers.length > 1) throw Context.error('Error: @color attributes needs only 1 identifier for use in colorFormula (default is allways "color")', f.pos);
-		if (identifiers.length == 0) identifiers.push("color");
+		if (identifiers.length == 0) identifiers.push(f.name);
 		var name = identifiers[0];
 		if (Util.isWrongIdentifier(name)) throw Context.error('Error: "$name" is not an identifier, please use only letters/numbers or "_" (starting with a letter)', f.pos);
 		if (colorIdentifiers.indexOf(name) >= 0) throw Context.error('Error: "$name" is already used for a @color identifier', f.pos);
@@ -466,7 +466,7 @@ class ElementImpl
 		var identifiers:Array<String> = getIdentifiersByMetaParams(f, meta);
 		if (identifiers == null) return false;
 		if (identifiers.length > 1) throw Context.error('Error: @custom attributes needs only 1 identifier for use in custom shadercode (default is allways "custom")', f.pos);
-		if (identifiers.length == 0) identifiers.push("custom");
+		if (identifiers.length == 0) identifiers.push(f.name);
 		var name = identifiers[0];
 		if (Util.isWrongIdentifier(name)) throw Context.error('Error: "$name" is not an identifier, please use only letters/numbers or "_" (starting with a letter)', f.pos);
 		if (customIdentifiers.indexOf(name) >= 0) throw Context.error('Error: "$name" is already used for a @custom identifier', f.pos);
@@ -1089,16 +1089,16 @@ class ElementImpl
 					v.set(c.name, "vTexPack" + Std.int(i / 4) + ending);
 				} else {
 					glConf.CALC_VARYING += "vPack" + Std.int(i / 4) + ending + ' = ' + pv[i].formula + ";";
-					v.set(c.name, "vTexPack" + Std.int(i / 4) + ending);
+					v.set(c.name, "vPack" + Std.int(i / 4) + ending);
 				}
 			}	
 		}
 		fillVaryings(varyings, packedVaryings);
 		fillVaryings(texVaryings, packedTexVaryings, true);
 		
-		trace("varyings:"); for (v in varyings.keys()) trace('  $v => ${varyings.get(v)}');			
+/*		trace("varyings:"); for (v in varyings.keys()) trace('  $v => ${varyings.get(v)}');			
 		trace("-------"); 
-		
+*/		
 		
 		// texture layers
 		if (!confTextureLayer.exists("__default__")) confTextureLayer.set("__default__",new StringMap<Int>());
@@ -1215,9 +1215,6 @@ class ElementImpl
 			}
 		}
 		
-		
-		// TODO: handle custom attribute-names for shader-injection
-		
 		// create static vars for color identifiers that is additional inside DEFAULT_COLOR_VARS
 		for (name in colorIdentifiers) // create static vars for color identifiers
 			fields.push({
@@ -1238,12 +1235,32 @@ class ElementImpl
 		});
 		
 		// put all color identifiers inside a static string for progam
-		// trace("colorIdentifiers", colorIdentifiers);
+		// trace("colorIdentifiers:", colorIdentifiers);
 		fields.push({
 			name:  "IDENTIFIERS_COLOR",
 			meta:  allowForBuffer,
 			access:  [Access.APrivate, Access.AStatic, Access.AInline],
 			kind: FieldType.FVar(macro:String, macro $v{colorIdentifiers.join(",")}), 
+			pos: Context.currentPos(),
+		});
+		
+		// put all custom identifiers inside a static string for progam
+		trace("customIdentifiers:", customIdentifiers);
+		fields.push({
+			name:  "IDENTIFIERS_CUSTOM",
+			meta:  allowForBuffer,
+			access:  [Access.APrivate, Access.AStatic, Access.AInline],
+			kind: FieldType.FVar(macro:String, macro $v{customIdentifiers.join(",")}), 
+			pos: Context.currentPos(),
+		});
+		
+		// put all custom varyings inside a static string for progam
+		trace("customVaryings:", [for (i in 0...conf.custom.length) varyings.get(conf.custom[i].name) ].join(","));
+		fields.push({
+			name:  "VARYINGS_CUSTOM",
+			meta:  allowForBuffer,
+			access:  [Access.APrivate, Access.AStatic, Access.AInline],
+			kind: FieldType.FVar(macro:String, macro $v{[for (i in 0...conf.custom.length) varyings.get(conf.custom[i].name) ].join(",")}), 
 			pos: Context.currentPos(),
 		});
 		

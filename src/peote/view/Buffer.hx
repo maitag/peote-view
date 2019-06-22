@@ -392,6 +392,8 @@ class $className implements BufferInterface
 	private inline function getFragmentShader():String return $p{elemField}.fragmentShader;
 	private inline function getTextureIdentifiers():Array<String> return ($p{elemField}.IDENTIFIERS_TEXTURE == "") ? [] : $p{elemField}.IDENTIFIERS_TEXTURE.split(",");
 	private inline function getColorIdentifiers():Array<String> return ($p{elemField}.IDENTIFIERS_COLOR == "") ? [] :  $p{elemField}.IDENTIFIERS_COLOR.split(",");
+	private inline function getCustomIdentifiers():Array<String> return ($p{elemField}.IDENTIFIERS_CUSTOM == "") ? [] :  $p{elemField}.IDENTIFIERS_CUSTOM.split(",");
+	private inline function getCustomVaryings():Array<String> return ($p{elemField}.VARYINGS_CUSTOM == "") ? [] :  $p{elemField}.VARYINGS_CUSTOM.split(",");
 	private inline function getDefaultColorFormula():String return $p{elemField}.DEFAULT_COLOR_FORMULA;
 	private inline function getDefaultFormulaVars():haxe.ds.StringMap<peote.view.Color> return $p{elemField}.DEFAULT_FORMULA_VARS;
 	private inline function hasAlpha():Bool return $p{elemField}.ALPHA_ENABLED;

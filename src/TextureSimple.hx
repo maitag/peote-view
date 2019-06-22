@@ -33,18 +33,18 @@ class Elem implements Element
 	//@zIndex public var z:Int = 0;	
 	
 	// manual texture coordinates inside a slot (or inside all slots if no slot available)
-	@texX @anim @constStart(5) public var tx:Int = 6;
-	@texY public var ty:Int=11;
+	@texX @anim("Tex","pingpong") @constStart(0) public var tx:Int;
+	@texY public var ty:Int=-11;
 	@texW @const @formula("tw - tx") public var tw:Int=256;
-	@texH("A") @const public var thA:Int=64;
-	@texH("B") public var thB:Int=128;
+	@texH @const public var th:Int=256;
+	//@texH("B") public var thB:Int=128;
 	
 	//let the texture shift/resize inside slot/texCoords/tile area of Element
-	@texPosX public var txOffset:Int = 10;
-	@texPosY public var tyOffset:Float = 3.0;
-	//@texSizeX public var twOffset:Int = 256;
-	//@texSizeY public var thOffset:Int = 16;
-	
+/*	@texPosX public var txOffset:Int = 10;
+	@texPosY public var tyOffset:Float = 2.0;
+	@texSizeX public var twOffset:Int = 256;
+	@texSizeY public var thOffset:Int = 256;
+*/	
 	var OPTIONS = { texRepeatX:true, texRepeatY:true, alpha:true };
 	
 	public function new(positionX:Int=0, positionY:Int=0, width:Int=100, height:Int=100, c:Int=0xFF0000FF )
@@ -54,6 +54,9 @@ class Elem implements Element
 		this.w = width;
 		this.h = height;
 		//this.c = c;
+		
+		this.animTex(255);
+		this.timeTex(0, 5);
 	}
 
 
@@ -100,7 +103,9 @@ class TextureSimple
 				
 				element.w = 512;// image.width;
 				element.h = 512;// image.height;
-				buffer.updateElement(element);			
+				buffer.updateElement(element);
+				
+				peoteView.start();
 			});
 		}
 		catch (msg:String) {trace("ERROR", msg); }				

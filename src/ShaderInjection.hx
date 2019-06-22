@@ -55,11 +55,11 @@ import peote.view.Element;
 // --------------------------------------------------- fragment rounded border
 class Elem1 implements Element
 {
-	@color("color") public var color:Color=0xffff00ff;
-	@color("borderColor") public var borderColor:Color=0x000000ff;
+	@color("bgcolor") public var color:Color=0xffff00ff; // with different identifier for glsl-injection
+	@color public var borderColor:Color = 0x550000ff; // using propertyname as identifier for glsl-injection
 	
-	@custom("borderSize")   @varying public var borderSize:Float=10.0;
-	@custom("borderRadius") @varying public var borderRadius:Float=25.0;
+	@custom("borderSize") @const @varying public var bSize:Float=10.0;// with different identifier for glsl-injection
+	@custom @varying public var borderRadius:Float=25.0; // using propertyname as identifier for glsl-injection
 	
 	@posX public var x:Int=0;
 	@posY public var y:Int=0;	
@@ -101,7 +101,9 @@ class Elem1 implements Element
 				return c;
 			}
 		");
-		program.setColorFormula('compose(color, borderColor, vPack0.x, vPack0.y)'); // TODO: identifiers for custom varyings
+		
+		program.setColorFormula('compose(bgcolor, borderColor, borderSize, borderRadius)');// parsed by color and custom identifiers
+		
 		program.alphaEnabled = true;
 		display.addProgram(program);
 	}
