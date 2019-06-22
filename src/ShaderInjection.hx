@@ -19,7 +19,7 @@ import peote.view.Element;
 
 
 // --------------------------------------------------- fragment color-spectrum
-/*class Elem0 implements Element
+class Elem0 implements Element
 {
 	@posX public var x:Int=0;
 	@posY public var y:Int=0;
@@ -50,16 +50,16 @@ import peote.view.Element;
 		this.x = positionX;	this.y = positionY;	buffer.addElement(this);
 	}	
 }
-*/
+
 
 // --------------------------------------------------- fragment rounded border
 class Elem1 implements Element
 {
-	@color("bgcolor") public var color:Color=0xffff00ff; // with different identifier for glsl-injection
-	@color public var borderColor:Color = 0x550000ff; // using propertyname as identifier for glsl-injection
+	@color public var borderColor:Color = 0x550000ff; // using propertyname "borderColor" as identifier for setColorFormula()
+	@color("bgcolor") public var color:Color=0xffff00ff; // using different identifier "bgcolor" for setColorFormula()
 	
-	@custom("borderSize") @const @varying public var bSize:Float=10.0;// with different identifier for glsl-injection
-	@custom @varying public var borderRadius:Float=25.0; // using propertyname as identifier for glsl-injection
+	@custom @varying public var borderRadius:Float=25.0; // using propertyname as identifier for setColorFormula()
+	@custom("borderSize") @varying public var bSize:Float=10.0;// using different identifier "borderSize" for setColorFormula()
 	
 	@posX public var x:Int=0;
 	@posY public var y:Int=0;	
@@ -97,7 +97,7 @@ class Elem1 implements Element
 			{
 				float radius =  max(borderSize+1.0, min(borderRadius, min(vSize.x, vSize.y) / 2.0));
 				c = mix(c, vec4(0.0, 0.0, 0.0, 0.0), roundedBox(vTexCoord, vSize, borderSize, radius));				
-				c = mix(c, borderColor, roundedBorder(vTexCoord, vSize, borderSize, radius));
+				c = mix(c, borderColor, roundedBorder(vTexCoord, vSize, borderSize, radius)); // TODO: vSize Varyings also via setColorFormula()
 				return c;
 			}
 		");
@@ -112,7 +112,7 @@ class Elem1 implements Element
 		this.x = positionX;	this.y = positionY;	buffer.addElement(this);
 	}	
 }
-/*
+
 // --------------------------------------------------- simple random noise
 class Elem2 implements Element
 {
@@ -142,8 +142,8 @@ class Elem2 implements Element
 		this.x = positionX;	this.y = positionY;	buffer.addElement(this);
 	}	
 }
-*/
-/*
+
+
 // --------------------------------------------------- custom formula for attributes
 class Elem3 implements Element
 {
@@ -181,7 +181,7 @@ class Elem3 implements Element
 		buffer.addElement(this);
 	}	
 }
-*/
+
 // -------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------
@@ -198,10 +198,10 @@ class ShaderInjection
 			display   = new Display(10,10, window.width-20, window.height-20, Color.GREEN);
 			peoteView.addDisplay(display);
 			
-			//Elem0.init(display); new Elem0(  0, 0);
+			Elem0.init(display); new Elem0(  0, 0);
 			Elem1.init(display); new Elem1(110, 0);
-			//Elem2.init(display); new Elem2(220, 0);	
-			//Elem3.init(display); new Elem3(330, 0);		
+			Elem2.init(display); new Elem2(220, 0);	
+			Elem3.init(display); new Elem3(330, 0);		
 		} 
 		catch (e:Dynamic) trace("ERROR:", e);
 	}

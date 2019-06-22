@@ -74,6 +74,8 @@ class ElementImpl
 {
 	static inline var MAX_ZINDEX:Int = 0x1FFFFF;
 	
+	static var VEC4_ENDINGS = ['.x', '.y', '.z', '.w'];
+	
 	//static inline function debug(s:String, ?pos:haxe.PosInfos):Void	{
 	static inline function debug(s:String, ?pos:haxe.PosInfos):Void	{
 		#if peoteview_debug_macro
@@ -736,7 +738,6 @@ class ElementImpl
 		
 		function createPackedAttribs(type:Array<Array<{isStart:Bool, conf:ConfSubParam}>>, altype:Array<Array<{isStart:Bool, conf:ConfSubParam}>> ,confArray:Array<Array<ConfSubParam>>)
 		{
-			var m = ['.x', '.y', '.z', '.w']; // TODO: make static for all functions that using it
 			for (conf in confArray)
 			{
 				for (k in 0...conf.length) {
@@ -773,14 +774,12 @@ class ElementImpl
 		{
 			for (i in 0...paType.length) {
 				var pa = paType[i];
-				var m = ['.x', '.y', '.z', '.w']; // TODO: make static for all functions that using it
-				
 				var type = (pa.length == 1) ? "float" : "vec" + pa.length;
 				glConf.ATTRIB_PACK += '::IN:: $type ' + aName + i + ";";
 				
 				for (j in 0...pa.length) {
 					var mapping = pa[j];
-					var ending = (i == paType.length-1 && pa.length == 1) ? "" : m[j];
+					var ending = (i == paType.length-1 && pa.length == 1) ? "" : VEC4_ENDINGS[j];
 					if (mapping.isStart)
 						attrib.set(mapping.conf.name+"Start", aName + i + ending);
 					else attrib.set(mapping.conf.name+"End",  aName + i + ending);
@@ -1065,8 +1064,8 @@ class ElementImpl
 		// traverse packedVaryings again and fill rest of varyings
 		function fillVaryings(v:StringMap<String>, pv:Array<{conf:ConfSubParam, formula:String}>, isTex:Bool=false)
 		{
-			for (i in 0...pv.length) {
-				var m = ['.x', '.y', '.z', '.w']; // TODO: make STATIC
+			for (i in 0...pv.length)
+			{
 				var c:ConfSubParam = pv[i].conf;
 
 				var isLast:Bool = ( Std.int(i / 4) == Std.int((pv.length-1) / 4) ) ? true : false;
@@ -1082,7 +1081,7 @@ class ElementImpl
 					}
 				}
 				
-				var ending:String = (isLast && (pv.length-1)%4 ==0 ) ? "" : m[i % 4];
+				var ending:String = (isLast && (pv.length-1)%4 ==0 ) ? "" : VEC4_ENDINGS[i % 4];
 				
 				if (isTex) {
 					glConf.CALC_TEXVARYING += "vTexPack" + Std.int(i / 4) + ending + ' = ' + pv[i].formula + ";";
@@ -1103,15 +1102,15 @@ class ElementImpl
 		// texture layers
 		if (!confTextureLayer.exists("__default__")) confTextureLayer.set("__default__",new StringMap<Int>());
 		
-		var resolveVaryingName = function(c:Array<ConfSubParam>, name:String, v:StringMap<Int>, dv:StringMap<Int>, d:String=""):String {
+		function resolveVaryingName(c:Array<ConfSubParam>, name:String, v:StringMap<Int>, dv:StringMap<Int>, d:String=""):String {
 			if (v.exists(name)) return texVaryings.get(c[v.get(name)].name);
 			else if (dv.exists(name)) return texVaryings.get(c[dv.get(name)].name);
 			else return(d);
 		}
 		
 		var dv = confTextureLayer.get("__default__");
-		for (name in confTextureLayer.keys()) {
-			//trace(name, confTextureLayer.get(name));
+		for (name in confTextureLayer.keys())
+		{			
 			var v:StringMap<Int> = confTextureLayer.get(name);
 			
 			var layer = (name == "__default__") ? maxLayer : v.get("layer");
