@@ -68,14 +68,10 @@ class Program
 		// TODO: headers to share functions between glPrograms
 		//VERTEX_FUNCTION_HEADERS : "",
 		//FRAGMENT_FUNCTION_HEADERS : "",
-		SIZEX_FORMULA : null,
-		SIZEY_FORMULA : null,
-		POSX_FORMULA : null,
-		POSY_FORMULA : null,
-		ROTZX_FORMULA : null,
-		ROTZY_FORMULA : null,
-		PIVOTX_FORMULA : null,
-		PIVOTY_FORMULA : null,
+		SIZE_FORMULA : null,
+		POS_FORMULA : null,
+		ROTZ_FORMULA : null,
+		PIVOT_FORMULA : null,
 		FRAGMENT_EXTENSIONS: [],
 	};
 	
@@ -389,6 +385,38 @@ class Program
 		glShaderConfig.FRAGMENT_INJECTION = glslCode;
 		useTextCoordVaryings = (glslCode == "") ? false : true;
 		checkAutoUpdate(autoUpdateTextures);
+	}
+	
+	// TODO
+	var formula:StringMap<String>;
+	var attrib :StringMap<String>;
+	var formulaNames :StringMap<String>;
+	public function setFormula(name:String, newFormula:String, ?autoUpdateTextures:Null<Bool>):Void {
+		
+		formula = buffer.getFormulas();
+		attrib = buffer.getAttributes();
+		formulaNames = buffer.getFormulaNames();
+		
+		trace("formula:"); for (f in formula.keys()) trace('  $f => ${formula.get(f)}');
+		trace("attrib:"); for (f in attrib.keys()) trace('  $f => ${attrib.get(f)}');
+		
+		if (formulaNames.exists(name))
+			trace('default formula for $name is: ' + formula.get( formulaNames.get(name) ) );
+		
+			
+		checkAutoUpdate(autoUpdateTextures);
+	}
+	
+	// invoked via createProg()
+	function parseAndResolveFormulas():Void {
+
+		try Util.resolveFormulaCyclic(formula) catch(e:Dynamic) throw ('Error: cyclic reference of "${e.errVar}" inside @formula "${e.formula}" for "${e.errKey}"');
+		//trace("formula cyclic resolved:"); for (f in formula.keys()) trace('  $f => ${formula.get(f)}');
+		Util.resolveFormulaVars(formula, attrib);
+
+		trace("formula resolved:"); for (f in formula.keys()) trace('  $f => ${formula.get(f)}');
+		trace("attrib:"); for (a in attrib.keys()) trace('  $a => ${attrib.get(a)}');
+		
 	}
 	
 	// -------------------------------------------------

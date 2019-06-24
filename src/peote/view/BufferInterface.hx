@@ -18,6 +18,9 @@ interface BufferInterface
 	private function getCustomVaryings():Array<String>;
 	private function getDefaultColorFormula():String;
 	private function getDefaultFormulaVars():haxe.ds.StringMap<peote.view.Color>;
+	private function getFormulas():haxe.ds.StringMap<String>;
+	private function getAttributes():haxe.ds.StringMap<String>;
+	private function getFormulaNames():haxe.ds.StringMap<String>;
 	private function hasAlpha():Bool;
 	private function hasZindex():Bool;
 	private function hasPicking():Bool;

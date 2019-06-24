@@ -899,6 +899,46 @@ class ElementImpl
 		resolveFormulas("aRotZ" , conf.rotation, conf.zIndex );
 		resolveFormulas("aPivot", conf.pivotX, conf.pivotY );
 		
+		// make formulas and attribs as static Element-vars for using into program
+		var _map : Array<Expr> = [for (k in formula.keys()) macro $v{k} => $v{formula.get(k)}];		
+		fields.push({
+			name:  "FORMULAS",
+			meta:  allowForBuffer,
+			access:  [Access.APrivate, Access.AStatic],
+			kind: FieldType.FVar(macro:haxe.ds.StringMap<String>, macro $a{_map}),
+			pos: Context.currentPos(),
+		});
+		_map = [for (k in attrib.keys()) macro $v{k} => $v{attrib.get(k)}];
+		fields.push({
+			name:  "ATTRIBUTES",
+			meta:  allowForBuffer,
+			access:  [Access.APrivate, Access.AStatic],
+			kind: FieldType.FVar(macro:haxe.ds.StringMap<String>, macro $a{_map}),
+			pos: Context.currentPos(),
+		});
+		
+		// store the names for formulas to use into program
+		_map = new Array<Expr>();
+		if (conf.sizeX.name != "") _map.push( macro $v{"sizeX"} => $v{conf.sizeX.name});
+		if (conf.sizeY.name != "") _map.push( macro $v{"sizeY"} => $v{conf.sizeY.name});
+		if (conf.posX.name  != "") _map.push( macro $v{"posX"}  => $v{conf.posX.name});
+		if (conf.posY.name  != "") _map.push( macro $v{"posY"}  => $v{conf.posY.name});
+		if (conf.rotation.name != "") _map.push( macro $v{"rotation"} => $v{conf.rotation.name});
+		if (conf.zIndex.name   != "") _map.push( macro $v{"zIndex"}   => $v{conf.zIndex.name});
+		if (conf.pivotX.name != "") _map.push( macro $v{"pivotX"} => $v{conf.pivotX.name});
+		if (conf.pivotY.name != "") _map.push( macro $v{"pivotY"} => $v{conf.pivotY.name});
+		// customs
+		for (i in 0...customIdentifiers.length) _map.push( macro $v{customIdentifiers[i]} => $v{conf.custom[i].name});
+		
+		fields.push({
+			name:  "FORMULA_NAMES",
+			meta:  allowForBuffer,
+			access:  [Access.APrivate, Access.AStatic],
+			kind: FieldType.FVar(macro:haxe.ds.StringMap<String>, macro $a{_map}),
+			pos: Context.currentPos(),
+		});
+		
+		
 		try Util.resolveFormulaCyclic(formula) catch(e:Dynamic) throw Context.error('Error: cyclic reference of "${e.errVar}" inside @formula "${e.formula}" for "${e.errKey}"', formulaErrPos.get(e.errKey));
 		//trace("formula cyclic resolved:"); for (f in formula.keys()) trace('  $f => ${formula.get(f)}');
 		Util.resolveFormulaVars(formula, attrib);
@@ -950,9 +990,11 @@ class ElementImpl
 			
 		function packForFormula(name:String, x:ConfSubParam, y:ConfSubParam):String
 		{	
-			if (x.formula == "" && y.formula == "" ) return pack2in1(name, x, y);
-			
 			var tmplvar = name.substr(1).toUpperCase();
+			
+			if (x.formula == "" && y.formula == "" )
+				return '::if ${tmplvar}_FORMULA::::${tmplvar}_FORMULA::::else::'+pack2in1(name, x, y)+"::end::";
+			
 			
 			var fx = (x.name != "") ? formula.get(x.name) : Util.toFloatString(x.vStart);
 			if (fx == null) fx = attrib.get(x.name);
@@ -965,9 +1007,7 @@ class ElementImpl
 				if (y.formula != "") fy = 'clamp( $fy/${Util.toFloatString(MAX_ZINDEX)}, -1.0, 1.0)';
 			}
 			
-			var vecXstart = '::if ${tmplvar}X_FORMULA::::${tmplvar}X_FORMULA::::else::$fx::end::';
-			var vecYstart = '::if ${tmplvar}Y_FORMULA::::${tmplvar}Y_FORMULA::::else::$fy::end::';
-			return 'vec2($vecXstart, $vecYstart)';
+			return '::if ${tmplvar}_FORMULA::::${tmplvar}_FORMULA::::else::vec2($fx, $fy)::end::';
 		}		
 		
 		// size

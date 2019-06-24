@@ -19,7 +19,7 @@ import peote.view.Element;
 
 
 // --------------------------------------------------- fragment color-spectrum
-class Elem0 implements Element
+/*class Elem0 implements Element
 {
 	@posX public var x:Int=0;
 	@posY public var y:Int=0;
@@ -142,7 +142,7 @@ class Elem2 implements Element
 		this.x = positionX;	this.y = positionY;	buffer.addElement(this);
 	}	
 }
-
+*/
 
 // --------------------------------------------------- custom formula for attributes
 class Elem3 implements Element
@@ -170,7 +170,7 @@ class Elem3 implements Element
 				return fract(sin(dot(co.xy, vec2(12.9898,78.233))) * seed);
 			}		
 		");
-		// TODO: program.setSizeYFormula('x + 50');
+		program.setFormula("posY", "x + 50");
 		display.addProgram(program);
 	}
 	
@@ -198,10 +198,10 @@ class ShaderInjection
 			display   = new Display(10,10, window.width-20, window.height-20, Color.GREEN);
 			peoteView.addDisplay(display);
 			
-			Elem0.init(display); new Elem0(  0, 0);
+/*			Elem0.init(display); new Elem0(  0, 0);
 			Elem1.init(display); new Elem1(110, 0);
 			Elem2.init(display); new Elem2(220, 0);	
-			Elem3.init(display); new Elem3(330, 0);		
+*/			Elem3.init(display); new Elem3(330, 0);		
 		} 
 		catch (e:Dynamic) trace("ERROR:", e);
 	}
