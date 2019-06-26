@@ -150,7 +150,8 @@ class Elem3 implements Element
 	@posX @formula("x - sin(y*0.1)*20.0") public var x:Int=0;
 	@posY @anim("Y","pingpong") public var y:Int=0; // @constStart(0) @constEnd(100)
 	
-	@sizeX @const @formula("100.0 + sin(y*0.1)*40.0") public var w:Int=100;
+	@sizeX @const public var w:Int=100;
+	//@sizeX @const @formula("100.0 + sin(y*0.1)*40.0") public var w:Int=100;
 	@sizeY @const @formula("45.0+time0*45.0")  public var h:Int = 110;
 	
 	@rotation @const @formula("(h-45.0)*8.0") var r:Float = 30.0;
@@ -170,7 +171,8 @@ class Elem3 implements Element
 				return fract(sin(dot(co.xy, vec2(12.9898,78.233))) * seed);
 			}		
 		");
-		program.setFormula("posY", "x + 50");
+		//program.setFormula("sizeX", "45.0+time0*45.0");
+		program.setFormula("rotation", "-y");
 		display.addProgram(program);
 	}
 	

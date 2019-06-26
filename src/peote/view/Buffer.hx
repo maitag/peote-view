@@ -399,6 +399,7 @@ class $className implements BufferInterface
 	private inline function getFormulas():haxe.ds.StringMap<String> return $p{elemField}.FORMULAS;
 	private inline function getAttributes():haxe.ds.StringMap<String> return $p{elemField}.ATTRIBUTES;
 	private inline function getFormulaNames():haxe.ds.StringMap<String> return $p{elemField}.FORMULA_NAMES;
+	private inline function getMaxZindex():Int return $p{elemField}.MAX_ZINDEX;
 	private inline function hasAlpha():Bool return $p{elemField}.ALPHA_ENABLED;
 	private inline function hasZindex():Bool return $p{elemField}.ZINDEX_ENABLED;
 	private inline function hasPicking():Bool return $p{elemField}.PICKING_ENABLED;

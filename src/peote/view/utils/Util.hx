@@ -69,7 +69,7 @@ class Util
 			for (k in attribs.keys()) {
 				var regexp = new EReg('(.*?\\b)$k(\\b.*?)', "g");
 				if (regexp.match(formula) && (regexp.matched(1).substr(-1) != "."))
-					formula = regexp.replace( formula, '$1' + attribs.get(k) + '$2' );
+					formula = regexp.replace( formula, '$1(' + attribs.get(k) + ')$2' );
 			}
 			formulas.set(key, formula);
 		}

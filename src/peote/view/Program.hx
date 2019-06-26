@@ -72,6 +72,7 @@ class Program
 		POS_FORMULA : null,
 		ROTZ_FORMULA : null,
 		PIVOT_FORMULA : null,
+		//CUSTOM_FORMULA : [],
 		FRAGMENT_EXTENSIONS: [],
 	};
 	
@@ -92,6 +93,8 @@ class Program
 	var defaultFormulaVars:StringMap<Color>;
 	var defaultColorFormula:String;
 	var colorFormula = "";
+	var formula = new StringMap<String>();
+	var formulaHasChanged:Bool = false;
 	
 	var fragmentFloatPrecision:Null<String> = null;
 	
@@ -110,9 +113,19 @@ class Program
 		
 		defaultColorFormula = buffer.getDefaultColorFormula();
 		defaultFormulaVars = buffer.getDefaultFormulaVars();
+		
+		// copy formulas
+		for (k in buffer.getFormulas().keys()) formula.set(k, buffer.getFormulas().get(k) );
+		try Util.resolveFormulaCyclic(buffer.getFormulas()) catch(e:Dynamic) throw ('Error: cyclic reference of "${e.errVar}" inside @formula "${e.formula}" for "${e.errKey}"');
+		//trace("formula cyclic resolved:"); for (f in buffer.getFormulas().keys()) trace('  $f => ${buffer.getFormulas().get(f)}');
+		Util.resolveFormulaVars(buffer.getFormulas(), buffer.getAttributes());
+		//trace("default formula resolved:"); for (f in buffer.getFormulas().keys()) trace('  $f => ${buffer.getFormulas().get(f)}');
+		
 		#if peoteview_debug_program
 		trace("defaultColorFormula = ", defaultColorFormula);
 		trace("defaultFormulaVars = ", defaultFormulaVars);
+		trace("formulas:"); for (f in formula.keys()) trace('  $f => ${formula.get(f)}');
+		trace("attributes:"); for (f in buffer.getAttributes().keys()) trace('  $f => ${buffer.getAttributes().get(f)}');
 		#end
 		parseColorFormula();
 	}
@@ -226,6 +239,8 @@ class Program
 			else 
 				glShaderConfig.FRAGMENT_FLOAT_PRECISION = PeoteGL.Precision.availFragmentFloat("mediump");
 		}
+		
+		parseAndResolveFormulas();
 				
 		var glVShader = GLTool.compileGLShader(gl, gl.VERTEX_SHADER,   GLTool.parseShader(buffer.getVertexShader(),   glShaderConfig), true );
 		var glFShader = GLTool.compileGLShader(gl, gl.FRAGMENT_SHADER, GLTool.parseShader(buffer.getFragmentShader(), glShaderConfig), true );
@@ -387,36 +402,72 @@ class Program
 		checkAutoUpdate(autoUpdateTextures);
 	}
 	
-	// TODO
-	var formula:StringMap<String>;
-	var attrib :StringMap<String>;
-	var formulaNames :StringMap<String>;
+	// set formulas for attributes manual at runtime
 	public function setFormula(name:String, newFormula:String, ?autoUpdateTextures:Null<Bool>):Void {
 		
-		formula = buffer.getFormulas();
-		attrib = buffer.getAttributes();
-		formulaNames = buffer.getFormulaNames();
+		var formulaName = buffer.getFormulaNames().get(name);
 		
-		trace("formula:"); for (f in formula.keys()) trace('  $f => ${formula.get(f)}');
-		trace("attrib:"); for (f in attrib.keys()) trace('  $f => ${attrib.get(f)}');
+		if (formulaName != null) {
+			trace('  set formula: $formulaName = $newFormula' );
+			formula.set(formulaName, newFormula);
+		}
+		else {
+			// todo: check correct names
+			//trace('  set formula: $name = $newFormula' );
+			//formula.set(name, newFormula);
+			throw('Error: can not set Formula for $name if there is no property defined for @$name inside Element');
+		}
 		
-		if (formulaNames.exists(name))
-			trace('default formula for $name is: ' + formula.get( formulaNames.get(name) ) );
-		
-			
+		formulaHasChanged = true;
 		checkAutoUpdate(autoUpdateTextures);
 	}
 	
 	// invoked via createProg()
 	function parseAndResolveFormulas():Void {
 
-		try Util.resolveFormulaCyclic(formula) catch(e:Dynamic) throw ('Error: cyclic reference of "${e.errVar}" inside @formula "${e.formula}" for "${e.errKey}"');
-		//trace("formula cyclic resolved:"); for (f in formula.keys()) trace('  $f => ${formula.get(f)}');
-		Util.resolveFormulaVars(formula, attrib);
+		if (formulaHasChanged)
+		{
+			var formulaResolved:StringMap<String> = [for (k in formula.keys()) k => formula.get(k) ];
+			try Util.resolveFormulaCyclic(formulaResolved) catch(e:Dynamic) throw ('Error: cyclic reference of "${e.errVar}" inside formula "${e.formula}" for "${e.errKey}"');
+			//trace("formula cyclic resolved:"); for (f in formulaResolved.keys()) trace('  $f => ${formulaResolved.get(f)}');
+			Util.resolveFormulaVars(formulaResolved, buffer.getAttributes());
+			
+			trace("formula names:"); for (f in buffer.getFormulaNames().keys()) trace('  $f => ${buffer.getFormulaNames().get(f)}');
+			trace("formula resolved:"); for (f in formulaResolved.keys()) trace('  $f => ${formulaResolved.get(f)}');
+			
+			function formulaTemplateValue(x:String, y:String, dx:String, dy:String):String
+			{
+				var nx = buffer.getFormulaNames().get(x);
+				//if (nx == null) nx = x;
+				if (nx == null) nx = "";
+				
+				var ny = buffer.getFormulaNames().get(y);
+				//if (ny == null) ny = y;
+				if (ny == null) ny = "";
 
-		trace("formula resolved:"); for (f in formula.keys()) trace('  $f => ${formula.get(f)}');
-		trace("attrib:"); for (a in attrib.keys()) trace('  $a => ${attrib.get(a)}');
-		
+				var fx = formulaResolved.get(nx);
+				var fy = formulaResolved.get(ny);
+
+				if ( fx != buffer.getFormulas().get(nx) || fy != buffer.getFormulas().get(ny) ) {
+					if (fx == null) fx = buffer.getAttributes().get(nx);
+					if (fx == null) fx = dx;
+					
+					if (fy == null) fy = dy;
+					if (fy == null) fy = buffer.getAttributes().get(ny);
+					
+					if (x == "rotation" && fx != "0.0") fx = '($fx)/180.0*${Math.PI}';
+					if (y == "zIndex" && fy != "0.0") fy = 'clamp( $fy/${Util.toFloatString(${buffer.getMaxZindex()})}, -1.0, 1.0)'; // TODO: MAX_ZINDEX from buffer
+					
+					trace(' -- replacing Formula $nx, $ny => vec2($fx, $fy)');
+					return('vec2($fx, $fy)');
+				}
+				else return null;
+			}
+			glShaderConfig.SIZE_FORMULA  = formulaTemplateValue("sizeX"   , "sizeY" ,"100.0", "100.0");
+			glShaderConfig.POS_FORMULA   = formulaTemplateValue("posX"    , "posY"  ,  "0.0",   "0.0");
+			glShaderConfig.ROTZ_FORMULA  = formulaTemplateValue("rotation", "zIndex",  "0.0",   "0.0");
+			glShaderConfig.PIVOT_FORMULA = formulaTemplateValue("pivotX"  , "pivotY",  "0.0",   "0.0");
+		}
 	}
 	
 	// -------------------------------------------------

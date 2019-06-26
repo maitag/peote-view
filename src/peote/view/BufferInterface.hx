@@ -21,6 +21,7 @@ interface BufferInterface
 	private function getFormulas():haxe.ds.StringMap<String>;
 	private function getAttributes():haxe.ds.StringMap<String>;
 	private function getFormulaNames():haxe.ds.StringMap<String>;
+	private function getMaxZindex():Int;
 	private function hasAlpha():Bool;
 	private function hasZindex():Bool;
 	private function hasPicking():Bool;
