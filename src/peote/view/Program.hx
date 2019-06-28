@@ -497,7 +497,7 @@ class Program
 			// formulas for constants
 			for (n in buffer.getFormulaConstants()) {				
 				var f = formulaResolved.get(n);
-				if ( f != buffer.getAttributes().get(n) )
+				if ( f != null && f != buffer.getAttributes().get(n) )
 				{
 					Reflect.setField(glShaderConfig.FORMULA_CONSTANTS, n, f);
 					trace(' -- replacing Formula $n => $f');
