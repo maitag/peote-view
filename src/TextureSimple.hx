@@ -26,16 +26,17 @@ class Elem implements Element
 	@sizeX public var w:Int=100;
 	@sizeY public var h:Int=100;
 	
-	@texSlot var slot:Int = 0;
+	//@texSlot var slot:Int = 0;
 	
 	//@color public var c:Color = 0xff0000ff;
 		
 	//@zIndex public var z:Int = 0;	
+	@custom public var seed:Int = 0;
 	
 	// manual texture coordinates inside a slot (or inside all slots if no slot available)
-	@texX @anim("Tex","pingpong") @constStart(0) public var tx:Int;
+	//@texX @anim("Tex","pingpong") @constStart(0) public var tx:Int;
 	@texY public var ty:Int=-11;
-	@texW @const @formula("tw - tx") public var tw:Int=256;
+	//@texW @const @formula("tw - tx") public var tw:Int=256;
 	@texH @const public var th:Int=256;
 	//@texH("B") public var thB:Int=128;
 	
@@ -55,8 +56,8 @@ class Elem implements Element
 		this.h = height;
 		//this.c = c;
 		
-		this.animTex(255);
-		this.timeTex(0, 5);
+		//this.animTex(255);
+		//this.timeTex(0, 5);
 	}
 
 
@@ -98,6 +99,9 @@ class TextureSimple
 				//program.alphaEnabled = true;
 				//program.setActiveTextureGlIndex(texture, 2);// only after update
 
+				program.setFormula("ty", "10.0");
+				program.setFormula("th", "512.0");
+				
 				display.addProgram(program);    // programm to display
 
 				

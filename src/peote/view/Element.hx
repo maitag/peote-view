@@ -900,12 +900,12 @@ class ElementImpl
 		resolveFormulas("aPivot", conf.pivotX, conf.pivotY );
 		
 		// make formulas and attribs as static Element-vars for using into program
-		var _map : Array<Expr> = [for (k in formula.keys()) macro $v{k} => $v{formula.get(k)}];		
+		var _map : Array<Expr> = [for (k in formula.keys()) macro $v{k} => $v{formula.get(k)}];
 		fields.push({
 			name:  "FORMULAS",
 			meta:  allowForBuffer,
 			access:  [Access.APrivate, Access.AStatic],
-			kind: FieldType.FVar(macro:haxe.ds.StringMap<String>, macro $a{_map}),
+			kind: FieldType.FVar(macro:haxe.ds.StringMap<String>, (_map.length != 0) ? macro $a{_map} : macro new haxe.ds.StringMap<String>()),
 			pos: Context.currentPos(),
 		});
 		_map = [for (k in attrib.keys()) macro $v{k} => $v{attrib.get(k)}];
@@ -913,11 +913,12 @@ class ElementImpl
 			name:  "ATTRIBUTES",
 			meta:  allowForBuffer,
 			access:  [Access.APrivate, Access.AStatic],
-			kind: FieldType.FVar(macro:haxe.ds.StringMap<String>, macro $a{_map}),
+			kind: FieldType.FVar(macro:haxe.ds.StringMap<String>, (_map.length != 0) ?  macro $a{_map} : macro new haxe.ds.StringMap<String>()),
 			pos: Context.currentPos(),
 		});
 		
 		// store the names for formulas to use into program
+		// TODO: better with 2 Arrays into a String here
 		_map = new Array<Expr>();
 		if (conf.sizeX.name != "") _map.push( macro $v{"sizeX"} => $v{conf.sizeX.name});
 		if (conf.sizeY.name != "") _map.push( macro $v{"sizeY"} => $v{conf.sizeY.name});
@@ -926,19 +927,15 @@ class ElementImpl
 		if (conf.rotation.name != "") _map.push( macro $v{"rotation"} => $v{conf.rotation.name});
 		if (conf.zIndex.name   != "") _map.push( macro $v{"zIndex"}   => $v{conf.zIndex.name});
 		if (conf.pivotX.name != "") _map.push( macro $v{"pivotX"} => $v{conf.pivotX.name});
-		if (conf.pivotY.name != "") _map.push( macro $v{"pivotY"} => $v{conf.pivotY.name});
-		// customs
-		for (i in 0...customIdentifiers.length) _map.push( macro $v{customIdentifiers[i]} => $v{conf.custom[i].name});
-		
+		if (conf.pivotY.name != "") _map.push( macro $v{"pivotY"} => $v{conf.pivotY.name});		
 		fields.push({
 			name:  "FORMULA_NAMES",
 			meta:  allowForBuffer,
 			access:  [Access.APrivate, Access.AStatic],
-			kind: FieldType.FVar(macro:haxe.ds.StringMap<String>, macro $a{_map}),
+			kind: FieldType.FVar(macro:haxe.ds.StringMap<String>, (_map.length != 0) ? macro $a{_map} : macro new haxe.ds.StringMap<String>()),
 			pos: Context.currentPos(),
 		});
-		
-		
+						
 		try Util.resolveFormulaCyclic(formula) catch(e:Dynamic) throw Context.error('Error: cyclic reference of "${e.errVar}" inside @formula "${e.formula}" for "${e.errKey}"', formulaErrPos.get(e.errKey));
 		//trace("formula cyclic resolved:"); for (f in formula.keys()) trace('  $f => ${formula.get(f)}');
 		Util.resolveFormulaVars(formula, attrib);
@@ -947,8 +944,6 @@ class ElementImpl
 		trace("attrib:"); for (a in attrib.keys()) trace('  $a => ${attrib.get(a)}');
 */				
 		// TODO: resolve time-identifiers!
-		
-		// TODO: generate static fields for changing formulas inside program at runtime!
 		
 		// TODO: generate getter for animated values by using formulas
 
@@ -1084,6 +1079,10 @@ class ElementImpl
 		var varyings = new StringMap<String>();						
 		var texVaryings = new StringMap<String>();						
 
+		var _mapVaryings = new Array<String>();
+		var _mapConstanst = new Array<String>();		
+		var _mapCustom = new Array<String>();
+		
 		function resolveVaryings(v:StringMap<String>, pv:Array<{conf:ConfSubParam, formula:String}>, confArray:Array<Array<ConfSubParam>>)
 		{
 			for (conf in confArray)
@@ -1092,14 +1091,49 @@ class ElementImpl
 						// varyings mapping
 						var f = formula.get(c.name);
 						if (f == null) f = attrib.get(c.name);
-						if (c.isAnim || c.isStart || c.formula != "")
+						if (c.isAnim || c.isStart || c.formula != "") {
+							f = '::if FORMULA_VARYINGS.${c.name}::::FORMULA_VARYINGS.${c.name}::::else::$f::end::';
 							pv.push({conf:c, formula:f});
-						else v.set(c.name, f);
-					}
+							_mapVaryings.push(c.name);
+						}
+						else {
+							f = '::if FORMULA_CONSTANTS.${c.name}::::FORMULA_CONSTANTS.${c.name}::::else::$f::end::';
+							v.set(c.name, f);
+							_mapConstanst.push(c.name);
+						}
+					} 
+					else _mapCustom.push(c.name);
 				}
 		}	
 		resolveVaryings(varyings, packedVaryings, [conf.custom]);
 		resolveVaryings(texVaryings, packedTexVaryings, [conf.texUnit, conf.texSlot, conf.texTile, conf.texX, conf.texY, conf.texW, conf.texH, conf.texPosX, conf.texPosY, conf.texSizeX, conf.texSizeY]);
+						
+		//trace("_mapVaryings",_mapVaryings);
+		fields.push({
+			name:  "FORMULA_VARYINGS",
+			meta:  allowForBuffer,
+			access:  [Access.APrivate, Access.AStatic],
+			kind: FieldType.FVar(macro:String, macro $v{_mapVaryings.join(",")}),
+			pos: Context.currentPos(),
+		});
+		
+		//trace("_mapConstanst",_mapConstanst);
+		fields.push({
+			name:  "FORMULA_CONSTANTS",
+			meta:  allowForBuffer,
+			access:  [Access.APrivate, Access.AStatic],
+			kind: FieldType.FVar(macro:String, macro $v{_mapConstanst.join(",")}),
+			pos: Context.currentPos(),
+		});
+		
+		//trace("_mapCustom",_mapCustom);
+		fields.push({
+			name:  "FORMULA_CUSTOMS",
+			meta:  allowForBuffer,
+			access:  [Access.APrivate, Access.AStatic],
+			kind: FieldType.FVar(macro:String, macro $v{_mapCustom.join(",")}),
+			pos: Context.currentPos(),
+		});
 		
 		// traverse packedVaryings again and fill rest of varyings
 		function fillVaryings(v:StringMap<String>, pv:Array<{conf:ConfSubParam, formula:String}>, isTex:Bool=false)
@@ -1284,7 +1318,7 @@ class ElementImpl
 		});
 		
 		// put all custom identifiers inside a static string for progam
-		trace("customIdentifiers:", customIdentifiers);
+		// trace("customIdentifiers:", customIdentifiers);
 		fields.push({
 			name:  "IDENTIFIERS_CUSTOM",
 			meta:  allowForBuffer,
@@ -1294,7 +1328,7 @@ class ElementImpl
 		});
 		
 		// put all custom varyings inside a static string for progam
-		trace("customVaryings:", [for (i in 0...conf.custom.length) varyings.get(conf.custom[i].name) ].join(","));
+		// trace("customVaryings:", [for (i in 0...conf.custom.length) varyings.get(conf.custom[i].name) ].join(","));
 		fields.push({
 			name:  "VARYINGS_CUSTOM",
 			meta:  allowForBuffer,
@@ -1886,7 +1920,7 @@ class ElementImpl
 				ret: null
 			})
 		});
-		
+
 		// ------------------ bind vertex attributes to program ----------------------------------
 		function bindAttribLocationsExpr(isInstanced:Bool=false):Array<Expr> {
 			var exprBlock = new Array<Expr>();

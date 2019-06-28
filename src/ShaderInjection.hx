@@ -159,6 +159,13 @@ class Elem3 implements Element
 	@pivotX @const @formula("w/2.0") public var px:Int=50;
 	@pivotY @const @formula("h/2.0") public var py:Int=50;
 	
+	@texX public var tx:Int = 0;
+	@texX("B") public var txb:Int = 0;
+	@texY @const @formula("11.0") public var ty:Int = 0;
+	
+	@custom public var c:Int = 0;
+	@custom("seed") @varying public var s:Int = 0;
+	
 	static public var buffer:Buffer<Elem3>;
 	static public var program:Program;
 
@@ -172,7 +179,9 @@ class Elem3 implements Element
 			}		
 		");
 		//program.setFormula("sizeX", "45.0+time0*45.0");
-		program.setFormula("rotation", "-y");
+		//program.setFormula("rotation", "-y");
+		program.setFormula("r", "-y");
+		// TODO: program.setFormula("seed", "seed * y");
 		display.addProgram(program);
 	}
 	

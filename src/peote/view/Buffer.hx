@@ -396,9 +396,15 @@ class $className implements BufferInterface
 	private inline function getCustomVaryings():Array<String> return ($p{elemField}.VARYINGS_CUSTOM == "") ? [] :  $p{elemField}.VARYINGS_CUSTOM.split(",");
 	private inline function getDefaultColorFormula():String return $p{elemField}.DEFAULT_COLOR_FORMULA;
 	private inline function getDefaultFormulaVars():haxe.ds.StringMap<peote.view.Color> return $p{elemField}.DEFAULT_FORMULA_VARS;
+	
 	private inline function getFormulas():haxe.ds.StringMap<String> return $p{elemField}.FORMULAS;
 	private inline function getAttributes():haxe.ds.StringMap<String> return $p{elemField}.ATTRIBUTES;
 	private inline function getFormulaNames():haxe.ds.StringMap<String> return $p{elemField}.FORMULA_NAMES;
+	
+	private inline function getFormulaVaryings():Array<String> return ($p{elemField}.FORMULA_VARYINGS == "") ? [] :  $p{elemField}.FORMULA_VARYINGS.split(",");
+	private inline function getFormulaConstants():Array<String> return ($p{elemField}.FORMULA_CONSTANTS == "") ? [] :  $p{elemField}.FORMULA_CONSTANTS.split(",");
+	private inline function getFormulaCustoms():Array<String> return ($p{elemField}.FORMULA_CUSTOMS == "") ? [] :  $p{elemField}.FORMULA_CUSTOMS.split(",");
+	
 	private inline function getMaxZindex():Int return $p{elemField}.MAX_ZINDEX;
 	private inline function hasAlpha():Bool return $p{elemField}.ALPHA_ENABLED;
 	private inline function hasZindex():Bool return $p{elemField}.ZINDEX_ENABLED;

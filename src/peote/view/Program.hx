@@ -72,7 +72,8 @@ class Program
 		POS_FORMULA : null,
 		ROTZ_FORMULA : null,
 		PIVOT_FORMULA : null,
-		//CUSTOM_FORMULA : [],
+		FORMULA_VARYINGS : {},
+		FORMULA_CONSTANTS : {},
 		FRAGMENT_EXTENSIONS: [],
 	};
 	
@@ -114,8 +115,12 @@ class Program
 		defaultColorFormula = buffer.getDefaultColorFormula();
 		defaultFormulaVars = buffer.getDefaultFormulaVars();
 		
-		// copy formulas
+		trace("formula Names:"); for (f in buffer.getFormulaNames().keys()) trace('  $f => ${buffer.getFormulaNames().get(f)}');
+		// copy default formulas into new formula
 		for (k in buffer.getFormulas().keys()) formula.set(k, buffer.getFormulas().get(k) );
+		trace("formulas:"); for (f in formula.keys()) trace('  $f => ${formula.get(f)}');
+		trace("attributes:"); for (f in buffer.getAttributes().keys()) trace('  $f => ${buffer.getAttributes().get(f)}');
+
 		try Util.resolveFormulaCyclic(buffer.getFormulas()) catch(e:Dynamic) throw ('Error: cyclic reference of "${e.errVar}" inside @formula "${e.formula}" for "${e.errKey}"');
 		//trace("formula cyclic resolved:"); for (f in buffer.getFormulas().keys()) trace('  $f => ${buffer.getFormulas().get(f)}');
 		Util.resolveFormulaVars(buffer.getFormulas(), buffer.getAttributes());
@@ -124,8 +129,6 @@ class Program
 		#if peoteview_debug_program
 		trace("defaultColorFormula = ", defaultColorFormula);
 		trace("defaultFormulaVars = ", defaultFormulaVars);
-		trace("formulas:"); for (f in formula.keys()) trace('  $f => ${formula.get(f)}');
-		trace("attributes:"); for (f in buffer.getAttributes().keys()) trace('  $f => ${buffer.getAttributes().get(f)}');
 		#end
 		parseColorFormula();
 	}
@@ -351,7 +354,9 @@ class Program
 			var regexp = new EReg('(.*?\\b)${customIdentifiers[i]}(\\b.*?)', "g");
 			if (regexp.match(formula))
 				if (regexp.matched(1).substr(-1,1) != ".")
-					formula = regexp.replace( formula, '$1' + customVaryings[i] +'$2' );
+					if (customVaryings[i] != null)
+						formula = regexp.replace( formula, '$1' + customVaryings[i] +'$2' );
+					else throw('Error while parsing ColorFormula: custom identifier ${customIdentifiers[i]} need @varying to get access into fragmentshader');
 		}
 		for (i in 0...textureIdentifiers.length) {
 			var regexp = new EReg('(.*?\\b)${textureIdentifiers[i]}(\\b.*?)', "g");
@@ -405,17 +410,29 @@ class Program
 	// set formulas for attributes manual at runtime
 	public function setFormula(name:String, newFormula:String, ?autoUpdateTextures:Null<Bool>):Void {
 		
-		var formulaName = buffer.getFormulaNames().get(name);
+		var formulaName = buffer.getFormulaNames().get(name); // TODO: better with 2 Arrays here
 		
 		if (formulaName != null) {
 			trace('  set formula: $formulaName = $newFormula' );
 			formula.set(formulaName, newFormula);
 		}
 		else {
-			// todo: check correct names
-			//trace('  set formula: $name = $newFormula' );
-			//formula.set(name, newFormula);
-			throw('Error: can not set Formula for $name if there is no property defined for @$name inside Element');
+			if ([ for (k in buffer.getFormulaNames().keys()) buffer.getFormulaNames().get(k) ].indexOf(name) >= 0) {
+				formula.set(name, newFormula);
+			}
+			else if (buffer.getFormulaVaryings().indexOf(name) >= 0) {
+				trace('  set formula for varying: $name = $newFormula' );
+				formula.set(name, newFormula);
+			}
+			else if (buffer.getFormulaConstants().indexOf(name) >= 0) {
+				trace('  set formula for constant: $name = $newFormula' );
+				formula.set(name, newFormula); // TODO: Error if newFormula contains other attributes
+			}
+			else if (buffer.getFormulaCustoms().indexOf(name) >= 0) {
+				trace('  set formula for custom: $name = $newFormula' );
+				formula.set(name, newFormula);
+			}
+			else throw('Error: can not set Formula for $name if there is no property defined for @$name inside Element');
 		}
 		
 		formulaHasChanged = true;
@@ -431,9 +448,7 @@ class Program
 			try Util.resolveFormulaCyclic(formulaResolved) catch(e:Dynamic) throw ('Error: cyclic reference of "${e.errVar}" inside formula "${e.formula}" for "${e.errKey}"');
 			//trace("formula cyclic resolved:"); for (f in formulaResolved.keys()) trace('  $f => ${formulaResolved.get(f)}');
 			Util.resolveFormulaVars(formulaResolved, buffer.getAttributes());
-			
-			trace("formula names:"); for (f in buffer.getFormulaNames().keys()) trace('  $f => ${buffer.getFormulaNames().get(f)}');
-			trace("formula resolved:"); for (f in formulaResolved.keys()) trace('  $f => ${formulaResolved.get(f)}');
+			trace("formula resolved new:"); for (f in formulaResolved.keys()) trace('  $f => ${formulaResolved.get(f)}');
 			
 			function formulaTemplateValue(x:String, y:String, dx:String, dy:String):String
 			{
@@ -467,6 +482,28 @@ class Program
 			glShaderConfig.POS_FORMULA   = formulaTemplateValue("posX"    , "posY"  ,  "0.0",   "0.0");
 			glShaderConfig.ROTZ_FORMULA  = formulaTemplateValue("rotation", "zIndex",  "0.0",   "0.0");
 			glShaderConfig.PIVOT_FORMULA = formulaTemplateValue("pivotX"  , "pivotY",  "0.0",   "0.0");
+			
+			// formulas for varyings
+			for (n in buffer.getFormulaVaryings()) {				
+				var f = formulaResolved.get(n);
+				if ( f != buffer.getFormulas().get(n) )
+				{
+					if (f == null) f = buffer.getAttributes().get(n);
+					Reflect.setField(glShaderConfig.FORMULA_VARYINGS, n, f);
+					trace(' -- replacing Formula $n => $f');
+				}
+				else Reflect.setField(glShaderConfig.FORMULA_VARYINGS, n, null);
+			}
+			// formulas for constants
+			for (n in buffer.getFormulaConstants()) {				
+				var f = formulaResolved.get(n);
+				if ( f != buffer.getAttributes().get(n) )
+				{
+					Reflect.setField(glShaderConfig.FORMULA_CONSTANTS, n, f);
+					trace(' -- replacing Formula $n => $f');
+				}
+				else Reflect.setField(glShaderConfig.FORMULA_CONSTANTS, n, null);		
+			}
 		}
 	}
 	
