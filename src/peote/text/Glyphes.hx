@@ -14,8 +14,11 @@ class Glyphes
 	public var letterWidth:Int;
 	public var letterHeight:Int;
 	
-	public var program:Program;
-	public var buffer:Buffer<Glyph>;
+	public var simpleGlyphProgram:Program;
+	public var simpleGlyphBuffer:Buffer<SimpleGlyph>;
+	
+	public var monoGlyphProgram:Program;
+	public var monoGlyphBuffer:Buffer<MonoGlyph>;
 	
 	public function new(font:Font, letterWidth:Null<Int>, letterHeight:Null<Int>,  color:Color = Color.BLACK)
 	{
@@ -30,8 +33,12 @@ class Glyphes
 		this.font = font;
 		this.color = color;
 		
-		buffer = new Buffer<Glyph>(100);
-		program = new Program(buffer);		
+		// TODO: create on demand ?
+		simpleGlyphBuffer = new Buffer<SimpleGlyph>(100);		
+		simpleGlyphProgram = new Program(simpleGlyphBuffer);
+		
+		monoGlyphBuffer = new Buffer<MonoGlyph>(100);		
+		monoGlyphProgram = new Program(monoGlyphBuffer);
 		
 		// TODO: inject global fontsize and color into shader
 		
@@ -44,8 +51,16 @@ class Glyphes
 		
 	}
 	
-	public inline function add(glyph:Glyph) {
-		buffer.addElement(glyph);
+	public function createSimpleLetter(charCode:Int, x:Int, y:Int, w:Int, h:Int):SimpleGlyph {
+		var glyph = new SimpleGlyph(charCode, x, y, w, h);
+		simpleGlyphBuffer.addElement(glyph);
+		return (glyph);
+	}
+	
+	public function createMonoLetter(charCode:Int, x:Int, y:Int):MonoGlyph {
+		var glyph = new MonoGlyph(charCode, x, y);
+		monoGlyphBuffer.addElement(glyph);
+		return (glyph);
 	}
 	
 }

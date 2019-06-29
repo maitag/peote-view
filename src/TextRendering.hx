@@ -9,12 +9,13 @@ import lime.ui.MouseButton;
 
 import peote.view.PeoteView;
 import peote.view.Display;
+import peote.view.Buffer;
 import peote.view.Color;
 
 import peote.text.Font;
 
 import peote.text.Glyphes;
-import peote.text.Glyph;
+import peote.text.SimpleGlyph;
 //import peote.text.Line;
 //import peote.text.Page;
 
@@ -33,22 +34,26 @@ class TextRendering
 			peoteView.addDisplay(display);  // display to peoteView
 			
 			var font = new Font("assets/gl3fonts/unifont/");
-						
-			var glyphes = new Glyphes(font, 16, 16, Color.YELLOW); // glsl program to render each Letter-GLYPHE
-			display.addProgram(glyphes.program);
+			
+			//                        defaultfont, defaultsizes, default-color
+			var glyphes = new Glyphes(font, 16, 16, Color.YELLOW); // manage the Programs to render glyphes in different size/colors/fonts
+			display.addProgram(glyphes.monoGlyphProgram);
+			display.addProgram(glyphes.simpleGlyphProgram);
 			
 			
 			// -------- Letters --------			
-			var glyph = new Glyph(65, 0, 0);
-			glyphes.add(glyph);
+			var ml1 = glyphes.createMonoLetter(65, 0, 0);
+			
+			var sl1 = glyphes.createSimpleLetter(65, 0, 20, 18, 18);
+			//var sl2 = glyphes.createSimpleLetter(66, 0, 0, font1);
 			
 			
 			/*
 			// -------- Lines  ---------
 			
 			var line = new Line(0, 100, "Hello Word!");
-			//line.addGlyph( new Glyph("B") );
-			fontProgramm.addLine(line);
+			//line.add( "B" );
+			fontProgram.addLine(line);
 			
 			
 			// -------- Pages ??? (namespace!!!) <--------
@@ -58,9 +63,9 @@ class TextRendering
 			    + "\n"
 				+ "Ein fürwahr überaus betrüblicher Aspekt, der aber immerhin ein wenig unterschiedlich ist: Seidenstrümpfe können begriffen werden, Gauguins nicht."
 			);
-			//page.addLine( new Line("(Bernheim als prestigieuser Biologe zu imaginieren.)") );
+			//page.add( new Line("(Bernheim als prestigieuser Biologe zu imaginieren.)") );
 
-			fontProgramm.addPage(page);
+			fontProgram.addPage(page);
 			
 			*/
 			
