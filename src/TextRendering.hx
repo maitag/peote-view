@@ -37,15 +37,15 @@ class TextRendering
 			
 			//                        defaultfont, defaultsizes, default-color
 			var glyphes = new Glyphes(font, 16, 16, Color.YELLOW); // manage the Programs to render glyphes in different size/colors/fonts
-			display.addProgram(glyphes.monoGlyphProgram);
 			display.addProgram(glyphes.simpleGlyphProgram);
+			display.addProgram(glyphes.colorGlyphProgram);
 			
 			
 			// -------- Letters --------			
-			var ml1 = glyphes.createMonoLetter(65, 0, 0);
+			var l1 = glyphes.createLetter(65, 0, 0);
+			var l2 = glyphes.createColoredLetter(66, 16, 0, Color.BLUE);
 			
-			var sl1 = glyphes.createSimpleLetter(65, 0, 20, 18, 18);
-			//var sl2 = glyphes.createSimpleLetter(66, 0, 0, font1);
+			//var l3 = glyphes.createStyledLetter(67, 0, 20, style); // for different style
 			
 			
 			/*
@@ -53,7 +53,7 @@ class TextRendering
 			
 			var line = new Line(0, 100, "Hello Word!");
 			//line.add( "B" );
-			fontProgram.addLine(line);
+			.addLine(line);
 			
 			
 			// -------- Pages ??? (namespace!!!) <--------
@@ -65,7 +65,7 @@ class TextRendering
 			);
 			//page.add( new Line("(Bernheim als prestigieuser Biologe zu imaginieren.)") );
 
-			fontProgram.addPage(page);
+			.addPage(page);
 			
 			*/
 			

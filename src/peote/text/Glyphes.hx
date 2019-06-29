@@ -6,8 +6,6 @@ import peote.view.Program;
 
 class Glyphes
 {
-
-	
 	public var font:Font;
 	public var color:Color;
 	
@@ -17,8 +15,11 @@ class Glyphes
 	public var simpleGlyphProgram:Program;
 	public var simpleGlyphBuffer:Buffer<SimpleGlyph>;
 	
-	public var monoGlyphProgram:Program;
-	public var monoGlyphBuffer:Buffer<MonoGlyph>;
+	public var colorGlyphProgram:Program;
+	public var colorGlyphBuffer:Buffer<ColorGlyph>;
+	
+	//public var styledGlyphProgram:Program;
+	//public var styledGlyphBuffer:Buffer<StyledGlyph>;
 	
 	public function new(font:Font, letterWidth:Null<Int>, letterHeight:Null<Int>,  color:Color = Color.BLACK)
 	{
@@ -37,8 +38,8 @@ class Glyphes
 		simpleGlyphBuffer = new Buffer<SimpleGlyph>(100);		
 		simpleGlyphProgram = new Program(simpleGlyphBuffer);
 		
-		monoGlyphBuffer = new Buffer<MonoGlyph>(100);		
-		monoGlyphProgram = new Program(monoGlyphBuffer);
+		colorGlyphBuffer = new Buffer<ColorGlyph>(100);		
+		colorGlyphProgram = new Program(colorGlyphBuffer);
 		
 		// TODO: inject global fontsize and color into shader
 		
@@ -51,15 +52,17 @@ class Glyphes
 		
 	}
 	
-	public function createSimpleLetter(charCode:Int, x:Int, y:Int, w:Int, h:Int):SimpleGlyph {
-		var glyph = new SimpleGlyph(charCode, x, y, w, h);
+	// monospace with global size and color
+	public function createLetter(charCode:Int, x:Int, y:Int):SimpleGlyph {
+		var glyph = new SimpleGlyph(charCode, x, y);
 		simpleGlyphBuffer.addElement(glyph);
 		return (glyph);
 	}
 	
-	public function createMonoLetter(charCode:Int, x:Int, y:Int):MonoGlyph {
-		var glyph = new MonoGlyph(charCode, x, y);
-		monoGlyphBuffer.addElement(glyph);
+	// monospace with global size individual colors per Letter
+	public function createColoredLetter(charCode:Int, x:Int, y:Int, color:Color):ColorGlyph {
+		var glyph = new ColorGlyph(charCode, x, y, color);
+		colorGlyphBuffer.addElement(glyph);
 		return (glyph);
 	}
 	

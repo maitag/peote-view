@@ -10,16 +10,15 @@ class SimpleGlyph implements Element
 	@posX public var x:Int=0;
 	@posY public var y:Int=0;
 	
-	@sizeX public var w:Int=16;
-	@sizeY public var h:Int=16;
+	@sizeX @const public var w:Int=16;
+	@sizeY @const public var h:Int=16;
 	
-	public function new(charcode:Int, x:Int, y:Int, w:Int, h:Int) 
+	
+	public function new(charcode:Int, x:Int, y:Int) 
 	{
 		this.charcode = charcode;
-		this.x = y;
+		this.x = x;
 		this.y = y;
-		this.w = w;
-		this.h = h;
 	}
 	
 }

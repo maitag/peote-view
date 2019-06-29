@@ -28,7 +28,7 @@ class UIDisplay extends Display
 	var lastOverIndex:Int = -1;
 	var lastDownIndex:Int = -1;
 	
-	var skins:Array<Skin>;
+	var skins:Array<Skin>; // TODO: no references
 
 	public function new(x:Int, y:Int, width:Int, height:Int, color:Color=0x00000000) 
 	{
