@@ -86,10 +86,10 @@ class Gl3FontRendering
 			
 			
 			// no kerning (much faster then to convert fontdata!) for the u n i glyphes
-			//loadFont("assets/gl3fonts/DejavuSans", true,
-			loadFont("assets/gl3fonts/unifont/unifont_0000-0fff", false,
-			//loadFont("assets/gl3fonts/unifont/unifont_1000-1fff", false,
-			//loadFont("assets/gl3fonts/unifont/unifont_3000-3fff", false,
+			//loadFont("assets/gl3fonts/DejavuSans", 0x0000, 0x0fff, true,
+			loadFont("assets/gl3fonts/unifont/unifont_0000-0fff", 0x0000, 0x0fff, false,
+			//loadFont("assets/gl3fonts/unifont/unifont_1000-1fff", 0x1000, 0x1fff, false,
+			//loadFont("assets/gl3fonts/unifont/unifont_3000-3fff", 0x3000, 0x3fff, false,
 				function(gl3font:Gl3FontData, image:Image, isKerning:Bool)
 				{
 					var texture = new Texture(image.width, image.height, 1, 4, false, 1, 1);
@@ -123,14 +123,18 @@ class Gl3FontRendering
 					var l:Int = 90;
 					var c:Int = 0;
 					var s = new haxe.Utf8();
-					for (char in gl3font.idmap.keys())
+					
+					for (charcode in gl3font.rangeMin...gl3font.rangeMax+1)
 					{
-						s.addChar( char );
-						i++; c++;
-						if (i > 100) {
-							//trace("charnumber:",c,"line:",l);
-							renderTextLine( 30, l, 16, gl3font, image.width, image.height, isKerning, s.toString());
-							i = 0; s = new haxe.Utf8(); l += 26;
+						if (gl3font.getMetric(charcode) != null) 
+						{
+							s.addChar( charcode );
+							i++; c++;
+							if (i > 100) {
+								//trace("charnumber:",c,"line:",l);
+								renderTextLine( 30, l, 16, gl3font, image.width, image.height, isKerning, s.toString());
+								i = 0; s = new haxe.Utf8(); l += 26;
+							}
 						}
 					}
 					
@@ -145,10 +149,10 @@ class Gl3FontRendering
 		// ---------------------------------------------------------------
 	}
 
-	public function loadFont(font:String, isKerning:Bool, onLoad:Gl3FontData->Image->Bool->Void)
+	public function loadFont(font:String, rangeMin:Int, rangeMax:Int, isKerning:Bool, onLoad:Gl3FontData->Image->Bool->Void)
 	{
 		Loader.bytes(font+".dat", true, function(bytes:Bytes) {
-			var gl3font = new Gl3FontData(bytes, isKerning);
+			var gl3font = new Gl3FontData(bytes, rangeMin, rangeMax, isKerning);
 			Loader.image(font+".png", true, function(image:Image) {
 				onLoad(gl3font, image, isKerning);
 			});
@@ -160,58 +164,59 @@ class Gl3FontRendering
 		var penX:Float = x;
 		var penY:Float = y;
 		
-		var prev_id:Int = -1;
+		var prev_metric:Metric = null;
 		
 		try{
 			haxe.Utf8.iter(text, function(charcode)
 			{
 				//trace("charcode", charcode);
-				var id:Null<Int> = gl3font.idmap.get(charcode);
+				var metric:Metric = gl3font.getMetric(charcode);
 				
-				if (id != null)
+				//if (id != null)
+				if (metric != null)
 				{
 					#if isInt
-					if (isKerning && prev_id != -1) { // KERNING
-						penX += Math.ceil(gl3font.kerning[prev_id][id] * scale);
-						//trace("kerning to left letter: " + Math.round(gl3font.kerning[prev_id][id]* scale) );
+					if (isKerning && prev_metric != null) { // KERNING
+						penX += Math.ceil(gl3font.kerning[prev_metric.kerning] * scale);
+						//trace("kerning to left letter: " + Math.round(gl3font.kerning[prev_metric.kerning][metric.kerning] * scale) );
 					}
-					prev_id = id;
+					prev_metric = metric;
 					
-					//trace(charcode, "h:"+gl3font.metrics[id].height, "t:"+gl3font.metrics[id].top );
+					//trace(charcode, "h:"+metric.height, "t:"+metric.top );
 					element  = new Elem(
-						Math.floor((penX + gl3font.metrics[id].left * scale )),
-						Math.floor((penY + ( gl3font.height - gl3font.metrics[id].top ) * scale ))
+						Math.floor((penX + metric.left * scale )),
+						Math.floor((penY + ( gl3font.height - metric.top ) * scale ))
 					);
 					
-					penX += Math.ceil(gl3font.metrics[id].advance * scale);
+					penX += Math.ceil(metric.advance * scale);
 
-					element.w  = Math.ceil( gl3font.metrics[id].width  * scale );
-					element.h  = Math.ceil( gl3font.metrics[id].height * scale );
-					element.tx = Math.floor(gl3font.metrics[id].u * imgWidth );
-					element.ty = Math.floor(gl3font.metrics[id].v * imgHeight);
-					element.tw = Math.floor(1+gl3font.metrics[id].w * imgWidth );
-					element.th = Math.floor(1+gl3font.metrics[id].h * imgHeight);
+					element.w  = Math.ceil( metric.width  * scale );
+					element.h  = Math.ceil( metric.height * scale );
+					element.tx = Math.floor(metric.u * imgWidth );
+					element.ty = Math.floor(metric.v * imgHeight);
+					element.tw = Math.floor(1+metric.w * imgWidth );
+					element.th = Math.floor(1+metric.h * imgHeight);
 					#else
-					if (isKerning && prev_id != -1) { // KERNING
-						penX += gl3font.kerning[prev_id][id] * scale;
-						//trace("kerning to left letter: " + Math.round(gl3font.kerning[prev_id][id]* scale) );
+					if (isKerning && prev_metric != null) { // KERNING
+						penX += gl3font.kerning[prev_metric.kerning][metric.kerning] * scale;
+						//trace("kerning to left letter: " + Math.round(gl3font.kerning[prev_metric.kerning][metric.kerning] * scale) );
 					}
-					prev_id = id;
+					prev_metric = metric;
 					
-					//trace(charcode, "h:"+gl3font.metrics[id].height, "t:"+gl3font.metrics[id].top );
+					//trace(charcode, "h:"+metric.height, "t:"+metric.top );
 					element  = new Elem(
-						penX + gl3font.metrics[id].left * scale,
-						penY + ( gl3font.height - gl3font.metrics[id].top ) * scale
+						penX + metric.left * scale,
+						penY + ( gl3font.height - metric.top ) * scale
 					);
 					
-					penX += gl3font.metrics[id].advance * scale;
+					penX += metric.advance * scale;
 
-					element.w  = gl3font.metrics[id].width  * scale;
-					element.h  = gl3font.metrics[id].height * scale;
-					element.tx = gl3font.metrics[id].u * imgWidth;
-					element.ty = gl3font.metrics[id].v * imgHeight;
-					element.tw = gl3font.metrics[id].w * imgWidth;
-					element.th = gl3font.metrics[id].h * imgHeight;
+					element.w  = metric.width  * scale;
+					element.h  = metric.height * scale;
+					element.tx = metric.u * imgWidth;
+					element.ty = metric.v * imgHeight;
+					element.tw = metric.w * imgWidth;
+					element.th = metric.h * imgHeight;
 					#end
 					buffer.addElement(element);     // element to buffer
 				}

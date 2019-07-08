@@ -34,7 +34,7 @@ class TextRendering
 			display   = new Display(10,10, window.width-20, window.height-20, Color.GREY1);
 			peoteView.addDisplay(display);  // display to peoteView
 			
-			var font = new Gl3Font("assets/gl3fonts/unifont/");
+			var font = new Gl3Font("assets/gl3fonts/unifont/", false);
 			var style = new GlyphStyle();
 			style.color = Color.WHITE;
 			style.width = 20.0;
