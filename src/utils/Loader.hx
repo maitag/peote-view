@@ -55,6 +55,9 @@ class Loader
 	}
 	
 	public static inline function bytes( name:String, debug=false, ?onProgress:Int->Int->Void, ?onError:String->Void, ?onLoad:Bytes->Void):Void {
+		#if html5
+		if (corsServer != "" && ~/^https?:\/\//.match(name)) name = "//"+corsServer+"/"+name;
+		#end
 		var future = Bytes.loadFromFile(name);		
 		if (debug) {
 			trace('Start loading bytes "$name"');
@@ -67,6 +70,22 @@ class Loader
 		if (onLoad != null) future.onComplete( onLoad );		
 	}
 		
+	public static inline function bytesArray( names:Array<String>, debug=false, ?onProgress:Int->Int->Int->Void, ?onError:Int->String->Void, ?onLoad:Int->Bytes->Void, ?onLoadAll:Array<Bytes>->Void):Void {
+		var allBytes = new Array<Bytes>();
+		var loaded:Int = names.length;
+		for (i in 0...names.length) {
+			bytes( names[i], debug, 
+				(onProgress == null) ? null : function (a:Int, b:Int) onProgress(i, a, b),
+				(onError == null) ? null : function(msg:String) onError(i, msg),
+				(onLoadAll == null) ? null : function(bytes:Bytes) {
+					allBytes[i] = bytes;
+					if (onLoad != null) onLoad(i, bytes);
+					if (--loaded == 0) onLoadAll(allBytes);
+				}
+			);
+		}
+	}
+	
 	public static inline function json( name:String, debug=false, ?onProgress:Int->Int->Void, ?onError:String->Void, ?onLoad:Json->Void):Void {
 		var future = Bytes.loadFromFile(name);		
 		if (debug) {
