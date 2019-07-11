@@ -9,7 +9,6 @@ import lime.ui.MouseButton;
 
 import peote.view.PeoteView;
 import peote.view.Display;
-import peote.view.Buffer;
 import peote.view.Color;
 
 import peote.text.Gl3Font;
@@ -17,6 +16,7 @@ import peote.text.Gl3Font;
 import peote.text.FontProgram;
 import peote.text.Glyph;
 import peote.text.GlyphStyle;
+import peote.text.Gl3FontStyle;
 //import peote.text.Line;
 //import peote.text.Page;
 
@@ -35,14 +35,14 @@ class TextRendering
 			peoteView.addDisplay(display);  // display to peoteView
 			
 			var font = new Gl3Font("assets/gl3fonts/unifont/", false);
-			var style = new GlyphStyle();
+			var style = new Gl3FontStyle();
 			style.color = Color.WHITE;
 			style.width = 20.0;
 			
-			var fontProgram = new FontProgram<Glyph<Gl3Font>>(font, style); // manage the Programs to render glyphes in different size/colors/fonts
+			var fontProgram = new FontProgram<Glyph<Gl3Font,GlyphStyle>>(font, style); // manage the Programs to render glyphes in different size/colors/fonts
 			display.addProgram(fontProgram);
 			
-			var simpleGlyph = new Glyph<Gl3Font>(65, 0, 0);			
+			var simpleGlyph = new Glyph<Gl3Font,GlyphStyle>(65, 0, 0);
 			fontProgram.add(simpleGlyph); //glyphes.remove(simpleGlyph);
 			//fontProgram.add(new Glyph(66, 22, 0));
 			

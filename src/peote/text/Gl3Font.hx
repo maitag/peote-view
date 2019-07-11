@@ -41,7 +41,7 @@ class Gl3Font
 			
 			textureCache = new TextureCache(
 				[
-					{width:2048, height:2048, slots:ranges.length},
+					{width:2048, height:2048, slots:ranges.length}, // TODO 
 				],
 				4096*4 //peoteView.gl.getParameter(peoteView.gl.MAX_TEXTURE_SIZE)
 			);
@@ -50,7 +50,7 @@ class Gl3Font
 		});
 	}
 
-	public function load() // TODO 
+	public function load()
 	{		
 		trace("load font-data");
 		var gl3FontData = new Array<Gl3FontData>();
@@ -130,6 +130,7 @@ class Gl3Font
 						gl3font.setMetric(charcode, m);
 					}
 				}
+				
 				// sort ranges into rangeMapping
 				var range = ranges[index];
 				for (i in Std.int(range.min / 0x1000)...Std.int(range.max / 0x1000)+1) {
