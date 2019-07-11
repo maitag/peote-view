@@ -15,11 +15,14 @@ import peote.text.Gl3Font;
 
 import peote.text.FontProgram;
 import peote.text.Glyph;
-import peote.text.GlyphStyle;
+//import peote.text.GlyphStyle;
 import peote.text.Gl3FontStyle;
 //import peote.text.Line;
 //import peote.text.Page;
 
+class GlyphStyle  {
+	public var color:Color = Color.GREEN;
+}
 
 class TextRendering
 {
@@ -35,16 +38,23 @@ class TextRendering
 			peoteView.addDisplay(display);  // display to peoteView
 			
 			var font = new Gl3Font("assets/gl3fonts/unifont/", false);
-			var style = new Gl3FontStyle();
-			style.color = Color.WHITE;
-			style.width = 20.0;
+			var fontStyle = new Gl3FontStyle();
+			fontStyle.color = Color.WHITE;
+			fontStyle.width = 20.0;
 			
-			var fontProgram = new FontProgram<Glyph<Gl3Font,GlyphStyle>>(font, style); // manage the Programs to render glyphes in different size/colors/fonts
+			var fontProgram = new FontProgram<Glyph<Gl3Font,GlyphStyle>>(font, fontStyle); // manage the Programs to render glyphes in different size/colors/fonts
 			display.addProgram(fontProgram);
 			
 			var simpleGlyph = new Glyph<Gl3Font,GlyphStyle>(65, 0, 0);
 			fontProgram.add(simpleGlyph); //glyphes.remove(simpleGlyph);
-			//fontProgram.add(new Glyph(66, 22, 0));
+			
+			simpleGlyph.color = Color.BLUE;
+			fontProgram.update(simpleGlyph);
+			
+			// TODO: set auto-style for all new Glypes
+			// fontProgram.setCurrentStyle( new GlyphStyle(...) );
+			
+			//fontProgram.add(new Glyph<Gl3Font,GlyphStyle>(66, 22, 0));
 			
 			/*
 			// -------- Lines  ---------

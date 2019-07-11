@@ -9,6 +9,17 @@ import haxe.macro.Expr;
 import haxe.macro.Context;
 import haxe.macro.TypeTools;
 
+@:publicFields class GlyphStyleHasField {
+	var color:Bool;
+	var bgColor:Bool;
+	var width:Bool;
+	var height:Bool;
+	var rotation:Bool;
+	var bold:Bool;
+	var italic:Bool;
+	public function new() {}
+}
+
 class GlyphMacro
 {
 	public static var cache = new Map<String, Bool>();
@@ -55,11 +66,38 @@ class GlyphMacro
 		return null;
 	}
 	
+	static public function parseGlyphStyleFields(styleModule:String):GlyphStyleHasField {
+			// parse GlyphStyle fields
+			var glyphStyleHasField = new GlyphStyleHasField();
+			
+			var style_fields = switch Context.getType(styleModule) {
+				case TInst(s,_): s.get();
+				default: throw "error: can not parse glyphstyle";
+			}
+			for (field in style_fields.fields.get()) {
+				switch (field.name) {
+					case "color": glyphStyleHasField.color = true;
+					case "bgColor": glyphStyleHasField.bgColor = true;
+					case "width": glyphStyleHasField.width = true;
+					case "height": glyphStyleHasField.height = true;
+					case "rotation": glyphStyleHasField.rotation = true;
+					case "bold": glyphStyleHasField.bold = true;
+					case "italic": glyphStyleHasField.italic = true;
+					default: // todo
+				}
+			}
+			return glyphStyleHasField;
+	}
+	
 	static public function buildClass(
 		className:String, fontPack:Array<String>, fontModule:String, fontName:String, fontSuperModule:String, fontSuperName:String, fontType:ComplexType,
 		stylePack:Array<String>, styleModule:String, styleName:String, styleSuperModule:String, styleSuperName:String, styleType:ComplexType):ComplexType
 	{		
-		className += "_" + fontName + "_" + styleName;
+		var styleMod = styleModule.split(".").join("_");
+			
+		className += "__" + fontName + "__" + styleMod;
+		if (styleModule.split(".").pop() != styleName) className += ((styleMod != "") ? "_" : "") + styleName;
+		
 		var classPackage = Context.getLocalClass().get().pack;
 		
 		if (!cache.exists(className))
@@ -67,12 +105,14 @@ class GlyphMacro
 			cache[className] = true;
 			
 			var fontField:Array<String>;
-			if (fontSuperName == null) fontField = fontModule.split(".").concat([fontSuperName]);
-			else fontField = fontSuperModule.split(".").concat([fontSuperName]);
+			//if (fontSuperName == null) fontField = fontModule.split(".").concat([fontName]);
+			//else fontField = fontSuperModule.split(".").concat([fontSuperName]);
+			fontField = fontModule.split(".").concat([fontName]);
 			
 			var styleField:Array<String>;
-			if (styleSuperName == null) styleField = styleModule.split(".").concat([styleSuperName]);
-			else styleField = styleSuperModule.split(".").concat([styleSuperName]);
+			//if (styleSuperName == null) styleField = styleModule.split(".").concat([styleName]);
+			//else styleField = styleSuperModule.split(".").concat([styleSuperName]);
+			styleField = styleModule.split(".").concat([styleName]);
 			
 			#if peoteview_debug_macro
 			trace('generating Class: '+classPackage.concat([className]).join('.'));	
@@ -92,60 +132,52 @@ class GlyphMacro
 			trace("StyleType:" + styleType);     // TPath(...)
 			trace("StyleField:" + styleField);
 			#end
+						
+			var c = macro
+			// -------------------------------------------------------------------------------------------
+			// -------------------------------------------------------------------------------------------
+
+			class $className implements peote.view.Element
+			{
+				public var charcode:Int=0; // TODO: get/set to change the Tile at unicode-range
+
+				@posX public var x:Int=0;
+				@posY public var y:Int = 0;
+				
+				// TODO: generate 
+
+				@sizeX @const public var w:Float=16.0;
+				@sizeY @const public var h:Float=16.0;
+				
+				@color public var color:peote.view.Color;
+				
+				
+				
+				public function new(charcode:Int, x:Int, y:Int) 
+				{
+					this.charcode = charcode;
+					this.x = x;
+					this.y = y;
+				}
+				
+				public static function setGlobalStyle(program:peote.view.Program, style:peote.text.Gl3FontStyle) {
+					// inject global fontsize and color into shader
+					program.setFormula("w", Std.string(style.width));
+					program.setFormula("h", Std.string(style.height));
+					program.setColorFormula(Std.string(style.color.toGLSL()));
+				}
+				
+			}
+			// -------------------------------------------------------------------------------------------
+			// -------------------------------------------------------------------------------------------
+			var glyphStyleHasField = parseGlyphStyleFields(styleModule+"."+styleName);
 			
-			// parse GlyphStyle fields
-			var style_fields = switch Context.getType(styleModule)
-				{	case TInst(s,_): s.get();
-					default: throw "error: can not parse glyphstyle";
-				}
-			var hasColor = false;
-			var hasWidth = false;
-			var hasHeight = false;
-			for (field in style_fields.fields.get()) {
-				switch (field.name) {
-					case "color": hasColor = true;
-					case "width": hasWidth = true;
-					case "height": hasHeight = true;
-				}
+			// TODO add fields depending on GlyphStyle fields
+			if (glyphStyleHasField.width) {
+				
 			}
 			
-			var c = macro
-// -------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------
-
-class $className implements peote.view.Element
-{
-	public var charcode:Int=0; // TODO: get/set to change the Tile at unicode-range
-
-	@posX public var x:Int=0;
-	@posY public var y:Int = 0;
-	
-	@sizeX @const public var w:Float=16.0;
-	@sizeY @const public var h:Float=16.0;
-	
-	@color public var color:peote.view.Color;
-	
-	public function new(charcode:Int, x:Int, y:Int) 
-	{
-		this.charcode = charcode;
-		this.x = x;
-		this.y = y;
-	}
-	
-	public static function setGlobalStyle(program:peote.view.Program, style:peote.text.Gl3FontStyle) {
-		// inject global fontsize and color into shader
-		program.setFormula("w", Std.string(style.width));
-		program.setFormula("h", Std.string(style.height));
-		program.setColorFormula(Std.string(style.color.toGLSL()));
-	}
-	
-}
-
-
-// -------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------
-			
-			// add fields depending on GlyphStyle fields
+			// add fields depending on type of font
 			if (fontName == "Gl3Font") // TODO: other font-types that use texture-packing
 			{
 				c.fields.push({
@@ -187,38 +219,3 @@ class $className implements peote.view.Element
 	}
 }
 #end
-
-/*package peote.text;
-
-import peote.view.Element;
-import peote.view.Program;
-import peote.view.Color;
-
-
-class Glyph implements Element
-{
-	public var charcode:Int=0; // TODO: get/set to change the Tile at unicode-range
-
-	@posX public var x:Int=0;
-	@posY public var y:Int=0;
-	
-	@sizeX @const public var w:Float=16.0;
-	@sizeY @const public var h:Float=16.0;
-	
-	
-	public function new(charcode:Int, x:Int, y:Int) 
-	{
-		this.charcode = charcode;
-		this.x = x;
-		this.y = y;
-	}
-	
-	public static function setGlobalStyle(program:Program, style:GlyphStyle) {
-		// inject global fontsize and color into shader
-		program.setFormula("w", '${style.width}');
-		program.setFormula("h", '${style.height}');
-		program.setColorFormula('${style.color.toGLSL()}');
-	}
-	
-}
-*/
