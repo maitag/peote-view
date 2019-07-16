@@ -3,8 +3,6 @@ package utils;
 import haxe.Json;
 import lime.graphics.Image;
 import lime.utils.Bytes;
-import lime.net.HTTPRequest;
-import lime.net.HTTPRequestMethod;
 
 class Loader 
 {

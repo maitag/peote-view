@@ -1,11 +1,12 @@
 package peote.text;
 
 import haxe.ds.Vector;
-import peote.view.PeoteGL.Image;
 import haxe.io.Bytes;
-import peote.view.utils.TextureCache;
-import utils.Loader;
 import haxe.Json;
+
+import utils.Loader;
+import peote.view.PeoteGL.Image;
+import peote.view.utils.TextureCache;
 
 class Gl3Font 
 {
@@ -16,7 +17,7 @@ class Gl3Font
 	var ranges = new Array<{min:Int, max:Int}>();
 	var imageNames = new Array<String>();
 	
-	var textureCache:TextureCache;
+	public var textureCache:TextureCache;
 	
 	public var isKerning(default,null):Bool;
 	
@@ -26,7 +27,17 @@ class Gl3Font
 	{
 		path = rParseFolder.replace(fontPath, '');
 		this.isKerning = isKerning;
-		
+	}
+
+	public inline function getRange(charcode:Int):{unit:Int, slot:Int, fontData:Gl3FontData}
+	{
+		return rangeMapping.get(Std.int(charcode/0x1000));
+	}
+
+	// --------------------------- Loading -------------------------
+
+	public function load(?onProgress:Int->Int->Void, onLoad:Void->Void)
+	{
 		Loader.json(path+"/config.json", true, function(json:Json) {
 			
 			//trace(json);
@@ -46,36 +57,18 @@ class Gl3Font
 				4096*4 //peoteView.gl.getParameter(peoteView.gl.MAX_TEXTURE_SIZE)
 			);
 		
-			load(); // TODO: do manual with callback
-		});
+			loadFontData(onProgress, onLoad);
+		});		
 	}
-
-	public function load()
+	
+	private function loadFontData(onProgress:Int->Int->Void, onLoad:Void->Void):Void
 	{		
 		trace("load font-data");
 		var gl3FontData = new Array<Gl3FontData>();
 		
-		var progressSumA:Array<Int> = [for(i in 0...imageNames.length) 0];
-		var progressSumB:Array<Int> = [for (i in 0...imageNames.length) 0];
-		
 		Loader.bytesArray(
 			imageNames.map(function (v) return '$path/$v.dat'),
 			true,
-			function(index:Int, loaded:Int, size:Int) {
-				//trace(' File number $index progress ' + Std.int(loaded / size * 100) + "%" , ' ($loaded / $size)');
-				progressSumA[index] = loaded;
-				progressSumB[index] = size;
-				size = 0;
-				for (x in progressSumB) {
-					if (x == 0) { size = 0; break; }
-					size += x;
-				}
-				if (size > 0) {
-					loaded = 0;
-					for (x in progressSumA) loaded += x;
-					trace(' loading G3Font-Data progress ' + Std.int(loaded / size * 100) + "%" , ' ($loaded / $size)');
-				}
-			},
 			function(index:Int, bytes:Bytes) { // after .dat is loaded
 				//trace('File number $index loaded completely.');
 				gl3FontData[index] = new Gl3FontData(bytes, ranges[index].min, ranges[index].max, isKerning);
@@ -83,12 +76,17 @@ class Gl3Font
 			},
 			function(bytes:Array<Bytes>) { // after all .dat is loaded
 				trace(' --- all font-data loaded ---');
-				loadImages(gl3FontData);
+				loadImages(gl3FontData, onProgress, onLoad);
 			}
 		);
 	}
 	
-	public function loadImages(gl3FontData:Array<Gl3FontData>)
+	public function embed()
+	{
+		// TODO
+	}
+	
+	private function loadImages(gl3FontData:Array<Gl3FontData>, onProgress:Int->Int->Void, onLoad:Void->Void):Void
 	{		
 		trace("load images");
 			
@@ -111,6 +109,7 @@ class Gl3Font
 					loaded = 0;
 					for (x in progressSumA) loaded += x;
 					trace(' loading G3Font-Images progress ' + Std.int(loaded / size * 100) + "%" , ' ($loaded / $size)');
+					if (onProgress != null) onProgress(loaded, size);
 				}
 			},
 			function(index:Int, image:Image) { // after every image is loaded
@@ -123,10 +122,14 @@ class Gl3Font
 				for (charcode in gl3font.rangeMin...gl3font.rangeMax+1) {
 					var m = gl3font.getMetric(charcode);
 					if (m != null) {
-						m.u *= textureCache.textures[p.unit].width;
+/*						m.u *= textureCache.textures[p.unit].width;
 						m.v *= textureCache.textures[p.unit].height;
 						m.w *= textureCache.textures[p.unit].width;
 						m.h *= textureCache.textures[p.unit].height;
+*/						m.u *= image.width;
+						m.v *= image.height;
+						m.w *= image.width;
+						m.h *= image.height;
 						gl3font.setMetric(charcode, m);
 					}
 				}
@@ -141,10 +144,14 @@ class Gl3Font
 			},
 			function(images:Array<Image>) { // after all images is loaded
 				trace(' --- all images loaded ---');
+				onLoad();
 			}
 		);
 		
 	}
+	
+	// --------------------------- Embedding -------------------------
+	
 	
 	
 	

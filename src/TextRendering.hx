@@ -20,7 +20,7 @@ import peote.text.Gl3FontStyle;
 //import peote.text.Line;
 //import peote.text.Page;
 
-class GlyphStyle  {
+class GlyphStyle {
 	public var color:Color = Color.GREEN;
 }
 
@@ -38,45 +38,48 @@ class TextRendering
 			peoteView.addDisplay(display);  // display to peoteView
 			
 			var font = new Gl3Font("assets/gl3fonts/unifont/", false);
-			var fontStyle = new Gl3FontStyle();
-			fontStyle.color = Color.WHITE;
-			fontStyle.width = 20.0;
 			
-			var fontProgram = new FontProgram<Glyph<Gl3Font,GlyphStyle>>(font, fontStyle); // manage the Programs to render glyphes in different size/colors/fonts
-			display.addProgram(fontProgram);
+			font.load( function() {
 			
-			var simpleGlyph = new Glyph<Gl3Font,GlyphStyle>(65, 0, 0);
-			fontProgram.add(simpleGlyph); //glyphes.remove(simpleGlyph);
-			
-			simpleGlyph.color = Color.BLUE;
-			fontProgram.update(simpleGlyph);
-			
-			// TODO: set auto-style for all new Glypes
-			// fontProgram.setCurrentStyle( new GlyphStyle(...) );
-			
-			//fontProgram.add(new Glyph<Gl3Font,GlyphStyle>(66, 22, 0));
-			
-			/*
-			// -------- Lines  ---------
-			
-			var line = new Line(0, 100, "Hello Word!");
-			//line.add( "B" );
-			glyphes.addLine(line);
-			
-			
-			// -------- Pages ??? (namespace!!!) <--------
-			
-			var page = new Page( 0, 200,
-				  "Um einen Feuerball rast eine Kotkugel, auf der Damenseidenstrümpfe verkauft und Gauguins geschätzt werden."
-			    + "\n"
-				+ "Ein fürwahr überaus betrüblicher Aspekt, der aber immerhin ein wenig unterschiedlich ist: Seidenstrümpfe können begriffen werden, Gauguins nicht."
-			);
-			//page.add( new Line("(Bernheim als prestigieuser Biologe zu imaginieren.)") );
+				var fontStyle = new Gl3FontStyle();
+				fontStyle.color = Color.WHITE;
+				fontStyle.width = 20.0;
+				
+				var fontProgram = new FontProgram<Glyph<Gl3Font,GlyphStyle>>(font, fontStyle); // manage the Programs to render glyphes in different size/colors/fonts
+				display.addProgram(fontProgram);
+				
+				var simpleGlyph = new Glyph<Gl3Font,GlyphStyle>(65, 0, 0);
+				fontProgram.add(simpleGlyph); //glyphes.remove(simpleGlyph);
+				
+				//simpleGlyph.color = Color.BLUE;
+				//fontProgram.update(simpleGlyph);
+				
+				// TODO: set auto-style for all new Glypes
+				// fontProgram.setCurrentStyle( new GlyphStyle(...) );
+				
+				//fontProgram.add(new Glyph<Gl3Font,GlyphStyle>(66, 22, 0));
+				
+				/*
+				// -------- Lines  ---------
+				
+				var line = new Line(0, 100, "Hello Word!");
+				//line.add( "B" );
+				glyphes.addLine(line);
+				
+				
+				// -------- Pages ??? (namespace!!!) <--------
+				
+				var page = new Page( 0, 200,
+					  "Um einen Feuerball rast eine Kotkugel, auf der Damenseidenstrümpfe verkauft und Gauguins geschätzt werden."
+					+ "\n"
+					+ "Ein fürwahr überaus betrüblicher Aspekt, der aber immerhin ein wenig unterschiedlich ist: Seidenstrümpfe können begriffen werden, Gauguins nicht."
+				);
+				//page.add( new Line("(Bernheim als prestigieuser Biologe zu imaginieren.)") );
 
-			.addPage(page);
-			
-			*/
-			
+				.addPage(page);
+				
+				*/
+			});
 
 			
 			
@@ -130,6 +133,7 @@ class TextRendering
 			case KeyCode.NUMPAD_MINUS:
 					if (modifier.shiftKey) peoteView.zoom-=0.01;
 					else display.zoom -= 0.1;
+			
 			case KeyCode.UP: display.yOffset -= (modifier.shiftKey) ? 8 : 1;
 			case KeyCode.DOWN: display.yOffset += (modifier.shiftKey) ? 8 : 1;
 			case KeyCode.RIGHT: display.xOffset += (modifier.shiftKey) ? 8 : 1;

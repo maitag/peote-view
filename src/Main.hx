@@ -180,10 +180,12 @@ class Main extends Application
 	}
 	
 	public override function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
-	{	//trace("keydown",keyCode, modifier);
+	{
+		//trace("keydown",keyCode, modifier);
 		switch (keyCode) {
+			#if html5
+			case KeyCode.TAB: untyped __js__('event.preventDefault();');
 			case KeyCode.F:
-				#if html5
 				var e:Dynamic = untyped __js__("document.getElementById('content').getElementsByTagName('canvas')[0]");
 				var noFullscreen:Dynamic = untyped __js__("(!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement)");
 				
@@ -202,11 +204,13 @@ class Main extends Application
 					else if (d.mozCancelFullScreen) d.mozCancelFullScreen();
 					else if (d.webkitExitFullscreen) d.webkitExitFullscreen();					
 				}
-				#else
-				window.fullscreen = !window.fullscreen;
-				#end				
-			default: if (renderTest) test.onKeyDown(keyCode, modifier);
+			#else
+			case KeyCode.F: window.fullscreen = !window.fullscreen;
+			#end
+			default:
 		}
+		
+		if (renderTest) test.onKeyDown(keyCode, modifier);
 	}
 	
 	public override function onKeyUp (keyCode:KeyCode, modifier:KeyModifier):Void {

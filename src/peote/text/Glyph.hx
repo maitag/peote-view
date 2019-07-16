@@ -139,15 +139,17 @@ class GlyphMacro
 
 			class $className implements peote.view.Element
 			{
-				public var charcode:Int=0; // TODO: get/set to change the Tile at unicode-range
+				public var charcode:Int=0;
 
 				@posX public var x:Int=0;
 				@posY public var y:Int = 0;
 				
 				// TODO: generate 
 
-				@sizeX @const public var w:Float=16.0;
-				@sizeY @const public var h:Float=16.0;
+				//@sizeX @const public var w:Float=16.0;
+				//@sizeY @const public var h:Float=16.0;
+				@texUnit public var unit:Int = 0;
+				@texSlot public var slot:Int = 0;
 				
 				@color public var color:peote.view.Color;
 				
@@ -160,18 +162,19 @@ class GlyphMacro
 					this.y = y;
 				}
 				
-				public static function setGlobalStyle(program:peote.view.Program, style:peote.text.Gl3FontStyle) {
+/*				public static function setGlobalStyle(program:peote.view.Program, style:peote.text.Gl3FontStyle) {
 					// inject global fontsize and color into shader
 					program.setFormula("w", Std.string(style.width));
 					program.setFormula("h", Std.string(style.height));
 					program.setColorFormula(Std.string(style.color.toGLSL()));
 				}
-				
+*/				
 			}
+			
 			// -------------------------------------------------------------------------------------------
 			// -------------------------------------------------------------------------------------------
 			var glyphStyleHasField = parseGlyphStyleFields(styleModule+"."+styleName);
-			
+			trace("GLYPH:", glyphStyleHasField);
 			// TODO add fields depending on GlyphStyle fields
 			if (glyphStyleHasField.width) {
 				
@@ -181,30 +184,45 @@ class GlyphMacro
 			if (fontName == "Gl3Font") // TODO: other font-types that use texture-packing
 			{
 				c.fields.push({
+					name:  "w",
+					meta:  [{name:"sizeX", params:[], pos:Context.currentPos()}],
+					//access:  [Access.APrivate],
+					access:  [Access.APublic],
+					kind: FieldType.FVar(macro:Float, macro 0.0),
+					pos: Context.currentPos(),
+				});
+				c.fields.push({
+					name:  "h",
+					meta:  [{name:"sizeY", params:[], pos:Context.currentPos()}],
+					access:  [Access.APublic],
+					kind: FieldType.FVar(macro:Float, macro 0.0),
+					pos: Context.currentPos(),
+				});
+				c.fields.push({
 					name:  "tx",
 					meta:  [{name:"texX", params:[], pos:Context.currentPos()}],
-					access:  [Access.APrivate],
+					access:  [Access.APublic],
 					kind: FieldType.FVar(macro:Float, macro 0.0),
 					pos: Context.currentPos(),
 				});
 				c.fields.push({
 					name:  "ty",
 					meta:  [{name:"texY", params:[], pos:Context.currentPos()}],
-					access:  [Access.APrivate],
+					access:  [Access.APublic],
 					kind: FieldType.FVar(macro:Float, macro 0.0),
 					pos: Context.currentPos(),
 				});
 				c.fields.push({
 					name:  "tw",
 					meta:  [{name:"texW", params:[], pos:Context.currentPos()}],
-					access:  [Access.APrivate],
+					access:  [Access.APublic],
 					kind: FieldType.FVar(macro:Float, macro 0.0),
 					pos: Context.currentPos(),
 				});
 				c.fields.push({
 					name:  "th",
 					meta:  [{name:"texH", params:[], pos:Context.currentPos()}],
-					access:  [Access.APrivate],
+					access:  [Access.APublic],
 					kind: FieldType.FVar(macro:Float, macro 0.0),
 					pos: Context.currentPos(),
 				});
