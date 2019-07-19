@@ -9,8 +9,8 @@ class GlyphStyle
 	public var color:Color = Color.GREY1;
 	public var bgColor:Color = Color.MAGENTA; // TODO
 	
-	public var width:Int = 16;
-	public var height:Int = 16;
+	public var width:Float = 20;
+	public var height:Float = 20;
 	
 	public var rotation:Int = 0;
 		

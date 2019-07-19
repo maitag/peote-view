@@ -54,6 +54,9 @@ class Gl3Font
 				[
 					{width:2048, height:2048, slots:ranges.length}, // TODO 
 				],
+				4, // colors -> TODO
+				false, // mipmaps
+				1,1, // min/mag-filter
 				4096*4 //peoteView.gl.getParameter(peoteView.gl.MAX_TEXTURE_SIZE)
 			);
 		
@@ -122,11 +125,7 @@ class Gl3Font
 				for (charcode in gl3font.rangeMin...gl3font.rangeMax+1) {
 					var m = gl3font.getMetric(charcode);
 					if (m != null) {
-/*						m.u *= textureCache.textures[p.unit].width;
-						m.v *= textureCache.textures[p.unit].height;
-						m.w *= textureCache.textures[p.unit].width;
-						m.h *= textureCache.textures[p.unit].height;
-*/						m.u *= image.width;
+						m.u *= image.width;
 						m.v *= image.height;
 						m.w *= image.width;
 						m.h *= image.height;

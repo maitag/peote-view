@@ -22,6 +22,9 @@ import peote.text.Gl3FontStyle;
 
 class GlyphStyle {
 	public var color:Color = Color.GREEN;
+	public var width:Float = 20.0;
+	public var height:Float = 20.0;
+	public function new() {}
 }
 
 class TextRendering
@@ -44,28 +47,40 @@ class TextRendering
 				var fontStyle = new Gl3FontStyle();
 				fontStyle.color = Color.WHITE;
 				fontStyle.width = 20.0;
+				fontStyle.height = 20.0;
 				
 				var fontProgram = new FontProgram<Glyph<Gl3Font,GlyphStyle>>(font, fontStyle); // manage the Programs to render glyphes in different size/colors/fonts
 				display.addProgram(fontProgram);
 				
-				var simpleGlyph = new Glyph<Gl3Font,GlyphStyle>(65, 0, 0);
-				fontProgram.add(simpleGlyph); //glyphes.remove(simpleGlyph);
 				
-				//simpleGlyph.color = Color.BLUE;
-				//fontProgram.update(simpleGlyph);
+				// ----------------
+				var glyphStyle1 = new GlyphStyle();
+				glyphStyle1.color = Color.YELLOW;
+				glyphStyle1.width = 30.0;
 				
-				// TODO: set auto-style for all new Glypes
-				// fontProgram.setCurrentStyle( new GlyphStyle(...) );
+				var glyphStyle2 = new GlyphStyle();
+				glyphStyle2.color = Color.GREEN;
 				
-				//fontProgram.add(new Glyph<Gl3Font,GlyphStyle>(66, 22, 0));
+				
+				var glyph1 = new Glyph<Gl3Font,GlyphStyle>(glyphStyle1);
+				fontProgram.add(glyph1, 65, 0, 0);
+				
+				fontProgram.setCharcode(glyph1, 66);
+				//glyph1.color = Color.BLUE;
+				//glyph1.setStyle(glyphStyle2);
+				fontProgram.update(glyph1);
+				
+				var glyph2 = new Glyph<Gl3Font,GlyphStyle>(glyphStyle2);
+				fontProgram.add( glyph2, 103, 20, 0 ); 
+				
 				
 				/*
 				// -------- Lines  ---------
 				
-				var line = new Line(0, 100, "Hello Word!");
+				var line = new Line("Hello Word!");
 				//line.add( "B" );
-				glyphes.addLine(line);
-				
+				fontProgram.addLine(line, 0, 100);
+				fontProgram.removeLine(line);
 				
 				// -------- Pages ??? (namespace!!!) <--------
 				
@@ -76,8 +91,8 @@ class TextRendering
 				);
 				//page.add( new Line("(Bernheim als prestigieuser Biologe zu imaginieren.)") );
 
-				.addPage(page);
-				
+				fontProgram.addPage(page 0, 200);
+				fontProgram.removePage(line);
 				*/
 			});
 

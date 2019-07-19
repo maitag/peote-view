@@ -17,7 +17,7 @@ class TextureCache
 		
 	public var textures = new Array<Texture>();
 	
-	public function new(imageSizes:Array<{width:Int, height:Int, slots:Int}>, maxTextureSize:Int = 4096) 
+	public function new(imageSizes:Array<{width:Int, height:Int, slots:Int}>, colorChannels:Int=4, createMipmaps:Bool=false, minFilter:Int=0, magFilter:Int=0, maxTextureSize:Int = 4096) 
 	{
 		// sort sizes
 		ArraySort.sort(imageSizes, function(x, y) {
@@ -34,8 +34,9 @@ class TextureCache
 				// how many fit into one texture
 				var s = TexUtils.optimalTextureSize(slots, size.width, size.height, maxTextureSize, false, false).imageSlots;
 				t.push( {unit:textures.length, freeSlots:[for (i in 0...s) s-1-i]} );
-				textures.push( new Texture(size.width, size.height, s) ); // TODO: mipmaps ...
+				textures.push( new Texture(size.width, size.height, s, colorChannels, createMipmaps, minFilter, magFilter) );
 				slots -= s;
+					
 			}
 			texSizes.push({
 				width: size.width,

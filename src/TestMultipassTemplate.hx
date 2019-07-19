@@ -56,3 +56,26 @@ class TestMultipassTemplate extends lime.app.Application
 	::end::
 	';
 }
+
+// TODO:
+/*class Test {
+    static function main() {
+        var ctx	= {
+            name : "Foo",
+            isMale : false,
+            len : 5
+        }
+        var s1	= '::if name=="Foo"::Ok::else::No::end::';					// fails
+        var s2	= '::if (name=="Foo")::Ok::else::No::end::';				// Ok
+        var s3	= '::if(name == "Foo")::Ok::else::No::end::';				// fails
+        var s4	= '::if ((name=="Foo")&&(isMale))::Ok::else::No::end::';	// Ok
+        var s5	= '::if ((name=="Foo") && (isMale))::Ok::else::No::end::';	// fails
+        
+        var s6	= '::if len>4::Ok::else::No::end::';	// fails
+        var s7	= '::if (len>4)::Ok::else::No::end::';	// Ok
+        var s8	= '::if(len>4)::Ok::else::No::end::';	// fails
+      
+        var t = new haxe.Template( s7 );
+        	trace( t.execute( ctx ) );
+    }
+}*/

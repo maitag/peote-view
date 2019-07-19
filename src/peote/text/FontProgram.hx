@@ -100,44 +100,29 @@ class FontProgramMacro
 			class $className extends peote.view.Program
 			{
 				public var font:$fontType;
-				public var glyphStyle:peote.text.Gl3FontStyle;
+				public var fontStyle:peote.text.Gl3FontStyle;
 				
 				var _buffer:peote.view.Buffer<$glyphType>;
 					
-				public function new(font:$fontType, glyphStyle:peote.text.Gl3FontStyle)
+				public function new(font:$fontType, fontStyle:peote.text.Gl3FontStyle)
 				{
 					this.font = font;
-					this.glyphStyle = glyphStyle;
+					this.fontStyle = fontStyle;
 
 					_buffer = new peote.view.Buffer<$glyphType>(100);
 					
 					super(_buffer);
 					
-/*					if (style.width == null) {
-						// todo use default from Font
-						style.width = 16.0;
-					}
-					if (style.height == null) {
-						// todo use default from Font
-						style.height = 16.0;
-					}
-*/					
-					
-					
 					// inject global fontsize and color into shader
-					//$p{glyphField}.setGlobalStyle(this, style);
-					setGlobalStyle(glyphStyle);
-					
+					setGlobalStylefontStyle(fontStyle);					
 				}
 				
-				public function setGlobalStyle(glyphStyle:peote.text.Gl3FontStyle) {
+				public function setGlobalStylefontStyle(fontStyle:peote.text.Gl3FontStyle) {
 					// inject global fontsize and color into shader
 					//program.setFormula("w", Std.string(glyphStyle.width));
 					//program.setFormula("h", Std.string(glyphStyle.height));
 					//program.setColorFormula(Std.string(style.color.toGLSL()));
-					
-					//program.setTexture(texture, "TEX");
-					
+										
 					var bold = peote.view.utils.Util.toFloatString(0.5);
 					var sharp = peote.view.utils.Util.toFloatString(0.5);
 					
@@ -146,35 +131,39 @@ class FontProgramMacro
 					super.setColorFormula("color * smoothstep( "+bold+" - "+sharp+" * fwidth(TEX.r), "+bold+" + "+sharp+" * fwidth(TEX.r), TEX.r)");
 				}
 				
-				public function add(glyph:$glyphType):Void {
-					setCharGl3Font(glyph);
+				public inline function add(glyph:$glyphType, charcode:Int, x:Int, y:Int):Void {
+					glyph.x = x;
+					glyph.y = y;
+					setCharcode(glyph, charcode);					
 					_buffer.addElement(glyph);
 				}
-				public function update(glyph:$glyphType):Void {
-					setCharGl3Font(glyph);
-					_buffer.updateElement(glyph);
-				}
-				public function remove(glyph:$glyphType):Void {
+								
+				public inline function remove(glyph:$glyphType):Void {
 					_buffer.removeElement(glyph);
 				}
 				
-				// TODO: w, h, and text-coords for packed glyphes (versus tiled and not-packed ones)
-				public function setCharGl3Font(glyph:$glyphType):Void {
-					
-					var range = font.getRange(glyph.charcode);
-					var metric = range.fontData.getMetric(glyph.charcode);
+				
+				public inline function update(glyph:$glyphType):Void {
+					_buffer.updateElement(glyph);
+				}
+				
+				
+				public inline function setCharcode(glyph:$glyphType, charcode:Int):Void {
+					var range = font.getRange(charcode);
+					var metric = range.fontData.getMetric(charcode);
+					//trace("glyph"+charcode, range.unit, range.slot, metric);
 					
 					glyph.unit = range.unit;
 					glyph.slot = range.slot;
 					
-					glyph.w  = metric.width  * 16.0;
-					glyph.h  = metric.height * 16.0;
 					glyph.tx = metric.u;
 					glyph.ty = metric.v;
 					glyph.tw = metric.w;
 					glyph.th = metric.h;
 					
-					trace("glyph"+glyph.charcode, range.unit, range.slot, metric);
+					glyph.w = metric.width  * glyph.width;
+					glyph.h = metric.height * glyph.height;
+					
 				}
 				
 			}

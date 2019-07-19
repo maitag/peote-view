@@ -48,7 +48,7 @@ class Texture
 	var programs = new Array<Program>();
 	var displays = new Array<Display>();
 	
-	public function new(slotWidth:Int, slotHeight:Int, imageSlots:Int=1, colorChannels:Int=4, createMipmaps:Bool=false, magFilter:Int=0, minFilter:Int=0, maxTextureSize:Int=16384)
+	public function new(slotWidth:Int, slotHeight:Int, imageSlots:Int=1, colorChannels:Int=4, createMipmaps:Bool=false, minFilter:Int=0, magFilter:Int=0, maxTextureSize:Int=16384)
 	{
 		this.slotWidth = slotWidth;
 		this.slotHeight = slotHeight;

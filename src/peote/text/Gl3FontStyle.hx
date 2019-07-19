@@ -8,12 +8,12 @@ class Gl3FontStyle
 
 	// same as with full GylphStyle
 	public var color:Color = Color.GREY1;
-	public var width:Null<Float> = null;
-	public var height:Null<Float> = null;
+	
+	public var width:Float = 20;
+	public var height:Float = 20;
 	
 	public var bold:Bool = false;
 	public var italic:Bool = false;
-	
 	
 	
 	// special for gl3-font

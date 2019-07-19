@@ -139,10 +139,8 @@ class GlyphMacro
 
 			class $className implements peote.view.Element
 			{
-				public var charcode:Int=0;
-
-				@posX public var x:Int=0;
-				@posY public var y:Int = 0;
+				@posX public var x:Float = 0.0;
+				@posY public var y:Float = 0.0;
 				
 				// TODO: generate 
 
@@ -153,22 +151,20 @@ class GlyphMacro
 				
 				@color public var color:peote.view.Color;
 				
+				public var width:Float;
+				public var height:Float;
 				
-				
-				public function new(charcode:Int, x:Int, y:Int) 
+				public function new(glyphStyle:$styleType)
 				{
-					this.charcode = charcode;
-					this.x = x;
-					this.y = y;
+					setStyle(glyphStyle);
 				}
 				
-/*				public static function setGlobalStyle(program:peote.view.Program, style:peote.text.Gl3FontStyle) {
-					// inject global fontsize and color into shader
-					program.setFormula("w", Std.string(style.width));
-					program.setFormula("h", Std.string(style.height));
-					program.setColorFormula(Std.string(style.color.toGLSL()));
+				public inline function setStyle(glyphStyle:$styleType):Void {				
+					color = glyphStyle.color;
+					width = glyphStyle.width;
+					height = glyphStyle.height;
 				}
-*/				
+				
 			}
 			
 			// -------------------------------------------------------------------------------------------
@@ -176,8 +172,8 @@ class GlyphMacro
 			var glyphStyleHasField = parseGlyphStyleFields(styleModule+"."+styleName);
 			trace("GLYPH:", glyphStyleHasField);
 			// TODO add fields depending on GlyphStyle fields
+			// TODO: generate  setStyle - function
 			if (glyphStyleHasField.width) {
-				
 			}
 			
 			// add fields depending on type of font
