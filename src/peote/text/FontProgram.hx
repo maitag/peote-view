@@ -93,9 +93,8 @@ class FontProgramMacro
 			trace("StyleField:" + styleField);   // [peote,text,GlyphStyle,GlyphStyle]
 			#end
 			
+			// -------------------------------------------------------------------------------------------
 			var c = macro		
-			// -------------------------------------------------------------------------------------------
-			// -------------------------------------------------------------------------------------------
 
 			class $className extends peote.view.Program
 			{
@@ -107,63 +106,24 @@ class FontProgramMacro
 				public function new(font:$fontType, fontStyle:peote.text.Gl3FontStyle)
 				{
 					this.font = font;
-					this.fontStyle = fontStyle;
-
-					_buffer = new peote.view.Buffer<$glyphType>(100);
-					
-					super(_buffer);
-					
-					// inject global fontsize and color into shader
-					setGlobalStylefontStyle(fontStyle);					
-				}
-				
-				public function setGlobalStylefontStyle(fontStyle:peote.text.Gl3FontStyle) {
-					// inject global fontsize and color into shader
-					//program.setFormula("w", Std.string(glyphStyle.width));
-					//program.setFormula("h", Std.string(glyphStyle.height));
-					//program.setColorFormula(Std.string(style.color.toGLSL()));
-										
-					var bold = peote.view.utils.Util.toFloatString(0.5);
-					var sharp = peote.view.utils.Util.toFloatString(0.5);
-					
-					// TODO
-					super.setMultiTexture(font.textureCache.textures, "TEX");
-					super.setColorFormula("color * smoothstep( "+bold+" - "+sharp+" * fwidth(TEX.r), "+bold+" + "+sharp+" * fwidth(TEX.r), TEX.r)");
+					_buffer = new peote.view.Buffer<$glyphType>(100);					
+					super(_buffer);					
+					setFontStyle(fontStyle); // inject global fontsize and color into shader -> GENERATED
 				}
 				
 				public inline function add(glyph:$glyphType, charcode:Int, x:Int, y:Int):Void {
 					glyph.x = x;
 					glyph.y = y;
-					setCharcode(glyph, charcode);					
+					setCharcode(glyph, charcode);  // -> GENERATED					
 					_buffer.addElement(glyph);
 				}
 								
 				public inline function remove(glyph:$glyphType):Void {
 					_buffer.removeElement(glyph);
 				}
-				
-				
+								
 				public inline function update(glyph:$glyphType):Void {
 					_buffer.updateElement(glyph);
-				}
-				
-				
-				public inline function setCharcode(glyph:$glyphType, charcode:Int):Void {
-					var range = font.getRange(charcode);
-					var metric = range.fontData.getMetric(charcode);
-					//trace("glyph"+charcode, range.unit, range.slot, metric);
-					
-					glyph.unit = range.unit;
-					glyph.slot = range.slot;
-					
-					glyph.tx = metric.u;
-					glyph.ty = metric.v;
-					glyph.tw = metric.w;
-					glyph.th = metric.h;
-					
-					glyph.w = metric.width  * glyph.width;
-					glyph.h = metric.height * glyph.height;
-					
 				}
 				
 			}
@@ -172,13 +132,80 @@ class FontProgramMacro
 			// -------------------------------------------------------------------------------------------
 			
 			var glyphStyleHasField = Glyph.GlyphMacro.parseGlyphStyleFields(styleModule);
-			trace("FONTPROGRAM:", glyphStyleHasField);
-			// TODO
-			if (glyphStyleHasField.width) {
+			//trace("FontProgram: glyphStyleHasField", glyphStyleHasField);
+			
+			if (fontName == "Gl3Font")
+			{
+				// ------ generate Function setCharcode -------
 				
+				var exprBlock = new Array<Expr>();
+				if (glyphStyleHasField.width) 
+				     exprBlock.push( macro glyph.w = metric.width * glyph.width );
+				else exprBlock.push( macro glyph.w = metric.width * fontStyle.width );
+				
+				if (glyphStyleHasField.height)
+				     exprBlock.push( macro glyph.h = metric.height * glyph.height );
+				else exprBlock.push( macro glyph.h = metric.height * fontStyle.height );
+								
+				c.fields.push({
+					name: "setCharcode",
+					access: [Access.APublic, Access.AInline],
+					pos: Context.currentPos(),
+					kind: FFun({
+						args:[ {name:"glyph", type:macro:$glyphType},
+						       {name:"charcode", type:macro:Int},
+						],
+						//expr: macro $b{ exprBlock },
+						expr: macro {
+							var range = font.getRange(charcode);
+							var metric = range.fontData.getMetric(charcode);
+							//trace("glyph"+charcode, range.unit, range.slot, metric);
+							
+							glyph.unit = range.unit;
+							glyph.slot = range.slot;
+							
+							glyph.tx = metric.u;
+							glyph.ty = metric.v;
+							glyph.tw = metric.w;
+							glyph.th = metric.h;
+							
+							$b{ exprBlock }
+						},
+						ret: null
+					})
+				});
+				
+				
+				// ------ generate Function setFontStyle -------
+				
+				exprBlock = new Array<Expr>();
+				if (glyphStyleHasField.color) 
+					exprBlock.push( macro super.setColorFormula("color * smoothstep( "+bold+" - "+sharp+" * fwidth(TEX.r), "+bold+" + "+sharp+" * fwidth(TEX.r), TEX.r)") );
+				else
+					exprBlock.push( macro super.setColorFormula(Std.string(fontStyle.color.toGLSL()) + " * smoothstep( "+bold+" - "+sharp+" * fwidth(TEX.r), "+bold+" + "+sharp+" * fwidth(TEX.r), TEX.r)") );
+				
+				c.fields.push({
+					name: "setFontStyle",
+					access: [Access.APublic],
+					pos: Context.currentPos(),
+					kind: FFun({
+						args:[ {name:"fontStyle", type:macro:peote.text.Gl3FontStyle}
+						],
+						expr: macro {
+							this.fontStyle = fontStyle;
+												
+							var bold = peote.view.utils.Util.toFloatString(0.5);
+							var sharp = peote.view.utils.Util.toFloatString(0.5);
+							
+							super.setMultiTexture(font.textureCache.textures, "TEX");
+							
+							$b{ exprBlock }
+						},
+						ret: null
+					})
+				});
+			
 			}
-			
-			
 
 			//Context.defineModule(classPackage.concat([className]).join('.'),[c],Context.getLocalImports());
 			Context.defineModule(classPackage.concat([className]).join('.'),[c]);

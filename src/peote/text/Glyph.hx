@@ -133,9 +133,8 @@ class GlyphMacro
 			trace("StyleField:" + styleField);
 			#end
 						
+			// -------------------------------------------------------------------------------------------
 			var c = macro
-			// -------------------------------------------------------------------------------------------
-			// -------------------------------------------------------------------------------------------
 
 			class $className implements peote.view.Element
 			{
@@ -143,26 +142,12 @@ class GlyphMacro
 				@posY public var y:Float = 0.0;
 				
 				// TODO: generate 
-
-				//@sizeX @const public var w:Float=16.0;
-				//@sizeY @const public var h:Float=16.0;
 				@texUnit public var unit:Int = 0;
 				@texSlot public var slot:Int = 0;
 				
-				@color public var color:peote.view.Color;
-				
-				public var width:Float;
-				public var height:Float;
-				
 				public function new(glyphStyle:$styleType)
 				{
-					setStyle(glyphStyle);
-				}
-				
-				public inline function setStyle(glyphStyle:$styleType):Void {				
-					color = glyphStyle.color;
-					width = glyphStyle.width;
-					height = glyphStyle.height;
+					setStyle(glyphStyle); // -> GENERATED
 				}
 				
 			}
@@ -170,55 +155,97 @@ class GlyphMacro
 			// -------------------------------------------------------------------------------------------
 			// -------------------------------------------------------------------------------------------
 			var glyphStyleHasField = parseGlyphStyleFields(styleModule+"."+styleName);
-			trace("GLYPH:", glyphStyleHasField);
-			// TODO add fields depending on GlyphStyle fields
-			// TODO: generate  setStyle - function
-			if (glyphStyleHasField.width) {
-			}
+			//trace("Glyph - glyphStyleHasField:", glyphStyleHasField);
 			
-			// add fields depending on type of font
-			if (fontName == "Gl3Font") // TODO: other font-types that use texture-packing
+			// --- generate Function setStyle --------
+			
+			var exprBlock = new Array<Expr>();
+			if (glyphStyleHasField.width) exprBlock.push( macro width = glyphStyle.width );
+			if (glyphStyleHasField.height) exprBlock.push( macro height = glyphStyle.height );
+			if (glyphStyleHasField.color) exprBlock.push( macro color = glyphStyle.color );
+			
+			c.fields.push({
+				name: "setStyle",
+				access: [Access.APublic, Access.AInline],
+				pos: Context.currentPos(),
+				kind: FFun({
+					args:[ {name:"glyphStyle", type:macro:$styleType},
+					],
+					expr: macro $b{ exprBlock },
+					ret: null
+				})
+			});
+			
+			// --- add fields depending on style
+			if (glyphStyleHasField.color) c.fields.push({
+				name:  "color",
+				meta:  [{name:"color", params:[], pos:Context.currentPos()}],
+				access:  [Access.APublic],
+				kind: FieldType.FVar(macro:peote.view.Color, macro 0xffffffff),
+				pos: Context.currentPos(),
+			});
+			
+			// ---------- add fields depending on font/style
+			if (fontName == "Gl3Font")
 			{
-				c.fields.push({
-					name:  "w",
-					meta:  [{name:"sizeX", params:[], pos:Context.currentPos()}],
-					//access:  [Access.APrivate],
+				if (glyphStyleHasField.width) c.fields.push({
+					name:  "width",
 					access:  [Access.APublic],
 					kind: FieldType.FVar(macro:Float, macro 0.0),
 					pos: Context.currentPos(),
 				});
-				c.fields.push({
-					name:  "h",
-					meta:  [{name:"sizeY", params:[], pos:Context.currentPos()}],
+				if (glyphStyleHasField.height) c.fields.push({
+					name:  "height",
 					access:  [Access.APublic],
 					kind: FieldType.FVar(macro:Float, macro 0.0),
 					pos: Context.currentPos(),
 				});
+				
 				c.fields.push({
-					name:  "tx",
-					meta:  [{name:"texX", params:[], pos:Context.currentPos()}],
-					access:  [Access.APublic],
+					name: "w",
+					meta: [{name:"sizeX", params:[], pos:Context.currentPos()},
+					       {name:":allow", params:[macro peote.text], pos:Context.currentPos()}],
+					access: [Access.APrivate],
+					kind: FieldType.FVar(macro:Float, macro 0.0),
+					pos: Context.currentPos(),
+				});
+				c.fields.push({
+					name: "h",
+					meta: [{name:"sizeY", params:[], pos:Context.currentPos()},
+					       {name:":allow", params:[macro peote.text], pos:Context.currentPos()}],
+					access: [Access.APrivate],
+					kind: FieldType.FVar(macro:Float, macro 0.0),
+					pos: Context.currentPos(),
+				});
+				c.fields.push({
+					name: "tx",
+					meta: [{name:"texX", params:[], pos:Context.currentPos()},
+					       {name:":allow", params:[macro peote.text], pos:Context.currentPos()}],
+					access: [Access.APrivate],
 					kind: FieldType.FVar(macro:Float, macro 0.0),
 					pos: Context.currentPos(),
 				});
 				c.fields.push({
 					name:  "ty",
-					meta:  [{name:"texY", params:[], pos:Context.currentPos()}],
-					access:  [Access.APublic],
+					meta: [{name:"texY", params:[], pos:Context.currentPos()},
+					       {name:":allow", params:[macro peote.text], pos:Context.currentPos()}],
+					access: [Access.APrivate],
 					kind: FieldType.FVar(macro:Float, macro 0.0),
 					pos: Context.currentPos(),
 				});
 				c.fields.push({
 					name:  "tw",
-					meta:  [{name:"texW", params:[], pos:Context.currentPos()}],
-					access:  [Access.APublic],
+					meta: [{name:"texW", params:[], pos:Context.currentPos()},
+					       {name:":allow", params:[macro peote.text], pos:Context.currentPos()}],
+					access: [Access.APrivate],
 					kind: FieldType.FVar(macro:Float, macro 0.0),
 					pos: Context.currentPos(),
 				});
 				c.fields.push({
-					name:  "th",
-					meta:  [{name:"texH", params:[], pos:Context.currentPos()}],
-					access:  [Access.APublic],
+					name: "th",
+					meta: [{name:"texH", params:[], pos:Context.currentPos()},
+					       {name:":allow", params:[macro peote.text], pos:Context.currentPos()}],
+					access: [Access.APrivate],
 					kind: FieldType.FVar(macro:Float, macro 0.0),
 					pos: Context.currentPos(),
 				});

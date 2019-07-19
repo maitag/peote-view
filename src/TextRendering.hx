@@ -38,7 +38,7 @@ class TextRendering
 		try {	
 			peoteView = new PeoteView(window.context, window.width, window.height);
 			display   = new Display(10,10, window.width-20, window.height-20, Color.GREY1);
-			peoteView.addDisplay(display);  // display to peoteView
+			peoteView.addDisplay(display);
 			
 			var font = new Gl3Font("assets/gl3fonts/unifont/", false);
 			
@@ -46,8 +46,8 @@ class TextRendering
 			
 				var fontStyle = new Gl3FontStyle();
 				fontStyle.color = Color.WHITE;
-				fontStyle.width = 20.0;
-				fontStyle.height = 20.0;
+				fontStyle.width = 50.0;
+				fontStyle.height = 50.0;
 				
 				var fontProgram = new FontProgram<Glyph<Gl3Font,GlyphStyle>>(font, fontStyle); // manage the Programs to render glyphes in different size/colors/fonts
 				display.addProgram(fontProgram);
@@ -59,15 +59,14 @@ class TextRendering
 				glyphStyle1.width = 30.0;
 				
 				var glyphStyle2 = new GlyphStyle();
-				glyphStyle2.color = Color.GREEN;
 				
 				
 				var glyph1 = new Glyph<Gl3Font,GlyphStyle>(glyphStyle1);
 				fontProgram.add(glyph1, 65, 0, 0);
 				
 				fontProgram.setCharcode(glyph1, 66);
-				//glyph1.color = Color.BLUE;
 				//glyph1.setStyle(glyphStyle2);
+				//glyph1.color = Color.BLUE;
 				fontProgram.update(glyph1);
 				
 				var glyph2 = new Glyph<Gl3Font,GlyphStyle>(glyphStyle2);
