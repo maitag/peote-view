@@ -36,12 +36,33 @@ class Loader
 		if (onLoad != null) future.onComplete( onLoad );		
 	}
 	
-	public static inline function imageArray( names:Array<String>, debug=false, ?onProgress:Int->Int->Int->Void, ?onError:Int->String->Void, ?onLoad:Int->Image->Void, ?onLoadAll:Array<Image>->Void):Void {
+	public static inline function imageArray( names:Array<String>, debug=false, ?onProgress:Int->Int->Int->Void, ?onProgressOverall:Int->Int->Void, ?onError:Int->String->Void, ?onLoad:Int->Image->Void, ?onLoadAll:Array<Image>->Void):Void {
 		var images = new Array<Image>();
-		var loaded:Int = names.length;
+		var loaded:Int = names.length;		
+		var progressSumA:Array<Int>;
+		var progressSumB:Array<Int>;
+		if (onProgressOverall != null) {
+			progressSumA = [for(i in 0...names.length) 0];
+			progressSumB = [for (i in 0...names.length) 0];
+		}
 		for (i in 0...names.length) {
 			image( names[i], debug, 
-				(onProgress == null) ? null : function (a:Int, b:Int) onProgress(i, a, b),
+				(onProgress == null && onProgressOverall == null) ? null : function (a:Int, b:Int) {
+					if (onProgress != null) onProgress(i, a, b);
+					if (onProgressOverall != null) {
+						progressSumA[i] = a; progressSumB[i] = b;
+						b = 0;
+						for (x in progressSumB) {
+							if (x == 0) { b = 0; break; }
+							b += x;
+						}
+						if (b > 0) {
+							a = 0;
+							for (x in progressSumA) a += x;
+							onProgressOverall(a, b);
+						}
+					}
+				},
 				(onError == null) ? null : function(msg:String) onError(i, msg),
 				(onLoadAll == null) ? null : function(image:Image) {
 					images[i] = image;
@@ -68,12 +89,33 @@ class Loader
 		if (onLoad != null) future.onComplete( onLoad );		
 	}
 		
-	public static inline function bytesArray( names:Array<String>, debug=false, ?onProgress:Int->Int->Int->Void, ?onError:Int->String->Void, ?onLoad:Int->Bytes->Void, ?onLoadAll:Array<Bytes>->Void):Void {
+	public static inline function bytesArray( names:Array<String>, debug=false, ?onProgress:Int->Int->Int->Void, ?onProgressOverall:Int->Int->Void, ?onError:Int->String->Void, ?onLoad:Int->Bytes->Void, ?onLoadAll:Array<Bytes>->Void):Void {
 		var allBytes = new Array<Bytes>();
 		var loaded:Int = names.length;
+		var progressSumA:Array<Int>;
+		var progressSumB:Array<Int>;
+		if (onProgressOverall != null) {
+			progressSumA = [for(i in 0...names.length) 0];
+			progressSumB = [for (i in 0...names.length) 0];
+		}
 		for (i in 0...names.length) {
 			bytes( names[i], debug, 
-				(onProgress == null) ? null : function (a:Int, b:Int) onProgress(i, a, b),
+				(onProgress == null && onProgressOverall == null) ? null : function (a:Int, b:Int) {
+					if (onProgress != null) onProgress(i, a, b);
+					if (onProgressOverall != null) {
+						progressSumA[i] = a; progressSumB[i] = b;
+						b = 0;
+						for (x in progressSumB) {
+							if (x == 0) { b = 0; break; }
+							b += x;
+						}
+						if (b > 0) {
+							a = 0;
+							for (x in progressSumA) a += x;
+							onProgressOverall(a, b);
+						}
+					}
+				},
 				(onError == null) ? null : function(msg:String) onError(i, msg),
 				(onLoadAll == null) ? null : function(bytes:Bytes) {
 					allBytes[i] = bytes;

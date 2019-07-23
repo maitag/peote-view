@@ -155,21 +155,21 @@ class FontProgramMacro
 						args:[ {name:"glyph", type:macro:$glyphType},
 						       {name:"charcode", type:macro:Int},
 						],
-						//expr: macro $b{ exprBlock },
 						expr: macro {
 							var range = font.getRange(charcode);
-							var metric = range.fontData.getMetric(charcode);
-							//trace("glyph"+charcode, range.unit, range.slot, metric);
-							
-							glyph.unit = range.unit;
-							glyph.slot = range.slot;
-							
-							glyph.tx = metric.u;
-							glyph.ty = metric.v;
-							glyph.tw = metric.w;
-							glyph.th = metric.h;
-							
-							$b{ exprBlock }
+							if (range != null) {
+								glyph.unit = range.unit;
+								glyph.slot = range.slot;								
+								var metric = range.fontData.getMetric(charcode);								
+								if (metric != null) {
+									//trace("glyph"+charcode, range.unit, range.slot, metric);								
+									glyph.tx = metric.u;
+									glyph.ty = metric.v;
+									glyph.tw = metric.w;
+									glyph.th = metric.h;							
+									$b{ exprBlock }
+								}
+							}
 						},
 						ret: null
 					})

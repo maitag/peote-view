@@ -102,19 +102,10 @@ class TextureCaching
 				], //true,
 				function(index:Int, loaded:Int, size:Int) {
 					trace(' File number $index progress ' + Std.int(loaded / size * 100) + "%" , ' ($loaded / $size)');
-/*					progressSumA[index] = loaded;
-					progressSumB[index] = size;
-					size = 0;
-					for (x in progressSumB) {
-						if (x == 0) { size = 0; break; }
-						size += x;
-					}
-					if (size > 0) {
-						loaded = 0;
-						for (x in progressSumA) loaded += x;
-						trace(' Total progress ' + Std.int(loaded / size * 100) + "%" , ' ($loaded / $size)');
-					}
-*/				},
+				},
+				function(loaded:Int, size:Int) {
+					trace(' Progress overall: ' + Std.int(loaded / size * 100) + "%" , ' ($loaded / $size)');
+				},
 				function(index:Int, image:Image) { // after every single image is loaded
 					trace('File number $index loaded completely.');
 					var p = textureCache.addImage(image);
