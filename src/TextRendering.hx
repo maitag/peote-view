@@ -20,6 +20,33 @@ import peote.text.Gl3FontStyle;
 //import peote.text.Line;
 //import peote.text.Page;
 
+// TODO
+@gl3Font @multiRange @multiTexture class FontStyle 
+{
+	public var color:Color = Color.GREY1;
+	
+	public var width:Float = 20;
+	public var height:Float = 20;
+	
+	public var bold:Bool = false;
+	public var italic:Bool = false;
+		
+	// special for gl3-font
+	public var boldness:Float = 1.0;
+	public var sharpness:Float = 1.0;
+	
+/*	public var borderColor:Color = Color.GREY7;
+
+	public var borderSize:Float = 1.0;
+	public var borderRadius:Float = 10.0;
+*/	
+	public function new() 
+	{
+		
+	}
+	
+}
+
 class GlyphStyle {
 	public var color:Color = Color.GREEN;
 	
@@ -43,15 +70,19 @@ class TextRendering
 			display   = new Display(10,10, window.width-20, window.height-20, Color.GREY1);
 			peoteView.addDisplay(display);
 			
+			// TODO
+			//var font = new Gl3Font<FontStyle>("assets/gl3fonts/unifont/", false);
 			var font = new Gl3Font("assets/gl3fonts/unifont/", false);
 			
 			font.load( function() {
 			
+				//var fontStyle = new FontStyle();
 				var fontStyle = new Gl3FontStyle();
 				fontStyle.color = Color.WHITE;
 				fontStyle.width = 50.0;
 				fontStyle.height = 50.0;
 				
+				//var fontProgram = new FontProgram<Glyph<FontStyle,GlyphStyle>>(font, fontStyle); // manage the Programs to render glyphes in different size/colors/fonts
 				var fontProgram = new FontProgram<Glyph<Gl3Font,GlyphStyle>>(font, fontStyle); // manage the Programs to render glyphes in different size/colors/fonts
 				display.addProgram(fontProgram);
 				
@@ -64,6 +95,7 @@ class TextRendering
 				var glyphStyle2 = new GlyphStyle();
 				
 				
+				//var glyph1 = new Glyph<FontStyle,GlyphStyle>(glyphStyle1);
 				var glyph1 = new Glyph<Gl3Font,GlyphStyle>(glyphStyle1);
 				fontProgram.add(glyph1, 65, 0, 0);
 				
@@ -72,6 +104,7 @@ class TextRendering
 				//glyph1.color = Color.BLUE;
 				fontProgram.update(glyph1);
 				
+				//var glyph2 = new Glyph<FontStyle,GlyphStyle>(glyphStyle2);
 				var glyph2 = new Glyph<Gl3Font,GlyphStyle>(glyphStyle2);
 				fontProgram.add( glyph2, 103, 20, 0 ); 
 				

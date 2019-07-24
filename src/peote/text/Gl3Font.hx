@@ -12,8 +12,9 @@ class Gl3Font
 {
 	var path:String;
 
-	var rangeMapping = new Vector<{unit:Int, slot:Int, fontData:Gl3FontData}>(20); // TODO: is ( 0x1000 * 20) the greatest charcode for unicode ?
+	var rangeMapping:Vector<{unit:Int, slot:Int, fontData:Gl3FontData}>;
 	public var textureCache:TextureCache;
+	var maxTextureSize:Int;
 	
 	// from json
 	var ranges = new Array<{min:Int, max:Int}>();
@@ -24,10 +25,11 @@ class Gl3Font
 	
 	var rParseFolder = new EReg("/*$", "gm");
 	
-	public function new(fontPath:String, kerning:Bool=true) 
+	public function new(fontPath:String, kerning:Bool=true, maxTextureSize:Int=16384) 
 	{
 		path = rParseFolder.replace(fontPath, '');
 		this.kerning = kerning;
+		this.maxTextureSize = maxTextureSize;
 	}
 
 	public inline function getRange(charcode:Int):{unit:Int, slot:Int, fontData:Gl3FontData}
@@ -37,12 +39,15 @@ class Gl3Font
 
 	// --------------------------- Loading -------------------------
 
-	public function load(?onProgress:Int->Int->Void, onLoad:Void->Void)
+	public function load(?onProgressOverall:Int->Int->Void, onLoad:Void->Void)
 	{
 		Loader.json(path+"/config.json", true, function(json:Json) {
 			
 			var rangeSize = Std.parseInt(Reflect.field(json, "rangeSize"));
 			if (rangeSize != null) this.rangeSize = rangeSize;
+			
+			var type = Reflect.field(json, "type");
+			if (type != null) if (type != "gl3") throw('Error, type of font "$path/config.json" has to be "gl3"');
 			
 			var textureSlotSize = Std.parseInt(Reflect.field(json, "textureSlotSize"));
 			if (textureSlotSize != null) this.textureSlotSize = textureSlotSize;
@@ -56,40 +61,34 @@ class Gl3Font
 			for( fn in Reflect.fields(_ranges) )
 			{
 				var r:Array<String> = Reflect.field(_ranges, fn);
-				trace('$fn: ${Std.parseInt(r[0])} - ${Std.parseInt(r[1])}');
 				ranges.push({min:Std.parseInt(r[0]), max:Std.parseInt(r[1])});
 				imageNames.push(fn);
 			}
 			
+			rangeMapping = new Vector<{unit:Int, slot:Int, fontData:Gl3FontData}>(Std.int(0x1000 * 20 / rangeSize));// TODO: is ( 0x1000 * 20) the greatest charcode for unicode ?
+			
 			textureCache = new TextureCache(
-				[
-					{width:textureSlotSize, height:textureSlotSize, slots:ranges.length}, // TODO 
-				],
+				[{width:textureSlotSize, height:textureSlotSize, slots:ranges.length}],
 				4, // colors -> TODO
 				false, // mipmaps
 				1,1, // min/mag-filter
-				4096*4 //peoteView.gl.getParameter(peoteView.gl.MAX_TEXTURE_SIZE)
+				maxTextureSize
 			);
 		
-			loadFontData(onProgress, onLoad);
+			loadFontData(onProgressOverall, onLoad);
 		});		
 	}
 	
 	private function loadFontData(onProgressOverall:Int->Int->Void, onLoad:Void->Void):Void
 	{		
-		trace("load font-data");
-		var gl3FontData = new Array<Gl3FontData>();
-		
+		var gl3FontData = new Array<Gl3FontData>();		
 		Loader.bytesArray(
 			imageNames.map(function (v) return '$path/$v.dat'),
 			true,
 			function(index:Int, bytes:Bytes) { // after .dat is loaded
-				//trace('File number $index loaded completely.');
-				gl3FontData[index] = new Gl3FontData(bytes, ranges[index].min, ranges[index].max, kerning);
-		
+				gl3FontData[index] = new Gl3FontData(bytes, ranges[index].min, ranges[index].max, kerning);	
 			},
 			function(bytes:Array<Bytes>) { // after all .dat is loaded
-				trace(' --- all font-data loaded ---');
 				loadImages(gl3FontData, onProgressOverall, onLoad);
 			}
 		);

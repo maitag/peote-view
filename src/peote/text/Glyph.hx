@@ -20,6 +20,13 @@ import haxe.macro.TypeTools;
 	public function new() {}
 }
 
+@:publicFields class FontStyleHasMeta {
+	var gl3Font:Bool;
+	var multiRange:Bool;
+	var multiTexture:Bool;
+	public function new() {}
+}
+
 class GlyphMacro
 {
 	public static var cache = new Map<String, Bool>();
@@ -74,7 +81,7 @@ class GlyphMacro
 				case TInst(s,_): s.get();
 				default: throw "error: can not parse glyphstyle";
 			}
-			for (field in style_fields.fields.get()) {
+			for (field in style_fields.fields.get()) {//trace("param",Context.getTypedExpr(field.expr()).expr);
 				switch (field.name) {
 					case "color": glyphStyleHasField.color = true;
 					case "bgColor": glyphStyleHasField.bgColor = true;
@@ -87,6 +94,25 @@ class GlyphMacro
 				}
 			}
 			return glyphStyleHasField;
+	}
+	
+	static public function parseFontStyleMetas(styleModule:String):FontStyleHasMeta {
+			// parse FontStyle metas
+			var fontStyleHasMeta = new FontStyleHasMeta();
+			
+			var style_fields = switch Context.getType(styleModule) {
+				case TInst(s,_): s.get();
+				default: throw "error: can not parse fontstyle";
+			}
+			for (meta in style_fields.meta.get()) {
+				switch (meta.name) {
+					case "gl3Font": fontStyleHasMeta.gl3Font = true;
+					case "multiRange": fontStyleHasMeta.multiRange = true;
+					case "multiTexture": fontStyleHasMeta.multiTexture = true;
+					default: // todo
+				}
+			}
+			return fontStyleHasMeta;
 	}
 	
 	static public function buildClass(
