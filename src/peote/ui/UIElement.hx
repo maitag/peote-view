@@ -36,7 +36,7 @@ class UIElement
 	}
 	
 	
-	var skinElement:Dynamic = null; // TODO: extend Element & Buffer with @buffIndex !
+	var skinElementIndex:Int;
 	var pickableOver:Pickable = null;
 	var pickableClick:Pickable = null;
 	

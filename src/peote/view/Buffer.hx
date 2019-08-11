@@ -361,6 +361,18 @@ class $className implements BufferInterface
 	}
 
 	/**
+        Get the index of element into buffer.
+        @param  element the element inside buffer
+    **/
+	public function getElementIndex(element:$elementType):Int
+	{
+		if (element.bytePos != -1) {
+			return Std.int(  element.bytePos / _elemBuffSize );
+		}
+		else throw("Error: Element is not inside a Buffer");
+	}
+
+	/**
         Returns the number of Elements inside the buffer
     **/
 	public inline function length():Int

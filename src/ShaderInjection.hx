@@ -19,7 +19,7 @@ import peote.view.Element;
 
 
 // --------------------------------------------------- fragment color-spectrum
-/*class Elem0 implements Element
+class Elem0 implements Element
 {
 	@posX public var x:Int=0;
 	@posY public var y:Int=0;
@@ -142,13 +142,13 @@ class Elem2 implements Element
 		this.x = positionX;	this.y = positionY;	buffer.addElement(this);
 	}	
 }
-*/
+
 
 // --------------------------------------------------- custom formula for attributes
 class Elem3 implements Element
 {
 	@posX @formula("x - sin(y*0.1)*20.0") public var x:Int=0;
-	@posY @anim("Y","pingpong") public var y:Int=0; // @constStart(0) @constEnd(100)
+	@posY @constStart(0) @constEnd(500) @anim("Y","pingpong") public var y:Int=0;
 	
 	@sizeX @const public var w:Int=100;
 	//@sizeX @const @formula("100.0 + sin(y*0.1)*40.0") public var w:Int=100;
@@ -187,7 +187,7 @@ class Elem3 implements Element
 	
 	public function new(positionX:Int=0, positionY:Int=0) {
 		this.x = positionX; //this.xEnd = 100;
-		this.y = positionY; this.yEnd = 500;
+		//this.y = positionY; this.yEnd = 500;
 		this.timeYStart = 0.0; this.timeYDuration = 3.0;
 		buffer.addElement(this);
 	}	
@@ -209,10 +209,10 @@ class ShaderInjection
 			display   = new Display(10,10, window.width-20, window.height-20, Color.GREEN);
 			peoteView.addDisplay(display);
 			
-/*			Elem0.init(display); new Elem0(  0, 0);
+			Elem0.init(display); new Elem0(  0, 0);
 			Elem1.init(display); new Elem1(110, 0);
 			Elem2.init(display); new Elem2(220, 0);	
-*/			Elem3.init(display); new Elem3(330, 0);		
+			Elem3.init(display); new Elem3(330, 0);		
 		} 
 		catch (e:Dynamic) trace("ERROR:", e);
 	}

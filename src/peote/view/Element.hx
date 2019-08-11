@@ -380,7 +380,11 @@ class ElementImpl
 			} else {
 				if ((getter != null && getter != "never") || (setter != null && setter != "never"))
 					throw Context.error('Error: for constant start/end-values ${f.name} getter and setter has to be "never"', f.pos);
-				f.kind = FieldType.FProp("never", "never", type);
+				#if (haxe_ver >= "4.0.0")
+					f.kind = FieldType.FProp("null", "never", type);
+				#else
+					f.kind = FieldType.FProp("never", "never", type);
+				#end
 			}
 		} 
 		else {

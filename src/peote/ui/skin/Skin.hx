@@ -8,7 +8,7 @@ import peote.view.Program;
 @:allow(peote.ui)
 class Skin 
 {
-	var displayProgBuff= new Map<UIDisplay,{program:Program, buffer:Buffer<SkinElement>}>();
+	var displayProgBuff = new Map<UIDisplay,{program:Program, buffer:Buffer<SkinElement>}>();
 	
 	public function new()
 	{
@@ -23,15 +23,16 @@ class Skin
 			displayProgBuff.set(uiDisplay, d);
 			uiDisplay.addProgram(d.program);
 		}		
-		uiElement.skinElement = new SkinElement(uiElement);
-		d.buffer.addElement(uiElement.skinElement);
+		var skinElement = new SkinElement(uiElement);
+		d.buffer.addElement(skinElement);
+		uiElement.skinElementIndex = d.buffer.getElementIndex(skinElement);
 	}
 	
 	private function removeElement(uiDisplay:UIDisplay, uiElement:UIElement)
 	{
 		var d = displayProgBuff.get(uiDisplay);		
 		if (d != null) {
-			d.buffer.removeElement( uiElement.skinElement );
+			d.buffer.removeElement( d.buffer.getElement(uiElement.skinElementIndex) );
 			if (d.buffer.length() == 0) {
 				uiDisplay.removeProgram(d.program);
 				trace("ui-skin: clear buffer and program");
@@ -48,8 +49,9 @@ class Skin
 	{
 		var d = displayProgBuff.get(uiDisplay);		
 		if (d != null) {
-			cast(uiElement.skinElement, SkinElement).update(uiElement);
-			d.buffer.updateElement( cast(uiElement.skinElement, SkinElement) );
+			var skinElement = d.buffer.getElement(uiElement.skinElementIndex);
+			skinElement.update(uiElement);
+			d.buffer.updateElement( skinElement );
 		}
 		
 	}

@@ -63,7 +63,7 @@ class Animation
 		peoteView = new PeoteView(window.context, window.width, window.height);
 		
 		buffer = new Buffer<Elem>(100);
-
+		
 		var display   = new Display(10,10, window.width-20, window.height-20); display.color = Color.GREEN;
 		var program   = new Program(buffer);
 		

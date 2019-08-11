@@ -6,9 +6,6 @@ import peote.view.Color;
 @:allow(peote.ui)
 class SkinElement implements Element
 {
-	// TODO optimizing: generate index inside macro and update that index while add/remove-Element inside Buffer
-	// @index public var buffIndex:Int;
-	
 	// from style
 	@color public var color:Color;
 	@color public var borderColor:Color;

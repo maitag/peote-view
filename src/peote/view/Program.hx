@@ -22,7 +22,7 @@ class ActiveTexture {
 	}
 }
 
-@:allow(peote.view)
+@:allow(peote.view,peote.ui)
 class Program 
 {
 	public var alphaEnabled:Bool;
