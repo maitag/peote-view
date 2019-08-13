@@ -2,7 +2,7 @@ package peote.text;
 
 #if !macro
 @:genericBuild(peote.text.Glyph.GlyphMacro.build())
-class Glyph<T,U> {}
+class Glyph<T> {}
 #else
 
 import haxe.macro.Expr;
@@ -17,10 +17,18 @@ import haxe.macro.TypeTools;
 	var rotation:Bool;
 	var bold:Bool;
 	var italic:Bool;
+	
+	var local_color:Bool;
+	var local_bgColor:Bool;
+	var local_width:Bool;
+	var local_height:Bool;
+	var local_rotation:Bool;
+	var local_bold:Bool;
+	var local_italic:Bool;
 	public function new() {}
 }
 
-@:publicFields class FontStyleHasMeta {
+@:publicFields class GlyphStyleHasMeta {
 	var gl3Font:Bool;
 	var multiRange:Bool;
 	var multiTexture:Bool;
@@ -34,41 +42,24 @@ class GlyphMacro
 	static public function build()
 	{	
 		switch (Context.getLocalType()) {
-			case TInst(_, [t,u]):
+			case TInst(_, [t]):
 				switch (t) {
 					case TInst(n, []):
-						var font = n.get();
-						if (font.name != "Gl3Font") // TODO -> other font-types!
-							Context.error("Type for Font has to be Gl3Font or ...", Context.currentPos());
-						var fontSuperName:String = null;
-						var fontSuperModule:String = null;
-						var s = font;
+						var style = n.get();
+						var styleSuperName:String = null;
+						var styleSuperModule:String = null;
+						var s = style;
 						while (s.superClass != null) {
 							s = s.superClass.t.get(); trace("->" + s.name);
-							fontSuperName = s.name;
-							fontSuperModule = s.module;
+							styleSuperName = s.name;
+							styleSuperModule = s.module;
 						}
-						switch (u) {
-							case TInst(n, []):
-								var style = n.get();
-								var styleSuperName:String = null;
-								var styleSuperModule:String = null;
-								var s = style;
-								while (s.superClass != null) {
-									s = s.superClass.t.get(); trace("->" + s.name);
-									styleSuperName = s.name;
-									styleSuperModule = s.module;
-								}
-								return buildClass(
-									"Glyph",  font.pack, font.module, font.name, fontSuperModule, fontSuperName, TypeTools.toComplexType(t),
-									style.pack, style.module, style.name, styleSuperModule, styleSuperName, TypeTools.toComplexType(u)
-								);
-					
-							case t: Context.error("Type for GlyphStyle expected", Context.currentPos());
-						}
-					case t: Context.error("Type for Font expected", Context.currentPos());
+						return buildClass(
+							"Glyph", style.pack, style.module, style.name, styleSuperModule, styleSuperName, TypeTools.toComplexType(t)
+						);	
+					default: Context.error("Type for GlyphStyle expected", Context.currentPos());
 				}
-			case t: Context.error("Type for Font expected", Context.currentPos());
+			default: Context.error("Type for GlyphStyle expected", Context.currentPos());
 		}
 		return null;
 	}
@@ -82,46 +73,50 @@ class GlyphMacro
 				default: throw "error: can not parse glyphstyle";
 			}
 			for (field in style_fields.fields.get()) {//trace("param",Context.getTypedExpr(field.expr()).expr);
+				var local = true;
+				var meta = field.meta.get();
+				if (meta.length > 0)
+					if (meta[0].name == "global") local = false;
+					
 				switch (field.name) {
-					case "color": glyphStyleHasField.color = true;
-					case "bgColor": glyphStyleHasField.bgColor = true;
-					case "width": glyphStyleHasField.width = true;
-					case "height": glyphStyleHasField.height = true;
-					case "rotation": glyphStyleHasField.rotation = true;
-					case "bold": glyphStyleHasField.bold = true;
-					case "italic": glyphStyleHasField.italic = true;
+					case "color":   glyphStyleHasField.color = true;   if (local) glyphStyleHasField.local_color = true;
+					case "bgColor": glyphStyleHasField.bgColor = true; if (local) glyphStyleHasField.local_bgColor = true;
+					case "width":   glyphStyleHasField.width = true;   if (local) glyphStyleHasField.local_width = true;
+					case "height":  glyphStyleHasField.height = true;  if (local) glyphStyleHasField.local_height = true;
+					case "rotation":glyphStyleHasField.rotation = true;if (local) glyphStyleHasField.local_rotation = true;
+					case "bold":    glyphStyleHasField.bold = true;    if (local) glyphStyleHasField.local_bold = true;
+					case "italic":  glyphStyleHasField.italic = true;  if (local) glyphStyleHasField.local_italic = true;
 					default: // todo
 				}
+				// TODO: store other metas for custom anim and formula stuff
 			}
 			return glyphStyleHasField;
 	}
 	
-	static public function parseFontStyleMetas(styleModule:String):FontStyleHasMeta {
-			// parse FontStyle metas
-			var fontStyleHasMeta = new FontStyleHasMeta();
+	static public function parseGlyphStyleMetas(styleModule:String):GlyphStyleHasMeta {
+			// parse GlyphStyle metas for font type
+			var glyphStyleHasMeta = new GlyphStyleHasMeta();
 			
 			var style_fields = switch Context.getType(styleModule) {
 				case TInst(s,_): s.get();
-				default: throw "error: can not parse fontstyle";
+				default: throw "error: can not parse glyphstyle";
 			}
 			for (meta in style_fields.meta.get()) {
 				switch (meta.name) {
-					case "gl3Font": fontStyleHasMeta.gl3Font = true;
-					case "multiRange": fontStyleHasMeta.multiRange = true;
-					case "multiTexture": fontStyleHasMeta.multiTexture = true;
+					case "gl3Font": glyphStyleHasMeta.gl3Font = true;
+					case "multiRange": glyphStyleHasMeta.multiRange = true;
+					case "multiTexture": glyphStyleHasMeta.multiTexture = true;
 					default: // todo
 				}
 			}
-			return fontStyleHasMeta;
+			return glyphStyleHasMeta;
 	}
 	
-	static public function buildClass(
-		className:String, fontPack:Array<String>, fontModule:String, fontName:String, fontSuperModule:String, fontSuperName:String, fontType:ComplexType,
-		stylePack:Array<String>, styleModule:String, styleName:String, styleSuperModule:String, styleSuperName:String, styleType:ComplexType):ComplexType
+	static public function buildClass(className:String, stylePack:Array<String>, styleModule:String, styleName:String, styleSuperModule:String, styleSuperName:String, styleType:ComplexType):ComplexType
 	{		
 		var styleMod = styleModule.split(".").join("_");
 			
-		className += "__" + fontName + "__" + styleMod;
+		className += "__" + styleMod;
 		if (styleModule.split(".").pop() != styleName) className += ((styleMod != "") ? "_" : "") + styleName;
 		
 		var classPackage = Context.getLocalClass().get().pack;
@@ -129,11 +124,6 @@ class GlyphMacro
 		if (!cache.exists(className))
 		{
 			cache[className] = true;
-			
-			var fontField:Array<String>;
-			//if (fontSuperName == null) fontField = fontModule.split(".").concat([fontName]);
-			//else fontField = fontSuperModule.split(".").concat([fontSuperName]);
-			fontField = fontModule.split(".").concat([fontName]);
 			
 			var styleField:Array<String>;
 			//if (styleSuperName == null) styleField = styleModule.split(".").concat([styleName]);
@@ -143,20 +133,14 @@ class GlyphMacro
 			#if peoteview_debug_macro
 			trace('generating Class: '+classPackage.concat([className]).join('.'));	
 			
-			trace("ClassName:"+className);           // FontProgram_Gl3Font_GlypStyle
+			trace("ClassName:"+className);           // Glyph__peote_text_GlypStyle
 			trace("classPackage:" + classPackage);   // [peote,text]	
-			
-			trace("FontPackage:" + fontPack);  // [peote,text]
-			trace("FontModule:" + fontModule); // peote.text.Gl3Font
-			trace("FontName:" + fontName);     // Gl3Font			
-			trace("FontType:" + fontType);     // TPath(...)
-			trace("FontField:" + fontField);
 			
 			trace("StylePackage:" + stylePack);  // [peote.text]
 			trace("StyleModule:" + styleModule); // peote.text.GlyphStyle
 			trace("StyleName:" + styleName);     // GlyphStyle			
 			trace("StyleType:" + styleType);     // TPath(...)
-			trace("StyleField:" + styleField);
+			trace("StyleField:" + styleField);   // [peote,text,GlyphStyle,GlyphStyle]
 			#end
 						
 			// -------------------------------------------------------------------------------------------
@@ -171,25 +155,25 @@ class GlyphMacro
 				@texUnit public var unit:Int = 0;
 				@texSlot public var slot:Int = 0;
 				
-				public function new(glyphStyle:$styleType)
+				//public function new(glyphStyle:$styleType)
+				public function new()
 				{
-					setStyle(glyphStyle); // -> GENERATED
+					//setStyle(glyphStyle); // -> GENERATED
 				}
 				
 			}
 			
 			// -------------------------------------------------------------------------------------------
 			// -------------------------------------------------------------------------------------------
-			var glyphStyleHasField = parseGlyphStyleFields(styleModule+"."+styleName);
-			//trace("Glyph - glyphStyleHasField:", glyphStyleHasField);
+			var glyphStyleHasField = parseGlyphStyleFields(styleModule+"."+styleName); //trace("Glyph - glyphStyleHasField:", glyphStyleHasField);
+			var glyphStyleHasMeta = parseGlyphStyleMetas(styleModule+"."+styleName); //trace("Glyph - glyphStyleHasMeta:", glyphStyleHasMeta);
+						
+			var exprBlock = new Array<Expr>();
+			if (glyphStyleHasField.local_width)  exprBlock.push( macro width = glyphStyle.width );
+			if (glyphStyleHasField.local_height) exprBlock.push( macro height= glyphStyle.height );
+			if (glyphStyleHasField.local_color)  exprBlock.push( macro color = glyphStyle.color );
 			
 			// --- generate Function setStyle --------
-			
-			var exprBlock = new Array<Expr>();
-			if (glyphStyleHasField.width) exprBlock.push( macro width = glyphStyle.width );
-			if (glyphStyleHasField.height) exprBlock.push( macro height = glyphStyle.height );
-			if (glyphStyleHasField.color) exprBlock.push( macro color = glyphStyle.color );
-			
 			c.fields.push({
 				name: "setStyle",
 				access: [Access.APublic, Access.AInline],
@@ -203,7 +187,7 @@ class GlyphMacro
 			});
 			
 			// --- add fields depending on style
-			if (glyphStyleHasField.color) c.fields.push({
+			if (glyphStyleHasField.local_color) c.fields.push({
 				name:  "color",
 				meta:  [{name:"color", params:[], pos:Context.currentPos()}],
 				access:  [Access.APublic],
@@ -211,21 +195,52 @@ class GlyphMacro
 				pos: Context.currentPos(),
 			});
 			
-			// ---------- add fields depending on font/style
-			if (fontName == "Gl3Font")
+			// ---------- add fields depending on font-type and style
+			if (glyphStyleHasMeta.gl3Font)
 			{
-				if (glyphStyleHasField.width) c.fields.push({
-					name:  "width",
-					access:  [Access.APublic],
-					kind: FieldType.FVar(macro:Float, macro 0.0),
-					pos: Context.currentPos(),
-				});
-				if (glyphStyleHasField.height) c.fields.push({
-					name:  "height",
-					access:  [Access.APublic],
-					kind: FieldType.FVar(macro:Float, macro 0.0),
-					pos: Context.currentPos(),
-				});
+				if (glyphStyleHasField.local_width) {
+					c.fields.push({
+						name:  "width",
+						access:  [Access.APublic],
+						kind: FieldType.FProp("default", "set", macro:Float),
+						pos: Context.currentPos(),
+					});
+					c.fields.push({
+						name: "set_width",
+						access: [Access.APrivate],
+						pos: Context.currentPos(),
+						kind: FFun({
+							args: [{name:"value", type:macro:Float}],
+							expr: macro {
+								if (width > 0.0) w = w / width * value else w = 0;
+								return width = value;
+							},
+							ret: macro:Float
+						})
+					});
+				}
+				
+				if (glyphStyleHasField.local_height) {
+					c.fields.push({
+						name:  "height",
+						access:  [Access.APublic],
+						kind: FieldType.FProp("default", "set", macro:Float),
+						pos: Context.currentPos(),
+					});
+					c.fields.push({
+						name: "set_height",
+						access: [Access.APrivate],
+						pos: Context.currentPos(),
+						kind: FFun({
+							args: [{name:"value", type:macro:Float}],
+							expr: macro {
+								if (height > 0.0) h = h / height * value else h = 0;
+								return height = value;
+							},
+							ret: macro:Float
+						})
+					});
+				}
 				
 				c.fields.push({
 					name: "w",
@@ -278,9 +293,7 @@ class GlyphMacro
 			}
 
 			
-			//Context.defineModule(classPackage.concat([className]).join('.'),[c],Context.getLocalImports());
 			Context.defineModule(classPackage.concat([className]).join('.'),[c]);
-			//Context.defineType(c);
 		}
 		return TPath({ pack:classPackage, name:className, params:[] });
 	}

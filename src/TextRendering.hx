@@ -15,44 +15,20 @@ import peote.text.Gl3Font;
 
 import peote.text.FontProgram;
 import peote.text.Glyph;
+
 //import peote.text.GlyphStyle;
-import peote.text.Gl3FontStyle;
+//import peote.text.Gl3GlyphStyle;
+
 //import peote.text.Line;
 //import peote.text.Page;
 
-// TODO
-@gl3Font @multiRange @multiTexture class FontStyle 
-{
-	public var color:Color = Color.GREY1;
-	
-	public var width:Float = 20;
-	public var height:Float = 20;
-	
-	public var bold:Bool = false;
-	public var italic:Bool = false;
-		
-	// special for gl3-font
-	public var boldness:Float = 1.0;
-	public var sharpness:Float = 1.0;
-	
-/*	public var borderColor:Color = Color.GREY7;
 
-	public var borderSize:Float = 1.0;
-	public var borderRadius:Float = 10.0;
-*/	
-	public function new() 
-	{
-		
-	}
-	
-}
-
-class GlyphStyle {
+@gl3Font @multiRange @multiTexture class GlyphStyle {
+	//@global public var color:Color = Color.GREEN;
 	public var color:Color = Color.GREEN;
 	
 	public var width:Float = 20.0;
 	public var height:Float = 20.0;
-	//public var scale:Float = 2.0;
 	
 	public function new() {}
 }
@@ -71,42 +47,41 @@ class TextRendering
 			peoteView.addDisplay(display);
 			
 			// TODO
-			//var font = new Gl3Font<FontStyle>("assets/gl3fonts/unifont/", false);
+			//var font = new Font<GlyphStyle>("assets/gl3fonts/unifont/", false);
 			var font = new Gl3Font("assets/gl3fonts/unifont/", false);
 			
 			font.load( function() {
 			
-				//var fontStyle = new FontStyle();
-				var fontStyle = new Gl3FontStyle();
-				fontStyle.color = Color.WHITE;
+				var fontStyle = new GlyphStyle();
+				fontStyle.color = Color.RED;
 				fontStyle.width = 50.0;
 				fontStyle.height = 50.0;
 				
-				//var fontProgram = new FontProgram<Glyph<FontStyle,GlyphStyle>>(font, fontStyle); // manage the Programs to render glyphes in different size/colors/fonts
-				var fontProgram = new FontProgram<Glyph<Gl3Font,GlyphStyle>>(font, fontStyle); // manage the Programs to render glyphes in different size/colors/fonts
+				var fontProgram = new FontProgram<GlyphStyle>(font, fontStyle); // manage the Programs to render glyphes in different size/colors/fonts
 				display.addProgram(fontProgram);
 				
 				
-				// ----------------
 				var glyphStyle1 = new GlyphStyle();
 				glyphStyle1.color = Color.YELLOW;
 				glyphStyle1.width = 30.0;
-				
+								
 				var glyphStyle2 = new GlyphStyle();
 				
-				
-				//var glyph1 = new Glyph<FontStyle,GlyphStyle>(glyphStyle1);
-				var glyph1 = new Glyph<Gl3Font,GlyphStyle>(glyphStyle1);
+				// -----------
+
+				var glyph1 = new Glyph<GlyphStyle>();
 				fontProgram.add(glyph1, 65, 0, 0);
 				
 				fontProgram.setCharcode(glyph1, 66);
 				//glyph1.setStyle(glyphStyle2);
 				//glyph1.color = Color.BLUE;
+				glyph1.height = 30;
 				fontProgram.update(glyph1);
 				
-				//var glyph2 = new Glyph<FontStyle,GlyphStyle>(glyphStyle2);
-				var glyph2 = new Glyph<Gl3Font,GlyphStyle>(glyphStyle2);
-				fontProgram.add( glyph2, 103, 20, 0 ); 
+				// -----------
+				
+				var glyph2 = new Glyph<GlyphStyle>();
+				fontProgram.add( glyph2, 103, 20, 0, glyphStyle2); 
 				
 				
 				/*
@@ -134,7 +109,7 @@ class TextRendering
 			
 			
 			
-			
+			timer = new Timer(40); zoomIn();
 			
 		} catch (e:Dynamic) trace("ERROR:", e);
 		// ---------------------------------------------------------------

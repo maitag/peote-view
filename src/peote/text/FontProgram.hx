@@ -19,74 +19,52 @@ class FontProgramMacro
 			case TInst(_, [t]):
 				switch (t) {
 					case TInst(n, []):
-						var g = n.get();
-						var superName:String = null;
-						var superModule:String = null;
-						var s = g;
+						var style = n.get();
+						var styleSuperName:String = null;
+						var styleSuperModule:String = null;
+						var s = style;
 						while (s.superClass != null) {
-							s = s.superClass.t.get(); //trace("->" + s.name);
-							superName = s.name;
-							superModule = s.module;
-						}			
-						return buildClass("FontProgram",  g.pack, g.module, g.name, superModule, superName, TypeTools.toComplexType(t) );
-					case t: Context.error("Glyph-Class expected", Context.currentPos());
+							s = s.superClass.t.get(); trace("->" + s.name);
+							styleSuperName = s.name;
+							styleSuperModule = s.module;
+						}
+						return buildClass(
+							"FontProgram", style.pack, style.module, style.name, styleSuperModule, styleSuperName, TypeTools.toComplexType(t)
+						);	
+					default: Context.error("Type for GlyphStyle expected", Context.currentPos());
 				}
-			case t: Context.error("Glyph-Class expected", Context.currentPos());
+			default: Context.error("Type for GlyphStyle expected", Context.currentPos());
 		}
 		return null;
 	}
 	
-	static public function buildClass(className:String, glyphPack:Array<String>, glyphModule:String, glyphName:String, superModule:String, superName:String, glyphType:ComplexType):ComplexType
+	static public function buildClass(className:String, stylePack:Array<String>, styleModule:String, styleName:String, styleSuperModule:String, styleSuperName:String, styleType:ComplexType):ComplexType
 	{		
-		var fontStyleNames = glyphName.split("__");
-		fontStyleNames.shift();
+		var styleMod = styleModule.split(".").join("_");
 		
-		className += "_" + fontStyleNames.join("_");
+		className += "__" + styleMod;
+		if (styleModule.split(".").pop() != styleName) className += ((styleMod != "") ? "_" : "") + styleName;
+		
 		var classPackage = Context.getLocalClass().get().pack;
 		
 		if (!cache.exists(className))
 		{
 			cache[className] = true;
 			
-			var glyphField:Array<String>;
-			if (superName == null) glyphField = glyphModule.split(".").concat([glyphName]);
-			else glyphField = superModule.split(".").concat([superName]);
+			var styleField:Array<String>;
+			//if (styleSuperName == null) styleField = styleModule.split(".").concat([styleName]);
+			//else styleField = styleSuperModule.split(".").concat([styleSuperName]);
+			styleField = styleModule.split(".").concat([styleName]);
 			
-			var fontName = "Gl3Font";     // TODO -> default
-			var fontModule = "peote.text";
-			if (fontStyleNames.length > 0) fontName = fontStyleNames.shift();
-			fontModule += "." + fontName;
-			var fontType = TypeTools.toComplexType(Context.getType(fontModule));
-			var fontField = fontModule.split(".").concat([fontName]); // TODO: super-class
-
-			var styleName = "GlyphStyle"; // TODO -> default
-			var styleModule = "peote.text";
-			if (fontStyleNames.length > 0) {
-				var s = fontStyleNames.shift().split("_");
-				styleName = s.pop();
-				styleModule = s.join(".");
-			}
-			styleModule += "." + styleName;
-			var styleType = TypeTools.toComplexType(Context.getType(styleModule));
-			var styleField = styleModule.split(".").concat([styleName]); // TODO: super-class
+			var glyphType = Glyph.GlyphMacro.buildClass("Glyph", stylePack, styleModule, styleName, styleSuperModule, styleSuperName, styleType);
 			
 			#if peoteview_debug_macro
 			trace('generating Class: '+classPackage.concat([className]).join('.'));	
 			
-			trace("ClassName:"+className);           // FontProgram_Glyph_Gl3Font_GlyphStyle
+			trace("ClassName:"+className);           // FontProgram__peote_text_GlypStyle
 			trace("classPackage:" + classPackage);   // [peote,text]	
 			
-			trace("GlyphPackage:" + glyphPack);  // [peote,text]
-			trace("GlyphModule:" + glyphModule); // peote.text.Glyph_Gl3Font_GlyphStyle
-			trace("GlyphName:" + glyphName);     // Glyph_Gl3Font_GlyphStyle
-			trace("GlyphType:" + glyphType);     // TPath(...)
-			trace("GlyphField:" + glyphField);   // [peote,text,Glyph_Gl3Font_GlyphStyle,Glyph_Gl3Font_GlyphStyle]		
-
-			trace("FontModule:" + fontModule); // peote.text.Gl3Font
-			trace("FontName:" + fontName);     // Gl3Font			
-			trace("FontType:" + fontType);     // TPath(...)
-			trace("FontField:" + fontField);   // [peote,text,Gl3Font,Gl3Font]
-			
+			trace("StylePackage:" + stylePack);  // [peote.text]
 			trace("StyleModule:" + styleModule); // peote.text.GlyphStyle
 			trace("StyleName:" + styleName);     // GlyphStyle			
 			trace("StyleType:" + styleType);     // TPath(...)
@@ -98,22 +76,26 @@ class FontProgramMacro
 
 			class $className extends peote.view.Program
 			{
-				public var font:$fontType;
-				public var fontStyle:peote.text.Gl3FontStyle;
+				public var font:peote.text.Gl3Font; // TODO peote.text.Font<$styleType>
+				public var fontStyle:$styleType;
 				
 				var _buffer:peote.view.Buffer<$glyphType>;
 					
-				public function new(font:$fontType, fontStyle:peote.text.Gl3FontStyle)
+				//public function new(font:$fontType, fontStyle:peote.text.Gl3FontStyle)
+				public function new(font:peote.text.Gl3Font, fontStyle:$styleType)
 				{
 					this.font = font;
-					_buffer = new peote.view.Buffer<$glyphType>(100);					
-					super(_buffer);					
+					_buffer = new peote.view.Buffer<$glyphType>(100);
+					super(_buffer);	
+					
+					this.fontStyle = fontStyle;
 					setFontStyle(fontStyle); // inject global fontsize and color into shader -> GENERATED
 				}
 				
-				public inline function add(glyph:$glyphType, charcode:Int, x:Int, y:Int):Void {
+				public inline function add(glyph:$glyphType, charcode:Int, x:Int, y:Int, glyphStyle:$styleType = null):Void {
 					glyph.x = x;
 					glyph.y = y;
+					glyph.setStyle((glyphStyle != null) ? glyphStyle : fontStyle);
 					setCharcode(glyph, charcode);  // -> GENERATED					
 					_buffer.addElement(glyph);
 				}
@@ -131,22 +113,30 @@ class FontProgramMacro
 			// -------------------------------------------------------------------------------------------
 			// -------------------------------------------------------------------------------------------
 			
-			var glyphStyleHasField = Glyph.GlyphMacro.parseGlyphStyleFields(styleModule);
-			//trace("FontProgram: glyphStyleHasField", glyphStyleHasField);
+			var glyphStyleHasField = Glyph.GlyphMacro.parseGlyphStyleFields(styleModule+"."+styleName); // trace("FontProgram: glyphStyleHasField", glyphStyleHasField);
+			var glyphStyleHasMeta = Glyph.GlyphMacro.parseGlyphStyleMetas(styleModule+"."+styleName); // trace("FontProgram: glyphStyleHasMeta", glyphStyleHasMeta);
 			
-			if (fontName == "Gl3Font")
+			if (glyphStyleHasMeta.gl3Font)
 			{
-				// ------ generate Function setCharcode -------
-				
 				var exprBlock = new Array<Expr>();
-				if (glyphStyleHasField.width) 
-				     exprBlock.push( macro glyph.w = metric.width * glyph.width );
-				else exprBlock.push( macro glyph.w = metric.width * fontStyle.width );
 				
-				if (glyphStyleHasField.height)
-				     exprBlock.push( macro glyph.h = metric.height * glyph.height );
-				else exprBlock.push( macro glyph.h = metric.height * fontStyle.height );
+				if (glyphStyleHasField.local_width) 
+					exprBlock.push( macro glyph.w = metric.width * glyph.width );
+				else if (glyphStyleHasField.width) 
+					exprBlock.push( macro glyph.w = metric.width * fontStyle.width );
+				else
+					exprBlock.push( macro glyph.w = metric.width * 20 );
+					//exprBlock.push( macro glyph.w = metric.width * font.width );
+				
+				if (glyphStyleHasField.local_height)
+				    exprBlock.push( macro glyph.h = metric.height * glyph.height );
+				else if (glyphStyleHasField.height)
+					exprBlock.push( macro glyph.h = metric.height * fontStyle.height );
+				else
+					exprBlock.push( macro glyph.h = metric.height * 20 );
+					//exprBlock.push( macro glyph.h = metric.height * fontStyle.height );
 								
+				// ------ generate Function setCharcode -------
 				c.fields.push({
 					name: "setCharcode",
 					access: [Access.APublic, Access.AInline],
@@ -174,22 +164,24 @@ class FontProgramMacro
 						ret: null
 					})
 				});
-				
-				
+								
 				// ------ generate Function setFontStyle -------
 				
 				exprBlock = new Array<Expr>();
-				if (glyphStyleHasField.color) 
+				if (glyphStyleHasField.local_color) 
 					exprBlock.push( macro super.setColorFormula("color * smoothstep( "+bold+" - "+sharp+" * fwidth(TEX.r), "+bold+" + "+sharp+" * fwidth(TEX.r), TEX.r)") );
-				else
+				else if (glyphStyleHasField.color)
 					exprBlock.push( macro super.setColorFormula(Std.string(fontStyle.color.toGLSL()) + " * smoothstep( "+bold+" - "+sharp+" * fwidth(TEX.r), "+bold+" + "+sharp+" * fwidth(TEX.r), TEX.r)") );
+				else
+					exprBlock.push( macro super.setColorFormula("smoothstep( "+bold+" - "+sharp+" * fwidth(TEX.r), "+bold+" + "+sharp+" * fwidth(TEX.r), TEX.r)") );
+					//exprBlock.push( macro super.setColorFormula(Std.string(font.color.toGLSL()) + " * smoothstep( "+bold+" - "+sharp+" * fwidth(TEX.r), "+bold+" + "+sharp+" * fwidth(TEX.r), TEX.r)") );
 				
 				c.fields.push({
 					name: "setFontStyle",
 					access: [Access.APublic],
 					pos: Context.currentPos(),
 					kind: FFun({
-						args:[ {name:"fontStyle", type:macro:peote.text.Gl3FontStyle}
+						args:[ {name:"fontStyle", type:macro:$styleType}
 						],
 						expr: macro {
 							this.fontStyle = fontStyle;
@@ -207,9 +199,7 @@ class FontProgramMacro
 			
 			}
 
-			//Context.defineModule(classPackage.concat([className]).join('.'),[c],Context.getLocalImports());
 			Context.defineModule(classPackage.concat([className]).join('.'),[c]);
-			//Context.defineType(c);
 		}
 		return TPath({ pack:classPackage, name:className, params:[] });
 	}

@@ -2,8 +2,8 @@ package peote.text;
 
 import peote.view.Color;
 
-
-class Gl3FontStyle 
+@gl3Font @multiRange @multiTexture 
+class Gl3GlyphStyle 
 {
 
 	// same as with full GylphStyle
