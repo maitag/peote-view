@@ -71,6 +71,9 @@ class FontProgramMacro
 			trace("StyleField:" + styleField);   // [peote,text,GlyphStyle,GlyphStyle]
 			#end
 			
+			var glyphStyleHasMeta = Glyph.GlyphMacro.parseGlyphStyleMetas(styleModule+"."+styleName); // trace("FontProgram: glyphStyleHasMeta", glyphStyleHasMeta);
+			var glyphStyleHasField = Glyph.GlyphMacro.parseGlyphStyleFields(styleModule+"."+styleName); // trace("FontProgram: glyphStyleHasField", glyphStyleHasField);
+			
 			// -------------------------------------------------------------------------------------------
 			var c = macro		
 
@@ -108,42 +111,13 @@ class FontProgramMacro
 					_buffer.updateElement(glyph);
 				}
 				
-			}
-
-			// -------------------------------------------------------------------------------------------
-			// -------------------------------------------------------------------------------------------
-			
-			var glyphStyleHasField = Glyph.GlyphMacro.parseGlyphStyleFields(styleModule+"."+styleName); // trace("FontProgram: glyphStyleHasField", glyphStyleHasField);
-			var glyphStyleHasMeta = Glyph.GlyphMacro.parseGlyphStyleMetas(styleModule+"."+styleName); // trace("FontProgram: glyphStyleHasMeta", glyphStyleHasMeta);
-			
-			if (glyphStyleHasMeta.gl3Font)
-			{
-				var exprBlock = new Array<Expr>();
 				
-				if (glyphStyleHasField.local_width) 
-					exprBlock.push( macro glyph.w = metric.width * glyph.width );
-				else if (glyphStyleHasField.width) 
-					exprBlock.push( macro glyph.w = metric.width * fontStyle.width );
-				else
-					exprBlock.push( macro glyph.w = metric.width * font.width );
-				
-				if (glyphStyleHasField.local_height)
-				    exprBlock.push( macro glyph.h = metric.height * glyph.height );
-				else if (glyphStyleHasField.height)
-					exprBlock.push( macro glyph.h = metric.height * font.height );
-				else
-					exprBlock.push( macro glyph.h = metric.height * font.height );
-								
-				// ------ generate Function setCharcode -------
-				c.fields.push({
-					name: "setCharcode",
-					access: [Access.APublic, Access.AInline],
-					pos: Context.currentPos(),
-					kind: FFun({
-						args:[ {name:"glyph", type:macro:$glyphType},
-						       {name:"charcode", type:macro:Int},
-						],
-						expr: macro {
+				public inline function setCharcode(glyph:$glyphType, charcode:Int):Void
+				{
+					${switch (glyphStyleHasMeta.gl3Font)
+					{
+						case true: macro // ------- Gl3Font -------
+						{
 							var range = font.getRange(charcode);
 							if (range != null) {
 								glyph.unit = range.unit;
@@ -155,47 +129,81 @@ class FontProgramMacro
 									glyph.ty = metric.v;
 									glyph.tw = metric.w;
 									glyph.th = metric.h;							
-									$b{ exprBlock }
+									${switch (glyphStyleHasField.local_width) {
+										case true: macro glyph.w = metric.width * glyph.width;
+										default: switch (glyphStyleHasField.width) {
+											case true: macro glyph.w = metric.width * fontStyle.width;
+											default: macro glyph.w = metric.width * font.width;
+									}}}
+									${switch (glyphStyleHasField.local_height) {
+										case true: macro glyph.h = metric.height * glyph.height;
+										default: switch (glyphStyleHasField.height) {
+											case true: macro glyph.h = metric.height * fontStyle.height;
+											default: macro glyph.h = metric.height * font.height;
+									}}}
 								}
 							}
-						},
-						ret: null
-					})
-				});
-								
-				// ------ generate Function setFontStyle -------
+						
+						}
+						default: macro // ------- simple font -------
+						{
+							glyph.unit = range.unit;
+							glyph.slot = range.slot;								
+							glyph.tile = charcode;
+							${switch (glyphStyleHasField.local_width) {
+								case true: macro glyph.w = glyph.width;
+								default: switch (glyphStyleHasField.width) {
+									case true: macro glyph.w = fontStyle.width;
+									default: macro glyph.w = font.width;
+							}}}
+							${switch (glyphStyleHasField.local_height) {
+								case true: macro glyph.h = glyph.height;
+								default: switch (glyphStyleHasField.height) {
+									case true: macro glyph.h =fontStyle.height;
+									default: macro glyph.h = font.height;
+							}}}
+						}
+					}}
 				
-				exprBlock = new Array<Expr>();
-				if (glyphStyleHasField.local_color) 
-					exprBlock.push( macro super.setColorFormula("color * smoothstep( "+bold+" - "+sharp+" * fwidth(TEX.r), "+bold+" + "+sharp+" * fwidth(TEX.r), TEX.r)") );
-				else if (glyphStyleHasField.color)
-					exprBlock.push( macro super.setColorFormula(Std.string(fontStyle.color.toGLSL()) + " * smoothstep( "+bold+" - "+sharp+" * fwidth(TEX.r), "+bold+" + "+sharp+" * fwidth(TEX.r), TEX.r)") );
-				else
-					exprBlock.push( macro super.setColorFormula(Std.string(font.color.toGLSL()) + " * smoothstep( "+bold+" - "+sharp+" * fwidth(TEX.r), "+bold+" + "+sharp+" * fwidth(TEX.r), TEX.r)") );
+				}
+
 				
-				c.fields.push({
-					name: "setFontStyle",
-					access: [Access.APublic],
-					pos: Context.currentPos(),
-					kind: FFun({
-						args:[ {name:"fontStyle", type:macro:$styleType}
-						],
-						expr: macro {
+				public function setFontStyle(fontStyle:$styleType):Void
+				{
+					${switch (glyphStyleHasMeta.gl3Font)
+					{
+						case true: macro // ------- Gl3Font -------
+						{
 							this.fontStyle = fontStyle;
-												
+											
 							var bold = peote.view.utils.Util.toFloatString(0.5);
 							var sharp = peote.view.utils.Util.toFloatString(0.5);
-							
+								
 							super.setMultiTexture(font.textureCache.textures, "TEX");
-							
-							$b{ exprBlock }
-						},
-						ret: null
-					})
-				});
-			
+								
+							${switch (glyphStyleHasField.local_color) {
+								case true:
+									macro super.setColorFormula("color * smoothstep( "+bold+" - "+sharp+" * fwidth(TEX.r), "+bold+" + "+sharp+" * fwidth(TEX.r), TEX.r)");
+								default: switch (glyphStyleHasField.color) {
+									case true:
+										macro super.setColorFormula(Std.string(fontStyle.color.toGLSL()) + " * smoothstep( "+bold+" - "+sharp+" * fwidth(TEX.r), "+bold+" + "+sharp+" * fwidth(TEX.r), TEX.r)");
+									default:
+										macro super.setColorFormula(Std.string(font.color.toGLSL()) + " * smoothstep( "+bold+" - "+sharp+" * fwidth(TEX.r), "+bold+" + "+sharp+" * fwidth(TEX.r), TEX.r)");
+							}}}		
+						}
+						default: macro // ------- simple font -------
+						{
+							// TODO
+						}
+						
+					}}
+				}
+				
 			}
 
+			// -------------------------------------------------------------------------------------------
+			// -------------------------------------------------------------------------------------------
+			
 			Context.defineModule(classPackage.concat([className]).join('.'),[c]);
 		}
 		return TPath({ pack:classPackage, name:className, params:[] });

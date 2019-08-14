@@ -71,6 +71,9 @@ class FontMacro
 			trace("StyleField:" + styleField);   // [peote,text,GlyphStyle,GlyphStyle]
 			#end
 			
+			var glyphStyleHasField = Glyph.GlyphMacro.parseGlyphStyleFields(styleModule+"."+styleName); // trace("FontProgram: glyphStyleHasField", glyphStyleHasField);
+			var glyphStyleHasMeta = Glyph.GlyphMacro.parseGlyphStyleMetas(styleModule+"."+styleName); // trace("FontProgram: glyphStyleHasMeta", glyphStyleHasMeta);
+			
 			// -------------------------------------------------------------------------------------------
 			// -------------------------------------------------------------------------------------------
 			var c = macro		
@@ -79,8 +82,10 @@ class FontMacro
 			{
 				var path:String;
 
-				var rangeMapping:haxe.ds.Vector<{unit:Int, slot:Int, fontData:peote.text.Gl3FontData}>;
+				// TODO: generate after
+				var rangeMapping:haxe.ds.Vector<{unit:Int, slot:Int, fontData:peote.text.Gl3FontData}>;				
 				public var textureCache:peote.view.utils.TextureCache;
+
 				var maxTextureSize:Int;
 				
 				// from json
@@ -119,7 +124,15 @@ class FontMacro
 						if (rangeSize != null) this.rangeSize = rangeSize;
 						
 						var type = Reflect.field(json, "type");
-						if (type != null) if (type != "gl3") throw('Error, type of font "'+path+'/config.json" has to be "gl3"');
+						if (type != null)
+						${switch (glyphStyleHasMeta.gl3Font) {
+							case true: macro {
+								if (type != "gl3") throw('Error, type of font "' + path + '/config.json" has to be "gl3"');
+							}
+							case false: macro {
+								if (type == "gl3") throw('Error, metadata of $styleName class has to be "@gl3Font" for font "' + path + '/config.json" type "gl3"');
+							}
+						}}
 						
 						var textureSlotSize = Std.parseInt(Reflect.field(json, "textureSlotSize"));
 						if (textureSlotSize != null) this.textureSlotSize = textureSlotSize;
@@ -223,9 +236,6 @@ class FontMacro
 
 			// -------------------------------------------------------------------------------------------
 			// -------------------------------------------------------------------------------------------
-			
-			var glyphStyleHasField = Glyph.GlyphMacro.parseGlyphStyleFields(styleModule+"."+styleName); // trace("FontProgram: glyphStyleHasField", glyphStyleHasField);
-			var glyphStyleHasMeta = Glyph.GlyphMacro.parseGlyphStyleMetas(styleModule+"."+styleName); // trace("FontProgram: glyphStyleHasMeta", glyphStyleHasMeta);
 			
 			if (glyphStyleHasMeta.gl3Font)
 			{

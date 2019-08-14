@@ -143,6 +143,13 @@ class GlyphMacro
 			trace("StyleField:" + styleField);   // [peote,text,GlyphStyle,GlyphStyle]
 			#end
 						
+			var glyphStyleHasMeta = parseGlyphStyleMetas(styleModule+"."+styleName); //trace("Glyph - glyphStyleHasMeta:", glyphStyleHasMeta);
+			var glyphStyleHasField = parseGlyphStyleFields(styleModule+"."+styleName); //trace("Glyph - glyphStyleHasField:", glyphStyleHasField);
+
+			var exprBlock = new Array<Expr>();
+			if (glyphStyleHasField.local_width)  exprBlock.push( macro width = glyphStyle.width );
+			if (glyphStyleHasField.local_height) exprBlock.push( macro height= glyphStyle.height );
+			if (glyphStyleHasField.local_color)  exprBlock.push( macro color = glyphStyle.color );
 			// -------------------------------------------------------------------------------------------
 			// -------------------------------------------------------------------------------------------
 			var c = macro
@@ -151,40 +158,34 @@ class GlyphMacro
 			{
 				@posX public var x:Float = 0.0;
 				@posY public var y:Float = 0.0;
+								
+				public function new() {}
 				
-				// TODO: generate 
-				@texUnit public var unit:Int = 0;
-				@texSlot public var slot:Int = 0;
-				
-				//public function new(glyphStyle:$styleType)
-				public function new()
-				{
-					//setStyle(glyphStyle); // -> GENERATED
+				public inline function setStyle(glyphStyle: $styleType) {
+					$b{ exprBlock }
 				}
 				
 			}
 			
 			// -------------------------------------------------------------------------------------------
 			// -------------------------------------------------------------------------------------------
-			var glyphStyleHasField = parseGlyphStyleFields(styleModule+"."+styleName); //trace("Glyph - glyphStyleHasField:", glyphStyleHasField);
-			var glyphStyleHasMeta = parseGlyphStyleMetas(styleModule+"."+styleName); //trace("Glyph - glyphStyleHasMeta:", glyphStyleHasMeta);
 						
-			var exprBlock = new Array<Expr>();
-			if (glyphStyleHasField.local_width)  exprBlock.push( macro width = glyphStyle.width );
-			if (glyphStyleHasField.local_height) exprBlock.push( macro height= glyphStyle.height );
-			if (glyphStyleHasField.local_color)  exprBlock.push( macro color = glyphStyle.color );
-			
-			// --- generate Function setStyle --------
-			c.fields.push({
-				name: "setStyle",
-				access: [Access.APublic, Access.AInline],
+			// --- add fields depending on unit/slots
+			if (glyphStyleHasMeta.multiTexture) c.fields.push({
+				name:  "unit",
+				meta:  [{name:"texUnit", params:[], pos:Context.currentPos()},
+						{name:":allow", params:[macro peote.text], pos:Context.currentPos()}],
+				access:  [Access.APrivate],
+				kind: FieldType.FVar(macro:Int, macro 0),
 				pos: Context.currentPos(),
-				kind: FFun({
-					args:[ {name:"glyphStyle", type:macro:$styleType},
-					],
-					expr: macro $b{ exprBlock },
-					ret: null
-				})
+			});
+			if (glyphStyleHasMeta.multiRange) c.fields.push({
+				name:  "slot",
+				meta:  [{name:"texSlot", params:[], pos:Context.currentPos()},
+						{name:":allow", params:[macro peote.text], pos:Context.currentPos()}],
+				access:  [Access.APrivate],
+				kind: FieldType.FVar(macro:Int, macro 0),
+				pos: Context.currentPos(),
 			});
 			
 			// --- add fields depending on style
