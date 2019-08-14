@@ -76,13 +76,13 @@ class FontProgramMacro
 
 			class $className extends peote.view.Program
 			{
-				public var font:peote.text.Gl3Font; // TODO peote.text.Font<$styleType>
+				public var font:peote.text.Font<$styleType>; // TODO peote.text.Font<$styleType>
 				public var fontStyle:$styleType;
 				
 				var _buffer:peote.view.Buffer<$glyphType>;
 					
 				//public function new(font:$fontType, fontStyle:peote.text.Gl3FontStyle)
-				public function new(font:peote.text.Gl3Font, fontStyle:$styleType)
+				public function new(font:peote.text.Font<$styleType>, fontStyle:$styleType)
 				{
 					this.font = font;
 					_buffer = new peote.view.Buffer<$glyphType>(100);
@@ -125,16 +125,14 @@ class FontProgramMacro
 				else if (glyphStyleHasField.width) 
 					exprBlock.push( macro glyph.w = metric.width * fontStyle.width );
 				else
-					exprBlock.push( macro glyph.w = metric.width * 20 );
-					//exprBlock.push( macro glyph.w = metric.width * font.width );
+					exprBlock.push( macro glyph.w = metric.width * font.width );
 				
 				if (glyphStyleHasField.local_height)
 				    exprBlock.push( macro glyph.h = metric.height * glyph.height );
 				else if (glyphStyleHasField.height)
-					exprBlock.push( macro glyph.h = metric.height * fontStyle.height );
+					exprBlock.push( macro glyph.h = metric.height * font.height );
 				else
-					exprBlock.push( macro glyph.h = metric.height * 20 );
-					//exprBlock.push( macro glyph.h = metric.height * fontStyle.height );
+					exprBlock.push( macro glyph.h = metric.height * font.height );
 								
 				// ------ generate Function setCharcode -------
 				c.fields.push({
@@ -173,8 +171,7 @@ class FontProgramMacro
 				else if (glyphStyleHasField.color)
 					exprBlock.push( macro super.setColorFormula(Std.string(fontStyle.color.toGLSL()) + " * smoothstep( "+bold+" - "+sharp+" * fwidth(TEX.r), "+bold+" + "+sharp+" * fwidth(TEX.r), TEX.r)") );
 				else
-					exprBlock.push( macro super.setColorFormula("smoothstep( "+bold+" - "+sharp+" * fwidth(TEX.r), "+bold+" + "+sharp+" * fwidth(TEX.r), TEX.r)") );
-					//exprBlock.push( macro super.setColorFormula(Std.string(font.color.toGLSL()) + " * smoothstep( "+bold+" - "+sharp+" * fwidth(TEX.r), "+bold+" + "+sharp+" * fwidth(TEX.r), TEX.r)") );
+					exprBlock.push( macro super.setColorFormula(Std.string(font.color.toGLSL()) + " * smoothstep( "+bold+" - "+sharp+" * fwidth(TEX.r), "+bold+" + "+sharp+" * fwidth(TEX.r), TEX.r)") );
 				
 				c.fields.push({
 					name: "setFontStyle",

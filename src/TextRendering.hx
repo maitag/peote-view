@@ -11,7 +11,7 @@ import peote.view.PeoteView;
 import peote.view.Display;
 import peote.view.Color;
 
-import peote.text.Gl3Font;
+import peote.text.Font;
 
 import peote.text.FontProgram;
 import peote.text.Glyph;
@@ -46,9 +46,7 @@ class TextRendering
 			display   = new Display(10,10, window.width-20, window.height-20, Color.GREY1);
 			peoteView.addDisplay(display);
 			
-			// TODO
-			//var font = new Font<GlyphStyle>("assets/gl3fonts/unifont/", false);
-			var font = new Gl3Font("assets/gl3fonts/unifont/", false);
+			var font = new Font<GlyphStyle>("assets/gl3fonts/unifont/", false);
 			
 			font.load( function() {
 			
