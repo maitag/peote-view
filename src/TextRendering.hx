@@ -15,6 +15,7 @@ import peote.text.Font;
 
 import peote.text.FontProgram;
 import peote.text.Glyph;
+import peote.text.Range;
 
 //import peote.text.GlyphStyle;
 //import peote.text.Gl3GlyphStyle;
@@ -24,8 +25,7 @@ import peote.text.Glyph;
 
 
 @gl3Font
-@multiRange 
-@multiTexture
+@multiRange @multiTexture
 class GlyphStyle {
 	//@global public var color:Color = Color.GREEN;
 	public var color:Color = Color.GREEN;
@@ -50,6 +50,7 @@ class TextRendering
 			peoteView.addDisplay(display);
 			
 			//var font = new Font<GlyphStyle>("assets/gl3fonts/unifont/", [{min:0x0000, max:0x0fff}], false);
+			//var font = new Font<GlyphStyle>("assets/gl3fonts/unifont/", [Range.C0ControlsBasicLatin()], false);
 			var font = new Font<GlyphStyle>("assets/gl3fonts/unifont/", false);
 			
 			font.load( function() {

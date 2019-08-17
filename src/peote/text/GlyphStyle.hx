@@ -2,7 +2,7 @@ package peote.text;
 
 import peote.view.Color;
 
-@gl3Font @multiRange @multiTexture class GlyphStyle {
+class GlyphStyle {
 	//@global public var color:Color = Color.GREEN;
 	public var color:Color = Color.GREEN;
 	

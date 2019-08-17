@@ -191,17 +191,13 @@ class FontProgramMacro
 						{
 							this.fontStyle = fontStyle;
 											
-							var bold = peote.view.utils.Util.toFloatString(0.5);
-							var sharp = peote.view.utils.Util.toFloatString(0.5);
-								
 							${switch (glyphStyleHasMeta.multiTexture) {
-								case true: macro {
-									super.setMultiTexture(font.textureCache.textures, "TEX");
-								}
-								default: macro {
-									super.setTexture(font.textureCache, "TEX");
-								}
+								case true: macro super.setMultiTexture(font.textureCache.textures, "TEX");
+								default: macro 	super.setTexture(font.textureCache, "TEX");
 							}}
+								
+							var bold = peote.view.utils.Util.toFloatString(0.5); // 4.8 -> bold
+							var sharp = peote.view.utils.Util.toFloatString(0.5); // TODO
 								
 							${switch (glyphStyleHasField.local_color) {
 								case true:

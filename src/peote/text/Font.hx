@@ -118,10 +118,10 @@ class FontMacro
 				var maxTextureSize:Int;
 				
 				// from json
-				var ranges:Array<{min:Int, max:Int}>;
+				var ranges:Array<peote.text.Range>;
 				var imageNames = new Array<String>();
 				var rangeSize = 0x1000;      // amount of unicode range-splitting
-				var textureSlotSize = 2048;   // size of textureslot per image in pixels (must match overall image-sizes)
+				var textureSlotSize = 2048;  // size of textureslot per image in pixels (must match overall image-sizes)
 				
 				var kerning = false;
 				
@@ -131,7 +131,7 @@ class FontMacro
 				
 				var rParseFolder = new EReg("/*$", "gm");
 				
-				public function new(fontPath:String, ranges:Array<{min:Int, max:Int}>=null, kerning:Bool=true, maxTextureSize:Int=16384) 
+				public function new(fontPath:String, ranges:Array<peote.text.Range>=null, kerning:Bool=true, maxTextureSize:Int=16384) 
 				{
 					path = rParseFolder.replace(fontPath, '');
 					this.ranges = ranges;
@@ -142,12 +142,8 @@ class FontMacro
 				public inline function getRange(charcode:Int):$rangeType
 				{
 					${switch (glyphStyleHasMeta.multiRange) {
-						case true: macro {
-							return rangeMapping.get(Std.int(charcode/rangeSize));
-						}
-						default: macro {
-							return rangeMapping;
-						}
+						case true: macro return rangeMapping.get(Std.int(charcode/rangeSize));
+						default: macro return rangeMapping;
 					}}
 				}
 
@@ -184,13 +180,13 @@ class FontMacro
 						var h = Reflect.field(json, "height"); if (h != null) height = Std.parseInt(h);
 						
 						var _ranges = Reflect.field(json, "ranges");
-						var new_ranges = new Array<{min:Int, max:Int}>();
+						var found_ranges = new Array<peote.text.Range>();
 						
 						${switch (glyphStyleHasMeta.multiRange) {
 							case true: macro {}
 							default: macro {
 								if (ranges == null && Reflect.fields(_ranges).length > 1) {
-									throw('Error, set GlyphStyle to @multiRange or define a single range inside "new font()"');
+									throw('Error, set GlyphStyle to @multiRange or define a single range inside "new font()" or config.json');
 								}
 							}
 						}}
@@ -204,22 +200,27 @@ class FontMacro
 							if (ranges != null) {
 								for (r in ranges) {
 									if ((r.min >= min && r.min <= max) || (r.max >= min && r.max <= max)) {
-										new_ranges.push({min:min, max:max});
+										found_ranges.push(new peote.text.Range(min, max));
 										imageNames.push(fn);
 										break;
 									}
 								}
 							}
 							else {
-								new_ranges.push({min:min, max:max});
+								found_ranges.push(new peote.text.Range(min, max));
 								imageNames.push(fn);
 							}
 							${switch (glyphStyleHasMeta.multiRange) {
 								case true: macro {}
-								default: macro if (new_ranges.length == 1) break;
+								default: macro if (found_ranges.length == 1) break;
 							}}
 						}
-						ranges = new_ranges;
+						if (found_ranges.length == 0) {
+							if (ranges != null) {
+								throw('Error, can not found any ranges inside font-config "'+path+'/config.json" that fit '+ranges);
+							} else throw('Error, can not found any ranges inside font-config "'+path+'/config.json"');
+						}
+						else ranges = found_ranges;
 
 						init(onProgressOverall, onLoad);
 					});		
@@ -228,11 +229,9 @@ class FontMacro
 				private function init(onProgressOverall:Int->Int->Void, onLoad:Void->Void)
 				{
 					${switch (glyphStyleHasMeta.multiRange) {
-						case true: macro {
+						case true: macro
 							rangeMapping = new haxe.ds.Vector<$rangeType>(Std.int(0x1000 * 20 / rangeSize));// TODO: is ( 0x1000 * 20) the greatest charcode for unicode ?
-						}
-						default: macro {
-						}
+						default: macro {}
 					}}
 					
 					${switch (glyphStyleHasMeta.multiTexture && glyphStyleHasMeta.multiRange) {
