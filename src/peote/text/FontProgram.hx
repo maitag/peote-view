@@ -112,37 +112,52 @@ class FontProgramMacro
 				}
 				
 				
-				public inline function setCharcode(glyph:$glyphType, charcode:Int):Void
+				public function setCharcode(glyph:$glyphType, charcode:Int):Void
 				{
 					${switch (glyphStyleHasMeta.gl3Font)
 					{
 						case true: macro // ------- Gl3Font -------
 						{
 							var range = font.getRange(charcode);
-							if (range != null) {
-								glyph.unit = range.unit;
-								glyph.slot = range.slot;								
-								var metric = range.fontData.getMetric(charcode);								
-								if (metric != null) {
-									//trace("glyph"+charcode, range.unit, range.slot, metric);								
-									glyph.tx = metric.u;
-									glyph.ty = metric.v;
-									glyph.tw = metric.w;
-									glyph.th = metric.h;							
-									${switch (glyphStyleHasField.local_width) {
-										case true: macro glyph.w = metric.width * glyph.width;
-										default: switch (glyphStyleHasField.width) {
-											case true: macro glyph.w = metric.width * fontStyle.width;
-											default: macro glyph.w = metric.width * font.width;
-									}}}
-									${switch (glyphStyleHasField.local_height) {
-										case true: macro glyph.h = metric.height * glyph.height;
-										default: switch (glyphStyleHasField.height) {
-											case true: macro glyph.h = metric.height * fontStyle.height;
-											default: macro glyph.h = metric.height * font.height;
-									}}}
+							var metric:peote.text.Gl3FontData.Metric;
+							
+							${switch (glyphStyleHasMeta.multiRange) {
+								case true: macro {
+									if (range == null) return;
+									
+									${switch (glyphStyleHasMeta.multiTexture) {
+										case true: macro glyph.unit = range.unit;
+										default: macro {}
+									}}
+									
+									glyph.slot = range.slot;								
+									metric = range.fontData.getMetric(charcode);
 								}
+								default: macro {
+									metric = range.getMetric(charcode);
+								}
+							}}
+							
+							if (metric != null) {
+								//trace("glyph"+charcode, range.unit, range.slot, metric);								
+								glyph.tx = metric.u;
+								glyph.ty = metric.v;
+								glyph.tw = metric.w;
+								glyph.th = metric.h;							
+								${switch (glyphStyleHasField.local_width) {
+									case true: macro glyph.w = metric.width * glyph.width;
+									default: switch (glyphStyleHasField.width) {
+										case true: macro glyph.w = metric.width * fontStyle.width;
+										default: macro glyph.w = metric.width * font.width;
+								}}}
+								${switch (glyphStyleHasField.local_height) {
+									case true: macro glyph.h = metric.height * glyph.height;
+									default: switch (glyphStyleHasField.height) {
+										case true: macro glyph.h = metric.height * fontStyle.height;
+										default: macro glyph.h = metric.height * font.height;
+								}}}
 							}
+							
 						
 						}
 						default: macro // ------- simple font -------
@@ -179,7 +194,14 @@ class FontProgramMacro
 							var bold = peote.view.utils.Util.toFloatString(0.5);
 							var sharp = peote.view.utils.Util.toFloatString(0.5);
 								
-							super.setMultiTexture(font.textureCache.textures, "TEX");
+							${switch (glyphStyleHasMeta.multiTexture) {
+								case true: macro {
+									super.setMultiTexture(font.textureCache.textures, "TEX");
+								}
+								default: macro {
+									super.setTexture(font.textureCache, "TEX");
+								}
+							}}
 								
 							${switch (glyphStyleHasField.local_color) {
 								case true:
