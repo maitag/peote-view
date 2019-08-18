@@ -49,7 +49,7 @@ class Gl3FontData
 				h       : bytes.getFloat(pos+32)
 			};
 			pos += 36;
-			setMetric(charcode, m);
+			setMetric(charcode, m); if (charcode > 65000) trace(charcode);
 		}
 		
 		if (isKerning)

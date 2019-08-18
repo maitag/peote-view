@@ -95,12 +95,14 @@ class FontProgramMacro
 					setFontStyle(fontStyle); // inject global fontsize and color into shader -> GENERATED
 				}
 				
-				public inline function add(glyph:$glyphType, charcode:Int, x:Int, y:Int, glyphStyle:$styleType = null):Void {
+				public inline function add(glyph:$glyphType, charcode:Int, x:Int, y:Int, glyphStyle:$styleType = null):Bool {
 					glyph.x = x;
 					glyph.y = y;
 					glyph.setStyle((glyphStyle != null) ? glyphStyle : fontStyle);
-					setCharcode(glyph, charcode);  // -> GENERATED					
-					_buffer.addElement(glyph);
+					if (setCharcode(glyph, charcode)) {
+						_buffer.addElement(glyph);
+						return true;
+					} else return false;
 				}
 								
 				public inline function remove(glyph:$glyphType):Void {
@@ -112,26 +114,25 @@ class FontProgramMacro
 				}
 				
 				
-				public function setCharcode(glyph:$glyphType, charcode:Int):Void
+				public inline function setCharcode(glyph:$glyphType, charcode:Int):Bool
 				{
 					${switch (glyphStyleHasMeta.gl3Font)
 					{
 						case true: macro // ------- Gl3Font -------
 						{
 							var range = font.getRange(charcode);
-							var metric:peote.text.Gl3FontData.Metric;
+							var metric:peote.text.Gl3FontData.Metric = null;
 							
 							${switch (glyphStyleHasMeta.multiRange) {
 								case true: macro {
-									if (range == null) return;
-									
-									${switch (glyphStyleHasMeta.multiTexture) {
-										case true: macro glyph.unit = range.unit;
-										default: macro {}
-									}}
-									
-									glyph.slot = range.slot;								
-									metric = range.fontData.getMetric(charcode);
+									if (range != null) {
+										${switch (glyphStyleHasMeta.multiTexture) {
+											case true: macro glyph.unit = range.unit;
+											default: macro {}
+										}}
+										glyph.slot = range.slot;								
+										metric = range.fontData.getMetric(charcode);
+									}
 								}
 								default: macro {
 									metric = range.getMetric(charcode);
@@ -156,11 +157,12 @@ class FontProgramMacro
 										case true: macro glyph.h = metric.height * fontStyle.height;
 										default: macro glyph.h = metric.height * font.height;
 								}}}
+								return true;
 							}
+							else return false;
 							
-						
 						}
-						default: macro // ------- simple font -------
+						default: macro // ------- simple font ------- // TODO
 						{
 							glyph.unit = range.unit;
 							glyph.slot = range.slot;								

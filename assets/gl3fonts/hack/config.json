@@ -2,13 +2,12 @@
  "type": "gl3",
  "rangeSize": "0x1000",       // amount of unicode range-splitting
  "textureSlotSize": "2048",   // size of textureslot per image in pixels (must match overall image-sizes)
- "kerning":false,
+ "kerning": false,
  "color": "0x50e040ff",
  "width": "20",
  "height": "20",
  "ranges":
 	{
-		"unifont_0000-0fff": ["0x0000", "0x0fff"]
-		,"unifont_1000-1fff": ["0x1000", "0x1fff"]
+		"hack": ["0x0020", "0x2e25"]
 	}
 }

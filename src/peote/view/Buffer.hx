@@ -326,7 +326,7 @@ class $className implements BufferInterface
         @param  element Element instance to remove
     **/
 	public function removeElement(element: $elementType):Void
-	{
+	{	
 		if (element.bytePos != -1) {
 			if (_maxElements > 1 && element.bytePos < (_maxElements-1) * _elemBuffSize ) {
 				#if peoteview_debug_buffer

@@ -25,7 +25,7 @@ import peote.text.Range;
 
 
 @gl3Font
-@multiRange @multiTexture
+//@multiRange @multiTexture
 class GlyphStyle {
 	//@global public var color:Color = Color.GREEN;
 	public var color:Color = Color.GREEN;
@@ -49,16 +49,15 @@ class TextRendering
 			display   = new Display(10,10, window.width-20, window.height-20, Color.GREY1);
 			peoteView.addDisplay(display);
 			
-			//var font = new Font<GlyphStyle>("assets/gl3fonts/unifont/", [{min:0x0000, max:0x0fff}], false);
-			//var font = new Font<GlyphStyle>("assets/gl3fonts/unifont/", [Range.C0ControlsBasicLatin()], false);
-			var font = new Font<GlyphStyle>("assets/gl3fonts/unifont/", false);
+			var font = new Font<GlyphStyle>("assets/gl3fonts/hack/");
+			//var font = new Font<GlyphStyle>("assets/gl3fonts/unifont/", false);
 			
 			font.load( function() {
 			
 				var fontStyle = new GlyphStyle();
 				fontStyle.color = Color.RED;
-				fontStyle.width = 50.0;
-				fontStyle.height = 50.0;
+				//fontStyle.width = 30.0;
+				//fontStyle.height = 30.0;
 				
 				var fontProgram = new FontProgram<GlyphStyle>(font, fontStyle); // manage the Programs to render glyphes in different size/colors/fonts
 				display.addProgram(fontProgram);
@@ -66,7 +65,7 @@ class TextRendering
 				
 				var glyphStyle1 = new GlyphStyle();
 				glyphStyle1.color = Color.YELLOW;
-				glyphStyle1.width = 30.0;
+				//glyphStyle1.width = 50.0;
 								
 				var glyphStyle2 = new GlyphStyle();
 				
@@ -78,21 +77,36 @@ class TextRendering
 				fontProgram.setCharcode(glyph1, 66);
 				//glyph1.setStyle(glyphStyle2);
 				//glyph1.color = Color.BLUE;
-				glyph1.height = 30;
+				//glyph1.height = 30;
 				fontProgram.update(glyph1);
 				
 				// -----------
 				
 				var glyph2 = new Glyph<GlyphStyle>();
-				fontProgram.add( glyph2, 103, 20, 0, glyphStyle2); 
-				
+				//if (!fontProgram.add( glyph2, 0x0fdb, 20, 0, glyphStyle2) )
+					//trace(" ----> Charcode not inside Font");
+					
+				fontProgram.add( glyph2, 0x2e25, 20, 0, glyphStyle2);
+				//fontProgram.remove( glyph2 );
 				
 				/*
 				// -------- Lines  ---------
 				
-				var line = new Line("Hello Word!");
-				//line.add( "B" );
+				var line = new Line<GlyphStyle>();
 				fontProgram.addLine(line, 0, 100);
+				
+				fontProgram.lineInsert(line, "Hello World", 0, glyphStyle2);
+				
+				fontProgram.lineInsert(line, "brave new ", 6);
+				fontProgram.lineInsertChar(line, 68 , 0, true); // true -> from end
+
+				fontProgram.lineClear(line);
+				fontProgram.lineDelete(line, "brave new " ,6, 6);
+				fontProgram.lineDeleteChar(line, 0, true); // true -> from end
+
+				fontProgram.lineReplace(line, "stupid" ,6, 5);
+				fontProgram.lineReplaceChar(line, 77 , 0);
+
 				fontProgram.removeLine(line);
 				
 				// -------- Pages ??? (namespace!!!) <--------

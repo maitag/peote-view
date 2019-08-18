@@ -4,9 +4,15 @@ package peote.text;
  * ...
  * @author 
  */
-class Line 
+class Line<T>
 {
 
+	public var x:Int = 0;
+	public var y:Int = 0;
+	
+	// TODO: optimize here for js/neko
+	public var glyphes:Array<T>;
+	
 	public function new() 
 	{
 		
