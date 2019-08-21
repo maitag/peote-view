@@ -20,18 +20,18 @@ import peote.text.Range;
 //import peote.text.GlyphStyle;
 //import peote.text.Gl3GlyphStyle;
 
-//import peote.text.Line;
+import peote.text.Line;
 //import peote.text.Page;
 
 
 @gl3Font
-//@multiRange @multiTexture
+@multiRange @multiTexture
 class GlyphStyle {
 	//@global public var color:Color = Color.GREEN;
 	public var color:Color = Color.GREEN;
 	
-	public var width:Float = 20.0;
-	public var height:Float = 20.0;
+	public var width:Float = 30.0;
+	public var height:Float = 30.0;
 	
 	public function new() {}
 }
@@ -50,7 +50,7 @@ class TextRendering
 			peoteView.addDisplay(display);
 			
 			var font = new Font<GlyphStyle>("assets/gl3fonts/hack/");
-			//var font = new Font<GlyphStyle>("assets/gl3fonts/unifont/", false);
+			//var font = new Font<GlyphStyle>("assets/gl3fonts/unifont/");
 			
 			font.load( function() {
 			
@@ -72,40 +72,43 @@ class TextRendering
 				// -----------
 
 				var glyph1 = new Glyph<GlyphStyle>();
-				fontProgram.add(glyph1, 65, 0, 0);
+				fontProgram.addGlyph(glyph1, 65, 0, 0);
 				
 				fontProgram.setCharcode(glyph1, 66);
 				//glyph1.setStyle(glyphStyle2);
 				//glyph1.color = Color.BLUE;
 				//glyph1.height = 30;
-				fontProgram.update(glyph1);
+				fontProgram.updateGlyph(glyph1);
 				
 				// -----------
-				
+				fontProgram.setFontStyle(glyphStyle2);
 				var glyph2 = new Glyph<GlyphStyle>();
-				//if (!fontProgram.add( glyph2, 0x0fdb, 20, 0, glyphStyle2) )
+				//if (!fontProgram.addGlyph( glyph2, 0x0fdb, 20, 0, glyphStyle2) )
 					//trace(" ----> Charcode not inside Font");
 					
-				fontProgram.add( glyph2, 0x2e25, 20, 0, glyphStyle2);
-				//fontProgram.remove( glyph2 );
+				fontProgram.addGlyph( glyph2, 0x2e25, 20, 0, glyphStyle2);
+				//fontProgram.removeGlyph( glyph2 );
 				
-				/*
+				
 				// -------- Lines  ---------
 				
 				var line = new Line<GlyphStyle>();
-				fontProgram.addLine(line, 0, 100);
+				fontProgram.addLine(line, "TA - Hello World...", 0, 100);
 				
-				fontProgram.lineInsert(line, "Hello World", 0, glyphStyle2);
+				//line.setStyle(glyphStyle2, 0, 4);
+				//line.x = 30; // all gylphes inside will change
+				//line.y = 40; // all gylphes inside will change
+				//fontProgram.updateLine(line);
+				/*
+				fontProgram.addGlyphToLine(line, 68 , 0, true); // true -> from end
+				fontProgram.addGlyphesToLine(line,  Glyphes.fromString("brave new "), 6);
 				
-				fontProgram.lineInsert(line, "brave new ", 6);
-				fontProgram.lineInsertChar(line, 68 , 0, true); // true -> from end
+				fontProgram.clearLine(line);
+				fontProgram.removeGlyphFromLine(line, 6);
+				fontProgram.removeGlyphesFromLine(line, 0, 4, true); // true -> from end
 
-				fontProgram.lineClear(line);
-				fontProgram.lineDelete(line, "brave new " ,6, 6);
-				fontProgram.lineDeleteChar(line, 0, true); // true -> from end
-
-				fontProgram.lineReplace(line, "stupid" ,6, 5);
-				fontProgram.lineReplaceChar(line, 77 , 0);
+				fontProgram.changeLine(line, 77, 0);
+				fontProgram.changeInLine(line, "test", 6);
 
 				fontProgram.removeLine(line);
 				

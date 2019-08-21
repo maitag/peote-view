@@ -123,7 +123,7 @@ class FontMacro
 				var rangeSize = 0x1000;      // amount of unicode range-splitting
 				var textureSlotSize = 2048;  // size of textureslot per image in pixels (must match overall image-sizes)
 				
-				var kerning = false;
+				public var kerning = false;
 				
 				public var width:Float = 20;
 				public var height:Float = 20;

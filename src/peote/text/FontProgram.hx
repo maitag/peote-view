@@ -82,8 +82,13 @@ class FontProgramMacro
 				public var font:peote.text.Font<$styleType>; // TODO peote.text.Font<$styleType>
 				public var fontStyle:$styleType;
 				
+				public var penX:Float = 0;
+				public var penY:Float = 0;
+				
+				var prev_charcode = -1;
+				
 				var _buffer:peote.view.Buffer<$glyphType>;
-					
+				
 				//public function new(font:$fontType, fontStyle:peote.text.Gl3FontStyle)
 				public function new(font:peote.text.Font<$styleType>, fontStyle:$styleType)
 				{
@@ -95,33 +100,53 @@ class FontProgramMacro
 					setFontStyle(fontStyle); // inject global fontsize and color into shader -> GENERATED
 				}
 				
-				public inline function add(glyph:$glyphType, charcode:Int, x:Int, y:Int, glyphStyle:$styleType = null):Bool {
-					glyph.x = x;
-					glyph.y = y;
+				public inline function addGlyph(glyph:$glyphType, charcode:Int, x:Null<Float>=null, y:Null<Float>=null, glyphStyle:$styleType = null):Bool {
 					glyph.setStyle((glyphStyle != null) ? glyphStyle : fontStyle);
-					if (setCharcode(glyph, charcode)) {
+					if (setCharcode(glyph, charcode, x, y)) {
 						_buffer.addElement(glyph);
 						return true;
 					} else return false;
 				}
 								
-				public inline function remove(glyph:$glyphType):Void {
+				public inline function removeGlyph(glyph:$glyphType):Void {
 					_buffer.removeElement(glyph);
 				}
 								
-				public inline function update(glyph:$glyphType):Void {
+				public inline function updateGlyph(glyph:$glyphType):Void {
 					_buffer.updateElement(glyph);
 				}
-				
-				
-				public inline function setCharcode(glyph:$glyphType, charcode:Int):Bool
+								
+				inline function setXW(glyph:$glyphType, charcode:Int, x:Null<Float>, width:Float, fontData:peote.text.Gl3FontData, metric:peote.text.Gl3FontData.Metric):Void {
+					glyph.w = metric.width * width;
+					if (x == null) {
+						glyph.x = penX + metric.left * width;
+						if (font.kerning && prev_charcode != -1) { // KERNING
+							penX += fontData.kerning[prev_charcode][charcode] * width;
+						}
+						prev_charcode = charcode;
+						penX += metric.advance * width;
+					}					
+				}
+								
+				inline function setYW(glyph:$glyphType, charcode:Int, y:Null<Float>, height:Float, fontData:peote.text.Gl3FontData, metric:peote.text.Gl3FontData.Metric):Void {
+					glyph.h = metric.height * height;
+					if (y == null) {
+						glyph.y = penY + (fontData.height - metric.top) * height;
+					}					
+				}
+								
+				public inline function setCharcode(glyph:$glyphType, charcode:Int, x:Null<Float>=null, y:Null<Float>=null):Bool
 				{
+					if (x != null) glyph.x = x;
+					if (y != null) glyph.y = y;
+					
 					${switch (glyphStyleHasMeta.gl3Font)
 					{
 						case true: macro // ------- Gl3Font -------
 						{
 							var range = font.getRange(charcode);
 							var metric:peote.text.Gl3FontData.Metric = null;
+							var fontData:Gl3FontData = null;
 							
 							${switch (glyphStyleHasMeta.multiRange) {
 								case true: macro {
@@ -130,32 +155,34 @@ class FontProgramMacro
 											case true: macro glyph.unit = range.unit;
 											default: macro {}
 										}}
-										glyph.slot = range.slot;								
-										metric = range.fontData.getMetric(charcode);
+										glyph.slot = range.slot;
+										fontData = range.fontData;
+										metric = fontData.getMetric(charcode);
 									}
 								}
 								default: macro {
-									metric = range.getMetric(charcode);
+									fontData = range;
+									metric = fontData.getMetric(charcode);
 								}
 							}}
 							
 							if (metric != null) {
-								//trace("glyph"+charcode, range.unit, range.slot, metric);								
+								//trace("glyph"+charcode, range.unit, range.slot, metric);
 								glyph.tx = metric.u;
 								glyph.ty = metric.v;
 								glyph.tw = metric.w;
-								glyph.th = metric.h;							
+								glyph.th = metric.h;
 								${switch (glyphStyleHasField.local_width) {
-									case true: macro glyph.w = metric.width * glyph.width;
+									case true: macro setXW(glyph, charcode, x, glyph.width, fontData, metric);
 									default: switch (glyphStyleHasField.width) {
-										case true: macro glyph.w = metric.width * fontStyle.width;
-										default: macro glyph.w = metric.width * font.width;
+										case true: macro setXW(glyph, charcode, x, fontStyle.width, fontData, metric);
+										default: macro setXW(glyph, charcode, x, font.width, fontData, metric);
 								}}}
 								${switch (glyphStyleHasField.local_height) {
-									case true: macro glyph.h = metric.height * glyph.height;
+									case true: macro setYW(glyph, charcode, y, glyph.height, fontData, metric);
 									default: switch (glyphStyleHasField.height) {
-										case true: macro glyph.h = metric.height * fontStyle.height;
-										default: macro glyph.h = metric.height * font.height;
+										case true: macro setYW(glyph, charcode, y, fontStyle.height, fontData, metric);
+										default: macro setYW(glyph, charcode, y, font.height, fontData, metric);
 								}}}
 								return true;
 							}
@@ -219,7 +246,29 @@ class FontProgramMacro
 					}}
 				}
 				
-			}
+				public function addLine(line:Line<$styleType>, chars:String, x:Float=0, y:Float=0, glyphStyle:$styleType = null)
+				{
+					penX = x;
+					penY = y;
+					haxe.Utf8.iter(chars, function(charcode)
+					{
+						var glyph = new Glyph<$styleType>();
+						addGlyph(glyph, charcode, glyphStyle);
+						
+					});
+				}
+				
+				public function insertIntoLine(line:Line<$styleType>, chars:String, xPosition:Int=0, yPosition:Int=0) {
+					
+				}
+			
+				public function updateLine(line:Line<$styleType>) {
+					for (glyph in line.glyphes) {
+						updateGlyph(glyph);
+					}
+				}
+			
+			} // end class
 
 			// -------------------------------------------------------------------------------------------
 			// -------------------------------------------------------------------------------------------
