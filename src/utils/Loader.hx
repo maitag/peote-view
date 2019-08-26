@@ -1,6 +1,5 @@
 package utils;
 
-import haxe.Json;
 import lime.graphics.Image;
 import lime.utils.Bytes;
 
@@ -88,7 +87,18 @@ class Loader
 		if (onError != null) future.onError( onError );
 		if (onLoad != null) future.onComplete( onLoad );		
 	}
-		
+
+	public static inline function text( name:String, debug=false, ?onProgress:Int->Int->Void, ?onError:String->Void, ?onLoad:String->Void):Void {
+		bytes( name, debug, onProgress,
+			(onLoad == null && onError == null) ? null : onError,  // helps parametermatching
+			(onLoad == null && onError == null) ? null : function(bytes:Bytes) {
+				if (onLoad != null && onError != null ) // helps parametermatching
+					onLoad(bytes.toString());
+				else onError(bytes.toString());
+			}
+		);
+	}
+	
 	public static inline function bytesArray( names:Array<String>, debug=false, ?onProgress:Int->Int->Int->Void, ?onProgressOverall:Int->Int->Void, ?onError:Int->String->Void, ?onLoad:Int->Bytes->Void, ?onLoadAll:Array<Bytes>->Void):Void {
 		var allBytes = new Array<Bytes>();
 		var loaded:Int = names.length;
@@ -126,30 +136,5 @@ class Loader
 		}
 	}
 	
-	public static inline function json( name:String, debug=false, ?onProgress:Int->Int->Void, ?onError:String->Void, ?onLoad:Json->Void):Void {
-		var future = Bytes.loadFromFile(name);		
-		if (debug) {
-			trace('Start loading json "$name"');
-			future.onProgress( function(a:Int, b:Int) onProgressDebug(a, b, name) );
-			future.onError( onErrorDebug );
-			future.onComplete( function(bytes:Bytes) onCompleteDebug(name) );
-		}		
-		if (onProgress != null) future.onProgress( onProgress );
-		if (onError != null) future.onError( onError );
-		if (onLoad != null) future.onComplete( function(bytes:Bytes) {
-			
-			var rComments = new EReg("//.*?$", "gm");
-			var rEmptylines:EReg = new EReg("([ \t]*\r?\n)+", "g");
-			var rStartspaces:EReg = new EReg("^([ \t]*\r?\n)+", "g");
-			
-			var json:Json;
-			
-			try {
-				json = Json.parse( rStartspaces.replace(rEmptylines.replace(rComments.replace(bytes.toString(), ""), "\n"), ""));
-				onLoad(json);
-			} catch (msg:Dynamic) trace('Error while parsing json of file "$name"\n   ' + msg);			
-		});
-		
-	}
-	
+
 }

@@ -151,7 +151,63 @@ class FontMacro
 
 				public function load(?onProgressOverall:Int->Int->Void, onLoad:Void->Void)
 				{
-					utils.Loader.json(path+"/config.json", true, function(json:haxe.Json) {
+					
+/*					utils.Loader.text("assets/gl3fonts/unifont/config_new.json", true, function(jsonString:String)
+					{
+						// TODO: put code-commentparsing into utils-class: Parse.code(code:String, comments:Bool, emptyLines:Bool, startSpaces:Bool )
+						var rComments = new EReg("//.*?$", "gm");
+						var rEmptylines:EReg = new EReg("([ \t]*\r?\n)+", "g");
+						var rStartspaces:EReg = new EReg("^([ \t]*\r?\n)+", "g");
+
+						jsonString = rStartspaces.replace(rEmptylines.replace(rComments.replace(jsonString, ""), "\n"), "");
+						
+						var parser = new json2object.JsonParser<peote.text.FontConfig>();
+						//var fontConfig = parser.fromJson(jsonString, "file.json");
+						var fontConfig:peote.text.FontConfig = parser.fromJson(jsonString, "assets/gl3fonts/unifont/config_new.json");
+						
+						trace(json2object.ErrorUtils.convertErrorArray(parser.errors));
+*/
+/*						for (e in errors) {
+							switch(e) {
+								case IncorrectType(variable, expected, pos): trace(variable, expected, pos);
+								case UninitializedVariable(variable, pos):trace(variable, pos);
+								case UnknownVariable(variable, pos):trace(variable, pos);
+								case IncorrectEnumValue(variable, expected, pos): trace(variable, expected, pos);
+								case InvalidEnumConstructor(variable, expected, pos): trace(variable, expected, pos);
+								case ParserError(variable, pos): trace(variable, pos);
+								default:
+							}
+						}
+*/
+/*						trace("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+						trace(fontConfig.packing);
+						trace(fontConfig.distancefield);
+						trace(fontConfig.kerning);
+						trace(fontConfig.width);
+						trace(fontConfig.height);
+						trace(fontConfig.color);
+						trace(fontConfig.rangeSizeSplitting);
+						for (r in fontConfig.ranges) {
+							trace(r.image);
+							trace(r.slot.width);
+							trace(r.slot.height);
+							trace(r.range.min);
+							trace(r.range.max);
+						}
+						
+					});
+*/					
+					utils.Loader.text(path + "/config.json", true, function(jsonString:String)
+					{
+						// TODO: put code-commentparsing into utils-class: Parse.code(code:String, comments:Bool, emptyLines:Bool, startSpaces:Bool )
+						var rComments = new EReg("//.*?$", "gm");
+						var rEmptylines:EReg = new EReg("([ \t]*\r?\n)+", "g");
+						var rStartspaces:EReg = new EReg("^([ \t]*\r?\n)+", "g");
+						
+						var json:haxe.Json = null;
+						try {
+							json = haxe.Json.parse( rStartspaces.replace(rEmptylines.replace(rComments.replace(jsonString, ""), "\n"), ""));
+						} catch (msg:Dynamic) throw('Error while parsing json\n   ' + msg);			
 						
 						var rangeSize = Std.parseInt(Reflect.field(json, "rangeSize"));
 						if (rangeSize != null) this.rangeSize = rangeSize;
