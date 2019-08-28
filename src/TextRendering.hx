@@ -49,9 +49,9 @@ class TextRendering
 			display   = new Display(10,10, window.width-20, window.height-20, Color.GREY1);
 			peoteView.addDisplay(display);
 			
-			//var font = new Font<GlyphStyle>("assets/gl3fonts/hack/");
-			//var font = new Font<GlyphStyle>("assets/gl3fonts/unifont/", [new Range(0x0000,0x0fff)]);
-			var font = new Font<GlyphStyle>("assets/gl3fonts/unifont/");
+			//var font = new Font<GlyphStyle>("assets/gl3fonts/hack/config.json");
+			var font = new Font<GlyphStyle>("assets/gl3fonts/unifont/config.json");
+			//var font = new Font<GlyphStyle>("assets/gl3fonts/unifont/config.json", [new Range(0x0000,0x0fff)]);
 			
 			font.load( function() {
 			
@@ -80,15 +80,13 @@ class TextRendering
 				//glyph1.color = Color.BLUE;
 				//glyph1.height = 30;
 				fontProgram.updateGlyph(glyph1);
+				//fontProgram.removeGlyph( glyph1 );
 				
 				// -----------
 				fontProgram.setFontStyle(glyphStyle2);
 				var glyph2 = new Glyph<GlyphStyle>();
-				//if (!fontProgram.addGlyph( glyph2, 0x0fdb, 20, 0, glyphStyle2) )
-					//trace(" ----> Charcode not inside Font");
 					
-				fontProgram.addGlyph( glyph2, 0x2e25, 20, 0, glyphStyle2);
-				//fontProgram.removeGlyph( glyph2 );
+				if (!fontProgram.addGlyph( glyph2, 0x2e25, 20, 0, glyphStyle2)) trace(" ----> Charcode not inside Font");
 				
 				
 				// -------- Lines  ---------

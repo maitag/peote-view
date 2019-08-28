@@ -109,6 +109,7 @@ class FontMacro
 			class $className 
 			{
 				var path:String;
+				var config:String;
 
 				public var fontConfig:peote.text.FontConfig;
 				
@@ -123,11 +124,18 @@ class FontMacro
 				
 				public var kerning = false;
 								
-				var rParseFolder = new EReg("/*$", "gm");
+				var rParsePathConfig = new EReg("^(.*?)([^/]+)$", "");
+				var rParseEnding = new EReg("\\.[a-z]+$", "i");
+				var rComments = new EReg("//.*?$", "gm");
+				var rHexToDec = new EReg("(\"\\s*)?(0x[0-9a-f]+)(\\s*\")?", "gi");
 				
-				public function new(fontPath:String, ranges:Array<peote.text.Range>=null, kerning:Bool=true, maxTextureSize:Int=16384) 
+				public function new(configJsonPath:String, ranges:Array<peote.text.Range>=null, kerning:Bool=true, maxTextureSize:Int=16384) 
 				{
-					path = rParseFolder.replace(fontPath, '');
+					if (rParsePathConfig.match(configJsonPath)) {
+						path = rParsePathConfig.matched(1);
+						config = rParsePathConfig.matched(2);
+					} else throw("Can't load font, error in path to jsonfile: "+'"'+configJsonPath+'"');
+					
 					this.ranges = ranges;
 					this.kerning = kerning;
 					this.maxTextureSize = maxTextureSize;
@@ -142,19 +150,16 @@ class FontMacro
 				}
 
 				// --------------------------- Loading -------------------------
-				var rComments = new EReg("//.*?$", "gm");
-				var rHexToDec = new EReg("(\"\\s*)?(0x[0-9a-f]+)(\\s*\")?", "gi");
-
 				public function load(?onProgressOverall:Int->Int->Void, onLoad:Void->Void)
 				{
 					
-					utils.Loader.text(path + "/config.json", true, function(jsonString:String)
+					utils.Loader.text(path + config, true, function(jsonString:String)
 					{
 						jsonString = rComments.replace(jsonString, "");
 						jsonString = rHexToDec.map(jsonString, function(r) return Std.string(Std.parseInt(r.matched(2))));
 						
 						var parser = new json2object.JsonParser<peote.text.FontConfig>();
-						fontConfig = parser.fromJson(jsonString, path + "/config.json");
+						fontConfig = parser.fromJson(jsonString, path + config);
 						
 						for (e in parser.errors) {
 							var pos = switch (e) {case IncorrectType(_, _, pos) | IncorrectEnumValue(_, _, pos) | InvalidEnumConstructor(_, _, pos) | UninitializedVariable(_, pos) | UnknownVariable(_, pos) | ParserError(_, pos): pos;}
@@ -162,7 +167,7 @@ class FontMacro
 							if (pos != null) haxe.Log.trace(json2object.ErrorUtils.convertError(e), {fileName:pos.file, lineNumber:pos.lines[0].number,className:"",methodName:""});
 						}
 
-						trace(fontConfig.packing);
+						trace(fontConfig.packed);
 						trace(fontConfig.distancefield);
 						trace(fontConfig.kerning);
 						trace(fontConfig.width);
@@ -181,16 +186,16 @@ class FontMacro
 						
 						${switch (glyphStyleHasMeta.gl3Font) {
 							case true: macro {
-								if (fontConfig.packing != peote.text.FontConfig.GL3_PACKING) {
-									var error = 'Error, for $styleName "@gl3Font" in "' + path + '/config.json" the packing has to be 1';
-									haxe.Log.trace(error, {fileName:path+"/config.json", lineNumber:0,className:"",methodName:""});
+								if (!fontConfig.packed) {
+									var error = 'Error, for $styleName "@gl3Font" in "' + path + config +'" the packing has to be 1';
+									haxe.Log.trace(error, {fileName:path+config, lineNumber:0,className:"",methodName:""});
 									throw(error);
 								}
 							}
 							case false: macro {
-								if (fontConfig.packing == peote.text.FontConfig.GL3_PACKING) {
-									var error = 'Error, metadata of $styleName class has to be "@gl3Font" for "' + path + '/config.json" and packing=1';
-									haxe.Log.trace(error, {fileName:path+"/config.json", lineNumber:0,className:"",methodName:""});
+								if (fontConfig.packed) {
+									var error = 'Error, metadata of $styleName class has to be "@gl3Font" for "' + path + config + '" and packing=1';
+									haxe.Log.trace(error, {fileName:path+config, lineNumber:0,className:"",methodName:""});
 									throw(error);
 								}
 							}
@@ -202,14 +207,14 @@ class FontMacro
 							case true: macro {}
 							default: macro {
 								if (ranges == null && fontConfig.ranges.length > 1) {
-									var error = 'Error, set GlyphStyle to @multiRange or define a single range inside "new font()" or config.json';
-									haxe.Log.trace(error, {fileName:path+"/config.json", lineNumber:0,className:"",methodName:""});
+									var error = 'Error, set GlyphStyle to @multiRange or define a single range inside "new font()" or  "' + path + config +'"';
+									haxe.Log.trace(error, {fileName:path+config, lineNumber:0,className:"",methodName:""});
 									throw(error);
 								}
 							}
 						}}
 
-						var found_ranges = new Array<{image:String,slot:{width:Int, height:Int},range:Range}>();
+						var found_ranges = new Array<{image:String,data:String,slot:{width:Int, height:Int},range:Range}>();
 						
 						for( item in fontConfig.ranges )
 						{
@@ -232,8 +237,8 @@ class FontMacro
 							}}
 						}
 						if (found_ranges.length == 0) {
-							var error = 'Error, can not found any ranges inside font-config "'+path+'/config.json" that fit '+ranges;
-							haxe.Log.trace(error, {fileName:path+"/config.json", lineNumber:0,className:"",methodName:""});
+							var error = 'Error, can not found any ranges inside font-config "'+path+config+'" that fit '+ranges;
+							haxe.Log.trace(error, {fileName:path+config, lineNumber:0,className:"",methodName:""});
 							throw(error);
 						}
 						else fontConfig.ranges = found_ranges;
@@ -289,7 +294,10 @@ class FontMacro
 				{		
 					var gl3FontData = new Array<peote.text.Gl3FontData>();		
 					utils.Loader.bytesArray(
-						fontConfig.ranges.map(function (v) return path+"/"+v.image+".dat"),
+						fontConfig.ranges.map(function (v) {
+							if (v.data != null) return path + "/" + v.data;
+							else return path + "/" + rParseEnding.replace(v.image, ".dat");
+						}),
 						true,
 						function(index:Int, bytes:haxe.io.Bytes) { // after .dat is loaded
 							gl3FontData[index] = new peote.text.Gl3FontData(bytes, fontConfig.ranges[index].range.min, fontConfig.ranges[index].range.max, kerning);
@@ -309,7 +317,7 @@ class FontMacro
 				{		
 					trace("load images");
 					utils.Loader.imageArray(
-						fontConfig.ranges.map(function (v) return path+"/"+v.image+".png"),
+						fontConfig.ranges.map(function (v) return path+"/"+v.image),
 						true,
 						function(index:Int, loaded:Int, size:Int) {
 							trace(' loading G3Font-Images progress ' + Std.int(loaded / size * 100) + "%" , " ("+loaded+" / "+size+")");
