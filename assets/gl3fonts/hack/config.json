@@ -1,13 +1,16 @@
 {
- "type": "gl3",
- "rangeSize": "0x1000",       // amount of unicode range-splitting
- "textureSlotSize": "2048",   // size of textureslot per image in pixels (must match overall image-sizes)
- "kerning": false,
- "color": "0x50e040ff",
- "width": "20",
- "height": "20",
- "ranges":
-	{
-		"hack": ["0x0020", "0x2e25"]
-	}
+	"packing": 1, // 0 - no packing, 1 - packed with ttfcompile of gl3font (see here: https://github.com/deltaluca/gl3font) 
+	"distancefield": true, // use ttfcompile do generate distancefields
+	
+	"kerning": false,
+	"width" : 16,
+	"height": 16,
+	"color" : 0x50e040ff,
+	
+	"rangeSplitSize": 0x1000, // muiltiplikator for faster glyphfinding, has to match with the range-startpoints
+	
+	"ranges":[
+		{"image":"hack", "slot":{"width":2048, "height":2048}, "range":{"min":0x0020, "max":0x2e25}}
+	]
+
 }

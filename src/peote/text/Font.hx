@@ -80,8 +80,8 @@ class FontMacro
 			
 			if (glyphStyleHasMeta.gl3Font)
 			{
-				textureType = macro: peote.view.utils.TextureCache;
 				if (glyphStyleHasMeta.multiTexture) {
+					textureType = macro: peote.view.utils.TextureCache;
 					if (glyphStyleHasMeta.multiRange) {
 						rangeType = macro:{unit:Int, slot:Int, fontData:peote.text.Gl3FontData};
 						rangeMappingType = macro:haxe.ds.Vector<$rangeType>;
@@ -110,8 +110,8 @@ class FontMacro
 			{
 				var path:String;
 
-				// TODO: generate after
-				//var rangeMapping:haxe.ds.Vector<{unit:Int, slot:Int, fontData:peote.text.Gl3FontData}>;				
+				public var fontConfig:peote.text.FontConfig;
+				
 				var rangeMapping:$rangeMappingType;				
 				public var textureCache:$textureType;
 
@@ -119,16 +119,10 @@ class FontMacro
 				
 				// from json
 				var ranges:Array<peote.text.Range>;
-				var imageNames = new Array<String>();
 				var rangeSize = 0x1000;      // amount of unicode range-splitting
-				var textureSlotSize = 2048;  // size of textureslot per image in pixels (must match overall image-sizes)
 				
 				public var kerning = false;
-				
-				public var width:Float = 20;
-				public var height:Float = 20;
-				public var color:peote.view.Color = peote.view.Color.GREEN;
-				
+								
 				var rParseFolder = new EReg("/*$", "gm");
 				
 				public function new(fontPath:String, ranges:Array<peote.text.Range>=null, kerning:Bool=true, maxTextureSize:Int=16384) 
@@ -148,45 +142,33 @@ class FontMacro
 				}
 
 				// --------------------------- Loading -------------------------
+				var rComments = new EReg("//.*?$", "gm");
+				var rHexToDec = new EReg("(\"\\s*)?(0x[0-9a-f]+)(\\s*\")?", "gi");
 
 				public function load(?onProgressOverall:Int->Int->Void, onLoad:Void->Void)
 				{
 					
-/*					utils.Loader.text("assets/gl3fonts/unifont/config_new.json", true, function(jsonString:String)
+					utils.Loader.text(path + "/config.json", true, function(jsonString:String)
 					{
-						// TODO: put code-commentparsing into utils-class: Parse.code(code:String, comments:Bool, emptyLines:Bool, startSpaces:Bool )
-						var rComments = new EReg("//.*?$", "gm");
-						var rEmptylines:EReg = new EReg("([ \t]*\r?\n)+", "g");
-						var rStartspaces:EReg = new EReg("^([ \t]*\r?\n)+", "g");
-
-						jsonString = rStartspaces.replace(rEmptylines.replace(rComments.replace(jsonString, ""), "\n"), "");
+						jsonString = rComments.replace(jsonString, "");
+						jsonString = rHexToDec.map(jsonString, function(r) return Std.string(Std.parseInt(r.matched(2))));
 						
 						var parser = new json2object.JsonParser<peote.text.FontConfig>();
-						//var fontConfig = parser.fromJson(jsonString, "file.json");
-						var fontConfig:peote.text.FontConfig = parser.fromJson(jsonString, "assets/gl3fonts/unifont/config_new.json");
+						fontConfig = parser.fromJson(jsonString, path + "/config.json");
 						
-						trace(json2object.ErrorUtils.convertErrorArray(parser.errors));
-*/
-/*						for (e in errors) {
-							switch(e) {
-								case IncorrectType(variable, expected, pos): trace(variable, expected, pos);
-								case UninitializedVariable(variable, pos):trace(variable, pos);
-								case UnknownVariable(variable, pos):trace(variable, pos);
-								case IncorrectEnumValue(variable, expected, pos): trace(variable, expected, pos);
-								case InvalidEnumConstructor(variable, expected, pos): trace(variable, expected, pos);
-								case ParserError(variable, pos): trace(variable, pos);
-								default:
-							}
+						for (e in parser.errors) {
+							var pos = switch (e) {case IncorrectType(_, _, pos) | IncorrectEnumValue(_, _, pos) | InvalidEnumConstructor(_, _, pos) | UninitializedVariable(_, pos) | UnknownVariable(_, pos) | ParserError(_, pos): pos;}
+							trace(pos.lines[0].number);
+							if (pos != null) haxe.Log.trace(json2object.ErrorUtils.convertError(e), {fileName:pos.file, lineNumber:pos.lines[0].number,className:"",methodName:""});
 						}
-*/
-/*						trace("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+
 						trace(fontConfig.packing);
 						trace(fontConfig.distancefield);
 						trace(fontConfig.kerning);
 						trace(fontConfig.width);
 						trace(fontConfig.height);
 						trace(fontConfig.color);
-						trace(fontConfig.rangeSizeSplitting);
+						trace(fontConfig.rangeSplitSize);
 						for (r in fontConfig.ranges) {
 							trace(r.image);
 							trace(r.slot.width);
@@ -194,89 +176,67 @@ class FontMacro
 							trace(r.range.min);
 							trace(r.range.max);
 						}
+												
+						var rangeSize = fontConfig.rangeSplitSize;
 						
-					});
-*/					
-					utils.Loader.text(path + "/config.json", true, function(jsonString:String)
-					{
-						// TODO: put code-commentparsing into utils-class: Parse.code(code:String, comments:Bool, emptyLines:Bool, startSpaces:Bool )
-						var rComments = new EReg("//.*?$", "gm");
-						var rEmptylines:EReg = new EReg("([ \t]*\r?\n)+", "g");
-						var rStartspaces:EReg = new EReg("^([ \t]*\r?\n)+", "g");
-						
-						var json:haxe.Json = null;
-						try {
-							json = haxe.Json.parse( rStartspaces.replace(rEmptylines.replace(rComments.replace(jsonString, ""), "\n"), ""));
-						} catch (msg:Dynamic) throw('Error while parsing json\n   ' + msg);			
-						
-						var rangeSize = Std.parseInt(Reflect.field(json, "rangeSize"));
-						if (rangeSize != null) this.rangeSize = rangeSize;
-						
-						var type = Reflect.field(json, "type");
-						if (type != null)
 						${switch (glyphStyleHasMeta.gl3Font) {
 							case true: macro {
-								if (type != "gl3") throw('Error, type of font "' + path + '/config.json" has to be "gl3"');
+								if (fontConfig.packing != peote.text.FontConfig.GL3_PACKING) {
+									var error = 'Error, for $styleName "@gl3Font" in "' + path + '/config.json" the packing has to be 1';
+									haxe.Log.trace(error, {fileName:path+"/config.json", lineNumber:0,className:"",methodName:""});
+									throw(error);
+								}
 							}
 							case false: macro {
-								if (type == "gl3") throw('Error, metadata of $styleName class has to be "@gl3Font" for font "' + path + '/config.json" type "gl3"');
+								if (fontConfig.packing == peote.text.FontConfig.GL3_PACKING) {
+									var error = 'Error, metadata of $styleName class has to be "@gl3Font" for "' + path + '/config.json" and packing=1';
+									haxe.Log.trace(error, {fileName:path+"/config.json", lineNumber:0,className:"",methodName:""});
+									throw(error);
+								}
 							}
 						}}
 						
-						var textureSlotSize = Std.parseInt(Reflect.field(json, "textureSlotSize"));
-						if (textureSlotSize != null) this.textureSlotSize = textureSlotSize;
-						
-						if (kerning) {
-							var k:Null<Bool> = Reflect.field(json, "kerning");
-							if (k != null) this.kerning = k;
-						}
-						
-						var c = Reflect.field(json, "color"); if (c != null) color = Std.parseInt(c);
-						var w = Reflect.field(json, "width"); if (w != null) width = Std.parseInt(w);
-						var h = Reflect.field(json, "height"); if (h != null) height = Std.parseInt(h);
-						
-						var _ranges = Reflect.field(json, "ranges");
-						var found_ranges = new Array<peote.text.Range>();
+						if (kerning && fontConfig.kerning != null) kerning = fontConfig.kerning;
 						
 						${switch (glyphStyleHasMeta.multiRange) {
 							case true: macro {}
 							default: macro {
-								if (ranges == null && Reflect.fields(_ranges).length > 1) {
-									throw('Error, set GlyphStyle to @multiRange or define a single range inside "new font()" or config.json');
+								if (ranges == null && fontConfig.ranges.length > 1) {
+									var error = 'Error, set GlyphStyle to @multiRange or define a single range inside "new font()" or config.json';
+									haxe.Log.trace(error, {fileName:path+"/config.json", lineNumber:0,className:"",methodName:""});
+									throw(error);
 								}
 							}
 						}}
+
+						var found_ranges = new Array<{image:String,slot:{width:Int, height:Int},range:Range}>();
 						
-						for( fn in Reflect.fields(_ranges) )
+						for( item in fontConfig.ranges )
 						{
-							var ra:Array<String> = Reflect.field(_ranges, fn);
-							var min = Std.parseInt(ra[0]);
-							var max = Std.parseInt(ra[1]);
+							var min = item.range.min;
+							var max = item.range.max;
 							
 							if (ranges != null) {
 								for (r in ranges) {
 									if ((r.min >= min && r.min <= max) || (r.max >= min && r.max <= max)) {
-										found_ranges.push(new peote.text.Range(min, max));
-										imageNames.push(fn);
+										found_ranges.push(item);
 										break;
 									}
 								}
 							}
-							else {
-								found_ranges.push(new peote.text.Range(min, max));
-								imageNames.push(fn);
-							}
+							else found_ranges.push(item);
+							
 							${switch (glyphStyleHasMeta.multiRange) {
 								case true: macro {}
 								default: macro if (found_ranges.length == 1) break;
 							}}
 						}
 						if (found_ranges.length == 0) {
-							if (ranges != null) {
-								throw('Error, can not found any ranges inside font-config "'+path+'/config.json" that fit '+ranges);
-							} else throw('Error, can not found any ranges inside font-config "'+path+'/config.json"');
+							var error = 'Error, can not found any ranges inside font-config "'+path+'/config.json" that fit '+ranges;
+							haxe.Log.trace(error, {fileName:path+"/config.json", lineNumber:0,className:"",methodName:""});
+							throw(error);
 						}
-						else ranges = found_ranges;
+						else fontConfig.ranges = found_ranges;
 
 						init(onProgressOverall, onLoad);
 					});		
@@ -292,8 +252,19 @@ class FontMacro
 					
 					${switch (glyphStyleHasMeta.multiTexture && glyphStyleHasMeta.multiRange) {
 						case true: macro {
+							var sizes = new Array<{width:Int, height:Int, slots:Int}>();
+							for (item in fontConfig.ranges) {
+								var found = false;
+								for (i in 0...sizes.length) {
+									if (sizes[i].width == item.slot.width && sizes[i].height == item.slot.height) {
+										sizes[i].slots++;
+										found = true;
+									}
+								}
+								if (!found) sizes.push({width:item.slot.width, height:item.slot.height, slots:1});
+							}
 							textureCache = new peote.view.utils.TextureCache(
-								[{width:textureSlotSize, height:textureSlotSize, slots:ranges.length}],
+								sizes,
 								4, // colors -> TODO
 								false, // mipmaps
 								1,1, // min/mag-filter
@@ -301,7 +272,13 @@ class FontMacro
 							);
 						}
 						default: macro {
-							textureCache = new peote.view.Texture(textureSlotSize, textureSlotSize, ranges.length, 4, false, 1, 1, maxTextureSize);
+							var w:Int = 0;
+							var h:Int = 0;
+							for (item in fontConfig.ranges) {
+								if (item.slot.width > w) w = item.slot.width;
+								if (item.slot.height > h) h = item.slot.height;
+							}
+							textureCache = new peote.view.Texture(w, h, fontConfig.ranges.length, 4, false, 1, 1, maxTextureSize);
 						}
 					}}
 				
@@ -312,10 +289,10 @@ class FontMacro
 				{		
 					var gl3FontData = new Array<peote.text.Gl3FontData>();		
 					utils.Loader.bytesArray(
-						imageNames.map(function (v) return path+"/"+v+".dat"),
+						fontConfig.ranges.map(function (v) return path+"/"+v.image+".dat"),
 						true,
 						function(index:Int, bytes:haxe.io.Bytes) { // after .dat is loaded
-							gl3FontData[index] = new peote.text.Gl3FontData(bytes, ranges[index].min, ranges[index].max, kerning);	
+							gl3FontData[index] = new peote.text.Gl3FontData(bytes, fontConfig.ranges[index].range.min, fontConfig.ranges[index].range.max, kerning);
 						},
 						function(bytes:Array<haxe.io.Bytes>) { // after all .dat is loaded
 							loadImages(gl3FontData, onProgressOverall, onLoad);
@@ -332,7 +309,7 @@ class FontMacro
 				{		
 					trace("load images");
 					utils.Loader.imageArray(
-						imageNames.map(function (v) return path+"/"+v+".png"),
+						fontConfig.ranges.map(function (v) return path+"/"+v.image+".png"),
 						true,
 						function(index:Int, loaded:Int, size:Int) {
 							trace(' loading G3Font-Images progress ' + Std.int(loaded / size * 100) + "%" , " ("+loaded+" / "+size+")");
@@ -355,11 +332,12 @@ class FontMacro
 							}
 							
 							// sort ranges into rangeMapping
-							var range = ranges[index];
+							var range = fontConfig.ranges[index].range;
 							
 							${switch (glyphStyleHasMeta.multiTexture) {
 								case true: macro {
-									var p = textureCache.addImage(image); trace( image.width+"x"+image.height, "texture-unit:" + p.unit, "texture-slot" + p.slot);							
+									var p = textureCache.addImage(image); 
+									trace( image.width+"x"+image.height, "texture-unit:" + p.unit, "texture-slot:" + p.slot);							
 									for (i in Std.int(range.min / rangeSize)...Std.int(range.max / rangeSize)+1) {
 										rangeMapping.set(i, {unit:p.unit, slot:p.slot, fontData:gl3font});
 									}

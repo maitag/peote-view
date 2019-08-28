@@ -1,14 +1,17 @@
 {
- "type": "gl3",
- "kerning":false,
- "rangeSize": "0x1000",       // amount of unicode range-splitting
- "width": "16",
- "height": "16",
- "color": "0x50e040ff",
- "textureSlotSize": "2048",   // size of textureslot per image in pixels (must match overall image-sizes)
- "ranges":
-	{
-		"unifont_0000-0fff": ["0x0000", "0x0fff"]
-		,"unifont_1000-1fff": ["0x1000", "0x1fff"]
-	}
+	"packing": 1, // 0 - no packing, 1 - packed with ttfcompile of gl3font (see here: https://github.com/deltaluca/gl3font) 
+	"distancefield": true, // use ttfcompile do generate distancefields
+	
+	"kerning": false,
+	"width" : 16,
+	"height": 16,
+	"color" : 0x50e040ff,
+	
+	"rangeSplitSize": 0x1000, // muiltiplikator for faster glyphfinding, has to match with the range-startpoints
+	
+	"ranges":[
+		{"image":"unifont_0000-0fff", "slot":{"width":2048, "height":2048}, "range":{"min":0x0000, "max":0x0fff}},
+		{"image":"unifont_1000-1fff", "slot":{"width":2048, "height":2048}, "range":{"min":0x1000, "max":0x1fff}}
+	]
+
 }

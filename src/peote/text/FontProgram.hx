@@ -89,7 +89,6 @@ class FontProgramMacro
 				
 				var _buffer:peote.view.Buffer<$glyphType>;
 				
-				//public function new(font:$fontType, fontStyle:peote.text.Gl3FontStyle)
 				public function new(font:peote.text.Font<$styleType>, fontStyle:$styleType)
 				{
 					this.font = font;
@@ -176,13 +175,13 @@ class FontProgramMacro
 									case true: macro setXW(glyph, charcode, x, glyph.width, fontData, metric);
 									default: switch (glyphStyleHasField.width) {
 										case true: macro setXW(glyph, charcode, x, fontStyle.width, fontData, metric);
-										default: macro setXW(glyph, charcode, x, font.width, fontData, metric);
+										default: macro setXW(glyph, charcode, x, font.fontConfig.width, fontData, metric);
 								}}}
 								${switch (glyphStyleHasField.local_height) {
 									case true: macro setYW(glyph, charcode, y, glyph.height, fontData, metric);
 									default: switch (glyphStyleHasField.height) {
 										case true: macro setYW(glyph, charcode, y, fontStyle.height, fontData, metric);
-										default: macro setYW(glyph, charcode, y, font.height, fontData, metric);
+										default: macro setYW(glyph, charcode, y, font.fontConfig.height, fontData, metric);
 								}}}
 								return true;
 							}
@@ -198,13 +197,13 @@ class FontProgramMacro
 								case true: macro glyph.w = glyph.width;
 								default: switch (glyphStyleHasField.width) {
 									case true: macro glyph.w = fontStyle.width;
-									default: macro glyph.w = font.width;
+									default: macro glyph.w = font.fontConfig.width;
 							}}}
 							${switch (glyphStyleHasField.local_height) {
 								case true: macro glyph.h = glyph.height;
 								default: switch (glyphStyleHasField.height) {
 									case true: macro glyph.h =fontStyle.height;
-									default: macro glyph.h = font.height;
+									default: macro glyph.h = font.fontConfig.height;
 							}}}
 						}
 					}}
@@ -225,6 +224,8 @@ class FontProgramMacro
 								default: macro 	super.setTexture(font.textureCache, "TEX");
 							}}
 								
+							// TODO: check for font.fontConfig.distancefield
+							
 							var bold = peote.view.utils.Util.toFloatString(0.5); // 4.8 -> bold
 							var sharp = peote.view.utils.Util.toFloatString(0.5); // TODO
 								
@@ -235,7 +236,7 @@ class FontProgramMacro
 									case true:
 										macro super.setColorFormula(Std.string(fontStyle.color.toGLSL()) + " * smoothstep( "+bold+" - "+sharp+" * fwidth(TEX.r), "+bold+" + "+sharp+" * fwidth(TEX.r), TEX.r)");
 									default:
-										macro super.setColorFormula(Std.string(font.color.toGLSL()) + " * smoothstep( "+bold+" - "+sharp+" * fwidth(TEX.r), "+bold+" + "+sharp+" * fwidth(TEX.r), TEX.r)");
+										macro super.setColorFormula(Std.string(font.fontConfig.color.toGLSL()) + " * smoothstep( "+bold+" - "+sharp+" * fwidth(TEX.r), "+bold+" + "+sharp+" * fwidth(TEX.r), TEX.r)");
 							}}}		
 						}
 						default: macro // ------- simple font -------
