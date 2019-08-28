@@ -11,6 +11,9 @@ class FontConfig
 	@:optional @:default(16) public var width:Float;
 	@:optional @:default(16) public var height:Float;
 	
+	@:optional @:default(16) public var tilesX:Int;
+	@:optional @:default(16) public var tilesY:Int;
+	
 	@:optional @:default(0xffffffff) public var color:Color;
 	
 	@:optional @:default(0x1000) public var rangeSplitSize:Int;

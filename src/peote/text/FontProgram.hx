@@ -114,23 +114,54 @@ class FontProgramMacro
 				public inline function updateGlyph(glyph:$glyphType):Void {
 					_buffer.updateElement(glyph);
 				}
+				
+				// -------------------------------------------------
 								
 				inline function setXW(glyph:$glyphType, charcode:Int, x:Null<Float>, width:Float, fontData:peote.text.Gl3FontData, metric:peote.text.Gl3FontData.Metric):Void {
-					glyph.w = metric.width * width;
-					if (x == null) {
-						glyph.x = penX + metric.left * width;
-						if (font.kerning && prev_charcode != -1) { // KERNING
-							penX += fontData.kerning[prev_charcode][charcode] * width;
+					${switch (glyphStyleHasMeta.packed)
+					{	case true: macro // ------- Gl3Font -------
+						{
+							glyph.w = metric.width * width;
+							if (x == null) {
+								glyph.x = penX + metric.left * width;
+								if (font.kerning && prev_charcode != -1) { // KERNING
+									penX += fontData.kerning[prev_charcode][charcode] * width;
+								}
+								prev_charcode = charcode;
+								penX += metric.advance * width;
+							}
 						}
-						prev_charcode = charcode;
-						penX += metric.advance * width;
-					}					
+						default: macro {}
+					}}
 				}
 								
 				inline function setYW(glyph:$glyphType, charcode:Int, y:Null<Float>, height:Float, fontData:peote.text.Gl3FontData, metric:peote.text.Gl3FontData.Metric):Void {
-					glyph.h = metric.height * height;
+					${switch (glyphStyleHasMeta.packed)
+					{	case true: macro // ------- Gl3Font -------
+						{
+							glyph.h = metric.height * height;
+							if (y == null) {
+								glyph.y = penY + (fontData.height - metric.top) * height;
+							}					
+						}
+						default: macro {}
+					}}
+				}
+				
+				// -------------------------------------------------
+				
+				inline function setXWsimple(glyph:$glyphType, charcode:Int, x:Null<Float>, width:Float):Void {
+					glyph.width = width; // TODO
+					if (x == null) {
+						penX += width;
+						glyph.x = penX;
+					}					
+				}
+								
+				inline function setYWsimple(glyph:$glyphType, charcode:Int, y:Null<Float>, height:Float):Void {
+					glyph.height = height; // TODO
 					if (y == null) {
-						glyph.y = penY + (fontData.height - metric.top) * height;
+						glyph.y = penY;
 					}					
 				}
 								
@@ -169,7 +200,6 @@ class FontProgramMacro
 							}}
 							
 							if (metric != null) {
-								//trace("glyph"+charcode, range.unit, range.slot, metric);
 								glyph.tx = metric.u;
 								glyph.ty = metric.v;
 								glyph.tw = metric.w;
@@ -191,23 +221,38 @@ class FontProgramMacro
 							else return false;
 							
 						}
-						default: macro // ------- simple font ------- // TODO
+						default: macro // ------- simple font -------
 						{
-							glyph.unit = range.unit;
-							glyph.slot = range.slot;								
-							glyph.tile = charcode;
-							${switch (glyphStyleHasField.local_width) {
-								case true: macro glyph.w = glyph.width;
-								default: switch (glyphStyleHasField.width) {
-									case true: macro glyph.w = fontStyle.width;
-									default: macro glyph.w = font.fontConfig.width;
-							}}}
-							${switch (glyphStyleHasField.local_height) {
-								case true: macro glyph.h = glyph.height;
-								default: switch (glyphStyleHasField.height) {
-									case true: macro glyph.h =fontStyle.height;
-									default: macro glyph.h = font.fontConfig.height;
-							}}}
+							var range = font.getRange(charcode);
+							if (range != null)
+							{
+								${switch (glyphStyleHasMeta.multiTexture) {
+									case true: macro glyph.unit = range.unit;
+									default: macro {}
+								}}
+								${switch (glyphStyleHasMeta.multiSlot) {
+									case true: macro glyph.slot = range.slot;
+									default: macro {}
+								}}
+					
+								glyph.tile = charcode-range.min;
+								
+								${switch (glyphStyleHasField.local_width) {
+									case true: macro setXWsimple(glyph, charcode, x, glyph.width);
+									default: switch (glyphStyleHasField.width) {
+										case true: macro setXWsimple(glyph, charcode, x, fontStyle.width);
+										default: macro setXWsimple(glyph, charcode, x, font.fontConfig.width);
+								}}}
+								${switch (glyphStyleHasField.local_height) {
+									case true: macro setYWsimple(glyph, charcode, y, glyph.height);
+									default: switch (glyphStyleHasField.height) {
+										case true: macro setYWsimple(glyph, charcode, y, fontStyle.height);
+										default: macro setYWsimple(glyph, charcode, y, font.fontConfig.height);
+								}}}
+								
+								return true;
+							}
+							else return false;
 						}
 					}}
 				
@@ -216,16 +261,20 @@ class FontProgramMacro
 				
 				public function setFontStyle(fontStyle:$styleType):Void
 				{
+					this.fontStyle = fontStyle;
+									
+					${switch (glyphStyleHasMeta.multiTexture) {
+						case true: macro super.setMultiTexture(font.textureCache.textures, "TEX");
+						default: macro super.setTexture(font.textureCache, "TEX");
+					}}
+					
+					// TODO
+					
+					
 					${switch (glyphStyleHasMeta.packed)
 					{
 						case true: macro // ------- Gl3Font -------
 						{
-							this.fontStyle = fontStyle;
-											
-							${switch (glyphStyleHasMeta.multiTexture) {
-								case true: macro super.setMultiTexture(font.textureCache.textures, "TEX");
-								default: macro 	super.setTexture(font.textureCache, "TEX");
-							}}
 								
 							// TODO: check for font.fontConfig.distancefield
 							
@@ -245,6 +294,8 @@ class FontProgramMacro
 						default: macro // ------- simple font -------
 						{
 							// TODO
+							super.setColorFormula("color * TEX.r");
+							alphaEnabled = true;
 						}
 						
 					}}

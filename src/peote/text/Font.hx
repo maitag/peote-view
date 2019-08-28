@@ -78,30 +78,47 @@ class FontMacro
 			var rangeType:ComplexType;
 			var textureType:ComplexType;
 			
-			if (glyphStyleHasMeta.packed)
-			{
-				if (glyphStyleHasMeta.multiTexture) {
-					textureType = macro: peote.view.utils.TextureCache;
-					if (glyphStyleHasMeta.multiSlot) {
+			if (glyphStyleHasMeta.multiTexture) {
+				textureType = macro: peote.view.utils.TextureCache;
+				if (glyphStyleHasMeta.multiSlot) {
+					if (glyphStyleHasMeta.packed) {
 						rangeType = macro: {unit:Int, slot:Int, fontData:peote.text.Gl3FontData};
 					}
 					else {
+						rangeType = macro: {unit:Int, slot:Int, min:Int, max:Int};
+					}
+				}
+				else {
+					if (glyphStyleHasMeta.packed) {
 						rangeType = macro: {unit:Int, fontData:peote.text.Gl3FontData};
+					}
+					else {
+						rangeType = macro: {unit:Int, min:Int, max:Int};
+					}
+				}
+				rangeMappingType = macro: haxe.ds.Vector<$rangeType>;
+			}
+			else {
+				textureType = macro: peote.view.Texture;
+				if (glyphStyleHasMeta.multiSlot) {
+					if (glyphStyleHasMeta.packed) {
+						rangeType = macro: {slot:Int, fontData:peote.text.Gl3FontData};
+					}
+					else {
+						rangeType = macro: {slot:Int, min:Int, max:Int };
 					}
 					rangeMappingType = macro: haxe.ds.Vector<$rangeType>;
 				}
 				else {
-					textureType = macro: peote.view.Texture;
-					if (glyphStyleHasMeta.multiSlot) {
-						rangeType = macro: {slot:Int, fontData:peote.text.Gl3FontData};
-						rangeMappingType = macro: haxe.ds.Vector<$rangeType>;
+					if (glyphStyleHasMeta.packed) {
+						rangeType = rangeMappingType = macro: peote.text.Gl3FontData;
 					}
 					else {
-						rangeType = macro: peote.text.Gl3FontData;
-						rangeMappingType = macro: peote.text.Gl3FontData;
+						rangeType = rangeMappingType = macro: {min:Int, max:Int};
 					}
 				}
 			}
+			
 			// -------------------------------------------------------------------------------------------
 			// -------------------------------------------------------------------------------------------
 			var c = macro		
@@ -143,18 +160,34 @@ class FontMacro
 
 				public inline function getRange(charcode:Int):$rangeType
 				{
-					${switch (glyphStyleHasMeta.multiTexture || glyphStyleHasMeta.multiSlot) {
-						case true: macro return rangeMapping.get(Std.int(charcode/rangeSize));
-						default: macro return rangeMapping;
-					}}
+						${switch (glyphStyleHasMeta.packed) {
+							case true:
+								switch (glyphStyleHasMeta.multiTexture || glyphStyleHasMeta.multiSlot) {
+									case true: macro return rangeMapping.get(Std.int(charcode/rangeSize));
+									default: macro return rangeMapping;
+								}
+							default:
+								switch (glyphStyleHasMeta.multiTexture || glyphStyleHasMeta.multiSlot) {
+									case true: macro {
+										var range = rangeMapping.get(Std.int(charcode / rangeSize));
+										if (range != null) {
+											if (charcode >= range.min && charcode <= range.max) return range;
+											else return null;
+										} else return null;
+									}
+									default: macro {
+										if (charcode >= rangeMapping.min && charcode <= rangeMapping.max) return rangeMapping;
+										else return null;
+									}
+								}						
+						}}
 				}
 
 				// --------------------------- Loading -------------------------
 				public function load(?onProgressOverall:Int->Int->Void, onLoad:Void->Void)
 				{
-					
 					utils.Loader.text(path + config, true, function(jsonString:String)
-					{
+					{	
 						jsonString = rComments.replace(jsonString, "");
 						jsonString = rHexToDec.map(jsonString, function(r) return Std.string(Std.parseInt(r.matched(2))));
 						
@@ -167,21 +200,6 @@ class FontMacro
 							if (pos != null) haxe.Log.trace(json2object.ErrorUtils.convertError(e), {fileName:pos.file, lineNumber:pos.lines[0].number,className:"",methodName:""});
 						}
 
-						trace(fontConfig.packed);
-						trace(fontConfig.distancefield);
-						trace(fontConfig.kerning);
-						trace(fontConfig.width);
-						trace(fontConfig.height);
-						trace(fontConfig.color);
-						trace(fontConfig.rangeSplitSize);
-						for (r in fontConfig.ranges) {
-							trace(r.image);
-							trace(r.slot.width);
-							trace(r.slot.height);
-							trace(r.range.min);
-							trace(r.range.max);
-						}
-												
 						var rangeSize = fontConfig.rangeSplitSize;
 						
 						${switch (glyphStyleHasMeta.packed) {
@@ -192,7 +210,7 @@ class FontMacro
 									throw(error);
 								}
 							}
-							case false: macro {
+							default: macro {
 								if (fontConfig.packed) {
 									var error = 'Error, metadata of $styleName class has to be "@packed" for "' + path + config + '" and "packed":true';
 									haxe.Log.trace(error, {fileName:path+config, lineNumber:0,className:"",methodName:""});
@@ -280,6 +298,15 @@ class FontMacro
 								1,1, // min/mag-filter
 								maxTextureSize
 							);
+							${switch (!glyphStyleHasMeta.packed)	{
+								case true: macro {
+									for (texture in textureCache.textures) {
+										texture.tilesX = fontConfig.tilesX;
+										texture.tilesY = fontConfig.tilesY;
+									}
+								}
+								default: macro {}
+							}}
 						}
 						default: macro {
 							var w:Int = 0;
@@ -289,10 +316,20 @@ class FontMacro
 								if (item.slot.height > h) h = item.slot.height;
 							}
 							textureCache = new peote.view.Texture(w, h, fontConfig.ranges.length, 4, false, 1, 1, maxTextureSize);
+							${switch (!glyphStyleHasMeta.packed)	{
+								case true: macro {
+									textureCache.tilesX = fontConfig.tilesX;
+									textureCache.tilesY = fontConfig.tilesY;
+								}
+								default: macro {}
+							}}
 						}
 					}}
 				
-					loadFontData(onProgressOverall, onLoad);	
+					${switch (glyphStyleHasMeta.packed)	{
+						case true: macro loadFontData(onProgressOverall, onLoad);
+						default: macro loadImages(onProgressOverall, onLoad);
+					}}
 				}
 				
 				private function loadFontData(onProgressOverall:Int->Int->Void, onLoad:Void->Void):Void
@@ -318,7 +355,7 @@ class FontMacro
 					// TODO
 				}
 				
-				private function loadImages(gl3FontData:Array<peote.text.Gl3FontData>, onProgressOverall:Int->Int->Void, onLoad:Void->Void):Void
+				private function loadImages(?gl3FontData:Array<peote.text.Gl3FontData>, onProgressOverall:Int->Int->Void, onLoad:Void->Void):Void
 				{		
 					trace("load images");
 					utils.Loader.imageArray(
@@ -331,48 +368,84 @@ class FontMacro
 						function(index:Int, image:peote.view.PeoteGL.Image) { // after every image is loaded
 							//trace('File number $index loaded completely.');
 							
-							// recalc texture-coords
-							var gl3font = gl3FontData[index];
-							for (charcode in gl3font.rangeMin...gl3font.rangeMax+1) {
-								var m = gl3font.getMetric(charcode);
-								if (m != null) {
-									m.u *= image.width;
-									m.v *= image.height;
-									m.w *= image.width;
-									m.h *= image.height;
-									gl3font.setMetric(charcode, m);
-								}
-							}
-							
-							// sort ranges into rangeMapping
-							var range = fontConfig.ranges[index].range;
-							
-							${switch (glyphStyleHasMeta.multiTexture) {
-								case true: macro {
-									var p = textureCache.addImage(image); 
-									trace( image.width+"x"+image.height, "texture-unit:" + p.unit, "texture-slot:" + p.slot);							
-									for (i in Std.int(range.min / rangeSize)...Std.int(range.max / rangeSize) + 1) {
-										${switch (glyphStyleHasMeta.multiSlot) {
-											case true: macro rangeMapping.set(i, {unit:p.unit, slot:p.slot, fontData:gl3font});
-											default: macro rangeMapping.set(i, {unit:p.unit, fontData:gl3font});
-										}}
-									}
-								}
-								default: switch (glyphStyleHasMeta.multiSlot) {
-									case true: macro {
-										textureCache.setImage(image, index);
-										for (i in Std.int(range.min / rangeSize)...Std.int(range.max / rangeSize)+1) {
-											rangeMapping.set(i, {slot:index, fontData:gl3font});
+							${switch (glyphStyleHasMeta.packed)
+							{
+								case true: macro // ------- Gl3Font -------
+								{
+									// recalc texture-coords
+									var gl3font = gl3FontData[index];
+									for (charcode in gl3font.rangeMin...gl3font.rangeMax+1) {
+										var m = gl3font.getMetric(charcode);
+										if (m != null) {
+											m.u *= image.width;
+											m.v *= image.height;
+											m.w *= image.width;
+											m.h *= image.height;
+											gl3font.setMetric(charcode, m);
 										}
 									}
-									default: macro {
-										textureCache.setImage(image);
-										rangeMapping = gl3font;
-									}
+									
+									// sort ranges into rangeMapping
+									var range = fontConfig.ranges[index].range;
+									
+									${switch (glyphStyleHasMeta.multiTexture) {
+										case true: macro {
+											var p = textureCache.addImage(image); 
+											//trace( image.width+"x"+image.height, "texture-unit:" + p.unit, "texture-slot:" + p.slot);							
+											for (i in Std.int(range.min / rangeSize)...Std.int(range.max / rangeSize) + 1) {
+												${switch (glyphStyleHasMeta.multiSlot) {
+													case true: macro rangeMapping.set(i, {unit:p.unit, slot:p.slot, fontData:gl3font});
+													default: macro rangeMapping.set(i, {unit:p.unit, fontData:gl3font});
+												}}
+											}
+										}
+										default: switch (glyphStyleHasMeta.multiSlot) {
+											case true: macro {
+												textureCache.setImage(image, index);
+												for (i in Std.int(range.min / rangeSize)...Std.int(range.max / rangeSize)+1) {
+													rangeMapping.set(i, {slot:index, fontData:gl3font});
+												}
+											}
+											default: macro {
+												textureCache.setImage(image);
+												rangeMapping = gl3font;
+											}
+										}
+									}}
 								}
-							}}
-							
-							
+								default: macro // ------- simple font -------
+								{
+									// sort ranges into rangeMapping
+									var range = fontConfig.ranges[index].range;
+									
+									${switch (glyphStyleHasMeta.multiTexture) {
+										case true: macro {
+											var p = textureCache.addImage(image); 
+											//trace( image.width+"x"+image.height, "texture-unit:" + p.unit, "texture-slot:" + p.slot);							
+											for (i in Std.int(range.min / rangeSize)...Std.int(range.max / rangeSize) + 1) {
+												${switch (glyphStyleHasMeta.multiSlot) {
+													case true: macro rangeMapping.set(i, {unit:p.unit, slot:p.slot, min:range.min, max:range.max});
+													default: macro rangeMapping.set(i, {unit:p.unit, min:range.min, max:range.max});
+												}}
+											}
+										}
+										default: switch (glyphStyleHasMeta.multiSlot) {
+											case true: macro {
+												textureCache.setImage(image, index);
+												for (i in Std.int(range.min / rangeSize)...Std.int(range.max / rangeSize)+1) {
+													rangeMapping.set(i, {slot:index, min:range.min, max:range.max});
+												}
+											}
+											default: macro {
+												textureCache.setImage(image);
+												rangeMapping = {min:range.min, max:range.max};
+											}
+										}
+									}}
+								}
+								
+							}}	
+								
 						},
 						function(images:Array<peote.view.PeoteGL.Image>) { // after all images is loaded
 							trace(' --- all images loaded ---');

@@ -1,8 +1,8 @@
 {
 	"kerning": false,
 	
-	"tileX":  16,
-	"tileY":  16,
+	"tilesX":  16, // amount of tile-splitting horizontal
+	"tilesY":  16, // amount of tile-splitting vertical
 	
 	"width" : 16,
 	"height": 16,

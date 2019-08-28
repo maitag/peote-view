@@ -156,9 +156,6 @@ class GlyphMacro
 
 			class $className implements peote.view.Element
 			{
-				@posX public var x:Float = 0.0;
-				@posY public var y:Float = 0.0;
-								
 				public function new() {}
 				
 				public inline function setStyle(glyphStyle: $styleType) {
@@ -170,6 +167,22 @@ class GlyphMacro
 			// -------------------------------------------------------------------------------------------
 			// -------------------------------------------------------------------------------------------
 						
+			c.fields.push({
+				name:  "x",
+				meta: [{name:"posX", params:[], pos:Context.currentPos()}],
+				access:  [Access.APublic],
+				kind: FieldType.FVar(macro:Float, macro 0.0),
+				pos: Context.currentPos(),
+			});
+			
+			c.fields.push({
+				name:  "y",
+				meta: [{name:"posY", params:[], pos:Context.currentPos()}],
+				access:  [Access.APublic],
+				kind: FieldType.FVar(macro:Float, macro 0.0),
+				pos: Context.currentPos(),
+			});
+			
 			// --- add fields depending on unit/slots
 			if (glyphStyleHasMeta.multiTexture) c.fields.push({
 				name:  "unit",
@@ -199,7 +212,7 @@ class GlyphMacro
 			
 			// ---------- add fields depending on font-type and style
 			if (glyphStyleHasMeta.packed)
-			{
+			{			
 				if (glyphStyleHasField.local_width) {
 					c.fields.push({
 						name:  "width",
@@ -293,7 +306,34 @@ class GlyphMacro
 					pos: Context.currentPos(),
 				});
 			}
-
+			else
+			{
+				if (glyphStyleHasField.local_width)	c.fields.push({
+					name:  "width",
+					meta: [{name:"sizeX", params:[], pos:Context.currentPos()}],
+					access:  [Access.APublic],
+					kind: FieldType.FVar(macro:Float, macro 0.0),
+					pos: Context.currentPos(),
+				});
+				
+				if (glyphStyleHasField.local_height) c.fields.push({
+					name:  "height",
+					meta: [{name:"sizeY", params:[], pos:Context.currentPos()}],
+					access:  [Access.APublic],
+					kind: FieldType.FVar(macro:Float, macro 0.0),
+					pos: Context.currentPos(),
+				});
+				
+				c.fields.push({
+					name:  "tile",
+					meta: [{name:"texTile", params:[], pos:Context.currentPos()},
+					       {name:":allow", params:[macro peote.text], pos:Context.currentPos()}],
+					access:  [Access.APrivate],
+					kind: FieldType.FVar(macro:Int, macro 0),
+					pos: Context.currentPos(),
+				});
+				
+			}
 			
 			Context.defineModule(classPackage.concat([className]).join('.'),[c]);
 		}

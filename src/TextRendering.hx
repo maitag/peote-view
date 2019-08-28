@@ -23,9 +23,9 @@ import peote.text.Range;
 import peote.text.Line;
 //import peote.text.Page;
 
-@packed
-@multiSlot    // multiple slots per texture to store multiple unicode-ranges
-@multiTexture // multiple textures to store multiple unicode-ranges
+//@packed
+//@multiSlot    // multiple slots per texture to store multiple unicode-ranges
+//@multiTexture // multiple textures to store multiple unicode-ranges
 class GlyphStyle {
 	//@global public var color:Color = Color.GREEN;
 	public var color:Color = Color.GREEN;
@@ -49,8 +49,8 @@ class TextRendering
 			display   = new Display(10,10, window.width-20, window.height-20, Color.GREY1);
 			peoteView.addDisplay(display);
 			
-			//var font = new Font<GlyphStyle>("assets/fonts/tiled/peote/peote.json");
-			var font = new Font<GlyphStyle>("assets/fonts/packed/hack/config.json");
+			var font = new Font<GlyphStyle>("assets/fonts/tiled/peote.json");
+			//var font = new Font<GlyphStyle>("assets/fonts/packed/hack/config.json");
 			//var font = new Font<GlyphStyle>("assets/fonts/packed/unifont/config.json");
 			//var font = new Font<GlyphStyle>("assets/fonts/packed/unifont/config.json", [new Range(0x0000,0x0fff)]);
 			
