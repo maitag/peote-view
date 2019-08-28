@@ -24,8 +24,8 @@ import peote.text.Line;
 //import peote.text.Page;
 
 @packed
-@multiRange 
-@multiTexture
+@multiSlot    // multiple slots per texture to store multiple unicode-ranges
+@multiTexture // multiple textures to store multiple unicode-ranges
 class GlyphStyle {
 	//@global public var color:Color = Color.GREEN;
 	public var color:Color = Color.GREEN;
@@ -49,8 +49,9 @@ class TextRendering
 			display   = new Display(10,10, window.width-20, window.height-20, Color.GREY1);
 			peoteView.addDisplay(display);
 			
-			//var font = new Font<GlyphStyle>("assets/fonts/packed/hack/config.json");
-			var font = new Font<GlyphStyle>("assets/fonts/packed/unifont/config.json");
+			//var font = new Font<GlyphStyle>("assets/fonts/tiled/peote/peote.json");
+			var font = new Font<GlyphStyle>("assets/fonts/packed/hack/config.json");
+			//var font = new Font<GlyphStyle>("assets/fonts/packed/unifont/config.json");
 			//var font = new Font<GlyphStyle>("assets/fonts/packed/unifont/config.json", [new Range(0x0000,0x0fff)]);
 			
 			font.load( function() {
@@ -75,7 +76,7 @@ class TextRendering
 				var glyph1 = new Glyph<GlyphStyle>();
 				fontProgram.addGlyph(glyph1, 65, 0, 0);
 				
-				fontProgram.setCharcode(glyph1, 66);
+				fontProgram.setCharcode(glyph1, 0x1201);
 				//glyph1.setStyle(glyphStyle2);
 				//glyph1.color = Color.BLUE;
 				//glyph1.height = 30;

@@ -30,7 +30,7 @@ import haxe.macro.TypeTools;
 
 @:publicFields class GlyphStyleHasMeta {
 	var packed:Bool;
-	var multiRange:Bool;
+	var multiSlot:Bool;
 	var multiTexture:Bool;
 	public function new() {}
 }
@@ -104,9 +104,9 @@ class GlyphMacro
 			for (meta in style_fields.meta.get()) {
 				switch (meta.name) {
 					case "packed": glyphStyleHasMeta.packed = true;
-					case "multiRange": glyphStyleHasMeta.multiRange = true;
+					case "multiSlot":   glyphStyleHasMeta.multiSlot = true;
 					case "multiTexture": glyphStyleHasMeta.multiTexture = true;
-					default: // todo
+					default:
 				}
 			}
 			return glyphStyleHasMeta;
@@ -179,7 +179,7 @@ class GlyphMacro
 				kind: FieldType.FVar(macro:Int, macro 0),
 				pos: Context.currentPos(),
 			});
-			if (glyphStyleHasMeta.multiRange) c.fields.push({
+			if (glyphStyleHasMeta.multiSlot) c.fields.push({
 				name:  "slot",
 				meta:  [{name:"texSlot", params:[], pos:Context.currentPos()},
 						{name:":allow", params:[macro peote.text], pos:Context.currentPos()}],

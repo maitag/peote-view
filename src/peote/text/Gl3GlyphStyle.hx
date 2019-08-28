@@ -2,7 +2,7 @@ package peote.text;
 
 import peote.view.Color;
 
-@gl3Font @multiRange @multiTexture 
+@packed @multiRange @multiTexture 
 class Gl3GlyphStyle 
 {
 
@@ -26,8 +26,7 @@ class Gl3GlyphStyle
 	public var borderRadius:Float = 10.0;
 */	
 	public function new() 
-	{
-		
+	{		
 	}
 	
 }

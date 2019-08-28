@@ -82,23 +82,23 @@ class FontMacro
 			{
 				if (glyphStyleHasMeta.multiTexture) {
 					textureType = macro: peote.view.utils.TextureCache;
-					if (glyphStyleHasMeta.multiRange) {
-						rangeType = macro:{unit:Int, slot:Int, fontData:peote.text.Gl3FontData};
-						rangeMappingType = macro:haxe.ds.Vector<$rangeType>;
+					if (glyphStyleHasMeta.multiSlot) {
+						rangeType = macro: {unit:Int, slot:Int, fontData:peote.text.Gl3FontData};
 					}
 					else {
-						Context.error("@multiTexture is only useful for using @multiRange also", Context.currentPos());
+						rangeType = macro: {unit:Int, fontData:peote.text.Gl3FontData};
 					}
+					rangeMappingType = macro: haxe.ds.Vector<$rangeType>;
 				}
 				else {
 					textureType = macro: peote.view.Texture;
-					if (glyphStyleHasMeta.multiRange) {
+					if (glyphStyleHasMeta.multiSlot) {
 						rangeType = macro: {slot:Int, fontData:peote.text.Gl3FontData};
-						rangeMappingType = macro:haxe.ds.Vector<$rangeType>;
+						rangeMappingType = macro: haxe.ds.Vector<$rangeType>;
 					}
 					else {
 						rangeType = macro: peote.text.Gl3FontData;
-						rangeMappingType = macro:peote.text.Gl3FontData;
+						rangeMappingType = macro: peote.text.Gl3FontData;
 					}
 				}
 			}
@@ -143,7 +143,7 @@ class FontMacro
 
 				public inline function getRange(charcode:Int):$rangeType
 				{
-					${switch (glyphStyleHasMeta.multiRange) {
+					${switch (glyphStyleHasMeta.multiTexture || glyphStyleHasMeta.multiSlot) {
 						case true: macro return rangeMapping.get(Std.int(charcode/rangeSize));
 						default: macro return rangeMapping;
 					}}
@@ -187,14 +187,14 @@ class FontMacro
 						${switch (glyphStyleHasMeta.packed) {
 							case true: macro {
 								if (!fontConfig.packed) {
-									var error = 'Error, for $styleName "@gl3Font" in "' + path + config +'" the packing has to be 1';
+									var error = 'Error, for $styleName "@packed" in "' + path + config +'" set "packed":true';
 									haxe.Log.trace(error, {fileName:path+config, lineNumber:0,className:"",methodName:""});
 									throw(error);
 								}
 							}
 							case false: macro {
 								if (fontConfig.packed) {
-									var error = 'Error, metadata of $styleName class has to be "@gl3Font" for "' + path + config + '" and packing=1';
+									var error = 'Error, metadata of $styleName class has to be "@packed" for "' + path + config + '" and "packed":true';
 									haxe.Log.trace(error, {fileName:path+config, lineNumber:0,className:"",methodName:""});
 									throw(error);
 								}
@@ -203,11 +203,11 @@ class FontMacro
 						
 						if (kerning && fontConfig.kerning != null) kerning = fontConfig.kerning;
 						
-						${switch (glyphStyleHasMeta.multiRange) {
+						${switch (glyphStyleHasMeta.multiTexture || glyphStyleHasMeta.multiSlot) {
 							case true: macro {}
 							default: macro {
 								if (ranges == null && fontConfig.ranges.length > 1) {
-									var error = 'Error, set GlyphStyle to @multiRange or define a single range inside "new font()" or  "' + path + config +'"';
+									var error = 'Error, set $styleName to @multiSlot and/or @multiTexture or define a single range while Font creation or inside "' + path + config +'"';
 									haxe.Log.trace(error, {fileName:path+config, lineNumber:0,className:"",methodName:""});
 									throw(error);
 								}
@@ -231,7 +231,7 @@ class FontMacro
 							}
 							else found_ranges.push(item);
 							
-							${switch (glyphStyleHasMeta.multiRange) {
+							${switch (glyphStyleHasMeta.multiTexture || glyphStyleHasMeta.multiSlot) {
 								case true: macro {}
 								default: macro if (found_ranges.length == 1) break;
 							}}
@@ -249,23 +249,28 @@ class FontMacro
 				
 				private function init(onProgressOverall:Int->Int->Void, onLoad:Void->Void)
 				{
-					${switch (glyphStyleHasMeta.multiRange) {
+					${switch (glyphStyleHasMeta.multiTexture || glyphStyleHasMeta.multiSlot) {
 						case true: macro
 							rangeMapping = new haxe.ds.Vector<$rangeType>(Std.int(0x1000 * 20 / rangeSize));// TODO: is ( 0x1000 * 20) the greatest charcode for unicode ?
 						default: macro {}
 					}}
 					
-					${switch (glyphStyleHasMeta.multiTexture && glyphStyleHasMeta.multiRange) {
+					${switch (glyphStyleHasMeta.multiTexture) {
 						case true: macro {
 							var sizes = new Array<{width:Int, height:Int, slots:Int}>();
 							for (item in fontConfig.ranges) {
 								var found = false;
-								for (i in 0...sizes.length) {
-									if (sizes[i].width == item.slot.width && sizes[i].height == item.slot.height) {
-										sizes[i].slots++;
-										found = true;
+								${switch (glyphStyleHasMeta.multiSlot) {
+									case true: macro {
+										for (i in 0...sizes.length) {
+											if (sizes[i].width == item.slot.width && sizes[i].height == item.slot.height) {
+												sizes[i].slots++;
+												found = true;
+											}
+										}
 									}
-								}
+									default: macro {}
+								}}
 								if (!found) sizes.push({width:item.slot.width, height:item.slot.height, slots:1});
 							}
 							textureCache = new peote.view.utils.TextureCache(
@@ -346,11 +351,14 @@ class FontMacro
 								case true: macro {
 									var p = textureCache.addImage(image); 
 									trace( image.width+"x"+image.height, "texture-unit:" + p.unit, "texture-slot:" + p.slot);							
-									for (i in Std.int(range.min / rangeSize)...Std.int(range.max / rangeSize)+1) {
-										rangeMapping.set(i, {unit:p.unit, slot:p.slot, fontData:gl3font});
+									for (i in Std.int(range.min / rangeSize)...Std.int(range.max / rangeSize) + 1) {
+										${switch (glyphStyleHasMeta.multiSlot) {
+											case true: macro rangeMapping.set(i, {unit:p.unit, slot:p.slot, fontData:gl3font});
+											default: macro rangeMapping.set(i, {unit:p.unit, fontData:gl3font});
+										}}
 									}
 								}
-								default: switch (glyphStyleHasMeta.multiRange) {
+								default: switch (glyphStyleHasMeta.multiSlot) {
 									case true: macro {
 										textureCache.setImage(image, index);
 										for (i in Std.int(range.min / rangeSize)...Std.int(range.max / rangeSize)+1) {
@@ -386,14 +394,14 @@ class FontMacro
 				
 				// ------ TODO: generate 
 				if (glyphStyleHasMeta.multiTexture) {
-					if (glyphStyleHasMeta.multiRange) {
+					if (glyphStyleHasMeta.multiSlot) {
 						
 					}
 					else {
 					}
 				}
 				else {
-					if (glyphStyleHasMeta.multiRange) {
+					if (glyphStyleHasMeta.multiSlot) {
 						
 					}
 					else {

@@ -147,14 +147,17 @@ class FontProgramMacro
 							var metric:peote.text.Gl3FontData.Metric = null;
 							var fontData:Gl3FontData = null;
 							
-							${switch (glyphStyleHasMeta.multiRange) {
+							${switch (glyphStyleHasMeta.multiTexture || glyphStyleHasMeta.multiSlot) {
 								case true: macro {
 									if (range != null) {
 										${switch (glyphStyleHasMeta.multiTexture) {
 											case true: macro glyph.unit = range.unit;
 											default: macro {}
 										}}
-										glyph.slot = range.slot;
+										${switch (glyphStyleHasMeta.multiSlot) {
+											case true: macro glyph.slot = range.slot;
+											default: macro {}
+										}}
 										fontData = range.fontData;
 										metric = fontData.getMetric(charcode);
 									}
