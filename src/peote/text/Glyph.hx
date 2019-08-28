@@ -29,7 +29,7 @@ import haxe.macro.TypeTools;
 }
 
 @:publicFields class GlyphStyleHasMeta {
-	var gl3Font:Bool;
+	var packed:Bool;
 	var multiRange:Bool;
 	var multiTexture:Bool;
 	public function new() {}
@@ -103,7 +103,7 @@ class GlyphMacro
 			}
 			for (meta in style_fields.meta.get()) {
 				switch (meta.name) {
-					case "gl3Font": glyphStyleHasMeta.gl3Font = true;
+					case "packed": glyphStyleHasMeta.packed = true;
 					case "multiRange": glyphStyleHasMeta.multiRange = true;
 					case "multiTexture": glyphStyleHasMeta.multiTexture = true;
 					default: // todo
@@ -198,7 +198,7 @@ class GlyphMacro
 			});
 			
 			// ---------- add fields depending on font-type and style
-			if (glyphStyleHasMeta.gl3Font)
+			if (glyphStyleHasMeta.packed)
 			{
 				if (glyphStyleHasField.local_width) {
 					c.fields.push({

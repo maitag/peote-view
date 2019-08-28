@@ -139,7 +139,7 @@ class FontProgramMacro
 					if (x != null) glyph.x = x;
 					if (y != null) glyph.y = y;
 					
-					${switch (glyphStyleHasMeta.gl3Font)
+					${switch (glyphStyleHasMeta.packed)
 					{
 						case true: macro // ------- Gl3Font -------
 						{
@@ -213,7 +213,7 @@ class FontProgramMacro
 				
 				public function setFontStyle(fontStyle:$styleType):Void
 				{
-					${switch (glyphStyleHasMeta.gl3Font)
+					${switch (glyphStyleHasMeta.packed)
 					{
 						case true: macro // ------- Gl3Font -------
 						{

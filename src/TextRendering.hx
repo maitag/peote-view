@@ -23,7 +23,7 @@ import peote.text.Range;
 import peote.text.Line;
 //import peote.text.Page;
 
-@gl3Font
+@packed
 @multiRange 
 @multiTexture
 class GlyphStyle {
@@ -49,9 +49,9 @@ class TextRendering
 			display   = new Display(10,10, window.width-20, window.height-20, Color.GREY1);
 			peoteView.addDisplay(display);
 			
-			//var font = new Font<GlyphStyle>("assets/gl3fonts/hack/config.json");
-			var font = new Font<GlyphStyle>("assets/gl3fonts/unifont/config.json");
-			//var font = new Font<GlyphStyle>("assets/gl3fonts/unifont/config.json", [new Range(0x0000,0x0fff)]);
+			//var font = new Font<GlyphStyle>("assets/fonts/packed/hack/config.json");
+			var font = new Font<GlyphStyle>("assets/fonts/packed/unifont/config.json");
+			//var font = new Font<GlyphStyle>("assets/fonts/packed/unifont/config.json", [new Range(0x0000,0x0fff)]);
 			
 			font.load( function() {
 			

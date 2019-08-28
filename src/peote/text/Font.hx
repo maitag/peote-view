@@ -78,7 +78,7 @@ class FontMacro
 			var rangeType:ComplexType;
 			var textureType:ComplexType;
 			
-			if (glyphStyleHasMeta.gl3Font)
+			if (glyphStyleHasMeta.packed)
 			{
 				if (glyphStyleHasMeta.multiTexture) {
 					textureType = macro: peote.view.utils.TextureCache;
@@ -184,7 +184,7 @@ class FontMacro
 												
 						var rangeSize = fontConfig.rangeSplitSize;
 						
-						${switch (glyphStyleHasMeta.gl3Font) {
+						${switch (glyphStyleHasMeta.packed) {
 							case true: macro {
 								if (!fontConfig.packed) {
 									var error = 'Error, for $styleName "@gl3Font" in "' + path + config +'" the packing has to be 1';

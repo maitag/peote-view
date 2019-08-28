@@ -86,10 +86,10 @@ class Gl3FontRendering
 			
 			
 			// no kerning (much faster then to convert fontdata!) for the u n i glyphes
-			//loadFont("assets/gl3fonts/DejavuSans", 0x0000, 0x0fff, true,
-			loadFont("assets/gl3fonts/unifont/unifont_0000-0fff", 0x0000, 0x0fff, false,
-			//loadFont("assets/gl3fonts/unifont/unifont_1000-1fff", 0x1000, 0x1fff, false,
-			//loadFont("assets/gl3fonts/unifont/unifont_3000-3fff", 0x3000, 0x3fff, false,
+			//loadFont("assets/fonts/packed/DejavuSans", 0x0000, 0x0fff, true,
+			loadFont("assets/fonts/packed/unifont/unifont_0000-0fff", 0x0000, 0x0fff, false,
+			//loadFont("assets/fonts/packed/unifont/unifont_1000-1fff", 0x1000, 0x1fff, false,
+			//loadFont("assets/fonts/packed/unifont/unifont_3000-3fff", 0x3000, 0x3fff, false,
 				function(gl3font:Gl3FontData, image:Image, isKerning:Bool)
 				{
 					var texture = new Texture(image.width, image.height, 1, 4, false, 1, 1);

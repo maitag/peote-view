@@ -1,0 +1,15 @@
+{
+	"kerning": false,
+	
+	"tileX":  16,
+	"tileY":  16,
+	
+	"width" : 16,
+	"height": 16,
+	"color" : 0x50e040ff,
+		
+	"ranges":[
+		{"image":"peote.png", "slot":{"width":512, "height":512}, "range":{"min":0x0000, "max":0x00ff}}
+	]
+
+}
