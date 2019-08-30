@@ -355,12 +355,13 @@ class FontProgramMacro
 				
 				public function addLine(line:Line<$styleType>, chars:String, x:Float=0, y:Float=0, glyphStyle:$styleType = null)
 				{
-					penX = x;
-					penY = y;
+					penX = line.x = x;
+					penY = line.y = y;
 					haxe.Utf8.iter(chars, function(charcode)
 					{
 						var glyph = new Glyph<$styleType>();
-						addGlyph(glyph, charcode, glyphStyle);						
+						line.glyphes.push(glyph);
+						addGlyph(glyph, charcode, glyphStyle);					
 					});
 				}
 				

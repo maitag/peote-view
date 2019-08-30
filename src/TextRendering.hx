@@ -23,7 +23,7 @@ import peote.text.Range;
 import peote.text.Line;
 //import peote.text.Page;
 
-//@packed
+@packed
 //@multiSlot    // multiple slots per texture to store multiple unicode-ranges
 //@multiTexture // multiple textures to store multiple unicode-ranges
 //@useInt // TODO
@@ -60,9 +60,9 @@ class TextRendering
 			display   = new Display(10,10, window.width-20, window.height-20, Color.GREY1);
 			peoteView.addDisplay(display);
 			
-			var font = new Font<GlyphStyle>("assets/fonts/tiled/ascii.json");
+			//var font = new Font<GlyphStyle>("assets/fonts/tiled/ascii.json");
 			//var font = new Font<GlyphStyle>("assets/fonts/tiled/peote.json");
-			//var font = new Font<GlyphStyle>("assets/fonts/packed/hack/config.json");
+			var font = new Font<GlyphStyle>("assets/fonts/packed/hack/config.json");
 			//var font = new Font<GlyphStyle>("assets/fonts/packed/unifont/config.json");
 			//var font = new Font<GlyphStyle>("assets/fonts/packed/unifont/config.json", [new Range(0x0000,0x0fff)]);
 			
@@ -117,10 +117,10 @@ class TextRendering
 				var line = new Line<GlyphStyle>();
 				fontProgram.addLine(line, "Hello World...", 0, 120);
 				
-				//line.setStyle(glyphStyle2, 0, 4);
-				//line.x = 30; // all gylphes inside will change
-				//line.y = 40; // all gylphes inside will change
-				//fontProgram.updateLine(line);
+				// TODO: line.setStyle(glyphStyle2, 0, 4);
+				line.setPosition(120, 0);
+				// TODO: line.setPositionStyle(120, 0, glyphStyle2);
+				fontProgram.updateLine(line);
 				/*
 				fontProgram.addGlyphToLine(line, 68 , 0, true); // true -> from end
 				fontProgram.addGlyphesToLine(line,  Glyphes.fromString("brave new "), 6);

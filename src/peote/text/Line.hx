@@ -80,68 +80,82 @@ class LineMacro
 			class $className
 			{
 
-				public var x:Int = 0;
-				public var y:Int = 0;
+				public var x:Float = 0.0;
+				public var y:Float = 0.0;
 				
 				public var length:Int = 0; // number of glyphes
 				public var xDirection:Int = 1;
 				public var yDirection:Int = 0;
 				
+				// TODO: 
+				// public var height:Float; // storing the max-line-height in kind of glyphstyles
+				
+				
+				
 				// TODO: optimize here for js/neko
-				public var glyphes:Array<$glyphType>;
+				public var glyphes = new Array<$glyphType>();
 				
 				public function new() 
 				{
 					
 				}
 				
-				public function setStyle(glyphStyle:$styleType , from:Int=0, to:Int=0) {
+/*				function setStyleThatChangePosition(glyphStyle:$styleType , from:Int = 0, to:Int = 0)
+				{
 					
+				}
+*/				
+				public function setStyle(glyphStyle:$styleType)
+				{
+					for (glyph in glyphes) glyph.setStyle(glyphStyle);
+				}
+				
+				public function setStyleFromTo(glyphStyle:$styleType , from:Int = 0, to:Int = 0)
+				{
+					// TODO: errorcheck for from and to only with conditional compilation
+					
+					//var deltaX:Float = 0;
+					//var oldWidth:Float;
+					for (i in from...to) {
+						
+						// TODO: needs metrics.left and other stuff from fontprogramm for packed fonts !!!
+						//glyphes[i].x += deltaX;
+						
+						//var oldWidth = glyphes[i].w;
+						//var oldHeight = glyphes[i].h;
+						//var oldY = glyphes[i].y - y;
+						
+						glyphes[i].setStyle(glyphStyle);
+						
+						//glyphes[i].y = y + glyphes[i].h / oldHeight * oldY;
+						
+						//deltaX += glyphes[i].w - oldWidth;
+					}
+					
+					
+					//for (i in to...glyphes.length) {
+					//	glyphes[i].x += deltaX;
+					//}
+
+				}
+						
+				public inline function setPosition(xNew:Int, yNew:Int)
+				{
+					var deltaX:Float = xNew - x;
+					var deltaY:Float = yNew - y;
+					for (glyph in glyphes) {
+						glyph.x += deltaX;
+						glyph.y += deltaY;
+					}
+				}
+						
+				public inline function setPositionStyle(xNew:Int, yNew:Int, glyphStyle:$styleType)
+				{
+					setPosition(xNew, yNew);
+					setStyle(glyphStyle);
 				}
 						
 
-			/*	public function renderTextLine(x:Float, y:Float, scale:Float, gl3font:Gl3FontData, imgWidth:Int, imgHeight:Int, isKerning:Bool, text:String)
-				{
-					var penX:Float = x;
-					var penY:Float = y;
-					
-					var prev_id:Int = -1;
-					
-					try{
-						haxe.Utf8.iter(text, function(charcode)
-						{
-							//trace("charcode", charcode);
-							var id:Null<Int> = gl3font.idmap.get(charcode);
-							
-							if (id != null)
-							{
-								if (isKerning && prev_id != -1) { // KERNING
-									penX += gl3font.kerning[prev_id][id] * scale;
-									//trace("kerning to left letter: " + Math.round(gl3font.kerning[prev_id][id]* scale) );
-								}
-								prev_id = id;
-								
-								//trace(charcode, "h:"+gl3font.metrics[id].height, "t:"+gl3font.metrics[id].top );
-								element  = new Elem(
-									penX + gl3font.metrics[id].left * scale,
-									penY + ( gl3font.height - gl3font.metrics[id].top ) * scale
-								);
-								
-								penX += gl3font.metrics[id].advance * scale;
-
-								element.w  = gl3font.metrics[id].width  * scale;
-								element.h  = gl3font.metrics[id].height * scale;
-								element.tx = gl3font.metrics[id].u * imgWidth;
-								element.ty = gl3font.metrics[id].v * imgHeight;
-								element.tw = gl3font.metrics[id].w * imgWidth;
-								element.th = gl3font.metrics[id].h * imgHeight;
-								
-								buffer.addElement(element);     // element to buffer
-							}
-						});
-					} catch (e:Dynamic) trace("ERR", e); // <-- problem with utf8 and neko breaks haxe.Utf8.iter()
-				}
-			*/	
 				
 			}
 			// -------------------------------------------------------------------------------------------
