@@ -155,6 +155,7 @@ class GlyphMacro
 			if (glyphStyleHasField.local_height) exprBlock.push( macro height= glyphStyle.height );
 			if (glyphStyleHasField.local_color)  exprBlock.push( macro color = glyphStyle.color );
 			if (glyphStyleHasField.local_zIndex) exprBlock.push( macro zIndex= glyphStyle.zIndex );
+			if (glyphStyleHasField.local_rotation) exprBlock.push( macro rotation= glyphStyle.rotation );
 			// -------------------------------------------------------------------------------------------
 			// -------------------------------------------------------------------------------------------
 			var c = macro
@@ -194,7 +195,14 @@ class GlyphMacro
 				name:  "txOffset",
 				meta: [{name:"texPosX", params:[], pos:Context.currentPos()}],
 				access:  [Access.APublic],
-				kind: FieldType.FVar(macro:Float, macro 6.0),
+				kind: FieldType.FVar(macro:Float, macro 0.0),
+				pos: Context.currentPos(),
+			});
+			c.fields.push({
+				name:  "tyOffset",
+				meta: [{name:"texPosY", params:[], pos:Context.currentPos()}],
+				access:  [Access.APublic],
+				kind: FieldType.FVar(macro:Float, macro 0.0),
 				pos: Context.currentPos(),
 			});
 */			
@@ -233,6 +241,18 @@ class GlyphMacro
 					meta:  [{name:"zIndex", params:[], pos:Context.currentPos()}],
 					access:  [Access.APublic],
 					kind: FieldType.FVar(macro:Int, macro 0),
+					pos: Context.currentPos(),
+				});
+			}
+			
+			if (glyphStyleHasField.rotation) {
+				var meta = [{name:"rotation", params:[], pos:Context.currentPos()}];
+				if (!glyphStyleHasField.local_zIndex) meta.push({name:"@const", params:[], pos:Context.currentPos()});
+				c.fields.push({
+					name:  "rotation",
+					meta:  [{name:"rotation", params:[], pos:Context.currentPos()}],
+					access:  [Access.APublic],
+					kind: FieldType.FVar(macro:Float, macro 0.0),
 					pos: Context.currentPos(),
 				});
 			}

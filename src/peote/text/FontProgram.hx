@@ -246,7 +246,6 @@ class FontProgramMacro
 					
 								glyph.tile = charcode-range.min;
 								
-								// TODO
 								${switch (glyphStyleHasField.local_width) {
 									case true: macro setXWsimple(glyph, charcode, x, glyph.width);
 									default: switch (glyphStyleHasField.width) {
@@ -271,9 +270,9 @@ class FontProgramMacro
 				
 				public inline function setFont(font:Font<$styleType>):Void
 				{
+					this.font = font;
 					autoUpdateTextures = false;
 
-					this.font = font;
 					${switch (glyphStyleHasMeta.multiTexture) {
 						case true: macro setMultiTexture(font.textureCache.textures, "TEX");
 						default: macro setTexture(font.textureCache, "TEX");
@@ -304,12 +303,16 @@ class FontProgramMacro
 
 					alphaEnabled = true;
 					
-					${switch (glyphStyleHasField.local_zIndex) {
-						case true: macro {}
-						default: switch (glyphStyleHasField.zIndex) {
-							case true: macro setFormula("zIndex", peote.view.utils.Util.toFloatString(fontStyle.zIndex));
-							default: macro {}
-					}}}
+					${switch (glyphStyleHasField.zIndex && !glyphStyleHasField.local_zIndex) {
+						case true: macro setFormula("zIndex", peote.view.utils.Util.toFloatString(fontStyle.zIndex));
+						default: macro {}
+					}}
+					
+					${switch (glyphStyleHasField.rotation && !glyphStyleHasField.local_rotation) {
+						case true: macro setFormula("rotation", peote.view.utils.Util.toFloatString(fontStyle.rotation));
+						default: macro {}
+					}}
+					
 
 					${switch (glyphStyleHasMeta.packed)
 					{
@@ -336,7 +339,7 @@ class FontProgramMacro
 										macro setFormula("height", peote.view.utils.Util.toFloatString(font.fontConfig.height));
 							}}}
 							
-							// mixing alpha while use of depthbuffer
+							// mixing alpha while use of zIndex
 							${switch (glyphStyleHasField.zIndex) {
 								case true: macro {discardAtAlpha(0.5);}
 								default: macro {}

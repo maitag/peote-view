@@ -36,9 +36,13 @@ class GlyphStyle {
 	//@global public var height:Float = 16.0;
 	public var height:Float = 16.0;
 	
-	// TODO
 	//@global public var zIndex:Int = 0;
 	//public var zIndex:Int = 0;
+	
+	//@global public var rotation:Float = -45;
+	//public var rotation:Float = 0;
+	
+	// TODO: bold/italic/glow/outline...
 	
 	public function new() {}
 }
@@ -75,6 +79,7 @@ class TextRendering
 				glyphStyle1.width = 50.0;
 				glyphStyle1.height = 80.0;
 				//glyphStyle1.zIndex = 1;
+				//glyphStyle1.rotation = 22.5;
 								
 				
 				// -----------
@@ -110,7 +115,7 @@ class TextRendering
 				// -------- Lines  ---------
 				
 				var line = new Line<GlyphStyle>();
-				fontProgram.addLine(line, "Hello World...", 0, 100);
+				fontProgram.addLine(line, "Hello World...", 0, 120);
 				
 				//line.setStyle(glyphStyle2, 0, 4);
 				//line.x = 30; // all gylphes inside will change
