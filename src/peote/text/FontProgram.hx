@@ -91,12 +91,11 @@ class FontProgramMacro
 				
 				public function new(font:peote.text.Font<$styleType>, fontStyle:$styleType)
 				{
-					this.font = font;
 					_buffer = new peote.view.Buffer<$glyphType>(100);
 					super(_buffer);	
 					
-					this.fontStyle = fontStyle;
-					setFontStyle(fontStyle); // inject global fontsize and color into shader -> GENERATED
+					setFont(font);
+					setFontStyle(fontStyle);
 				}
 				
 				public inline function addGlyph(glyph:$glyphType, charcode:Int, x:Null<Float>=null, y:Null<Float>=null, glyphStyle:$styleType = null):Bool {
@@ -151,15 +150,25 @@ class FontProgramMacro
 				// -------------------------------------------------
 				
 				inline function setXWsimple(glyph:$glyphType, charcode:Int, x:Null<Float>, width:Float):Void {
-					glyph.width = width; // TODO
+					${switch (glyphStyleHasField.local_width) {
+						case true: macro {
+							glyph.width = width;
+						}
+						default: macro {}
+					}}
 					if (x == null) {
-						penX += width;
 						glyph.x = penX;
+						penX += width;
 					}					
 				}
 								
 				inline function setYWsimple(glyph:$glyphType, charcode:Int, y:Null<Float>, height:Float):Void {
-					glyph.height = height; // TODO
+					${switch (glyphStyleHasField.local_height) {
+						case true: macro {
+							glyph.height = height;
+						}
+						default: macro {}
+					}}
 					if (y == null) {
 						glyph.y = penY;
 					}					
@@ -237,6 +246,7 @@ class FontProgramMacro
 					
 								glyph.tile = charcode-range.min;
 								
+								// TODO
 								${switch (glyphStyleHasField.local_width) {
 									case true: macro setXWsimple(glyph, charcode, x, glyph.width);
 									default: switch (glyphStyleHasField.width) {
@@ -259,46 +269,85 @@ class FontProgramMacro
 				}
 
 				
-				public function setFontStyle(fontStyle:$styleType):Void
+				public inline function setFont(font:Font<$styleType>):Void
+				{
+					autoUpdateTextures = false;
+
+					this.font = font;
+					${switch (glyphStyleHasMeta.multiTexture) {
+						case true: macro setMultiTexture(font.textureCache.textures, "TEX");
+						default: macro setTexture(font.textureCache, "TEX");
+					}}
+				}
+				
+				public inline function setFontStyle(fontStyle:$styleType):Void
 				{
 					this.fontStyle = fontStyle;
-									
-					${switch (glyphStyleHasMeta.multiTexture) {
-						case true: macro super.setMultiTexture(font.textureCache.textures, "TEX");
-						default: macro super.setTexture(font.textureCache, "TEX");
-					}}
 					
-					// TODO
+					var color:String;
+					${switch (glyphStyleHasField.local_color) {
+						case true: macro color = "color";
+						default: switch (glyphStyleHasField.color) {
+							case true: macro color = Std.string(fontStyle.color.toGLSL());
+							default: macro color = Std.string(font.fontConfig.color.toGLSL());
+					}}}
 					
+					// check distancefield-rendering
+					if (font.fontConfig.distancefield) {
+						var bold = peote.view.utils.Util.toFloatString(0.5); // 4.8 -> bold
+						var sharp = peote.view.utils.Util.toFloatString(0.5); // TODO
+						setColorFormula(color + " * smoothstep( "+bold+" - "+sharp+" * fwidth(TEX.r), "+bold+" + "+sharp+" * fwidth(TEX.r), TEX.r)");							
+					}
+					else {
+						setColorFormula(color + " * TEX.r");							
+					}
+
+					alphaEnabled = true;
 					
+					${switch (glyphStyleHasField.local_zIndex) {
+						case true: macro {}
+						default: switch (glyphStyleHasField.zIndex) {
+							case true: macro setFormula("zIndex", peote.view.utils.Util.toFloatString(fontStyle.zIndex));
+							default: macro {}
+					}}}
+
 					${switch (glyphStyleHasMeta.packed)
 					{
 						case true: macro // ------- Gl3Font -------
 						{
-								
-							// TODO: check for font.fontConfig.distancefield
-							
-							var bold = peote.view.utils.Util.toFloatString(0.5); // 4.8 -> bold
-							var sharp = peote.view.utils.Util.toFloatString(0.5); // TODO
-								
-							${switch (glyphStyleHasField.local_color) {
-								case true:
-									macro super.setColorFormula("color * smoothstep( "+bold+" - "+sharp+" * fwidth(TEX.r), "+bold+" + "+sharp+" * fwidth(TEX.r), TEX.r)");
-								default: switch (glyphStyleHasField.color) {
-									case true:
-										macro super.setColorFormula(Std.string(fontStyle.color.toGLSL()) + " * smoothstep( "+bold+" - "+sharp+" * fwidth(TEX.r), "+bold+" + "+sharp+" * fwidth(TEX.r), TEX.r)");
-									default:
-										macro super.setColorFormula(Std.string(font.fontConfig.color.toGLSL()) + " * smoothstep( "+bold+" - "+sharp+" * fwidth(TEX.r), "+bold+" + "+sharp+" * fwidth(TEX.r), TEX.r)");
-							}}}		
 						}
 						default: macro // ------- simple font -------
 						{
-							// TODO
-							super.setColorFormula("color * TEX.r");
-							alphaEnabled = true;
+							// make width/height constant if global
+							${switch (glyphStyleHasField.local_width) {
+								case true: macro {}
+								default: switch (glyphStyleHasField.width) {
+									case true:
+										macro setFormula("width", peote.view.utils.Util.toFloatString(fontStyle.width));
+									default:
+										macro setFormula("width", peote.view.utils.Util.toFloatString(font.fontConfig.width));
+							}}}
+							${switch (glyphStyleHasField.local_height) {
+								case true: macro {}
+								default: switch (glyphStyleHasField.height) {
+									case true:
+										macro setFormula("height", peote.view.utils.Util.toFloatString(fontStyle.height));
+									default:
+										macro setFormula("height", peote.view.utils.Util.toFloatString(font.fontConfig.height));
+							}}}
+							
+							// mixing alpha while use of depthbuffer
+							${switch (glyphStyleHasField.zIndex) {
+								case true: macro {discardAtAlpha(0.5);}
+								default: macro {}
+							}}
+							
+							
 						}
 						
 					}}
+					
+					updateTextures();
 				}
 				
 				public function addLine(line:Line<$styleType>, chars:String, x:Float=0, y:Float=0, glyphStyle:$styleType = null)
@@ -308,8 +357,7 @@ class FontProgramMacro
 					haxe.Utf8.iter(chars, function(charcode)
 					{
 						var glyph = new Glyph<$styleType>();
-						addGlyph(glyph, charcode, glyphStyle);
-						
+						addGlyph(glyph, charcode, glyphStyle);						
 					});
 				}
 				

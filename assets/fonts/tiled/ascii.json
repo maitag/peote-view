@@ -1,0 +1,15 @@
+{
+	"kerning": false,
+	
+	"tilesX":  16, // amount of tile-splitting horizontal
+	"tilesY":   6, // amount of tile-splitting vertical
+	
+	"width" : 20,
+	"height": 32,
+	"color" : 0x50e040ff,
+		
+	"ranges":[
+		{"image":"liberation_ascii.png", "slot":{"width":320, "height":192}, "range":{"min":0x0020, "max":0x007f}}
+	]
+
+}

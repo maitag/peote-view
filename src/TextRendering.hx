@@ -26,12 +26,19 @@ import peote.text.Line;
 //@packed
 //@multiSlot    // multiple slots per texture to store multiple unicode-ranges
 //@multiTexture // multiple textures to store multiple unicode-ranges
+//@useInt // TODO
 class GlyphStyle {
-	//@global public var color:Color = Color.GREEN;
+	//@global public var color:Color = Color.BLUE;
 	public var color:Color = Color.GREEN;
 	
-	public var width:Float = 30.0;
-	public var height:Float = 30.0;
+	//@global public var width:Float = 10.0;
+	public var width:Float = 10.0;
+	//@global public var height:Float = 16.0;
+	public var height:Float = 16.0;
+	
+	// TODO
+	//@global public var zIndex:Int = 0;
+	//public var zIndex:Int = 0;
 	
 	public function new() {}
 }
@@ -49,7 +56,8 @@ class TextRendering
 			display   = new Display(10,10, window.width-20, window.height-20, Color.GREY1);
 			peoteView.addDisplay(display);
 			
-			var font = new Font<GlyphStyle>("assets/fonts/tiled/peote.json");
+			var font = new Font<GlyphStyle>("assets/fonts/tiled/ascii.json");
+			//var font = new Font<GlyphStyle>("assets/fonts/tiled/peote.json");
 			//var font = new Font<GlyphStyle>("assets/fonts/packed/hack/config.json");
 			//var font = new Font<GlyphStyle>("assets/fonts/packed/unifont/config.json");
 			//var font = new Font<GlyphStyle>("assets/fonts/packed/unifont/config.json", [new Range(0x0000,0x0fff)]);
@@ -57,9 +65,6 @@ class TextRendering
 			font.load( function() {
 			
 				var fontStyle = new GlyphStyle();
-				fontStyle.color = Color.RED;
-				//fontStyle.width = 30.0;
-				//fontStyle.height = 30.0;
 				
 				var fontProgram = new FontProgram<GlyphStyle>(font, fontStyle); // manage the Programs to render glyphes in different size/colors/fonts
 				display.addProgram(fontProgram);
@@ -67,33 +72,45 @@ class TextRendering
 				
 				var glyphStyle1 = new GlyphStyle();
 				glyphStyle1.color = Color.YELLOW;
-				//glyphStyle1.width = 50.0;
+				glyphStyle1.width = 50.0;
+				glyphStyle1.height = 80.0;
+				//glyphStyle1.zIndex = 1;
 								
-				var glyphStyle2 = new GlyphStyle();
 				
 				// -----------
 
 				var glyph1 = new Glyph<GlyphStyle>();
-				fontProgram.addGlyph(glyph1, 65, 0, 0);
+				fontProgram.addGlyph(glyph1, 65, 0, 50, glyphStyle1);
 				
-				fontProgram.setCharcode(glyph1, 0x1201);
-				//glyph1.setStyle(glyphStyle2);
+
+				//fontProgram.setCharcode(glyph1, 0x1201);
 				//glyph1.color = Color.BLUE;
 				//glyph1.height = 30;
-				fontProgram.updateGlyph(glyph1);
+				//fontProgram.updateGlyph(glyph1);
 				//fontProgram.removeGlyph( glyph1 );
 				
 				// -----------
-				fontProgram.setFontStyle(glyphStyle2);
+				
+				var glyphStyle2 = new GlyphStyle();
+				glyphStyle2.color = Color.RED;
+				glyphStyle2.width = 100.0;
+				glyphStyle2.height = 160.0;
+				
+				//fontProgram.setFontStyle(glyphStyle2);
+				
 				var glyph2 = new Glyph<GlyphStyle>();
-					
-				if (!fontProgram.addGlyph( glyph2, 0x2e25, 20, 0, glyphStyle2)) trace(" ----> Charcode not inside Font");
+				//0x2e25
+				if (fontProgram.addGlyph( glyph2, 66, 20, 0, glyphStyle2)) {
+					//glyph2.setStyle(glyphStyle1);
+					//fontProgram.updateGlyph(glyph2);
+				}
+				else trace(" ----> Charcode not inside Font");
 				
 				
 				// -------- Lines  ---------
 				
 				var line = new Line<GlyphStyle>();
-				fontProgram.addLine(line, "TA - Hello World...", 0, 100);
+				fontProgram.addLine(line, "Hello World...", 0, 100);
 				
 				//line.setStyle(glyphStyle2, 0, 4);
 				//line.x = 30; // all gylphes inside will change

@@ -17,6 +17,7 @@ import haxe.macro.TypeTools;
 	var rotation:Bool;
 	var bold:Bool;
 	var italic:Bool;
+	var zIndex:Bool;
 	
 	var local_color:Bool;
 	var local_bgColor:Bool;
@@ -25,6 +26,7 @@ import haxe.macro.TypeTools;
 	var local_rotation:Bool;
 	var local_bold:Bool;
 	var local_italic:Bool;
+	var local_zIndex:Bool;
 	public function new() {}
 }
 
@@ -86,10 +88,12 @@ class GlyphMacro
 					case "rotation":glyphStyleHasField.rotation = true;if (local) glyphStyleHasField.local_rotation = true;
 					case "bold":    glyphStyleHasField.bold = true;    if (local) glyphStyleHasField.local_bold = true;
 					case "italic":  glyphStyleHasField.italic = true;  if (local) glyphStyleHasField.local_italic = true;
+					case "zIndex":  glyphStyleHasField.zIndex = true;  if (local) glyphStyleHasField.local_zIndex = true;
 					default: // todo
 				}
 				// TODO: store other metas for custom anim and formula stuff
 			}
+			//trace("--- glyphStyleHasField",glyphStyleHasField);
 			return glyphStyleHasField;
 	}
 	
@@ -150,6 +154,7 @@ class GlyphMacro
 			if (glyphStyleHasField.local_width)  exprBlock.push( macro width = glyphStyle.width );
 			if (glyphStyleHasField.local_height) exprBlock.push( macro height= glyphStyle.height );
 			if (glyphStyleHasField.local_color)  exprBlock.push( macro color = glyphStyle.color );
+			if (glyphStyleHasField.local_zIndex) exprBlock.push( macro zIndex= glyphStyle.zIndex );
 			// -------------------------------------------------------------------------------------------
 			// -------------------------------------------------------------------------------------------
 			var c = macro
@@ -183,6 +188,16 @@ class GlyphMacro
 				pos: Context.currentPos(),
 			});
 			
+			// TODO
+			// to cut of a glyph horizontal
+/*			c.fields.push({
+				name:  "txOffset",
+				meta: [{name:"texPosX", params:[], pos:Context.currentPos()}],
+				access:  [Access.APublic],
+				kind: FieldType.FVar(macro:Float, macro 6.0),
+				pos: Context.currentPos(),
+			});
+*/			
 			// --- add fields depending on unit/slots
 			if (glyphStyleHasMeta.multiTexture) c.fields.push({
 				name:  "unit",
@@ -210,7 +225,21 @@ class GlyphMacro
 				pos: Context.currentPos(),
 			});
 			
-			// ---------- add fields depending on font-type and style
+			if (glyphStyleHasField.zIndex) {
+				var meta = [{name:"sizeX", params:[], pos:Context.currentPos()}];
+				if (!glyphStyleHasField.local_zIndex) meta.push({name:"@const", params:[], pos:Context.currentPos()});
+				c.fields.push({
+					name:  "zIndex",
+					meta:  [{name:"zIndex", params:[], pos:Context.currentPos()}],
+					access:  [Access.APublic],
+					kind: FieldType.FVar(macro:Int, macro 0),
+					pos: Context.currentPos(),
+				});
+			}
+			
+			
+			// ------------- add fields depending on font-type and style ------------------
+			
 			if (glyphStyleHasMeta.packed)
 			{			
 				if (glyphStyleHasField.local_width) {
@@ -308,17 +337,21 @@ class GlyphMacro
 			}
 			else
 			{
-				if (glyphStyleHasField.local_width)	c.fields.push({
+				var meta = [{name:"sizeX", params:[], pos:Context.currentPos()}];
+				if (!glyphStyleHasField.local_width) meta.push({name:"@const", params:[], pos:Context.currentPos()});
+				c.fields.push({
 					name:  "width",
-					meta: [{name:"sizeX", params:[], pos:Context.currentPos()}],
+					meta: meta,
 					access:  [Access.APublic],
 					kind: FieldType.FVar(macro:Float, macro 0.0),
 					pos: Context.currentPos(),
 				});
 				
-				if (glyphStyleHasField.local_height) c.fields.push({
+				meta = [{name:"sizeY", params:[], pos:Context.currentPos()}];
+				if (!glyphStyleHasField.local_height) meta.push({name:"@const", params:[], pos:Context.currentPos()});
+				c.fields.push({
 					name:  "height",
-					meta: [{name:"sizeY", params:[], pos:Context.currentPos()}],
+					meta: meta,
 					access:  [Access.APublic],
 					kind: FieldType.FVar(macro:Float, macro 0.0),
 					pos: Context.currentPos(),

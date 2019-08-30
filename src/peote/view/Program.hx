@@ -467,8 +467,8 @@ class Program
 					if (fx == null) fx = buffer.getAttributes().get(nx);
 					if (fx == null) fx = dx;
 					
-					if (fy == null) fy = dy;
 					if (fy == null) fy = buffer.getAttributes().get(ny);
+					if (fy == null) fy = dy;
 					
 					if (x == "rotation" && fx != "0.0") fx = '($fx)/180.0*${Math.PI}';
 					if (y == "zIndex" && fy != "0.0") fy = 'clamp( $fy/${Util.toFloatString(${buffer.getMaxZindex()})}, -1.0, 1.0)'; // TODO: MAX_ZINDEX from buffer
