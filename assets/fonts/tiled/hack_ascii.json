@@ -1,0 +1,18 @@
+{
+	"kerning": false,
+	
+	"tilesX":  16, // amount of tile-splitting horizontal
+	"tilesY":   6, // amount of tile-splitting vertical
+	
+	"width" : 20,
+	"height": 36,
+	"color" : 0x50e040ff,
+		
+	"ranges":[
+		{"image":"hack_ascii.png", "slot":{"width":320, "height":216}, "range":{"min":0x0020, "max":0x007f}}
+		//{"image":"hack_ascii_bold.png", "slot":{"width":320, "height":216}, "range":{"min":0x0020, "max":0x007f}
+		//TODO: styles: [style:"bold", "image":"hack_ascii_bold.png"]}
+		//}
+	]
+
+}

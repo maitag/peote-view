@@ -410,6 +410,8 @@ class Program
 	// set formulas for attributes manual at runtime
 	public function setFormula(name:String, newFormula:String, ?autoUpdateTextures:Null<Bool>):Void {
 		
+		// TODO: problem if there is a ".x" and replacing the "x" in second pass !!!
+		
 		var formulaName = buffer.getFormulaNames().get(name); // TODO: better with 2 Arrays here
 		
 		if (formulaName != null) {

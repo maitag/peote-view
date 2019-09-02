@@ -315,7 +315,12 @@ class FontMacro
 								if (item.slot.width > w) w = item.slot.width;
 								if (item.slot.height > h) h = item.slot.height;
 							}
-							textureCache = new peote.view.Texture(w, h, fontConfig.ranges.length, 4, false, 1, 1, maxTextureSize);
+							textureCache = new peote.view.Texture(w, h, fontConfig.ranges.length,
+								4,// colors -> TODO
+								false, // mipmaps
+								1, 1, // min/mag-filter
+								maxTextureSize
+							);
 							${switch (!glyphStyleHasMeta.packed)	{
 								case true: macro {
 									textureCache.tilesX = fontConfig.tilesX;

@@ -293,11 +293,33 @@ class FontProgramMacro
 					
 					// check distancefield-rendering
 					if (font.fontConfig.distancefield) {
-						var bold = peote.view.utils.Util.toFloatString(0.5); // 4.8 -> bold
+						var weight = "0.5";
+						${switch (glyphStyleHasField.local_weight) {
+							case true:  macro weight = "weight";
+							default: switch (glyphStyleHasField.weight) {
+								case true: macro weight = peote.view.utils.Util.toFloatString(fontStyle.weight);
+								default: macro {}
+							}
+						}}
 						var sharp = peote.view.utils.Util.toFloatString(0.5); // TODO
-						setColorFormula(color + " * smoothstep( "+bold+" - "+sharp+" * fwidth(TEX.r), "+bold+" + "+sharp+" * fwidth(TEX.r), TEX.r)");							
+						setColorFormula(color + " * smoothstep( "+weight+" - "+sharp+" * fwidth(TEX.r), "+weight+" + "+sharp+" * fwidth(TEX.r), TEX.r)");							
 					}
 					else {
+						// TODO: bold for no distancefields needs some more spice inside fragmentshader (access to neightboar pixels!)
+
+						// TODO: dirty outline
+/*						injectIntoFragmentShader(
+						"
+							float outline(float t, float threshold, float width)
+							{
+								return clamp(width - abs(threshold - t) / fwidth(t), 0.0, 1.0);
+							}						
+						");
+						//setColorFormula("mix("+color+" * TEX.r, vec4(1.0,1.0,1.0,1.0), outline(TEX.r, 1.0, 5.0))");							
+						//setColorFormula("mix("+color+" * TEX.r, "+color+" , outline(TEX.r, 1.0, 2.0))");							
+						//setColorFormula(color + " * mix( TEX.r, 1.0, outline(TEX.r, 0.3, 1.0*uZoom) )");							
+						//setColorFormula("mix("+color+"*TEX.r, vec4(1.0,1.0,0.0,1.0), outline(TEX.r, 0.0, 1.0*uZoom) )");							
+*/						
 						setColorFormula(color + " * TEX.r");							
 					}
 
@@ -314,10 +336,22 @@ class FontProgramMacro
 					}}
 					
 
+					var tilt:String = "";
+					${switch (glyphStyleHasField.local_tilt) {
+						case true:  macro tilt = "aFloat0.r"; // TODO: had to be "tilt" -> not parsing right ! .. replacing the "x" after the dot also!!
+						default: switch (glyphStyleHasField.tilt) {
+							case true: macro tilt = peote.view.utils.Util.toFloatString(fontStyle.tilt);
+							default: macro {}
+						}
+					}}
+					
+					
 					${switch (glyphStyleHasMeta.packed)
 					{
-						case true: macro // ------- Gl3Font -------
+						case true: macro // ------- packed -------
 						{
+							// tilting
+							if (tilt != "" && tilt != "0.0") setFormula("x", "x + (1.0-aPosition.y)*w*" + tilt);
 						}
 						default: macro // ------- simple font -------
 						{
@@ -345,6 +379,7 @@ class FontProgramMacro
 								default: macro {}
 							}}
 							
+							if (tilt != "" && tilt != "0.0") setFormula("x", "x + (1.0-aPosition.y)*width*" + tilt);
 							
 						}
 						

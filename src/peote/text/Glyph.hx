@@ -15,8 +15,8 @@ import haxe.macro.TypeTools;
 	var width:Bool;
 	var height:Bool;
 	var rotation:Bool;
-	var bold:Bool;
-	var italic:Bool;
+	var weight:Bool;
+	var tilt:Bool;
 	var zIndex:Bool;
 	
 	var local_color:Bool;
@@ -24,8 +24,8 @@ import haxe.macro.TypeTools;
 	var local_width:Bool;
 	var local_height:Bool;
 	var local_rotation:Bool;
-	var local_bold:Bool;
-	var local_italic:Bool;
+	var local_weight:Bool;
+	var local_tilt:Bool;
 	var local_zIndex:Bool;
 	public function new() {}
 }
@@ -81,14 +81,14 @@ class GlyphMacro
 					if (meta[0].name == "global") local = false;
 					
 				switch (field.name) {
-					case "color":   glyphStyleHasField.color = true;   if (local) glyphStyleHasField.local_color = true;
+					case "color":   glyphStyleHasField.color   = true; if (local) glyphStyleHasField.local_color   = true;
 					case "bgColor": glyphStyleHasField.bgColor = true; if (local) glyphStyleHasField.local_bgColor = true;
-					case "width":   glyphStyleHasField.width = true;   if (local) glyphStyleHasField.local_width = true;
-					case "height":  glyphStyleHasField.height = true;  if (local) glyphStyleHasField.local_height = true;
-					case "rotation":glyphStyleHasField.rotation = true;if (local) glyphStyleHasField.local_rotation = true;
-					case "bold":    glyphStyleHasField.bold = true;    if (local) glyphStyleHasField.local_bold = true;
-					case "italic":  glyphStyleHasField.italic = true;  if (local) glyphStyleHasField.local_italic = true;
-					case "zIndex":  glyphStyleHasField.zIndex = true;  if (local) glyphStyleHasField.local_zIndex = true;
+					case "width":   glyphStyleHasField.width   = true; if (local) glyphStyleHasField.local_width   = true;
+					case "height":  glyphStyleHasField.height  = true; if (local) glyphStyleHasField.local_height  = true;
+					case "rotation":glyphStyleHasField.rotation= true; if (local) glyphStyleHasField.local_rotation= true;
+					case "weight":  glyphStyleHasField.weight  = true; if (local) glyphStyleHasField.local_weight  = true;
+					case "tilt":    glyphStyleHasField.tilt    = true; if (local) glyphStyleHasField.local_tilt    = true;
+					case "zIndex":  glyphStyleHasField.zIndex  = true; if (local) glyphStyleHasField.local_zIndex  = true;
 					default: // todo
 				}
 				// TODO: store other metas for custom anim and formula stuff
@@ -155,7 +155,9 @@ class GlyphMacro
 			if (glyphStyleHasField.local_height) exprBlock.push( macro height= glyphStyle.height );
 			if (glyphStyleHasField.local_color)  exprBlock.push( macro color = glyphStyle.color );
 			if (glyphStyleHasField.local_zIndex) exprBlock.push( macro zIndex= glyphStyle.zIndex );
-			if (glyphStyleHasField.local_rotation) exprBlock.push( macro rotation= glyphStyle.rotation );
+			if (glyphStyleHasField.local_rotation) exprBlock.push( macro rotation = glyphStyle.rotation );
+			if (glyphStyleHasField.local_weight) exprBlock.push( macro weight = glyphStyle.weight );
+			if (glyphStyleHasField.local_tilt) exprBlock.push( macro tilt = glyphStyle.tilt );
 			// -------------------------------------------------------------------------------------------
 			// -------------------------------------------------------------------------------------------
 			var c = macro
@@ -257,6 +259,22 @@ class GlyphMacro
 				});
 			}
 			
+			if (glyphStyleHasField.local_tilt) c.fields.push({
+				name:  "tilt",
+				meta:  [{name:"custom", params:[], pos:Context.currentPos()}],
+				access:  [Access.APublic],
+				kind: FieldType.FVar(macro:Float, macro 0.0),
+				pos: Context.currentPos(),
+			});
+			
+			if (glyphStyleHasField.local_weight) c.fields.push({
+				name:  "weight",
+				meta:  [{name:"custom", params:[], pos:Context.currentPos()},
+				       {name:"varying", params:[], pos:Context.currentPos()}],
+				access:  [Access.APublic],
+				kind: FieldType.FVar(macro:Float, macro 0.0),
+				pos: Context.currentPos(),
+			});
 			
 			// ------------- add fields depending on font-type and style ------------------
 			
@@ -309,6 +327,7 @@ class GlyphMacro
 				c.fields.push({
 					name: "w",
 					meta: [{name:"sizeX", params:[], pos:Context.currentPos()},
+					       //{name:"varying", params:[], pos:Context.currentPos()},
 					       {name:":allow", params:[macro peote.text], pos:Context.currentPos()}],
 					access: [Access.APrivate],
 					kind: FieldType.FVar(macro:Float, macro 0.0),
@@ -354,10 +373,12 @@ class GlyphMacro
 					kind: FieldType.FVar(macro:Float, macro 0.0),
 					pos: Context.currentPos(),
 				});
+
 			}
 			else
 			{
-				var meta = [{name:"sizeX", params:[], pos:Context.currentPos()}];
+				var meta = [{name:"sizeX", params:[], pos:Context.currentPos()},
+							{name:"varying", params:[], pos:Context.currentPos()}]; // TODO: for outlnine and weight
 				if (!glyphStyleHasField.local_width) meta.push({name:"@const", params:[], pos:Context.currentPos()});
 				c.fields.push({
 					name:  "width",

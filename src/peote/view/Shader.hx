@@ -143,6 +143,28 @@ class Shader
 	::if FRAGMENT_FLOAT_PRECISION::precision ::FRAGMENT_FLOAT_PRECISION:: float; ::end::
 	::if FRAGMENT_SAMPLER_PRECISION::precision ::FRAGMENT_SAMPLER_PRECISION:: sampler2D; ::end::
 	
+	// Uniforms ------------------------- TODO: let is enable/disable
+	::if (!isPICKING && isUBO)::
+	//layout(std140) uniform uboView
+	uniform uboView
+	{
+		vec2 uResolution;
+		vec2 uViewOffset;
+		vec2 uViewZoom;
+	};
+	//layout(std140) uniform uboDisplay
+	uniform uboDisplay
+	{
+		vec2 uOffset;
+		vec2 uZoom;
+	};
+	::else::
+	uniform vec2 uResolution;
+	uniform vec2 uOffset;
+	uniform vec2 uZoom;
+	::end::
+	//  -------------------------
+	
 	::FRAGMENT_PROGRAM_UNIFORMS::
 	
 	// Varyings ---------------------------

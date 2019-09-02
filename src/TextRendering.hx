@@ -32,9 +32,9 @@ class GlyphStyle {
 	public var color:Color = Color.GREEN;
 	
 	//@global public var width:Float = 10.0;
-	public var width:Float = 10.0;
+	public var width:Float = 16;
 	//@global public var height:Float = 16.0;
-	public var height:Float = 16.0;
+	public var height:Float = 20;
 	
 	//@global public var zIndex:Int = 0;
 	//public var zIndex:Int = 0;
@@ -42,7 +42,15 @@ class GlyphStyle {
 	//@global public var rotation:Float = -45;
 	//public var rotation:Float = 0;
 	
-	// TODO: bold/italic/glow/outline...
+	//@global public var tilt = 0.5;
+	public var tilt = 0.0;
+	
+	//@global public var weight = 0.48;
+	public var weight:Float = 0.5;
+	
+	
+	
+	// TODO: outline/glow for distance field fonts
 	
 	public function new() {}
 }
@@ -60,7 +68,8 @@ class TextRendering
 			display   = new Display(10,10, window.width-20, window.height-20, Color.GREY1);
 			peoteView.addDisplay(display);
 			
-			//var font = new Font<GlyphStyle>("assets/fonts/tiled/ascii.json");
+			//var font = new Font<GlyphStyle>("assets/fonts/tiled/hack_ascii.json");
+			//var font = new Font<GlyphStyle>("assets/fonts/tiled/liberation_ascii.json");
 			//var font = new Font<GlyphStyle>("assets/fonts/tiled/peote.json");
 			var font = new Font<GlyphStyle>("assets/fonts/packed/hack/config.json");
 			//var font = new Font<GlyphStyle>("assets/fonts/packed/unifont/config.json");
@@ -121,6 +130,16 @@ class TextRendering
 				line.setPosition(120, 0);
 				// TODO: line.setPositionStyle(120, 0, glyphStyle2);
 				fontProgram.updateLine(line);
+
+				var tilted = new GlyphStyle();
+				tilted.tilt = 0.4;
+				tilted.color = 0xaabb22ff;
+				fontProgram.addLine(new Line<GlyphStyle>(), "tilted", 260, 0, tilted);
+				
+				var thick = new GlyphStyle();
+				thick.weight = 0.48;
+				fontProgram.addLine(new Line<GlyphStyle>(), "bold", 120, 30, thick);
+				
 				/*
 				fontProgram.addGlyphToLine(line, 68 , 0, true); // true -> from end
 				fontProgram.addGlyphesToLine(line,  Glyphes.fromString("brave new "), 6);
