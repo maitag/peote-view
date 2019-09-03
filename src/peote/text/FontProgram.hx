@@ -336,7 +336,7 @@ class FontProgramMacro
 					}}
 					
 
-					var tilt:String = "";
+					var tilt:String = "0.0";
 					${switch (glyphStyleHasField.local_tilt) {
 						case true:  macro tilt = "tilt";
 						default: switch (glyphStyleHasField.tilt) {
@@ -351,7 +351,7 @@ class FontProgramMacro
 						case true: macro // ------- packed -------
 						{
 							// tilting
-							if (tilt != "" && tilt != "0.0") setFormula("x", "x + (1.0-aPosition.y)*w*" + tilt);
+							if (tilt != "0.0") setFormula("x", "x + (1.0-aPosition.y)*w*" + tilt);
 						}
 						default: macro // ------- simple font -------
 						{

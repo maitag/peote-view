@@ -345,39 +345,34 @@ class Program
 			
 		}
 		for (i in 0...colorIdentifiers.length) {
-			var regexp = new EReg('(.*?\\b)${colorIdentifiers[i]}(\\b.*?)', "g");
+			var regexp = Util.regexpIdentifier(colorIdentifiers[i]);
 			if (regexp.match(formula))
-				if (regexp.matched(1).substr(-1,1) != ".")
-					formula = regexp.replace( formula, '$1' + "c" + i +'$2' );
+				formula = regexp.replace( formula, '$1' + "c" + i );
 		}
 		for (i in 0...customIdentifiers.length) {
-			var regexp = new EReg('(.*?\\b)${customIdentifiers[i]}(\\b.*?)', "g");
+			var regexp = Util.regexpIdentifier(customIdentifiers[i]);
 			if (regexp.match(formula))
-				if (regexp.matched(1).substr(-1,1) != ".")
-					if (customVaryings[i] != null)
-						formula = regexp.replace( formula, '$1' + customVaryings[i] +'$2' );
-					else throw('Error while parsing ColorFormula: custom identifier ${customIdentifiers[i]} need @varying to get access into fragmentshader');
+				if (customVaryings[i] != null)
+					formula = regexp.replace( formula, '$1' + customVaryings[i] );
+				else throw('Error while parsing ColorFormula: custom identifier ${customIdentifiers[i]} need @varying to access in fragmentshader');
 		}
 		for (i in 0...textureIdentifiers.length) {
-			var regexp = new EReg('(.*?\\b)${textureIdentifiers[i]}(\\b.*?)', "g");
-			if (regexp.match(formula))
-				if (textureLayers.exists(i) && regexp.matched(1).substr(-1,1) != ".")
-					formula = regexp.replace( formula, '$1' + "t" + i +'$2' );
+			var regexp = Util.regexpIdentifier(textureIdentifiers[i]);
+			if (regexp.match(formula) && textureLayers.exists(i))
+				formula = regexp.replace( formula, '$1' + "t" + i );
 		}
 		for (i in 0...customTextureIdentifiers.length) {
-			var regexp = new EReg('(.*?\\b)${customTextureIdentifiers[i]}(\\b.*?)', "g");
-			if (regexp.match(formula))
-				if (textureLayers.exists(textureIdentifiers.length+i) && regexp.matched(1).substr(-1,1) != ".")
-					formula = regexp.replace( formula, '$1' + "t"+(textureIdentifiers.length+i) +'$2' );
+			var regexp = Util.regexpIdentifier(customTextureIdentifiers[i]);
+			if (regexp.match(formula) && textureLayers.exists(textureIdentifiers.length+i))
+				formula = regexp.replace( formula, '$1' + "t"+(textureIdentifiers.length+i) );
 		}
 		// fill the REST with default values:
 		for (name in defaultFormulaVars.keys()) {
 			//var regexp = new EReg('(.*?\\b)${name}(.[rgbaxyz]+)?(\\b.*?)', "g");
-			var regexp = new EReg('(.*?\\b)${name}(\\b.*?)', "g");
+			var regexp = Util.regexpIdentifier(name);
 			if (regexp.match(formula))
-				if (regexp.matched(1).substr(-1,1) != ".")
-						formula = regexp.replace( formula, '$1' + defaultFormulaVars.get(name).toGLSL() + '$2' );
-			//formula = regexp.replace( formula, '$1' + defaultFormulaVars.get(name).toGLSL('$2') + '$3' );
+				formula = regexp.replace( formula, '$1' + defaultFormulaVars.get(name).toGLSL() );
+				//formula = regexp.replace( formula, '$1' + defaultFormulaVars.get(name).toGLSL('$2') + '$3' );
 		}
 		
 		glShaderConfig.FRAGMENT_CALC_LAYER = formula;
@@ -409,8 +404,6 @@ class Program
 	
 	// set formulas for attributes manual at runtime
 	public function setFormula(name:String, newFormula:String, ?autoUpdateTextures:Null<Bool>):Void {
-		
-		// TODO: problem if there is a ".x" and replacing the "x" in second pass !!!
 		
 		var formulaName = buffer.getFormulaNames().get(name); // TODO: better with 2 Arrays here
 		

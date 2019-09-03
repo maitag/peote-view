@@ -343,7 +343,7 @@ class FontMacro
 					utils.Loader.bytesArray(
 						fontConfig.ranges.map(function (v) {
 							if (v.data != null) return path + v.data;
-							else return path + "/" + rParseEnding.replace(v.image, ".dat");
+							else return path + rParseEnding.replace(v.image, ".dat");
 						}),
 						true,
 						function(index:Int, bytes:haxe.io.Bytes) { // after .dat is loaded

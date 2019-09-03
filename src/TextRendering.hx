@@ -42,8 +42,8 @@ class GlyphStyle {
 	//@global public var rotation:Float = -45;
 	//public var rotation:Float = 0;
 	
-	//@global public var tilt = 0.5;
-	public var tilt = 0.0;
+	@global public var tilt = 0.5;
+	//public var tilt = 0.0;
 	
 	//@global public var weight = 0.48;
 	public var weight:Float = 0.5;

@@ -83,7 +83,7 @@ class TextureMipmapFilter
 		texture[2] = new Texture(512, 512, 1, 4, true, 0, 0);
 		texture[3] = new Texture(512, 512, 1, 4, true, 1, 1);
 		
-		Loader.image("assets/images/peote_font_white.png", true, function (image:Image) {
+		Loader.image("assets/fonts/tiled/peote.png", true, function (image:Image) {
 			texture[0].setImage(image);
 			texture[1].setImage(image);
 			texture[2].setImage(image);

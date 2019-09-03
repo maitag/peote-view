@@ -91,7 +91,7 @@ class TextureSlotTiles
 			texture1 = new Texture(512, 512, 3);
 			texture1.tilesX = texture1.tilesY = 16;
 			
-			loadImage(texture1, "assets/images/peote_font_green.png", 0);
+			loadImage(texture1, "assets/fonts/tiled/peote.png", 0);
 			loadImage(texture1, "assets/images/peote_tiles.png", 1);
 			loadImage(texture1, "assets/images/peote_tiles_bunnys.png", 2);
 			
