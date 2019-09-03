@@ -137,7 +137,7 @@ class TextRendering
 				fontProgram.addLine(new Line<GlyphStyle>(), "tilted", 260, 0, tilted);
 				
 				var thick = new GlyphStyle();
-				thick.weight = 0.48;
+				thick.weight = 0.475;
 				fontProgram.addLine(new Line<GlyphStyle>(), "bold", 120, 30, thick);
 				
 				/*

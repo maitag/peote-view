@@ -448,7 +448,7 @@ class Program
 		{
 			var formulaResolved:StringMap<String> = [for (k in formula.keys()) k => formula.get(k) ];
 			try Util.resolveFormulaCyclic(formulaResolved) catch(e:Dynamic) throw ('Error: cyclic reference of "${e.errVar}" inside formula "${e.formula}" for "${e.errKey}"');
-			//trace("formula cyclic resolved:"); for (f in formulaResolved.keys()) trace('  $f => ${formulaResolved.get(f)}');
+			trace("formula cyclic resolved:"); for (f in formulaResolved.keys()) trace('  $f => ${formulaResolved.get(f)}');
 			Util.resolveFormulaVars(formulaResolved, buffer.getAttributes());
 			trace("formula resolved new:"); for (f in formulaResolved.keys()) trace('  $f => ${formulaResolved.get(f)}');
 			

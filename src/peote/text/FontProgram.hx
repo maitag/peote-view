@@ -338,7 +338,7 @@ class FontProgramMacro
 
 					var tilt:String = "";
 					${switch (glyphStyleHasField.local_tilt) {
-						case true:  macro tilt = "aFloat0.r"; // TODO: had to be "tilt" -> not parsing right ! .. replacing the "x" after the dot also!!
+						case true:  macro tilt = "tilt";
 						default: switch (glyphStyleHasField.tilt) {
 							case true: macro tilt = peote.view.utils.Util.toFloatString(fontStyle.tilt);
 							default: macro {}

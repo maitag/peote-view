@@ -342,7 +342,7 @@ class FontMacro
 					var gl3FontData = new Array<peote.text.Gl3FontData>();		
 					utils.Loader.bytesArray(
 						fontConfig.ranges.map(function (v) {
-							if (v.data != null) return path + "/" + v.data;
+							if (v.data != null) return path + v.data;
 							else return path + "/" + rParseEnding.replace(v.image, ".dat");
 						}),
 						true,
@@ -364,7 +364,7 @@ class FontMacro
 				{		
 					trace("load images");
 					utils.Loader.imageArray(
-						fontConfig.ranges.map(function (v) return path+"/"+v.image),
+						fontConfig.ranges.map(function (v) return path + v.image),
 						true,
 						function(index:Int, loaded:Int, size:Int) {
 							trace(' loading G3Font-Images progress ' + Std.int(loaded / size * 100) + "%" , " ("+loaded+" / "+size+")");

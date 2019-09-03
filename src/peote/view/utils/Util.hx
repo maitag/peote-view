@@ -46,15 +46,18 @@ class Util
 		
 		for (k in formulas.keys()) if ( k != key ) 
 		{
-				var regexp = new EReg('(.*?\\b)$k(\\b.*?)', "g");
-				if (regexp.match(formula) && (regexp.matched(1).substr(-1) != "."))
+				//var regexp = new EReg('(.*?\\b)$k(\\b.*?)', "g");
+				//if (regexp.match(formula) && (regexp.matched(1).substr(-1) != "."))
+				//var regexp = new EReg('(.*?[^\\B.]|^)$k(\\b.*?)', "g");
+				var regexp = new EReg('^$k\\b.*?|(.*?[^\\w.])$k\\b.*?', "g");
+				if (regexp.match(formula))
 				{
 					if (fromKeys.indexOf(k) >= 0) return {formula:formula, errKey:key, errVar:k}; // cyclic error
 					
 					var f = resolveFormulaKey(k, formulas, resolved, fromKeys.concat([k])); // < -- recursion
 					if (f.errKey != null) return f; // cyclic error inside
 
-					formula = regexp.replace( formula, '$1(___:::___' + f.formula +'___:::___)$2' );
+					formula = regexp.replace( formula, '$1(___:::___' + f.formula +'___:::___)' );
 				}
 		}
 
@@ -67,9 +70,13 @@ class Util
 		for (key in formulas.keys()) {
 			var formula = formulas.get(key);
 			for (k in attribs.keys()) {
-				var regexp = new EReg('(.*?\\b)$k(\\b.*?)', "g");
-				if (regexp.match(formula) && (regexp.matched(1).substr(-1) != "."))
-					formula = regexp.replace( formula, '$1(' + attribs.get(k) + ')$2' );
+				//var regexp = new EReg('(.*?\\b)$k(\\b.*?)', "g");
+				//if (regexp.match(formula) && (regexp.matched(1).substr( -1) != ".")) {
+				//var regexp = new EReg('(.*?[^\\B.]|^)$k(\\b.*?)', "g");
+				var regexp = new EReg('^$k\\b.*?|(.*?[^\\w.])$k\\b.*?', "g");
+				if (regexp.match(formula)) {
+					formula = regexp.replace( formula, '$1(' + attribs.get(k) + ')' );
+				}
 			}
 			formulas.set(key, formula);
 		}
