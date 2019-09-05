@@ -4,6 +4,8 @@
 	"tilesX":  16, // amount of tile-splitting horizontal
 	"tilesY":   6, // amount of tile-splitting vertical
 	
+	"paddingRight": 1, // empty pixels right of each glyphe horizontal
+	
 	"width" : 20,
 	"height": 36,
 	"color" : 0x50e040ff,

@@ -158,7 +158,7 @@ class FontProgramMacro
 					}}
 					if (x == null) {
 						glyph.x = penX;
-						penX += width;
+						penX += width - width/font.config.width*(font.config.paddingRight-font.config.paddingLeft); // TODO: letterSpacing
 					}					
 				}
 								
@@ -217,13 +217,13 @@ class FontProgramMacro
 									case true: macro setXW(glyph, charcode, x, glyph.width, fontData, metric);
 									default: switch (glyphStyleHasField.width) {
 										case true: macro setXW(glyph, charcode, x, fontStyle.width, fontData, metric);
-										default: macro setXW(glyph, charcode, x, font.fontConfig.width, fontData, metric);
+										default: macro setXW(glyph, charcode, x, font.config.width, fontData, metric);
 								}}}
 								${switch (glyphStyleHasField.local_height) {
 									case true: macro setYW(glyph, charcode, y, glyph.height, fontData, metric);
 									default: switch (glyphStyleHasField.height) {
 										case true: macro setYW(glyph, charcode, y, fontStyle.height, fontData, metric);
-										default: macro setYW(glyph, charcode, y, font.fontConfig.height, fontData, metric);
+										default: macro setYW(glyph, charcode, y, font.config.height, fontData, metric);
 								}}}
 								return true;
 							}
@@ -250,13 +250,13 @@ class FontProgramMacro
 									case true: macro setXWsimple(glyph, charcode, x, glyph.width);
 									default: switch (glyphStyleHasField.width) {
 										case true: macro setXWsimple(glyph, charcode, x, fontStyle.width);
-										default: macro setXWsimple(glyph, charcode, x, font.fontConfig.width);
+										default: macro setXWsimple(glyph, charcode, x, font.config.width);
 								}}}
 								${switch (glyphStyleHasField.local_height) {
 									case true: macro setYWsimple(glyph, charcode, y, glyph.height);
 									default: switch (glyphStyleHasField.height) {
 										case true: macro setYWsimple(glyph, charcode, y, fontStyle.height);
-										default: macro setYWsimple(glyph, charcode, y, font.fontConfig.height);
+										default: macro setYWsimple(glyph, charcode, y, font.config.height);
 								}}}
 								
 								return true;
@@ -288,11 +288,11 @@ class FontProgramMacro
 						case true: macro color = "color";
 						default: switch (glyphStyleHasField.color) {
 							case true: macro color = Std.string(fontStyle.color.toGLSL());
-							default: macro color = Std.string(font.fontConfig.color.toGLSL());
+							default: macro color = Std.string(font.config.color.toGLSL());
 					}}}
 					
 					// check distancefield-rendering
-					if (font.fontConfig.distancefield) {
+					if (font.config.distancefield) {
 						var weight = "0.5";
 						${switch (glyphStyleHasField.local_weight) {
 							case true:  macro weight = "weight";
@@ -362,7 +362,7 @@ class FontProgramMacro
 									case true:
 										macro setFormula("width", peote.view.utils.Util.toFloatString(fontStyle.width));
 									default:
-										macro setFormula("width", peote.view.utils.Util.toFloatString(font.fontConfig.width));
+										macro setFormula("width", peote.view.utils.Util.toFloatString(font.config.width));
 							}}}
 							${switch (glyphStyleHasField.local_height) {
 								case true: macro {}
@@ -370,7 +370,7 @@ class FontProgramMacro
 									case true:
 										macro setFormula("height", peote.view.utils.Util.toFloatString(fontStyle.height));
 									default:
-										macro setFormula("height", peote.view.utils.Util.toFloatString(font.fontConfig.height));
+										macro setFormula("height", peote.view.utils.Util.toFloatString(font.config.height));
 							}}}
 							
 							// mixing alpha while use of zIndex

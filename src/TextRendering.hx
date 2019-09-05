@@ -34,7 +34,7 @@ class GlyphStyle {
 	//@global public var width:Float = 10.0;
 	public var width:Float = 16;
 	//@global public var height:Float = 16.0;
-	public var height:Float = 20;
+	public var height:Float = 16;
 	
 	//@global public var zIndex:Int = 0;
 	//public var zIndex:Int = 0;
@@ -42,8 +42,8 @@ class GlyphStyle {
 	//@global public var rotation:Float = -45;
 	//public var rotation:Float = 0;
 	
-	@global public var tilt = 0.5;
-	//public var tilt = 0.0;
+	//@global public var tilt = 0.5;
+	public var tilt = 0.0;
 	
 	//@global public var weight = 0.48;
 	public var weight:Float = 0.5;
@@ -82,11 +82,14 @@ class TextRendering
 				var fontProgram = new FontProgram<GlyphStyle>(font, fontStyle); // manage the Programs to render glyphes in different size/colors/fonts
 				display.addProgram(fontProgram);
 				
+				var glyphStyle = new GlyphStyle();
+				glyphStyle.width = font.config.width;
+				glyphStyle.height = font.config.height;
 				
 				var glyphStyle1 = new GlyphStyle();
 				glyphStyle1.color = Color.YELLOW;
-				glyphStyle1.width = 50.0;
-				glyphStyle1.height = 80.0;
+				glyphStyle1.width = font.config.width * 5.0;
+				glyphStyle1.height = font.config.height * 5.0;
 				//glyphStyle1.zIndex = 1;
 				//glyphStyle1.rotation = 22.5;
 								
@@ -94,7 +97,7 @@ class TextRendering
 				// -----------
 
 				var glyph1 = new Glyph<GlyphStyle>();
-				fontProgram.addGlyph(glyph1, 65, 0, 50, glyphStyle1);
+				fontProgram.addGlyph(glyph1, 65, 0, 0, glyphStyle1);
 				
 
 				//fontProgram.setCharcode(glyph1, 0x1201);
@@ -107,14 +110,14 @@ class TextRendering
 				
 				var glyphStyle2 = new GlyphStyle();
 				glyphStyle2.color = Color.RED;
-				glyphStyle2.width = 100.0;
-				glyphStyle2.height = 160.0;
+				glyphStyle2.width = font.config.width * 10.0;
+				glyphStyle2.height = font.config.height * 10.0;
 				
 				//fontProgram.setFontStyle(glyphStyle2);
 				
 				var glyph2 = new Glyph<GlyphStyle>();
 				//0x2e25
-				if (fontProgram.addGlyph( glyph2, 66, 20, 0, glyphStyle2)) {
+				if (fontProgram.addGlyph( glyph2, 66, 20, 50, glyphStyle2)) {
 					//glyph2.setStyle(glyphStyle1);
 					//fontProgram.updateGlyph(glyph2);
 				}
@@ -124,7 +127,7 @@ class TextRendering
 				// -------- Lines  ---------
 				
 				var line = new Line<GlyphStyle>();
-				fontProgram.addLine(line, "Hello World...", 0, 120);
+				fontProgram.addLine(line, "Hello World...", 0, 120, glyphStyle);
 				
 				// TODO: line.setStyle(glyphStyle2, 0, 4);
 				line.setPosition(120, 0);
@@ -134,11 +137,15 @@ class TextRendering
 				var tilted = new GlyphStyle();
 				tilted.tilt = 0.4;
 				tilted.color = 0xaabb22ff;
-				fontProgram.addLine(new Line<GlyphStyle>(), "tilted", 260, 0, tilted);
+				tilted.width = font.config.width;
+				tilted.height = font.config.height;
+				fontProgram.addLine(new Line<GlyphStyle>(), "tilted", 120, 30, tilted);
 				
 				var thick = new GlyphStyle();
 				thick.weight = 0.475;
-				fontProgram.addLine(new Line<GlyphStyle>(), "bold", 120, 30, thick);
+				thick.width = font.config.width;
+				thick.height = font.config.height;
+				fontProgram.addLine(new Line<GlyphStyle>(), "bold", 120, 60, thick);
 				
 				/*
 				fontProgram.addGlyphToLine(line, 68 , 0, true); // true -> from end

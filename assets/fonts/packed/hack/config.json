@@ -4,7 +4,7 @@
 	
 	"kerning": false,
 	"width" : 16,
-	"height": 16,
+	"height": 18,
 	"color" : 0x50e040ff,
 	
 	"rangeSplitSize": 0x1000, // muiltiplikator for faster glyphfinding, has to match with the range-startpoints
