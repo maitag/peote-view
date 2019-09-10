@@ -1,5 +1,5 @@
 package;
-#if sampleTest
+#if sampleCheckTextureMemory
 import haxe.Timer;
 
 import lime.ui.Window;
@@ -17,7 +17,7 @@ import peote.view.Color;
 
 import elements.ElementSimple;
 
-class Test 
+class CheckTextureMemory 
 {
 	var peoteView:PeoteView;
 	var element = new Array<ElementSimple>();
@@ -53,7 +53,8 @@ class Test
 		var glTexture = new Array<peote.view.PeoteGL.GLTexture>();
 		var randomImage = createRandomImage(size, size);
 		
-		// did not work for webgl -> texture had to be used to use gpu-mem there
+		// spawns random images to fill GPU-RAM with textures (should stop if Ram is full)
+		// did not work allways to detect Amount of GPU-RAM is there is used shared Memory (Webbrowser!)
 		
 		for (i in 0...200) {
 			

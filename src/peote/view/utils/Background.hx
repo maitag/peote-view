@@ -4,11 +4,9 @@ import peote.view.PeoteGL.GLBuffer;
 import peote.view.PeoteGL.GLProgram;
 import peote.view.PeoteGL.GLShader;
 import peote.view.PeoteGL.GLUniformLocation;
-import peote.view.PeoteGL.BytePointer;
 import peote.view.PeoteGL.Precision;
 
 import haxe.io.Bytes;
-
 
 // for rendering a colored background-GL-quad
 class Background 
@@ -38,7 +36,7 @@ class Background
 		
 		buffer = gl.createBuffer ();
 		gl.bindBuffer (gl.ARRAY_BUFFER, buffer);
-		gl.bufferData (gl.ARRAY_BUFFER, 8*4, new BytePointer(bytes), gl.STATIC_DRAW);
+		gl.bufferData (gl.ARRAY_BUFFER, 8*4, new GLBufferPointer(bytes), gl.STATIC_DRAW);
 		gl.bindBuffer (gl.ARRAY_BUFFER, null);
 	}
 	

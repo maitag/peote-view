@@ -209,7 +209,7 @@ class FontProgramMacro
 							}}
 							
 							if (metric != null) {
-								glyph.tx = metric.u;
+								glyph.tx = metric.u; // TODO: offsets for THICK letters
 								glyph.ty = metric.v;
 								glyph.tw = metric.w;
 								glyph.th = metric.h;
@@ -388,6 +388,9 @@ class FontProgramMacro
 					updateTextures();
 				}
 				
+				// -----------------------------------------
+				// ---------------- Lines ------------------
+				// -----------------------------------------
 				public function addLine(line:Line<$styleType>, chars:String, x:Float=0, y:Float=0, glyphStyle:$styleType = null)
 				{
 					penX = line.x = x;

@@ -14,7 +14,7 @@ typedef GLRenderbuffer      = lime.graphics.opengl.GLRenderbuffer;
 typedef Image = lime.graphics.Image;
 
 typedef BytePointer = lime.utils.BytePointer;
-typedef DataPointer = lime.utils.DataPointer;
+
 
 /*
 #if html5
@@ -40,17 +40,24 @@ typedef LimeGLRenderContext = lime.graphics.OpenGLRenderContext;
 @:forward()
 abstract PeoteGL(LimeGLRenderContext) from LimeGLRenderContext to LimeGLRenderContext {
 	#if html5
-		public inline function bufferData (target:Int, size:Int, srcData:DataPointer, usage:Int):Void {
-			this.bufferData (target, srcData.toUInt8Array(), usage);
+		public inline function bufferData (target:Int, size:Int, srcData:js.html.Uint8Array, usage:Int):Void {
+			//this.bufferData (target, srcData.toUInt8Array(), usage);
+			this.bufferData (target, srcData, usage);
 		}
 		
-		public inline function bufferSubData (target:Int, offset:Int, size:Int, srcData:DataPointer):Void {
+		public inline function bufferSubData (target:Int, offset:Int, size:Int, srcData:js.html.Uint8Array):Void {
 			//this.bufferSubData (target, offset, srcData.toUInt8Array(size));
-			this.bufferSubData (target, offset, srcData.toBufferView(size));
+			//this.bufferSubData (target, offset, srcData.toBufferView(size));
+			//this.bufferSubData (target, offset, srcData, srcData.byteOffset, size);
+			//this.bufferSubData (target, offset, srcData, srcData.byteOffset, srcData.length);
+			//this.bufferSubData (target, offset, srcData, srcData.byteOffset, size);
+			this.bufferSubData (target, offset, srcData);
 		}
 		
-		public inline function texImage2D (target:Int, level:Int, internalformat:Int, width:Int, height:Int, border:Int, format:Int, type:Int, srcData:DataPointer):Void {
-			this.texImage2D(target, level, internalformat, width, height, border, format, type, srcData.toUInt8Array());
+		public inline function texImage2D (target:Int, level:Int, internalformat:Int, width:Int, height:Int, border:Int, format:Int, type:Int, srcData:Dynamic):Void {
+			if (srcData == 0)
+				this.texImage2D(target, level, internalformat, width, height, border, format, type, null);
+			else this.texImage2D(target, level, internalformat, width, height, border, format, type, srcData);
 		}
 		
 	#else

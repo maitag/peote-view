@@ -1596,7 +1596,7 @@ class ElementImpl
 			pos: Context.currentPos(),
 		});
 		
-		// ---------------------- bytePos and  dataPointer ----------------------------------
+		// ---------------------- bytePos and  bufferPointer ----------------------------------
 		fields.push({
 			name:  "bytePos",
 			meta:  allowForBuffer,
@@ -1605,10 +1605,11 @@ class ElementImpl
 			pos: Context.currentPos(),
 		});
 		fields.push({
-			name:  "dataPointer",
+			name:  "bufferPointer",
 			meta:  allowForBuffer,
-			access:  [Access.APrivate],
-			kind: FieldType.FVar(macro:peote.view.PeoteGL.DataPointer, null), 
+			//access:  [Access.APrivate],
+			access:  [Access.APublic],
+			kind: FieldType.FVar(macro:peote.view.utils.GLBufferPointer, null), 
 			pos: Context.currentPos(),
 		});
 		
@@ -1756,7 +1757,7 @@ class ElementImpl
 				expr: macro {
 					//trace("fill full instance GLbuffer");
 					gl.bindBuffer (gl.ARRAY_BUFFER, glInstanceBuffer);
-					gl.bufferData (gl.ARRAY_BUFFER, instanceBytes.length, instanceBytes, gl.STATIC_DRAW);
+					gl.bufferData (gl.ARRAY_BUFFER, instanceBytes.length, new peote.view.utils.GLBufferPointer(instanceBytes), gl.STATIC_DRAW);
 					gl.bindBuffer (gl.ARRAY_BUFFER, null);
 				},
 				ret: null
@@ -1918,7 +1919,7 @@ class ElementImpl
 				expr: macro {
 					//trace("Element updateGLBuffer");
 					gl.bindBuffer (gl.ARRAY_BUFFER, glBuffer);
-					gl.bufferSubData(gl.ARRAY_BUFFER, bytePos, elemBuffSize, dataPointer );
+					gl.bufferSubData(gl.ARRAY_BUFFER, bytePos, elemBuffSize, bufferPointer );
 					gl.bindBuffer (gl.ARRAY_BUFFER, null);
 				},
 				ret: null

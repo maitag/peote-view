@@ -2,19 +2,17 @@ package peote.view;
 
 import haxe.io.Bytes;
 
-import peote.view.PeoteGL.GLProgram;
 import peote.view.PeoteGL.GLBuffer;
-import peote.view.PeoteGL.DataPointer;
-import peote.view.PeoteGL.BytePointer;
+import peote.view.utils.GLBufferPointer;
 
 class UniformBufferView 
 {
 
-	var resolutionDataPointer: DataPointer;
-	var xOffestDataPointer: DataPointer;
-	var yOffestDataPointer: DataPointer;
-	var xZoomDataPointer: DataPointer;
-	var yZoomDataPointer: DataPointer;
+	var resolutionBufferPointer: GLBufferPointer;
+	var xOffestBufferPointer: GLBufferPointer;
+	var yOffestBufferPointer: GLBufferPointer;
+	var xZoomBufferPointer: GLBufferPointer;
+	var yZoomBufferPointer: GLBufferPointer;
 
 	public static inline var block:Int = 0;
 	public var uniformBuffer:GLBuffer;
@@ -26,32 +24,32 @@ class UniformBufferView
 		//uniformBytes = Bytes.alloc(5 * 4);
 		uniformBytes = Bytes.alloc(3 * 4*4); // alignment to vec4 (3 values)
 		//uniformBytes = Bytes.alloc( 256   +    3 * 4*4); // for multiple ranges
-		resolutionDataPointer = new BytePointer(uniformBytes, 0);
-		xOffestDataPointer = new BytePointer(uniformBytes, 8);
-		yOffestDataPointer = new BytePointer(uniformBytes, 12);
-		xZoomDataPointer    = new BytePointer(uniformBytes, 16);
-		yZoomDataPointer    = new BytePointer(uniformBytes, 20);
+		resolutionBufferPointer = new GLBufferPointer(uniformBytes, 0);
+		xOffestBufferPointer = new GLBufferPointer(uniformBytes, 8);
+		yOffestBufferPointer = new GLBufferPointer(uniformBytes, 12);
+		xZoomBufferPointer    = new GLBufferPointer(uniformBytes, 16);
+		yZoomBufferPointer    = new GLBufferPointer(uniformBytes, 20);
 	}
 	
 	public inline function updateResolution(gl:PeoteGL, width:Float, height:Float) {
 		uniformBytes.setFloat(0, width);
 		uniformBytes.setFloat(4, height);
 		gl.bindBuffer(gl.UNIFORM_BUFFER, uniformBuffer);
-		gl.bufferSubData(gl.UNIFORM_BUFFER, 0, 8, resolutionDataPointer );
+		gl.bufferSubData(gl.UNIFORM_BUFFER, 0, 8, resolutionBufferPointer );
 		gl.bindBuffer(gl.UNIFORM_BUFFER, null);
 	}
 
 	public inline function updateXOffset(gl:PeoteGL, xOffset:Float) {
 		uniformBytes.setFloat(8, xOffset);
 		gl.bindBuffer(gl.UNIFORM_BUFFER, uniformBuffer);
-		gl.bufferSubData(gl.UNIFORM_BUFFER, 8, 4, xOffestDataPointer );
+		gl.bufferSubData(gl.UNIFORM_BUFFER, 8, 4, xOffestBufferPointer );
 		gl.bindBuffer(gl.UNIFORM_BUFFER, null);
 	}
 	
 	public inline function updateYOffset(gl:PeoteGL, yOffset:Float) {
 		uniformBytes.setFloat(12, yOffset);
 		gl.bindBuffer(gl.UNIFORM_BUFFER, uniformBuffer);
-		gl.bufferSubData(gl.UNIFORM_BUFFER, 12, 4, yOffestDataPointer );
+		gl.bufferSubData(gl.UNIFORM_BUFFER, 12, 4, yOffestBufferPointer );
 		gl.bindBuffer(gl.UNIFORM_BUFFER, null);
 	}
 
@@ -59,20 +57,20 @@ class UniformBufferView
 		uniformBytes.setFloat(16, xz);
 		uniformBytes.setFloat(20, yz);
 		gl.bindBuffer(gl.UNIFORM_BUFFER, uniformBuffer);
-		gl.bufferSubData(gl.UNIFORM_BUFFER, 16, 8, xZoomDataPointer );
+		gl.bufferSubData(gl.UNIFORM_BUFFER, 16, 8, xZoomBufferPointer );
 		gl.bindBuffer(gl.UNIFORM_BUFFER, null);
 	}
 	public inline function updateXZoom(gl:PeoteGL, xz:Float) {
 		uniformBytes.setFloat(16, xz);
 		gl.bindBuffer(gl.UNIFORM_BUFFER, uniformBuffer);
-		gl.bufferSubData(gl.UNIFORM_BUFFER, 16, 4, xZoomDataPointer );
+		gl.bufferSubData(gl.UNIFORM_BUFFER, 16, 4, xZoomBufferPointer );
 		gl.bindBuffer(gl.UNIFORM_BUFFER, null);
 	}
 	
 	public inline function updateYZoom(gl:PeoteGL, yz:Float) {
 		uniformBytes.setFloat(20, yz);
 		gl.bindBuffer(gl.UNIFORM_BUFFER, uniformBuffer);
-		gl.bufferSubData(gl.UNIFORM_BUFFER, 20, 4, yZoomDataPointer );
+		gl.bufferSubData(gl.UNIFORM_BUFFER, 20, 4, yZoomBufferPointer );
 		gl.bindBuffer(gl.UNIFORM_BUFFER, null);
 	}
 	
@@ -97,7 +95,7 @@ class UniformBufferView
 		*/
 		
 		gl.bindBuffer(gl.UNIFORM_BUFFER, uniformBuffer);
-		gl.bufferData(gl.UNIFORM_BUFFER, uniformBytes.length, uniformBytes, gl.STATIC_DRAW);
+		gl.bufferData(gl.UNIFORM_BUFFER, uniformBytes.length, new GLBufferPointer(uniformBytes), gl.STATIC_DRAW);
 		gl.bindBuffer(gl.UNIFORM_BUFFER, null);
 	}
 	

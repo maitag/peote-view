@@ -82,8 +82,10 @@ class LineMacro
 
 				public var x:Float = 0.0;
 				public var y:Float = 0.0;
+				public var width:Float = 0.0;
+				public var height:Float = 0.0;
+				public var baseline:Float = 0.0;
 				
-				public var length:Int = 0; // number of glyphes
 				public var xDirection:Int = 1;
 				public var yDirection:Int = 0;
 				

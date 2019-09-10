@@ -74,6 +74,7 @@ class TextRendering
 			var font = new Font<GlyphStyle>("assets/fonts/packed/hack/config.json");
 			//var font = new Font<GlyphStyle>("assets/fonts/packed/unifont/config.json");
 			//var font = new Font<GlyphStyle>("assets/fonts/packed/unifont/config.json", [new Range(0x0000,0x0fff)]);
+			//var font = new Font<GlyphStyle>("assets/fonts/packed/unifont/config.json", [Range.C0ControlsBasicLatin(), Range.C1ControlsLatin1Supplement()]);
 			
 			font.load( function() {
 			
@@ -142,7 +143,7 @@ class TextRendering
 				fontProgram.addLine(new Line<GlyphStyle>(), "tilted", 120, 30, tilted);
 				
 				var thick = new GlyphStyle();
-				thick.weight = 0.475;
+				thick.weight = 0.48;
 				thick.width = font.config.width;
 				thick.height = font.config.height;
 				fontProgram.addLine(new Line<GlyphStyle>(), "bold", 120, 60, thick);

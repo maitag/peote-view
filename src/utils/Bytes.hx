@@ -14,6 +14,7 @@ import js.html.compat.Uint8Array;
 import js.html.compat.DataView;
 #end
 #end
+// TODO: haxe -> 4 !!!!!!
 
 #if !macro
 @:autoBuild(lime._internal.macros.AssetsMacro.embedBytes()) // Enable @:bytes embed metadata

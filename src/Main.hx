@@ -8,8 +8,10 @@ import lime.ui.Touch;
 import lime.ui.KeyCode;
 import lime.ui.KeyModifier;
 
-#if sampleTest
-typedef Sample = Test;
+#if sampleSimpleQuad
+typedef Sample = SimpleQuad;
+#elseif sampleCheckTextureMemory
+typedef Sample = CheckTextureMemory;
 #elseif sampleDepthBlend
 typedef Sample = DepthBlend;
 #elseif sampleTextureSimple
