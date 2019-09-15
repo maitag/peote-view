@@ -1607,8 +1607,7 @@ class ElementImpl
 		fields.push({
 			name:  "bufferPointer",
 			meta:  allowForBuffer,
-			//access:  [Access.APrivate],
-			access:  [Access.APublic],
+			access:  [Access.APrivate],
 			kind: FieldType.FVar(macro:peote.view.utils.GLBufferPointer, null), 
 			pos: Context.currentPos(),
 		});

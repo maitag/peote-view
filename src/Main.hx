@@ -52,6 +52,8 @@ typedef Sample = BunnyMarkGPU;
 typedef Sample = MouseEvents;
 #elseif sampleUserInterface
 typedef Sample = UserInterface;
+#elseif sampleUiLayout
+typedef Sample = UiLayout;
 #end 
 
 class Main extends Application

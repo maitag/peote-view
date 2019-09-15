@@ -70,6 +70,7 @@ class UIDisplay extends Display
 	}
 	
 	public function update(uiElement:UIElement):Void {
+		uiElement.update();
 		//TODO
 	}
 	

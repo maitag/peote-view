@@ -30,7 +30,6 @@ class SimpleQuad
 			var buffer = new Buffer<ElementSimple>(4, 4, true);
 
 			var display   = new Display(10,10, window.width-20, window.height-20, Color.GREEN);
-			//var display   = new Display(10,10, window.width-20, window.height-20);
 			var program   = new Program(buffer);
 			
 			peoteView.addDisplay(display);
@@ -39,15 +38,6 @@ class SimpleQuad
 			var element = new ElementSimple();
 			buffer.addElement(element);
 			
-			trace(element.bufferPointer);
-		
-			var element1 = new ElementSimple();
-			buffer.addElement(element1);
-		
-			element1.x = 200;
-			buffer.updateElement(element1);
-			
-			trace(element1.bufferPointer);
 		
 		}
 		catch (e:Dynamic) trace("ERROR:", e);

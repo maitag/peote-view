@@ -1,5 +1,8 @@
 package peote.ui;
 
+import jasper.Expression;
+import jasper.Term;
+import jasper.Variable;
 import peote.ui.skin.Skin;
 import peote.ui.skin.Style;
 
@@ -46,6 +49,14 @@ class UIElement
 	public var h:Int;
 	public var z:Int;
 	
+	// cassowary constraints (jasper lib)
+	public var top:Variable;
+	public var left:Variable;
+	public var bottom:Variable;
+	public var right:Variable;
+	public var width:Expression;
+	public var height:Expression;
+	
 	var mouseOver :UIEventParams;
 	var mouseOut  :UIEventParams;
 	var hasOverEvent :Int = 0;
@@ -63,6 +74,15 @@ class UIElement
 		h = height;
 		z = zIndex;
 		
+		// cassowary constraints (jasper lib)
+		top = new Variable();
+		left = new Variable();
+		bottom = new Variable();
+		right = new Variable();
+		this.width = new Term(right) - new Term(left);
+		this.height = new Term(bottom) - new Term(top);
+		
+		
 		this.skin = skin;
 		this.style = style;
 		
@@ -72,6 +92,14 @@ class UIElement
 		mouseDown  = noOperation;
 		mouseUp    = noOperation;
 		mouseClick = noOperation;
+	}
+	
+	public function updateConstraints() {
+		x = Std.int(left.m_value);
+		y = Std.int(top.m_value);
+		w = Std.int(right.m_value- left.m_value);
+		h = Std.int(bottom.m_value - top.m_value);
+		update();
 	}
 	
 	public function update():Void

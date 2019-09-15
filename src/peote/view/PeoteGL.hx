@@ -1,6 +1,6 @@
 package peote.view;
 
-import peote.view.utils.GLTool;
+import peote.view.utils.GLBufferPointer;
 
 typedef GLTexture           = lime.graphics.opengl.GLTexture;
 typedef GLFramebuffer       = lime.graphics.opengl.GLFramebuffer;                    
@@ -12,9 +12,6 @@ typedef GLVertexArrayObject = lime.graphics.opengl.GLVertexArrayObject;
 typedef GLRenderbuffer      = lime.graphics.opengl.GLRenderbuffer;
 
 typedef Image = lime.graphics.Image;
-
-typedef BytePointer = lime.utils.BytePointer;
-
 
 /*
 #if html5
@@ -40,16 +37,11 @@ typedef LimeGLRenderContext = lime.graphics.OpenGLRenderContext;
 @:forward()
 abstract PeoteGL(LimeGLRenderContext) from LimeGLRenderContext to LimeGLRenderContext {
 	#if html5
-		public inline function bufferData (target:Int, size:Int, srcData:js.html.Uint8Array, usage:Int):Void {
-			//this.bufferData (target, srcData.toUInt8Array(), usage);
+		public inline function bufferData (target:Int, size:Int, srcData:GLBufferPointer, usage:Int):Void {
 			this.bufferData (target, srcData, usage);
 		}
 		
-		public inline function bufferSubData (target:Int, offset:Int, size:Int, srcData:js.html.Uint8Array):Void {
-			//this.bufferSubData (target, offset, srcData.toUInt8Array(size));
-			//this.bufferSubData (target, offset, srcData.toBufferView(size));
-			//this.bufferSubData (target, offset, srcData, srcData.byteOffset, size);
-			//this.bufferSubData (target, offset, srcData, srcData.byteOffset, srcData.length);
+		public inline function bufferSubData (target:Int, offset:Int, size:Int, srcData:GLBufferPointer):Void {
 			//this.bufferSubData (target, offset, srcData, srcData.byteOffset, size);
 			this.bufferSubData (target, offset, srcData);
 		}
