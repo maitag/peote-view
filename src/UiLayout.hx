@@ -11,19 +11,18 @@ import peote.view.Color;
 import peote.ui.UIDisplay;
 import peote.ui.Button;
 import peote.ui.skin.Skin;
+import peote.ui.Layout;
 
 import jasper.*;
 //import jasper.Solver;
 
-
+@:access(peote.ui, peote.view.PeoteView)
 class UiLayout 
 {
 	var peoteView:PeoteView;
 	var ui:UIDisplay;
 	
 	var solver:Solver;
-	var ui_width = new Variable();
-	var ui_height = new Variable();
 	
 	var b1:Button;
 	
@@ -31,7 +30,7 @@ class UiLayout
 	{
 		try {			
 			peoteView = new PeoteView(window.context, window.width, window.height);
-			ui = new UIDisplay(0, 0, window.width, window.height, Color.GREEN);
+			ui = new UIDisplay(0, 0, window.width, window.height, Color.GREY1);
 			peoteView.addDisplay(ui);
 			
             solver = new Solver();
@@ -43,17 +42,36 @@ class UiLayout
 			ui.add(b1);
 
 			// cassowary constraints (jasper)
-			solver.addEditVariable(ui_width, Strength.MEDIUM);
-            solver.addEditVariable(ui_height, Strength.MEDIUM);
+			peoteView.layoutVars = new LayoutViewVars();
+			solver.addEditVariable(peoteView.layoutVars.width, Strength.MEDIUM);
+            solver.addEditVariable(peoteView.layoutVars.height, Strength.MEDIUM);
+			
 
-            solver.addConstraint(b1.left == 10);
-            solver.addConstraint(b1.top == 10);
-            solver.addConstraint((b1.right  - b1.left == ui_width  / 1.75  - 20) | Strength.WEAK);
-            solver.addConstraint((b1.bottom - b1.top  == ui_height / 2.0   - 20) | Strength.WEAK);
-            solver.addConstraint((b1.width <= 400) | Strength.MEDIUM);
-            solver.addConstraint((b1.width >= 200) | Strength.MEDIUM);
-            solver.addConstraint((b1.height <= 400) | Strength.MEDIUM);
-            solver.addConstraint((b1.height >= 200) | Strength.MEDIUM);
+			ui.layoutVars = new LayoutVars();
+            //solver.addConstraint(ui.layoutVars.left == peoteView.layoutVars.left);
+            solver.addConstraint(ui.layoutVars.centerX == peoteView.layoutVars.centerX);
+            solver.addConstraint(ui.layoutVars.top == 10);
+			solver.addConstraint((ui.layoutVars.width == peoteView.layoutVars.width - 20) | Strength.WEAK);
+			solver.addConstraint((ui.layoutVars.bottom == peoteView.layoutVars.bottom - 10) | Strength.WEAK);
+            
+			//solver.addConstraint((ui.layoutVars.width <= 1000) | Strength.MEDIUM);
+            var limitHeight:Constraint = (ui.layoutVars.height <= 800) | Strength.MEDIUM;
+			solver.addConstraint(limitHeight);
+			//solver.removeConstraint(limitHeight);
+
+			b1.layoutVars = new LayoutVars();
+            //solver.addConstraint(b1.layoutVars.x == 10);
+            solver.addConstraint((b1.layoutVars.centerX == ui.layoutVars.centerX) | Strength.WEAK);
+            solver.addConstraint((b1.layoutVars.y == ui.layoutVars.y + 0.1*ui.layoutVars.height) | Strength.WEAK);
+            //solver.addConstraint((b1.layoutVars.centerY == ui.layoutVars.centerY) | Strength.MEDIUM);
+
+            solver.addConstraint((b1.layoutVars.width  == ui.layoutVars.width  / 1.1) | Strength.WEAK);
+            solver.addConstraint((b1.layoutVars.height == ui.layoutVars.height / 2.0  - 20) | Strength.WEAK);
+            
+			solver.addConstraint((b1.layoutVars.width <= 600) | Strength.MEDIUM);
+            solver.addConstraint((b1.layoutVars.width >= 200) | Strength.MEDIUM);
+            solver.addConstraint((b1.layoutVars.height <= 400) | Strength.MEDIUM);
+            solver.addConstraint((b1.layoutVars.height >= 200) | Strength.MEDIUM);
 			
 			
 			resolve(ui.width, ui.height);
@@ -67,15 +85,13 @@ class UiLayout
 	
 	public function resolve(width:Int, height:Int) {
 
-		solver.suggestValue(ui_width, width);
-        solver.suggestValue(ui_height, height);
+		solver.suggestValue(peoteView.layoutVars.width, width);
+        solver.suggestValue(peoteView.layoutVars.height, height);
+		
         solver.updateVariables();
 		
-		ui.width = Std.int(ui_width.m_value);
-		ui.height = Std.int(ui_height.m_value);
-		
+		ui.updateConstraints();
 		b1.updateConstraints();
-				
 	}
 	
 	

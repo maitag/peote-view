@@ -29,8 +29,8 @@ class SkinElement implements Element
 	{
 		x = uiElement.x;
 		y = uiElement.y;
-		w = uiElement.w;
-		h = uiElement.h;
+		w = uiElement.width;
+		h = uiElement.height;
 		z = uiElement.z;
 		color = uiElement.style.color;
 		borderColor = uiElement.style.borderColor;

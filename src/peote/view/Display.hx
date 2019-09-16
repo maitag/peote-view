@@ -6,16 +6,46 @@ import peote.view.utils.RenderListItem;
 @:allow(peote.view)
 class Display 
 {
-	// params
-	public var x:Int = 0;
-	public var y:Int = 0;
 	public var width:Int = 0;
 	public var height:Int = 0;
 	
-	public var backgroundAlpha:Bool = false;
-	public var backgroundDepth:Bool = false;
-	public var backgroundEnabled:Bool = false;
+	#if jasper // cassowary constraints (jasper lib)
+	public var layoutVars(default, null):peote.ui.Layout.LayoutVars;
+	public function updateConstraints() {
+		x = Std.int(layoutVars.x.m_value);
+		y = Std.int(layoutVars.y.m_value);
+		width = Std.int(layoutVars.width.m_value);
+		height = Std.int(layoutVars.height.m_value);
+	}
+	#end
 	
+	public var x(default, set):Int = 0;
+	public inline function set_x(_x:Int):Int {
+		if (PeoteGL.Version.isUBO) uniformBuffer.updateXOffset(gl, _x + xOffset);
+		return x = _x;
+	}
+	public var y(default, set):Int = 0;
+	public inline function set_y(_y:Int):Int {
+		if (PeoteGL.Version.isUBO) uniformBuffer.updateYOffset(gl, _y + yOffset);
+		return y = _y;
+	}
+	public var xOffset(default, set):Float = 0;
+	public inline function set_xOffset(xo:Float):Float {
+		if (PeoteGL.Version.isUBO) {
+			uniformBuffer.updateXOffset(gl, x + xo);
+			uniformBufferFB.updateXOffset(gl, xo);
+		}
+		return xOffset = xo;
+	}
+	public var yOffset(default, set):Float = 0;
+	public inline function set_yOffset(yo:Float):Float {
+		if (PeoteGL.Version.isUBO) {
+			uniformBuffer.updateYOffset(gl, y + yo);
+			uniformBufferFB.updateYOffset(gl, yo - height);
+		}
+		return yOffset = yo;
+	}
+
 	private var xz(default, null):Float = 1.0;
 	private var yz(default, null):Float = 1.0;
 
@@ -47,22 +77,6 @@ class Display
 		}
 		return yZoom = z;
 	}
-	public var xOffset(default, set):Float = 0;
-	public inline function set_xOffset(xo:Float):Float {
-		if (PeoteGL.Version.isUBO) {
-			uniformBuffer.updateXOffset(gl, x + xo);
-			uniformBufferFB.updateXOffset(gl, xo);
-		}
-		return xOffset = xo;
-	}
-	public var yOffset(default, set):Float = 0;
-	public inline function set_yOffset(yo:Float):Float {
-		if (PeoteGL.Version.isUBO) {
-			uniformBuffer.updateYOffset(gl, y + yo);
-			uniformBufferFB.updateYOffset(gl, yo - height);
-		}
-		return yOffset = yo;
-	}
 	
 	public var color(default, set):Color = 0x00000000;
 	inline function set_color(c:Color):Color {
@@ -74,10 +88,16 @@ class Display
 		backgroundAlpha   = (alpha < 1.0) ? true : false;
 		return c;
 	}
+	
+	public var backgroundAlpha:Bool = false;
+	public var backgroundDepth:Bool = false;
+	public var backgroundEnabled:Bool = false;
+	
 	var red:Float = 0.0;
 	var green:Float = 0.0;
 	var blue:Float = 0.0;
 	var alpha:Float = 1.0;
+
 	
 	var peoteViews = new Array<PeoteView>();
 	var gl:PeoteGL = null;

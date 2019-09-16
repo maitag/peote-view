@@ -6,12 +6,12 @@ import peote.view.Color;
 class Style 
 {
 
-	public var color:Color = Color.GREY1;
+	public var color:Color = Color.GREY2;
 	
-	public var borderColor:Color = Color.GREY7;
+	public var borderColor:Color = Color.GREY6;
 
-	public var borderSize:Float = 1.0;
-	public var borderRadius:Float = 10.0;
+	public var borderSize:Float = 4.0;
+	public var borderRadius:Float = 20.0;
 	
 	public function new() 
 	{

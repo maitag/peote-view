@@ -26,8 +26,8 @@ class Pickable implements Element
 		this.uiElement = uiElement;
 		x = uiElement.x;
 		y = uiElement.y;
-		w = uiElement.w;
-		h = uiElement.h;
+		w = uiElement.width;
+		h = uiElement.height;
 		z = uiElement.z;
 	}
 

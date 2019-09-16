@@ -21,7 +21,7 @@ class UserInterface
 	{
 		try {			
 			peoteView = new PeoteView(window.context, window.width, window.height);
-			ui = new UIDisplay(0, 0, window.width, window.height, Color.BLACK);
+			ui = new UIDisplay(20, 0, window.width, window.height, Color.GREY1);
 			peoteView.addDisplay(ui);
 			
 			var mySkin = new Skin();

@@ -44,16 +44,16 @@ typedef Sample = Gl3FontRendering;
 typedef Sample = TextRendering;
 #elseif sampleShaderInjection
 typedef Sample = ShaderInjection;
-#elseif sampleBunnyMark
-typedef Sample = BunnyMark;
-#elseif sampleBunnyMarkGPU
-typedef Sample = BunnyMarkGPU;
 #elseif sampleMouseEvents
 typedef Sample = MouseEvents;
 #elseif sampleUserInterface
 typedef Sample = UserInterface;
 #elseif sampleUiLayout
 typedef Sample = UiLayout;
+#elseif sampleBunnyMark
+typedef Sample = BunnyMark;
+#elseif sampleBunnyMarkGPU
+typedef Sample = BunnyMarkGPU;
 #end 
 
 class Main extends Application

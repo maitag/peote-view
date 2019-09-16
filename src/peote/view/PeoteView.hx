@@ -13,6 +13,7 @@ import peote.view.utils.TexUtils;
 import peote.view.PeoteGL.GLTexture;
 import peote.view.PeoteGL.GLFramebuffer;
 
+
 @:allow(peote.view)
 class PeoteView 
 {
@@ -20,6 +21,12 @@ class PeoteView
 	
 	var width:Int;
 	var height:Int;
+	
+	// cassowary constraints (jasper lib)
+	#if jasper
+	public var layoutVars(default, null):peote.ui.Layout.LayoutViewVars;
+	#end
+	
 	public var color(default,set):Color = 0x000000FF;
 	inline function set_color(c:Color):Color {
 		red   = c.red   / 255.0;			
