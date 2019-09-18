@@ -24,7 +24,7 @@ class PeoteView
 	
 	// cassowary constraints (jasper lib)
 	#if jasper
-	public var layoutVars(default, null):peote.ui.Layout.LayoutViewVars;
+	public var layout(default, null):peote.ui.Layout.LayoutView;
 	#end
 	
 	public var color(default,set):Color = 0x000000FF;
@@ -240,7 +240,6 @@ class PeoteView
 	{
 		this.width = width;
 		this.height = height;
-		// TODO: re-arange or resize Displays		
 		if (PeoteGL.Version.isUBO) uniformBuffer.updateResolution(gl, width, height);
 	}
 

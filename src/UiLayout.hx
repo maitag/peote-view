@@ -32,50 +32,92 @@ class UiLayout
 			peoteView = new PeoteView(window.context, window.width, window.height);
 			ui = new UIDisplay(0, 0, window.width, window.height, Color.GREY1);
 			peoteView.addDisplay(ui);
-			
-            solver = new Solver();
+
+			solver = new Solver();
 
 			var mySkin = new Skin();		
 			var myStyle = new Style();
-			
+
 			b1 = new Button(20, 10, 200, 100, mySkin, myStyle);
 			ui.add(b1);
 
 			// cassowary constraints (jasper)
-			peoteView.layoutVars = new LayoutViewVars();
-			solver.addEditVariable(peoteView.layoutVars.width, Strength.MEDIUM);
-            solver.addEditVariable(peoteView.layoutVars.height, Strength.MEDIUM);
-			
+			peoteView.layout = new LayoutView();
+			solver.addEditVariable(peoteView.layout.width, Strength.MEDIUM);
+			solver.addEditVariable(peoteView.layout.height, Strength.MEDIUM);
 
-			ui.layoutVars = new LayoutVars();
-            //solver.addConstraint(ui.layoutVars.left == peoteView.layoutVars.left);
-            solver.addConstraint(ui.layoutVars.centerX == peoteView.layoutVars.centerX);
-            solver.addConstraint(ui.layoutVars.top == 10);
-			solver.addConstraint((ui.layoutVars.width == peoteView.layoutVars.width - 20) | Strength.WEAK);
-			solver.addConstraint((ui.layoutVars.bottom == peoteView.layoutVars.bottom - 10) | Strength.WEAK);
-            
-			//solver.addConstraint((ui.layoutVars.width <= 1000) | Strength.MEDIUM);
-            var limitHeight:Constraint = (ui.layoutVars.height <= 800) | Strength.MEDIUM;
+
+			ui.layout = new Layout();
+			//solver.addConstraint(ui.layout.left == peoteView.layout.left);
+			solver.addConstraint(ui.layout.centerX == peoteView.layout.centerX);
+			solver.addConstraint(ui.layout.top == 10);
+			solver.addConstraint((ui.layout.width == peoteView.layout.width - 20) | Strength.WEAK);
+			solver.addConstraint((ui.layout.bottom == peoteView.layout.bottom - 10) | Strength.WEAK);
+
+			//solver.addConstraint((ui.layout.width <= 1000) | Strength.MEDIUM);
+			var limitHeight:Constraint = (ui.layout.height <= 800) | Strength.MEDIUM;
 			solver.addConstraint(limitHeight);
 			//solver.removeConstraint(limitHeight);
 
-			b1.layoutVars = new LayoutVars();
-            //solver.addConstraint(b1.layoutVars.x == 10);
-            solver.addConstraint((b1.layoutVars.centerX == ui.layoutVars.centerX) | Strength.WEAK);
-            solver.addConstraint((b1.layoutVars.y == ui.layoutVars.y + 0.1*ui.layoutVars.height) | Strength.WEAK);
-            //solver.addConstraint((b1.layoutVars.centerY == ui.layoutVars.centerY) | Strength.MEDIUM);
+			b1.layout = new Layout();
+			//solver.addConstraint(b1.layout.x == 10);
+			solver.addConstraint((b1.layout.centerX == ui.layout.centerX) | Strength.WEAK);
+			solver.addConstraint((b1.layout.y == ui.layout.y + 0.1*ui.layout.height) | Strength.WEAK);
+			//solver.addConstraint((b1.layout.centerY == ui.layout.centerY) | Strength.MEDIUM);
 
-            solver.addConstraint((b1.layoutVars.width  == ui.layoutVars.width  / 1.1) | Strength.WEAK);
-            solver.addConstraint((b1.layoutVars.height == ui.layoutVars.height / 2.0  - 20) | Strength.WEAK);
-            
-			solver.addConstraint((b1.layoutVars.width <= 600) | Strength.MEDIUM);
-            solver.addConstraint((b1.layoutVars.width >= 200) | Strength.MEDIUM);
-            solver.addConstraint((b1.layoutVars.height <= 400) | Strength.MEDIUM);
-            solver.addConstraint((b1.layoutVars.height >= 200) | Strength.MEDIUM);
-			
-			
+			solver.addConstraint((b1.layout.width  == ui.layout.width  / 1.1) | Strength.WEAK);
+			solver.addConstraint((b1.layout.height == ui.layout.height / 2.0  - 20) | Strength.WEAK);
+
+			solver.addConstraint((b1.layout.width <= 600) | Strength.MEDIUM);
+			solver.addConstraint((b1.layout.width >= 200) | Strength.MEDIUM);
+			solver.addConstraint((b1.layout.height <= 400) | Strength.MEDIUM);
+			solver.addConstraint((b1.layout.height >= 200) | Strength.MEDIUM);
+
+
 			resolve(ui.width, ui.height);
 			
+/*			
+			var layoutSolver = new LayoutSolver
+  			(
+				peoteView, // peoteView is envolved
+				[ui],      // involved UI-Displays
+				[b1],      // involved UI-Elements
+				
+				// editable Vars used in "suggest()" and "suggestValues()" (for values that will be in change)
+				[
+					peoteView.layout.width,
+					peoteView.layout.height
+				],
+				
+				// TODO: new HBox([b1, VBox()]) ...
+				
+				// --  customconstraints ---
+				[
+					ui.layout.centerX == peoteView.layout.centerX,
+					ui.layout.top == 10,
+					(ui.layout.width == peoteView.layout.width - 20) | Strength.WEAK,
+					(ui.layout.bottom == peoteView.layout.bottom - 10) | Strength.WEAK,
+
+					(b1.layout.centerX == ui.layout.centerX) | Strength.WEAK,
+					(b1.layout.y == ui.layout.y + 0.1*ui.layout.height) | Strength.WEAK,
+					//(b1.layout.centerY == ui.layout.centerY) | Strength.MEDIUM,
+					
+					(b1.layout.width  == ui.layout.width  / 1.1) | Strength.WEAK
+					(b1.layout.height == ui.layout.height / 2.0  - 20) | Strength.WEAK
+					
+					(b1.layout.width <= 600) | Strength.MEDIUM,
+					(b1.layout.width >= 200) | Strength.MEDIUM,
+					(b1.layout.height <= 400) | Strength.MEDIUM,
+					(b1.layout.height >= 200) | Strength.MEDIUM
+				]
+			);
+			
+			var limitHeight:Constraint = (ui.layout.height <= 800) | Strength.MEDIUM;
+			layoutSolver.addConstraint(limitHeight);
+			//layoutSolver.removeConstraint(limitHeight);
+
+			suggestValues([peoteView.width, peoteView.height]).update();
+*/			
 		}
 		catch (e:Dynamic) trace("ERROR:", e);
 	}
@@ -85,13 +127,14 @@ class UiLayout
 	
 	public function resolve(width:Int, height:Int) {
 
-		solver.suggestValue(peoteView.layoutVars.width, width);
-        solver.suggestValue(peoteView.layoutVars.height, height);
+		solver.suggestValue(peoteView.layout.width, width);
+        solver.suggestValue(peoteView.layout.height, height);
 		
         solver.updateVariables();
 		
 		ui.updateConstraints();
 		b1.updateConstraints();
+		
 	}
 	
 	
@@ -108,6 +151,11 @@ class UiLayout
 	public function resize(width:Int, height:Int) {
 		peoteView.resize(width, height);
 		resolve(width,height);
+/*		layoutSolver.suggestValues([width, height]).update(); // calculates new Layout and updates all Elements 
+		// or  LayoutSolver.suggest(peoteView.layout.width, width);
+		//     LayoutSolver.suggest(peoteView.layout.height, height);
+		//     layoutSolver.update();
+*/
 	}
 
 	

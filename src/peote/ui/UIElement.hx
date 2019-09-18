@@ -47,12 +47,12 @@ class UIElement
 	public var z:Int;
 	
 	#if jasper // cassowary constraints (jasper lib)
-	public var layoutVars(default, null):peote.ui.Layout.LayoutVars;
+	public var layout(default, null):peote.ui.Layout.Layout;
 	public function updateConstraints() {
-		x = Std.int(layoutVars.x.m_value) - uiDisplay.x;
-		y = Std.int(layoutVars.y.m_value) - uiDisplay.y;
-		width = Std.int(layoutVars.width.m_value);
-		height = Std.int(layoutVars.height.m_value);
+		x = Std.int(layout.x.m_value) - uiDisplay.x;
+		y = Std.int(layout.y.m_value) - uiDisplay.y;
+		width = Std.int(layout.width.m_value);
+		height = Std.int(layout.height.m_value);
 		update();
 	}
 	#end
