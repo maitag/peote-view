@@ -10,13 +10,7 @@ class Display
 	public var height:Int = 0;
 	
 	#if jasper // cassowary constraints (jasper lib)
-	public var layout(default, null):peote.ui.Layout.Layout;
-	public function updateConstraints() {
-		if (Std.int(layout.x.m_value) != x) x = Std.int(layout.x.m_value);
-		if (Std.int(layout.y.m_value) != y) y = Std.int(layout.y.m_value);
-		width = Std.int(layout.width.m_value);
-		height = Std.int(layout.height.m_value);
-	}
+	public var layout(default, null) = new peote.ui.Layout.Layout();
 	#end
 	
 	public var x(default, set):Int = 0;

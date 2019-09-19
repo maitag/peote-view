@@ -19,12 +19,12 @@ class PeoteView
 {
 	public var gl(default, null):PeoteGL;
 	
-	var width:Int;
-	var height:Int;
+	public var width(default, null):Int;
+	public var height(default, null):Int;
 	
 	// cassowary constraints (jasper lib)
 	#if jasper
-	public var layout(default, null):peote.ui.Layout.LayoutView;
+	public var layout(default, null) = new peote.ui.Layout.LayoutView();
 	#end
 	
 	public var color(default,set):Color = 0x000000FF;
