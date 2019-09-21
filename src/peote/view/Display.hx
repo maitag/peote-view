@@ -11,6 +11,12 @@ class Display
 	
 	#if jasper // cassowary constraints (jasper lib)
 	public var layout(default, null) = new peote.ui.Layout.Layout();
+	public function updateLayout() {
+		if (x != Std.int(layout.x.m_value)) x = Std.int(layout.x.m_value);
+		if (y != Std.int(layout.y.m_value)) y = Std.int(layout.y.m_value);
+		width  = Std.int(layout.width.m_value);
+		height = Std.int(layout.height.m_value);
+	}
 	#end
 	
 	public var x(default, set):Int = 0;
@@ -105,7 +111,10 @@ class Display
 	var fbTexture:Texture = null;
 	
 	public function new(x:Int, y:Int, width:Int, height:Int, color:Color = 0x00000000) 
-	{	
+	{
+		#if jasper // cassowary constraints (jasper lib)
+		layout.update = updateLayout;
+		#end
 		this.x = x;
 		this.y = y;
 		this.width = width;

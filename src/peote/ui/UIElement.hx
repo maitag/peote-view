@@ -28,8 +28,10 @@ class UIElement
 	public var style(default, set):Style = null;
 	inline function set_style(s:Style):Style {
 		trace("set style");
-		if (skin == null) throw ("Error, for styling the widget needs a skin");
-		if (s == null) {
+		if (skin == null) {
+			if (style != null) throw ("Error, for styling the widget needs a skin");
+		} 
+		else if (s == null) {
 			s = skin.createDefaultStyle();
 		}
 		return style = s;
@@ -48,6 +50,19 @@ class UIElement
 	
 	#if jasper // cassowary constraints (jasper lib)
 	public var layout(default, null) = new peote.ui.Layout.Layout();
+	public function updateLayout() {
+		if (x != Std.int(layout.x.m_value) - uiDisplay.x ||
+			y != Std.int(layout.y.m_value) - uiDisplay.y || 
+			width != Std.int(layout.width.m_value) ||
+			height != Std.int(layout.height.m_value))
+		{
+			x = Std.int(layout.x.m_value) - uiDisplay.x;
+			y = Std.int(layout.y.m_value) - uiDisplay.y;
+			width = Std.int(layout.width.m_value);
+			height = Std.int(layout.height.m_value);
+			update();
+		}
+	}
 	#end
 	
 	var mouseOver :UIEventParams;
@@ -59,8 +74,11 @@ class UIElement
 	var mouseClick:UIEventParams;
 	var hasClickEvent:Int = 0;
 	
-	public function new(xPosition:Int, yPosition:Int, width:Int, height:Int, zIndex:Int=0, skin:Skin=null, style:Style=null) 
+	public function new(xPosition:Int=0, yPosition:Int=0, width:Int=100, height:Int=100, zIndex:Int=0, skin:Skin=null, style:Style=null) 
 	{
+		#if jasper // cassowary constraints (jasper lib)
+		layout.update = updateLayout;
+		#end
 		x = xPosition;
 		y = yPosition;
 		this.width  = width;
