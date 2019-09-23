@@ -13,22 +13,18 @@ import peote.ui.Button;
 import peote.ui.Layout;
 import peote.ui.skin.Skin;
 import peote.ui.skin.Style;
-
 import peote.ui.UIContainer;
 
 import jasper.Constraint;
 import jasper.Strength;
 
-
 class UiLayout 
 {
 	var peoteView:PeoteView;
 	var ui:UIDisplay;
-	var mySkin = new Skin();		
-	var greyStyle = new Style();
-	var redStyle = new Style();
-	var greenStyle = new Style();
-	var blueStyle = new Style();
+	var mySkin = new Skin();
+	
+	var grey:Button; var red:Button; var green:Button; var blue:Button;	var yellow:Button;
 			
 	var layoutSolver:LayoutSolver;
 	
@@ -39,11 +35,18 @@ class UiLayout
 			ui = new UIDisplay(0, 0, window.width, window.height, Color.GREY3);
 			peoteView.addDisplay(ui);
 			
-			redStyle.color = Color.RED;	greenStyle.color = Color.GREEN;	blueStyle.color = Color.BLUE;
+			grey  = new Button(mySkin, new Style(Color.GREY1));		
+			red   = new Button(mySkin, new Style(Color.RED));
+			green = new Button(mySkin, new Style(Color.GREEN));
+			blue  = new Button(mySkin, new Style(Color.BLUE));
+			yellow= new Button(mySkin, new Style(Color.YELLOW));
 
-			//testManualConstraints();			
+			//ui.add(grey); testManualConstraints();
+			
+			ui.add(red); ui.add(green); ui.add(blue);
 			//testManualHboxConstraints();			
-			testContainerConstraints();		
+			//testContainerConstraints();
+			ui.add(yellow); testNestedContainerConstraints();		
 			
 		}
 		catch (e:Dynamic) trace("ERROR:", e);
@@ -52,15 +55,12 @@ class UiLayout
 	// ----------------------------------------------------------------
 	
 	public function testManualConstraints() {
-		var b1 = new Button(20, 10, 200, 100, mySkin, greyStyle);
-		ui.add(b1);
-		
 		layoutSolver = new LayoutSolver (
 			// editable Vars (used in suggest() and suggestValues())
 			[peoteView.layout.width, peoteView.layout.height],
 			
 			// UI-Displays and UI-Elements to update
-			[ui, b1],
+			[ui, grey],
 			
 			// constraints
 			[
@@ -73,17 +73,17 @@ class UiLayout
 				(ui.layout.bottom == peoteView.layout.bottom - 10) | Strength.WEAK,
 				(ui.layout.width <= 1000) | Strength.WEAK,
 
-				(b1.layout.centerX == ui.layout.centerX) | Strength.WEAK,
-				(b1.layout.y == ui.layout.y + 0.1*ui.layout.height) | Strength.WEAK,
-				//(b1.layout.centerY == ui.layout.centerY) | Strength.MEDIUM,
+				(grey.layout.centerX == ui.layout.centerX) | Strength.WEAK,
+				(grey.layout.y == ui.layout.y + 0.1*ui.layout.height) | Strength.WEAK,
+				//(grey.layout.centerY == ui.layout.centerY) | Strength.MEDIUM,
 				
-				(b1.layout.width  == ui.layout.width  / 1.1) | Strength.WEAK,
-				(b1.layout.height == ui.layout.height / 2.0  - 20) | Strength.WEAK,
+				(grey.layout.width  == ui.layout.width  / 1.1) | Strength.WEAK,
+				(grey.layout.height == ui.layout.height / 2.0  - 20) | Strength.WEAK,
 				
-				(b1.layout.width <= 600) | Strength.MEDIUM,
-				(b1.layout.width >= 200) | Strength.MEDIUM,
-				(b1.layout.height <= 400) | Strength.MEDIUM,
-				(b1.layout.height >= 200) | Strength.MEDIUM
+				(grey.layout.width <= 600) | Strength.MEDIUM,
+				(grey.layout.width >= 200) | Strength.MEDIUM,
+				(grey.layout.height <= 400) | Strength.MEDIUM,
+				(grey.layout.height >= 200) | Strength.MEDIUM
 			]
 		);
 		
@@ -99,13 +99,6 @@ class UiLayout
 		
 	public function testManualHboxConstraints()
 	{
-		var red = new Button(0, 10, 200, 100, mySkin, redStyle);
-		ui.add(red);
-		var green = new Button(200, 10, 200, 100, mySkin, greenStyle);
-		ui.add(green);
-		var blue = new Button(400, 10, 200, 100, mySkin, blueStyle);
-		ui.add(blue);
-
 		layoutSolver = new LayoutSolver (
 			// editable Vars (used in suggest() and suggestValues())
 			[peoteView.layout.width, peoteView.layout.height],
@@ -158,11 +151,8 @@ class UiLayout
 				(blue.layout.top == ui.layout.top) | Strength.MEDIUM,
 				(blue.layout.bottom == ui.layout.bottom) | Strength.MEDIUM,
 				
-			]
-			)
-
+			])
 		);
-		
 		layoutSolver.suggestValues([peoteView.width, peoteView.height]).update();	
 	}
 
@@ -170,13 +160,6 @@ class UiLayout
 		
 	public function testContainerConstraints()
 	{
-		var red = new Button(0, 10, 200, 100, mySkin, redStyle);
-		ui.add(red);
-		var green = new Button(200, 10, 200, 100, mySkin, greenStyle);
-		ui.add(green);
-		var blue = new Button(400, 10, 200, 100, mySkin, blueStyle);
-		ui.add(blue);
-
 		layoutSolver = new LayoutSolver (
 			// editable Vars (used in suggest() and suggestValues())
 			[peoteView.layout.width, peoteView.layout.height],
@@ -196,28 +179,74 @@ class UiLayout
 			)
 
 		);
-/*		layoutSolver = new ViewLayout( peoteView,
-			[
-				new Hbox([
-							new DisplayLayout( ui,
-							[	new Hbox( [	red, green,	blue ] )
-								// ,new Hbox( [	... ] )
-								// ,more containers or custom constraints
-							])
-							// , new DisplayLayout( ...)
-				])
-				// ,new Hbox( [	... ] )
-				// ,more containers or custom constraints for Displays
-			]
-		);
-*/				
 		layoutSolver.suggestValues([peoteView.width, peoteView.height]).update();	
+	}
+
+	// ----------------------------------------------------------------
+		
+	public function testNestedContainerConstraints()
+	{
+		//var innerHbox = new Hbox(mySkin, new Style(0xff7722cc), [ red, yellow ]); 
+		//ui.add(innerHbox);
+		
+		layoutSolver = new LayoutSolver (
+			// editable Vars (used in suggest() and suggestValues())
+			[peoteView.layout.width, peoteView.layout.height],
+			
+			// UI-Displays and UI-Elements to update
+			[ui, red, green, blue, yellow],
+			
+			// constraints for the Displays
+			new Hbox([ui]).getViewConstraints(peoteView).concat(
+				// constraints for the Elements into ui-Display
+				new Hbox([
+					//innerHbox,
+					new Hbox([ red, yellow ]),
+					green,
+					blue
+				]).getConstraints(ui)
+			
+/*				[ // for testing manual
+				(innerHbox.layout.width == green.layout.width) | Strength.WEAK,
+				(innerHbox.layout.width == blue.layout.width) | Strength.WEAK,
+				(green.layout.width == blue.layout.width) | Strength.WEAK,
+				
+				(innerHbox.layout.left == ui.layout.left) | Strength.MEDIUM,
+				(green.layout.left == innerHbox.layout.right + 10 ) | Strength.MEDIUM,
+				(blue.layout.left == green.layout.right + 10 ) | Strength.MEDIUM,
+				(blue.layout.right == ui.layout.right) | new Strength(500),
+				
+				(innerHbox.layout.top == ui.layout.top) | Strength.MEDIUM,
+				(innerHbox.layout.bottom == ui.layout.bottom) | Strength.MEDIUM,
+				(green.layout.top == ui.layout.top) | Strength.MEDIUM,
+				(green.layout.bottom == ui.layout.bottom) | Strength.MEDIUM,
+				(blue.layout.top == ui.layout.top) | Strength.MEDIUM,
+				(blue.layout.bottom == ui.layout.bottom) | Strength.MEDIUM,
+				
+				// inner:
+					(red.layout.width == yellow.layout.width) | Strength.WEAK,
+					
+					(red.layout.left == innerHbox.layout.left) | Strength.MEDIUM,
+					(yellow.layout.left == red.layout.right + 10 ) | Strength.MEDIUM,
+					(yellow.layout.right == innerHbox.layout.right) | new Strength(500),
+					
+					(red.layout.top == innerHbox.layout.top) | Strength.MEDIUM,
+					(red.layout.bottom == innerHbox.layout.bottom) | Strength.MEDIUM,
+					(yellow.layout.top == innerHbox.layout.top) | Strength.MEDIUM,
+					(yellow.layout.bottom == innerHbox.layout.bottom) | Strength.MEDIUM,				
+				]
+*/			)
+
+		);
+		layoutSolver.suggestValues([peoteView.width, peoteView.height]).update();
 	}
 
 	
 	
 	
+	// ----------------------------------------
 	// -------------- events ------------------
+	// ----------------------------------------
 	
 	public function resize(width:Int, height:Int)
 	{

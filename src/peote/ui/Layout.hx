@@ -116,7 +116,7 @@ class _Layout_
 	public var right:Expression;
 	public var bottom:Expression;
 	
-	var addToConstraints:Layout->Array<Constraint>->Void = function(parentLayout:Layout, constraints:Array<Constraint>) {};
+	var addToConstraints:Layout->Array<Constraint>->?Float->Void = function(parentLayout:Layout, constraints:Array<Constraint>, weight:Float = 1.0) {};
 	var update:Void->Void;
 	
 	public function new()

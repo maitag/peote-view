@@ -13,9 +13,9 @@ class Style
 	public var borderSize:Float = 4.0;
 	public var borderRadius:Float = 20.0;
 	
-	public function new() 
+	public function new(color:Color = null) 
 	{
-		
+		if (color != null) this.color = color;
 	}
 	
 }

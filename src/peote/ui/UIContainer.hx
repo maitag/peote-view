@@ -21,7 +21,7 @@ class UIContainer extends UIElement
 		layout.addToConstraints = addToConstraints;
 	}
 	
-	function addToConstraints(parentLayout:Layout, constraints:Array<Constraint>) {}
+	function addToConstraints(parentLayout:Layout, constraints:Array<Constraint>, weight:Float = 1.0) {}
 	
 	public function getConstraints(layout:Layout):Array<Constraint>
 	{
@@ -56,45 +56,42 @@ class UIContainer extends UIElement
 class Hbox extends UIContainer
 {
 	
-	public function new(xPosition:Int = 0, yPosition:Int = 0, width:Int = 100, height:Int = 100, zIndex:Int = 0, skin:Skin = null, style:Style = null, 
-		childs:Array<Layout>) 
+	override function addToConstraints(parentLayout:Layout, constraints:Array<Constraint>, weight:Float = 1.0)
 	{
-		super(xPosition, yPosition, width, height, zIndex, skin, style, childs);
+		// TODO: um zusaetzliche listen der verwendeten displays und ui-elements ergaenzen
+		// TODO: die for-schleife auch schon in den UIContainer auslagern
 		
-		layout.addToConstraints = function(parentLayout:Layout, constraints:Array<Constraint>)
-		
-	//override function addToConstraints(parentLayout:Layout, constraints:Array<Constraint>)
+		var weak = Strength.create(0, 0, 1, weight);
+		var weak1 = Strength.create(0, 0, 500, weight);
+		var medium = Strength.create(0, 1, 0, weight);
+		//var strong = Strength.create(1, 0, 0, weight);
+		//var required = Strength.create(1, 1, 1, weight);		
+				
+		for (i in 0...childs.length)
 		{
-			// TODO: um zusaetzliche listen der verwendeten displays und ui-elements ergaenzen
-			// TODO: die for-schleife auch schon in den UIContainer auslagern
-			for (i in 0...childs.length)
-			{
-				// horizontal
-				if (i == 0)  // first
-					constraints.push( (childs[i].left == parentLayout.left) | Strength.MEDIUM );
-				else
-					constraints.push( (childs[i].left == childs[i-1].right + 10) | Strength.MEDIUM );
-				
-				if (i == childs.length - 1) {  // last
-					constraints.push( (childs[i].right == parentLayout.right) | Strength.MEDIUM);
-				}
-				else {
-					// force same width
-					for (j in (i + 1)...childs.length)
-						// TODO: if (childs[i].constantWidth)
-						constraints.push( (childs[i].width == childs[i+1].width) | Strength.WEAK);
-				}
-				
-				// vertical
-				constraints.push( (childs[i].top ==  parentLayout.top) | Strength.MEDIUM );
-				constraints.push( (childs[i].bottom ==  parentLayout.bottom) | Strength.MEDIUM );
-				
-				// recursive Container
-				childs[i].addToConstraints(layout, constraints);
+			// horizontal
+			if (i == 0)  // first
+				constraints.push( (childs[i].left == parentLayout.left) | medium );
+			else
+				constraints.push( (childs[i].left == childs[i-1].right + 10) | medium );
+			
+			if (i == childs.length - 1) {  // last
+				constraints.push( (childs[i].right == parentLayout.right) | weak1);
+			}
+			else {
+				// force same width
+				for (j in (i + 1)...childs.length)
+					// TODO: if (childs[i].constantWidth)
+					constraints.push( (childs[i].width == childs[i+1].width) | weak);
 			}
 			
+			// vertical
+			constraints.push( (childs[i].top ==  parentLayout.top) | medium );
+			constraints.push( (childs[i].bottom ==  parentLayout.bottom) | medium );
+			
+			// recursive Container
+			childs[i].addToConstraints(childs[i], constraints, weight);
 		}
-		
 		
 		
 	}
