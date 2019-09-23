@@ -100,43 +100,6 @@ class LayoutSolver
 }
 
 
-class LayoutView 
-{
-	public var x:Value;
-	public var y:Value;	
-	public var width:Variable;
-	public var height:Variable;	
-	
-	public var centerX:Expression;
-	public var centerY:Expression;
-
-	public var left:Value;
-	public var top:Value;
-	public var right:Expression;
-	public var bottom:Expression;
-
-	var addToConstraints:Layout->Array<Constraint>->Void = function(parentLayout:Layout, constraints:Array<Constraint>) {};
-	var update:Void->Void;
-
-	public function new() 
-	{
-		x = 0;
-		y = 0;
-		left = 0;
-		top = 0;
-		
-		width  = new Variable();
-		height = new Variable();		
-
-		centerX = new Expression([new Term(width) / 2.0]);
-		centerY = new Expression([new Term(height) / 2.0]);
-
-		right = new Expression([new Term(width)]);
-		bottom  = new Expression([new Term(height)]);
-	}
-	
-}
-
 @:allow(peote.ui, peote.view)
 class _Layout_
 {
@@ -160,7 +123,7 @@ class _Layout_
 	{
 		x = new Variable();
 		y = new Variable();
-		width  = new Variable();
+		width = new Variable();
 		height = new Variable();
 		
 		centerX = new Term(x) + (new Term(width) / 2.0);
@@ -169,23 +132,23 @@ class _Layout_
 		left = new Expression([new Term(x)]);
 		top  = new Expression([new Term(y)]);
 		right  = new Term(x) + new Term(width);
-		bottom = new Term(y) + new Term(height);
-		
+		bottom = new Term(y) + new Term(height);		
 	}
 	
 }
 
 @:forward
-abstract Layout(_Layout_) to _Layout_ {
+abstract Layout(_Layout_) to _Layout_
+{
     public function new()
     {
         this = new _Layout_();
     }
 		
-/*	@:from static public function fromPeoteView(v:PeoteView) {
+	@:from static public function fromPeoteView(v:PeoteView) {
 		return v.layout;
 	}
-*/	
+	
 	@:from static public function fromDisplay(d:Display) {
 		return d.layout;
 	}

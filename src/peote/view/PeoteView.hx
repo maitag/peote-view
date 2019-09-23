@@ -24,7 +24,7 @@ class PeoteView
 	
 	// cassowary constraints (jasper lib)
 	#if jasper
-	public var layout(default, null) = new peote.ui.Layout.LayoutView();
+	public var layout(default, null) = new peote.ui.Layout.Layout();
 	#end
 	
 	public var color(default,set):Color = 0x000000FF;

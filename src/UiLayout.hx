@@ -36,16 +36,14 @@ class UiLayout
 	{
 		try {			
 			peoteView = new PeoteView(window.context, window.width, window.height);
-			ui = new UIDisplay(0, 0, window.width, window.height, Color.GREY1);
+			ui = new UIDisplay(0, 0, window.width, window.height, Color.GREY3);
 			peoteView.addDisplay(ui);
 			
 			redStyle.color = Color.RED;	greenStyle.color = Color.GREEN;	blueStyle.color = Color.BLUE;
 
-			testManualConstraints();
-			
-			// TODO:
-			//testContainerConstraints();
-			
+			//testManualConstraints();			
+			//testManualHboxConstraints();			
+			testContainerConstraints();		
 			
 		}
 		catch (e:Dynamic) trace("ERROR:", e);
@@ -66,6 +64,9 @@ class UiLayout
 			
 			// constraints
 			[
+				(peoteView.layout.x == 0) | Strength.REQUIRED,
+				(peoteView.layout.y == 0) | Strength.REQUIRED,
+
 				ui.layout.centerX == peoteView.layout.centerX,
 				ui.layout.top == 10,
 				(ui.layout.width == peoteView.layout.width - 20) | Strength.WEAK,
@@ -95,9 +96,8 @@ class UiLayout
 	}
 
 	// ----------------------------------------------------------------
-	
-	
-/*	public function testContainerConstraints()
+		
+	public function testManualHboxConstraints()
 	{
 		var red = new Button(0, 10, 200, 100, mySkin, redStyle);
 		ui.add(red);
@@ -114,20 +114,106 @@ class UiLayout
 			[ui, red, green, blue],
 			
 			// constraints for the Displays
-			new Hbox([ui]).getConstraints(peoteView).concat(
-				// constraints for the Elements into ui-Display
-				new Hbox([
-					red,
-					green,
-					blue
-				]).getConstraints(ui)
+			[
+				(peoteView.layout.x == 0) | Strength.REQUIRED,
+				(peoteView.layout.y == 0) | Strength.REQUIRED,
+
+				ui.layout.centerX == peoteView.layout.centerX,
+				ui.layout.top == 10,
+				(ui.layout.width == peoteView.layout.width - 20) | Strength.STRONG,
+				(ui.layout.bottom == peoteView.layout.bottom - 10) | Strength.STRONG,
+				(ui.layout.width <= 1000) | Strength.WEAK,
+			].concat(
+			[
+				(red.layout.width <= 300) | Strength.MEDIUM,
+				(red.layout.width >= 100) | Strength.MEDIUM,
+				//(red.layout.width == 200) | Strength.MEDIUM,
+				
+				(green.layout.width <= 300) | Strength.MEDIUM,
+				(green.layout.width >= 100) | Strength.MEDIUM,
+				//(green.layout.width == 300) | Strength.MEDIUM,
+				
+				//(blue.layout.width <= 300) | Strength.MEDIUM,
+				(blue.layout.width >= 150) | Strength.MEDIUM,
+				//(blue.layout.width == 300) | Strength.MEDIUM,
+				
+				
+/*				(red.layout.width <= (ui.layout.width-20) / 3) | Strength.WEAK,
+				(green.layout.width <= (ui.layout.width-20) / 3) | Strength.WEAK,
+				(blue.layout.width <= (ui.layout.width-20) / 3) | Strength.WEAK,
+*/				
+				(red.layout.width == green.layout.width) | Strength.WEAK,
+				(red.layout.width == blue.layout.width) | Strength.WEAK,
+				(green.layout.width == blue.layout.width) | Strength.WEAK,
+				
+				(red.layout.left == ui.layout.left) | Strength.MEDIUM,
+				(green.layout.left == red.layout.right + 10 ) | Strength.MEDIUM,
+				(blue.layout.left == green.layout.right + 10 ) | Strength.MEDIUM,
+				(blue.layout.right == ui.layout.right) | new Strength(500),
+				
+				(red.layout.top == ui.layout.top) | Strength.MEDIUM,
+				(red.layout.bottom == ui.layout.bottom) | Strength.MEDIUM,
+				(green.layout.top == ui.layout.top) | Strength.MEDIUM,
+				(green.layout.bottom == ui.layout.bottom) | Strength.MEDIUM,
+				(blue.layout.top == ui.layout.top) | Strength.MEDIUM,
+				(blue.layout.bottom == ui.layout.bottom) | Strength.MEDIUM,
+				
+			]
 			)
 
 		);
 		
 		layoutSolver.suggestValues([peoteView.width, peoteView.height]).update();	
 	}
-*/
+
+	// ----------------------------------------------------------------
+		
+	public function testContainerConstraints()
+	{
+		var red = new Button(0, 10, 200, 100, mySkin, redStyle);
+		ui.add(red);
+		var green = new Button(200, 10, 200, 100, mySkin, greenStyle);
+		ui.add(green);
+		var blue = new Button(400, 10, 200, 100, mySkin, blueStyle);
+		ui.add(blue);
+
+		layoutSolver = new LayoutSolver (
+			// editable Vars (used in suggest() and suggestValues())
+			[peoteView.layout.width, peoteView.layout.height],
+			
+			// UI-Displays and UI-Elements to update
+			[ui, red, green, blue],
+			
+			// constraints for the Displays
+			new Hbox([ui]).getViewConstraints(peoteView).concat(
+				// constraints for the Elements into ui-Display
+				new Hbox([
+					red,
+					green,
+					blue
+				]).getConstraints(ui)
+			
+			)
+
+		);
+/*		layoutSolver = new ViewLayout( peoteView,
+			[
+				new Hbox([
+							new DisplayLayout( ui,
+							[	new Hbox( [	red, green,	blue ] )
+								// ,new Hbox( [	... ] )
+								// ,more containers or custom constraints
+							])
+							// , new DisplayLayout( ...)
+				])
+				// ,new Hbox( [	... ] )
+				// ,more containers or custom constraints for Displays
+			]
+		);
+*/				
+		layoutSolver.suggestValues([peoteView.width, peoteView.height]).update();	
+	}
+
 	
 	
 	
