@@ -1,4 +1,5 @@
 package;
+
 #if sampleUiLayout
 
 import lime.ui.Window;
@@ -106,8 +107,8 @@ class UiLayout
 			// UI-Displays and UI-Elements to update
 			[ui, red, green, blue],
 			
-			// constraints for the Displays
 			[
+				// constraints for the Displays
 				(peoteView.layout.x == 0) | Strength.REQUIRED,
 				(peoteView.layout.y == 0) | Strength.REQUIRED,
 
@@ -116,8 +117,8 @@ class UiLayout
 				(ui.layout.width == peoteView.layout.width - 20) | Strength.STRONG,
 				(ui.layout.bottom == peoteView.layout.bottom - 10) | Strength.STRONG,
 				(ui.layout.width <= 1000) | Strength.WEAK,
-			].concat(
-			[
+			
+				// size restriction
 				(red.layout.width <= 300) | Strength.MEDIUM,
 				(red.layout.width >= 100) | Strength.MEDIUM,
 				//(red.layout.width == 200) | Strength.MEDIUM,
@@ -130,7 +131,7 @@ class UiLayout
 				(blue.layout.width >= 150) | Strength.MEDIUM,
 				//(blue.layout.width == 300) | Strength.MEDIUM,
 				
-				
+				// hbox
 /*				(red.layout.width <= (ui.layout.width-20) / 3) | Strength.WEAK,
 				(green.layout.width <= (ui.layout.width-20) / 3) | Strength.WEAK,
 				(blue.layout.width <= (ui.layout.width-20) / 3) | Strength.WEAK,
@@ -151,7 +152,7 @@ class UiLayout
 				(blue.layout.top == ui.layout.top) | Strength.MEDIUM,
 				(blue.layout.bottom == ui.layout.bottom) | Strength.MEDIUM,
 				
-			])
+			]
 		);
 		layoutSolver.suggestValues([peoteView.width, peoteView.height]).update();	
 	}
@@ -167,17 +168,17 @@ class UiLayout
 			// UI-Displays and UI-Elements to update
 			[ui, red, green, blue],
 			
-			// constraints for the Displays
-			new Hbox([ui]).getViewConstraints(peoteView).concat(
+			[	
+				// constraints for the Displays
+				new Hbox([ui]).getViewConstraints(peoteView),
+				
 				// constraints for the Elements into ui-Display
 				new Hbox([
 					red,
 					green,
 					blue
-				]).getConstraints(ui)
-			
-			)
-
+				]).getConstraints(ui)			
+			]
 		);
 		layoutSolver.suggestValues([peoteView.width, peoteView.height]).update();	
 	}
@@ -196,8 +197,10 @@ class UiLayout
 			// UI-Displays and UI-Elements to update
 			[ui, red, green, blue, yellow],
 			
-			// constraints for the Displays
-			new Hbox([ui]).getViewConstraints(peoteView).concat(
+			[
+				// constraints for the Displays
+				new Hbox([ui]).getViewConstraints(peoteView),
+				
 				// constraints for the Elements into ui-Display
 				new Hbox([
 					//innerHbox,
@@ -205,7 +208,7 @@ class UiLayout
 					green,
 					blue
 				]).getConstraints(ui)
-			
+			]
 /*				[ // for testing manual
 				(innerHbox.layout.width == green.layout.width) | Strength.WEAK,
 				(innerHbox.layout.width == blue.layout.width) | Strength.WEAK,
@@ -235,7 +238,7 @@ class UiLayout
 					(yellow.layout.top == innerHbox.layout.top) | Strength.MEDIUM,
 					(yellow.layout.bottom == innerHbox.layout.bottom) | Strength.MEDIUM,				
 				]
-*/			)
+*/			
 
 		);
 		layoutSolver.suggestValues([peoteView.width, peoteView.height]).update();

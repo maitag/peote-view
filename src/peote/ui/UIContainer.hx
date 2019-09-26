@@ -1,5 +1,6 @@
 package peote.ui;
 
+import utils.NestedArray;
 import peote.ui.skin.Skin;
 import peote.ui.skin.Style;
 
@@ -21,11 +22,11 @@ class UIContainer extends UIElement
 		layout.addToConstraints = addToConstraints;
 	}
 	
-	function addToConstraints(parentLayout:Layout, constraints:Array<Constraint>, weight:Float = 1.0) {}
+	function addToConstraints(parentLayout:Layout, constraints:NestedArray<Constraint>, weight:Float = 1.0) {}
 	
-	public function getConstraints(layout:Layout):Array<Constraint>
+	public function getConstraints(layout:Layout):NestedArray<Constraint>
 	{
-		var constraints = new Array<Constraint>();
+		var constraints = new NestedArray<Constraint>();
 		this.layout.addToConstraints(layout, constraints);
 		
 		// TODO (for all ui or ui-elements)
@@ -38,9 +39,9 @@ class UIContainer extends UIElement
 		return(constraints);
 	}
 	
-	public function getViewConstraints(layout:Layout):Array<Constraint>
+	public function getViewConstraints(layout:Layout):NestedArray<Constraint>
 	{
-		var constraints = new Array<Constraint>();
+		var constraints = new NestedArray<Constraint>();
 		
 		// set root
 		constraints.push( (layout.x == 0) | Strength.REQUIRED);
@@ -56,7 +57,7 @@ class UIContainer extends UIElement
 class Hbox extends UIContainer
 {
 	
-	override function addToConstraints(parentLayout:Layout, constraints:Array<Constraint>, weight:Float = 1.0)
+	override function addToConstraints(parentLayout:Layout, constraints:NestedArray<Constraint>, weight:Float = 1.0)
 	{
 		// TODO: um zusaetzliche listen der verwendeten displays und ui-elements ergaenzen
 		// TODO: die for-schleife auch schon in den UIContainer auslagern

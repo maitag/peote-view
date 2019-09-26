@@ -1,12 +1,12 @@
 package peote.ui;
 
+import utils.NestedArray;
 import peote.view.PeoteView;
 import peote.view.Display;
 
 import jasper.Expression;
 import jasper.Term;
 import jasper.Variable;
-import jasper.Value;
 import jasper.Constraint;
 import jasper.Solver;
 import jasper.Strength;
@@ -24,7 +24,7 @@ class LayoutSolver
 	
 	var solver:Solver;
 	
-	public function new(editableLayoutVars:Array<Variable>=null, layoutsToUpdate:Array<Layout>, constraints:Array<Constraint>=null) 
+	public function new(editableLayoutVars:Array<Variable>=null, layoutsToUpdate:Array<Layout>, constraints:NestedArray<Constraint>=null) 
 	{
 		this.editableLayoutVars = editableLayoutVars;
 		this.constraints = constraints;
@@ -116,8 +116,9 @@ class _Layout_
 	public var right:Expression;
 	public var bottom:Expression;
 	
-	var addToConstraints:Layout->Array<Constraint>->?Float->Void = function(parentLayout:Layout, constraints:Array<Constraint>, weight:Float = 1.0) {};
-	var update:Void->Void;
+	var addToConstraints:Layout->NestedArray<Constraint>->?Float->Void = function(parentLayout:Layout, constraints:NestedArray<Constraint>, weight:Float = 1.0) {};
+	var update:Void->Void = function() {};
+	
 	
 	public function new()
 	{
@@ -133,6 +134,22 @@ class _Layout_
 		top  = new Expression([new Term(y)]);
 		right  = new Term(x) + new Term(width);
 		bottom = new Term(y) + new Term(height);		
+	}
+	
+	// for constraints to restrict size
+	public var minWidth:Null<Int> = null;
+	public var maxWidth:Null<Int> = null;
+
+	public var minHeight:Null<Int> = null;
+	public var maxHeight:Null<Int> = null;
+	
+	public function restrictWidth(min:Null<Int> = null, max:Null<Int> = null) {
+		minWidth = min;
+		maxWidth = max;
+	}
+	public function restrictHeight(min:Null<Int> = null, max:Null<Int> = null) {
+		minHeight = min;
+		maxHeight = max;
 	}
 	
 }
