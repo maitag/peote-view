@@ -11,32 +11,36 @@ import jasper.Constraint;
 import jasper.Solver;
 import jasper.Strength;
 
-/*import haxe.macro.Expr;
-import haxe.macro.Context;
-import haxe.macro.Printer;
-*/
-
 class LayoutSolver
 {
+	var rootLayout:Layout;
 	var editableLayoutVars:Array<Variable>;
 	var layoutsToUpdate:Array<Layout>;
 	var constraints:Array<Constraint>;
 	
 	var solver:Solver;
 	
-	public function new(editableLayoutVars:Array<Variable>=null, layoutsToUpdate:Array<Layout>, constraints:NestedArray<Constraint>=null) 
+	public function new(rootLayout:Layout=null, editableLayoutVars:Array<Variable>=null, layoutsToUpdate:Array<Layout>=null, constraints:NestedArray<Constraint>=null) 
 	{
+		this.rootLayout = rootLayout;
 		this.editableLayoutVars = editableLayoutVars;
-		this.constraints = constraints;
 		this.layoutsToUpdate = layoutsToUpdate;
 		this.constraints = constraints;
 				
 		solver = new Solver();
 		
-		if (editableLayoutVars != null)
+		if (rootLayout == null && editableLayoutVars == null) throw("Error: needs at least a rootLayout if no editableLayoutVars specified");
+
+		if (rootLayout != null) {
+			solver.addEditVariable(rootLayout.width, Strength.MEDIUM);
+			solver.addEditVariable(rootLayout.height, Strength.MEDIUM);
+		}
+
+		if (editableLayoutVars != null) {
 			for (editableLayoutVar in editableLayoutVars) {
 				solver.addEditVariable(editableLayoutVar, Strength.MEDIUM);
 			}
+		}
 		
 		if (constraints != null) addConstraints(constraints);
 	}
@@ -63,10 +67,17 @@ class LayoutSolver
 	
 	public inline function suggestValues(values:Array<Int>):LayoutSolver
 	{
-		if (editableLayoutVars != null)
-			for (i in 0...values.length) {
+		var start:Int = 0;
+		if (rootLayout != null) {
+			solver.suggestValue(rootLayout.width, values[0]);
+			solver.suggestValue(rootLayout.height, values[1]);
+			start = 2;
+		}
+		if (editableLayoutVars != null) {
+			for (i in start...values.length) {
 				solver.suggestValue(editableLayoutVars[i], values[i]);
 			}
+		}
 		return this;
 	}
 	
@@ -79,24 +90,14 @@ class LayoutSolver
 	public inline function update()
 	{
         solver.updateVariables();
-		for (layout in layoutsToUpdate) layout.update(); 
+		if (rootLayout != null) {
+			rootLayout.update();
+		}
+		if (layoutsToUpdate != null) {
+			for (layout in layoutsToUpdate) layout.update();
+		}		
 	}
 
-	// TODO: to deliver a new Layout from a more easy notation like:
-	/*	Layout.create(
-			peoteView.width, peoteView.height, // editable Vars that is in change... see "suggest()"
-			hbox(b1, vbox(b2,b3), b4),
-			(b1.width <= 600) | MEDIUM,
-			(b1.width >= 200) | medium
-		);
-	*/	
-	/*	public static macro function create(expr:Expr):Expr 
-		{
-			var e = new Printer().printExpr(expr);
-			// TODO: expression parsing 
-			return Context.parse(code, Context.currentPos());
-		}
-	*/
 }
 
 
@@ -116,9 +117,29 @@ class _Layout_
 	public var right:Expression;
 	public var bottom:Expression;
 	
-	var addToConstraints:Layout->NestedArray<Constraint>->?Float->Void = function(parentLayout:Layout, constraints:NestedArray<Constraint>, weight:Float = 1.0) {};
-	var update:Void->Void = function() {};
+
+	public function addConstraints(parentLayout:Layout, constraints:NestedArray<Constraint>, weight:Float = 1.0) {
+		// restrict size
+		if (minWidth == maxWidth)
+			constraints.push( (width == maxWidth) | Strength.MEDIUM );
+		else {
+			constraints.push( (width >= minWidth) | Strength.MEDIUM );
+			if (maxWidth > -1) constraints.push( (width <= maxWidth) | Strength.MEDIUM );
+		}
+		if (minHeight == maxHeight)
+			constraints.push( (height == maxHeight) | Strength.MEDIUM );
+		else {
+			constraints.push( (height >= minHeight) | Strength.MEDIUM );
+			if (maxHeight > -1) constraints.push( (height <= maxHeight) | Strength.MEDIUM );
+		}
+				
+		addChildConstraints(parentLayout, constraints, weight);
+	}
+
+	var addChildConstraints:Layout->NestedArray<Constraint>->?Float->Void = function(parentLayout:Layout, constraints:NestedArray<Constraint>, weight:Float = 1.0) {};
 	
+	var update:Void->Void = function() {};
+	var updateChilds:Void->Void = function() {};
 	
 	public function new()
 	{
@@ -137,19 +158,27 @@ class _Layout_
 	}
 	
 	// for constraints to restrict size
-	public var minWidth:Null<Int> = null;
-	public var maxWidth:Null<Int> = null;
+	public var minWidth = 0;
+	public var maxWidth = -1;
 
-	public var minHeight:Null<Int> = null;
-	public var maxHeight:Null<Int> = null;
+	public var minHeight = 0;
+	public var maxHeight = -1;
 	
-	public function restrictWidth(min:Null<Int> = null, max:Null<Int> = null) {
-		minWidth = min;
-		maxWidth = max;
+	public function minSize(minWidth:Int = 0, minHeight:Int = 0) {
+		this.minWidth = Std.int(Math.max(0, minWidth));
+		this.minHeight = Std.int(Math.max(0, minHeight));
+		if (maxWidth > -1 && maxWidth < this.minWidth) maxWidth = minWidth;
+		if (maxHeight > -1 && maxHeight < this.minHeight) maxHeight = minWidth;
 	}
-	public function restrictHeight(min:Null<Int> = null, max:Null<Int> = null) {
-		minHeight = min;
-		maxHeight = max;
+	public function maxSize(maxWidth:Null<Int> = null, maxHeight:Null<Int> = null) {
+		if (maxWidth == null) this.maxWidth = -1 else {
+			this.maxWidth = maxWidth;
+			if (minWidth > maxWidth) minWidth = maxWidth;
+		}
+		if (maxHeight == null) this.maxHeight = -1 else {
+			this.maxHeight = maxHeight;
+			if (minHeight > maxHeight) minHeight = maxHeight;
+		}
 	}
 	
 }

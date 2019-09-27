@@ -50,18 +50,20 @@ class UIElement
 	
 	#if jasper // cassowary constraints (jasper lib)
 	public var layout(default, null) = new peote.ui.Layout.Layout();
-	public function updateLayout() {
-		if (x != Std.int(layout.x.m_value) - uiDisplay.x ||
-			y != Std.int(layout.y.m_value) - uiDisplay.y || 
-			width != Std.int(layout.width.m_value) ||
-			height != Std.int(layout.height.m_value))
-		{
-			x = Std.int(layout.x.m_value) - uiDisplay.x;
-			y = Std.int(layout.y.m_value) - uiDisplay.y;
-			width = Std.int(layout.width.m_value);
-			height = Std.int(layout.height.m_value);
-			update();
-		}
+	public function updateLayout() {trace("update element");
+		if (uiDisplay != null)
+			if (x != Std.int(layout.x.m_value) - uiDisplay.x ||
+				y != Std.int(layout.y.m_value) - uiDisplay.y || 
+				width != Std.int(layout.width.m_value) ||
+				height != Std.int(layout.height.m_value))
+			{
+				x = Std.int(layout.x.m_value) - uiDisplay.x;
+				y = Std.int(layout.y.m_value) - uiDisplay.y;
+				width = Std.int(layout.width.m_value);
+				height = Std.int(layout.height.m_value);
+				update();
+			}
+		layout.updateChilds();
 	}
 	#end
 	

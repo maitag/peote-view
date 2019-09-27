@@ -19,23 +19,27 @@ class UIContainer extends UIElement
 		
 		this.childs = childs;
 		
-		layout.addToConstraints = addToConstraints;
+		layout.addChildConstraints = addChildConstraints;
+		layout.updateChilds = updateChilds;
 	}
 	
-	function addToConstraints(parentLayout:Layout, constraints:NestedArray<Constraint>, weight:Float = 1.0) {}
+	function updateChilds() {
+		trace("update childs");
+		for (child in childs) {
+			child.update();
+		}
+	}
+	
+	function addChildConstraints(parentLayout:Layout, constraints:NestedArray<Constraint>, weight:Float = 1.0) {}
 	
 	public function getConstraints(layout:Layout):NestedArray<Constraint>
 	{
 		var constraints = new NestedArray<Constraint>();
-		this.layout.addToConstraints(layout, constraints);
 		
-		// TODO (for all ui or ui-elements)
-		// if () constraints.push( (childs[i].width == childs[i].constantWidth) | Strength.MEDIUM );
-		// else {
-		//	if () constraints.push( (childs[i].width <= childs[i].maxWidth) | Strength.MEDIUM );
-		// 	if () constraints.push( (childs[i].width >= childs[i].minWidth) | Strength.MEDIUM );
-		// }		
-
+		this.layout.addConstraints(layout, constraints);
+		
+		layout.updateChilds = this.updateChilds;
+		
 		return(constraints);
 	}
 	
@@ -47,7 +51,10 @@ class UIContainer extends UIElement
 		constraints.push( (layout.x == 0) | Strength.REQUIRED);
 		constraints.push( (layout.y == 0) | Strength.REQUIRED);
 		
-		this.layout.addToConstraints(layout, constraints);
+		this.layout.addConstraints(layout, constraints, 1.1);
+		
+		layout.update = this.updateChilds;
+		
 		return(constraints);
 	}
 	
@@ -57,19 +64,18 @@ class UIContainer extends UIElement
 class Hbox extends UIContainer
 {
 	
-	override function addToConstraints(parentLayout:Layout, constraints:NestedArray<Constraint>, weight:Float = 1.0)
+	override function addChildConstraints(parentLayout:Layout, constraints:NestedArray<Constraint>, weight:Float = 1.0)
 	{
-		// TODO: um zusaetzliche listen der verwendeten displays und ui-elements ergaenzen
 		// TODO: die for-schleife auch schon in den UIContainer auslagern
 		
 		var weak = Strength.create(0, 0, 1, weight);
-		var weak1 = Strength.create(0, 0, 500, weight);
+		var weak1 = Strength.create(0, 0, 100, weight);
 		var medium = Strength.create(0, 1, 0, weight);
 		//var strong = Strength.create(1, 0, 0, weight);
 		//var required = Strength.create(1, 1, 1, weight);		
-				
+		
 		for (i in 0...childs.length)
-		{
+		{	
 			// horizontal
 			if (i == 0)  // first
 				constraints.push( (childs[i].left == parentLayout.left) | medium );
@@ -81,17 +87,18 @@ class Hbox extends UIContainer
 			}
 			else {
 				// force same width
-				for (j in (i + 1)...childs.length)
-					// TODO: if (childs[i].constantWidth)
-					constraints.push( (childs[i].width == childs[i+1].width) | weak);
+				for (j in (i + 1)...childs.length) {
+					// TODO: alternative methods
+					constraints.push( (childs[i].width == childs[j].width) | weak);
+				}
 			}
 			
 			// vertical
 			constraints.push( (childs[i].top ==  parentLayout.top) | medium );
-			constraints.push( (childs[i].bottom ==  parentLayout.bottom) | medium );
+			constraints.push( (childs[i].bottom ==  parentLayout.bottom) | weak1 );
 			
 			// recursive Container
-			childs[i].addToConstraints(childs[i], constraints, weight);
+			childs[i].addConstraints(childs[i], constraints, weight+0.05);
 		}
 		
 		
