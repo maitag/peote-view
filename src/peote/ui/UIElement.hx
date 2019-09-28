@@ -27,7 +27,7 @@ class UIElement
 	public var skin:Skin = null;
 	public var style(default, set):Style = null;
 	inline function set_style(s:Style):Style {
-		trace("set style");
+		//trace("set style");
 		if (skin == null) {
 			if (style != null) throw ("Error, for styling the widget needs a skin");
 		} 
@@ -50,7 +50,8 @@ class UIElement
 	
 	#if jasper // cassowary constraints (jasper lib)
 	public var layout(default, null) = new peote.ui.Layout.Layout();
-	public function updateLayout() {trace("update element");
+	public function updateLayout() {
+		//trace("update element");
 		if (uiDisplay != null)
 			if (x != Std.int(layout.x.m_value) - uiDisplay.x ||
 				y != Std.int(layout.y.m_value) - uiDisplay.y || 

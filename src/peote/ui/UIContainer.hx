@@ -24,7 +24,7 @@ class UIContainer extends UIElement
 	}
 	
 	function updateChilds() {
-		trace("update childs");
+		//trace("update childs");
 		for (child in childs) {
 			child.update();
 		}
@@ -38,8 +38,10 @@ class UIContainer extends UIElement
 	{
 		var constraints = new NestedArray<Constraint>();
 		
+		// recursive Container
 		this.layout.addChildConstraints(layout, constraints, 1.0);
-
+		
+		// max/min size constraints
 		this.layout.addWidthConstraints(constraints, Strength.create(0, 0, 600, 1.0));
 		this.layout.addHeightConstraints(constraints, Strength.create(0, 0, 600, 1.0));
 		
@@ -57,7 +59,8 @@ class UIContainer extends UIElement
 		constraints.push( (layout.x == 0) | Strength.REQUIRED);
 		constraints.push( (layout.y == 0) | Strength.REQUIRED);
 		
-		this.layout.addChildConstraints(layout, constraints, 1.9);
+		// recursive Container
+		this.layout.addChildConstraints(layout, constraints, 1.1);
 		
 		layout.update = this.updateChilds;
 		
@@ -66,6 +69,8 @@ class UIContainer extends UIElement
 	
 		
 }
+
+// -------------------- HBox ------------------------------------------
 
 class Hbox extends UIContainer
 {
@@ -134,10 +139,9 @@ class Hbox extends UIContainer
 			// recursive Container
 			childs[i].addChildConstraints(childs[i], constraints, weight+0.05);
 
+			// max/min size constraints
 			childs[i].addWidthConstraints(constraints, weak6);
 			childs[i].addHeightConstraints(constraints, weak6);
-			
-			trace(childs[i].minWidth, childs[i].minHeight, childs[i].maxWidth, childs[i].maxHeight);
 		}
 		
 		

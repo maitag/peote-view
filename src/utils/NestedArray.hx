@@ -2,34 +2,34 @@ package utils;
 
 
 @:forward
-abstract VArrayItem<T>(Array<T>) from Array<T> to Array<T>
+abstract NestedArrayItem<T>(Array<T>) from Array<T> to Array<T>
 {
     public function new() {
         this = new Array<T>();
     }
     
     @:from
-    public static function fromOther<T>(a:T):VArrayItem<T> {
+    public static function fromOther<T>(a:T):NestedArrayItem<T> {
         return [a];
     }
    
     @:from
-    public static function fromArrayVArrayItem<T>(av:Array<VArrayItem<T>>):VArrayItem<T> {
-        var vArrayItem = new VArrayItem<T>();
+    public static function fromArrayNestedArrayItem<T>(av:Array<NestedArrayItem<T>>):NestedArrayItem<T> {
+        var item = new NestedArrayItem<T>();
         for (v in av) {
-			for (item in v) 
-				vArrayItem.push(item);
+			for (i in v) 
+				item.push(i);
     	}
-        return vArrayItem;
+        return item;
     }
 
     @:from
-    public static function fromArray<T>(aa:Array<T>):VArrayItem<T> {
-        var vArrayItem = new VArrayItem<T>();
-        for (a in aa) {
-        	vArrayItem.push(a);
+    public static function fromArray<T>(a:Array<T>):NestedArrayItem<T> {
+        var item = new NestedArrayItem<T>();
+        for (v in a) {
+        	item.push(v);
     	}
-        return vArrayItem;
+        return item;
     }
 
 
@@ -37,19 +37,22 @@ abstract VArrayItem<T>(Array<T>) from Array<T> to Array<T>
 }
 
 @:forward
-abstract NestedArray<T>(Array<VArrayItem<T>>) from Array<VArrayItem<T>> to Array<VArrayItem<T>>
+abstract NestedArray<T>(Array<NestedArrayItem<T>>) from Array<NestedArrayItem<T>> to Array<NestedArrayItem<T>>
 {
     public function new() {
-        this = new Array<VArrayItem<T>>();
+        this = new Array<NestedArrayItem<T>>();
     }
     
 /*	public static function test()
     {
-        var a:VArray<Int> = [3, 4];
-        var b:VArray<Int> = [ [5, 6], 7 ];
+        var a:NestedArray<Int> = [3, 4];
+        
+		var b:NestedArray<Int> = [ [5, 6], 7 ];
         b.push(8);
+		
 		var c = [9, 10];
-        var d:VArray<Int> = [ 1, [2], a, b, c ];
+		
+        var d:NestedArray<Int> = [ 1, [2], a, b, c ];
         for (item in d) trace(item);
         
 		var e:Array<Int> = d;

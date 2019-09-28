@@ -102,7 +102,7 @@ class UIDisplay extends Display
 	}
 
 	public function onWindowLeave ():Void {
-		trace("onWindowLeave");
+		//trace("onWindowLeave");
 		if (lastOverIndex >= 0) {
 			overBuffer.getElement(lastOverIndex).uiElement.mouseOut( -1, -1) ;
 			lastOverIndex = -1;

@@ -60,11 +60,10 @@ class UiLayout
 	
 	public function testManualConstraints() {
 		layoutSolver = new LayoutSolver (
-			// editable Vars (used in suggest() and suggestValues())
-			[peoteView.layout.width, peoteView.layout.height],
 			
-			// UI-Displays and UI-Elements to update
-			[ui, grey],
+			[peoteView.layout.width, peoteView.layout.height], // editable Vars (used in suggest() and suggestValues())
+			
+			[ui, grey], // UI-Displays and UI-Elements to update
 			
 			// constraints
 			[
@@ -91,11 +90,14 @@ class UiLayout
 			]
 		);
 		
-		// adding constraints afterwards
+		// adding constraints afterwards:
 		var limitHeight:Constraint = (ui.layout.height <= 800) | Strength.WEAK;
 		layoutSolver.addConstraint(limitHeight);
-		//layoutSolver.removeConstraint(limitHeight);
+		
+		// that constraints can also be removed again:
+		// layoutSolver.removeConstraint(limitHeight);
 
+		// set the constraints editable values to actual view size and updating (same as in onResize)
 		layoutSolver.suggestValues([peoteView.width, peoteView.height]).update();
 	}
 
@@ -104,14 +106,13 @@ class UiLayout
 	public function testManualHboxConstraints()
 	{
 		layoutSolver = new LayoutSolver (
-			// editable Vars (used in suggest() and suggestValues())
-			[peoteView.layout.width, peoteView.layout.height],
 			
-			// UI-Displays and UI-Elements to update
-			[ui, red, green, blue],
+			[peoteView.layout.width, peoteView.layout.height], // editable Vars (used in suggest() and suggestValues())			
 			
-			[
-				// constraints for the Displays
+			[ui, red, green, blue], // UI-Displays and UI-Elements to update
+			
+			// constraints
+			[	// for the Displays
 				(peoteView.layout.x == 0) | Strength.REQUIRED,
 				(peoteView.layout.y == 0) | Strength.REQUIRED,
 
@@ -121,6 +122,8 @@ class UiLayout
 				(ui.layout.bottom == peoteView.layout.bottom - 10) | Strength.STRONG,
 				(ui.layout.width <= 1000) | Strength.WEAK,
 			
+				// constraints for ui-elements
+				
 				// size restriction
 				(red.layout.width <= 300) | Strength.MEDIUM,
 				(red.layout.width >= 100) | Strength.MEDIUM,
@@ -134,11 +137,12 @@ class UiLayout
 				(blue.layout.width >= 150) | Strength.MEDIUM,
 				//(blue.layout.width == 300) | Strength.MEDIUM,
 				
-				// hbox
-/*				(red.layout.width <= (ui.layout.width-20) / 3) | Strength.WEAK,
-				(green.layout.width <= (ui.layout.width-20) / 3) | Strength.WEAK,
-				(blue.layout.width <= (ui.layout.width-20) / 3) | Strength.WEAK,
-*/				
+				// manual hbox constraints
+				
+				//(red.layout.width <= (ui.layout.width-20) / 3) | Strength.WEAK,
+				//(green.layout.width <= (ui.layout.width-20) / 3) | Strength.WEAK,
+				//(blue.layout.width <= (ui.layout.width-20) / 3) | Strength.WEAK,
+				
 				(red.layout.width == green.layout.width) | Strength.WEAK,
 				(red.layout.width == blue.layout.width) | Strength.WEAK,
 				(green.layout.width == blue.layout.width) | Strength.WEAK,
@@ -188,10 +192,11 @@ class UiLayout
 		var innerHbox = new Hbox(0,0,0,0,-1,mySkin, new Style(0x440011ff), [ red, yellow ]); 
 		ui.add(innerHbox);
 		
-		layoutSolver = new LayoutSolver (			
-			//peoteView, // root Layout (automatically set its width and height as editable Vars)
-			[peoteView.layout.width, peoteView.layout.height],
-			[ui, innerHbox, red, yellow, green, blue],
+		layoutSolver = new LayoutSolver (
+			peoteView, // root Layout (automatically set its width and height as editable Vars)
+			[ui, innerHbox, red, yellow, green, blue], // elements that needs to update
+			
+			// constraints
 			[
 				// size restriction
 				(red.layout.width <= 100) | Strength.MEDIUM,
@@ -199,7 +204,6 @@ class UiLayout
 				(yellow.layout.width >= 50) | Strength.MEDIUM,
 				(yellow.layout.width <= 250) | Strength.MEDIUM,
 				(green.layout.width >= 50) | Strength.MEDIUM,
-				//(blue.layout.width >= 50) | Strength.MEDIUM,
 				(blue.layout.width == 200) | Strength.MEDIUM,
 
 				// constraints for the Displays
@@ -242,12 +246,13 @@ class UiLayout
 		
 	public function testNestedContainerConstraints()
 	{
-		//restrict size:
-		red.layout.minSize(50, 50);			red.layout.maxSize(100, 100);
-		yellow.layout.minSize(100, 100);	yellow.layout.maxSize(200, 200);
+		// TODO: keep aspect ration!
 		
-		green.layout.minSize(200, 200);	green.layout.maxSize(400, 400);
-		blue.layout.minSize(400, 400);	blue.layout.maxSize(800,800);
+		//restrict size:
+		red.layout.minSize(50, 50);      red.layout.maxSize(100, 100);
+		yellow.layout.minSize(100, 100); yellow.layout.maxSize(200, 200);		
+		green.layout.minSize(200, 200);  green.layout.maxSize(300, 300);
+		blue.layout.minSize(400, 400);   blue.layout.maxSize(800,800);
 		
 		//ui.layout.minSize(70, 70);	
 		//ui.layout.maxSize(1600, 1000);
