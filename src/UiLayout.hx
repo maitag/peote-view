@@ -242,14 +242,18 @@ class UiLayout
 		
 	public function testNestedContainerConstraints()
 	{
-		//TODO:
-		red.layout.minSize(100, 30);	red.layout.maxSize(200, 60);
-		yellow.layout.minSize(50, 20);	yellow.layout.maxSize(100, 30);
+		//restrict size:
+		red.layout.minSize(50, 50);			red.layout.maxSize(100, 100);
+		yellow.layout.minSize(100, 100);	yellow.layout.maxSize(200, 200);
 		
-		green.layout.minSize(50, 20);	green.layout.maxSize(400, 120);
-		blue.layout.minSize(100, 30);	blue.layout.maxSize(200, 60);
+		green.layout.minSize(200, 200);	green.layout.maxSize(400, 400);
+		blue.layout.minSize(400, 400);	blue.layout.maxSize(800,800);
 		
-		layoutSolver = new LayoutSolver (			
+		//ui.layout.minSize(70, 70);	
+		//ui.layout.maxSize(1600, 1000);
+		
+		
+		layoutSolver = new LayoutSolver (		
 			peoteView, // root Layout (automatically set its width and height as editable Vars)
 			[
 				// constraints for the Displays
@@ -257,10 +261,9 @@ class UiLayout
 				
 				// constraints for the Elements into ui-Display
 				new Hbox([
-					//innerHbox,
 					new Hbox([ red, yellow ]),
-					green,
-					blue
+					new Hbox([ blue ]),
+					green
 				]).getConstraints(ui)
 
 			]

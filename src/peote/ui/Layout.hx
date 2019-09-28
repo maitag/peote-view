@@ -32,13 +32,13 @@ class LayoutSolver
 		if (rootLayout == null && editableLayoutVars == null) throw("Error: needs at least a rootLayout if no editableLayoutVars specified");
 
 		if (rootLayout != null) {
-			solver.addEditVariable(rootLayout.width, Strength.MEDIUM);
-			solver.addEditVariable(rootLayout.height, Strength.MEDIUM);
+			solver.addEditVariable(rootLayout.width, Strength.STRONG);
+			solver.addEditVariable(rootLayout.height, Strength.STRONG);
 		}
 
 		if (editableLayoutVars != null) {
 			for (editableLayoutVar in editableLayoutVars) {
-				solver.addEditVariable(editableLayoutVar, Strength.MEDIUM);
+				solver.addEditVariable(editableLayoutVar, Strength.STRONG);
 			}
 		}
 		
@@ -118,22 +118,25 @@ class _Layout_
 	public var bottom:Expression;
 	
 
-	public function addConstraints(parentLayout:Layout, constraints:NestedArray<Constraint>, weight:Float = 1.0) {
-		// restrict size
+	public function addWidthConstraints(constraints:NestedArray<Constraint>, strength:Strength) 
+	{
+		// restrict width
 		if (minWidth == maxWidth)
-			constraints.push( (width == maxWidth) | Strength.MEDIUM );
+			constraints.push( (width == maxWidth) | strength );
 		else {
-			constraints.push( (width >= minWidth) | Strength.MEDIUM );
-			if (maxWidth > -1) constraints.push( (width <= maxWidth) | Strength.MEDIUM );
+			constraints.push( (width >= minWidth) | strength );
+			if (maxWidth > -1) constraints.push( (width <= maxWidth) | strength );
 		}
+	}
+	public function addHeightConstraints(constraints:NestedArray<Constraint>, strength:Strength)
+	{
+		// restrict height
 		if (minHeight == maxHeight)
-			constraints.push( (height == maxHeight) | Strength.MEDIUM );
+			constraints.push( (height == maxHeight) | strength );
 		else {
-			constraints.push( (height >= minHeight) | Strength.MEDIUM );
-			if (maxHeight > -1) constraints.push( (height <= maxHeight) | Strength.MEDIUM );
+			constraints.push( (height >= minHeight) | strength );
+			if (maxHeight > -1) constraints.push( (height <= maxHeight) | strength );
 		}
-				
-		addChildConstraints(parentLayout, constraints, weight);
 	}
 
 	var addChildConstraints:Layout->NestedArray<Constraint>->?Float->Void = function(parentLayout:Layout, constraints:NestedArray<Constraint>, weight:Float = 1.0) {};
@@ -168,14 +171,16 @@ class _Layout_
 		this.minWidth = Std.int(Math.max(0, minWidth));
 		this.minHeight = Std.int(Math.max(0, minHeight));
 		if (maxWidth > -1 && maxWidth < this.minWidth) maxWidth = minWidth;
-		if (maxHeight > -1 && maxHeight < this.minHeight) maxHeight = minWidth;
+		if (maxHeight > -1 && maxHeight < this.minHeight) maxHeight = minHeight;
 	}
 	public function maxSize(maxWidth:Null<Int> = null, maxHeight:Null<Int> = null) {
-		if (maxWidth == null) this.maxWidth = -1 else {
+		if (maxWidth == null) this.maxWidth = -1;
+		else {
 			this.maxWidth = maxWidth;
 			if (minWidth > maxWidth) minWidth = maxWidth;
 		}
-		if (maxHeight == null) this.maxHeight = -1 else {
+		if (maxHeight == null) this.maxHeight = -1;
+		else {
 			this.maxHeight = maxHeight;
 			if (minHeight > maxHeight) minHeight = maxHeight;
 		}

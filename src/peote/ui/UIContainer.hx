@@ -30,13 +30,19 @@ class UIContainer extends UIElement
 		}
 	}
 	
-	function addChildConstraints(parentLayout:Layout, constraints:NestedArray<Constraint>, weight:Float = 1.0) {}
+	function addChildConstraints(parentLayout:Layout, constraints:NestedArray<Constraint>, weight:Float = 1.0)
+	{}
+
 	
 	public function getConstraints(layout:Layout):NestedArray<Constraint>
 	{
 		var constraints = new NestedArray<Constraint>();
 		
-		this.layout.addConstraints(layout, constraints);
+		this.layout.addChildConstraints(layout, constraints, 1.0);
+
+		this.layout.addWidthConstraints(constraints, Strength.create(0, 0, 600, 1.0));
+		this.layout.addHeightConstraints(constraints, Strength.create(0, 0, 600, 1.0));
+		
 		
 		layout.updateChilds = this.updateChilds;
 		
@@ -51,7 +57,7 @@ class UIContainer extends UIElement
 		constraints.push( (layout.x == 0) | Strength.REQUIRED);
 		constraints.push( (layout.y == 0) | Strength.REQUIRED);
 		
-		this.layout.addConstraints(layout, constraints, 1.1);
+		this.layout.addChildConstraints(layout, constraints, 1.9);
 		
 		layout.update = this.updateChilds;
 		
@@ -66,14 +72,35 @@ class Hbox extends UIContainer
 	
 	override function addChildConstraints(parentLayout:Layout, constraints:NestedArray<Constraint>, weight:Float = 1.0)
 	{
-		// TODO: die for-schleife auch schon in den UIContainer auslagern
+		// TODO: refactoring
 		
 		var weak = Strength.create(0, 0, 1, weight);
 		var weak1 = Strength.create(0, 0, 100, weight);
+		var weak2 = Strength.create(0, 0, 200, weight);
+		var weak3 = Strength.create(0, 0, 300, weight);
+		var weak4 = Strength.create(0, 0, 400, weight);
+		var weak5 = Strength.create(0, 0, 500, weight);
+		var weak6 = Strength.create(0, 0, 600, weight);
+		var weak7 = Strength.create(0, 0, 700, weight);
+		var weak8 = Strength.create(0, 0, 800, weight);
+		var weak9 = Strength.create(0, 0, 900, weight);
+		
 		var medium = Strength.create(0, 1, 0, weight);
+		var medium1 = Strength.create(0, 100, 0, weight);
+		//var medium1 = Strength.create(0, 500, 0, weight);
 		//var strong = Strength.create(1, 0, 0, weight);
 		//var required = Strength.create(1, 1, 1, weight);		
 		
+/*		// get max height
+		var minChildHeight:Int = 0;
+		var maxChildHeight:Int = -1;
+		for (child in childs) {
+			if (child.minHeight < minChildHeight) minChildHeight = child.minHeight;
+			if (child.maxHeight > maxChildHeight) maxChildHeight = child.maxHeight;
+		}
+		//parentLayout.minHeight = minChildHeight;
+		//parentLayout.maxHeight = maxChildHeight;
+*/		
 		for (i in 0...childs.length)
 		{	
 			// horizontal
@@ -83,22 +110,34 @@ class Hbox extends UIContainer
 				constraints.push( (childs[i].left == childs[i-1].right + 10) | medium );
 			
 			if (i == childs.length - 1) {  // last
-				constraints.push( (childs[i].right == parentLayout.right) | weak1);
+				constraints.push( (childs[i].right == parentLayout.right) | weak5);
 			}
 			else {
 				// force same width
 				for (j in (i + 1)...childs.length) {
-					// TODO: alternative methods
-					constraints.push( (childs[i].width == childs[j].width) | weak);
+					constraints.push( (childs[i].width == childs[j].width) | weak); // TODO: check alternative methods
 				}
 			}
 			
 			// vertical
-			constraints.push( (childs[i].top ==  parentLayout.top) | medium );
-			constraints.push( (childs[i].bottom ==  parentLayout.bottom) | weak1 );
+			constraints.push( (childs[i].top == parentLayout.top) | medium );
 			
+			if (childs.length == 1)
+				constraints.push( (childs[i].bottom == parentLayout.bottom) | weak9 );
+			else if (childs[i].maxHeight == -1 )
+				constraints.push( (childs[i].bottom == parentLayout.bottom) | weak3 );
+			else
+				constraints.push( (childs[i].bottom == parentLayout.bottom) | Strength.create(0, 0, 100+i*10, weight));
+
+			
+				
 			// recursive Container
-			childs[i].addConstraints(childs[i], constraints, weight+0.05);
+			childs[i].addChildConstraints(childs[i], constraints, weight+0.05);
+
+			childs[i].addWidthConstraints(constraints, weak6);
+			childs[i].addHeightConstraints(constraints, weak6);
+			
+			trace(childs[i].minWidth, childs[i].minHeight, childs[i].maxWidth, childs[i].maxHeight);
 		}
 		
 		
