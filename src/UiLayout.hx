@@ -45,12 +45,12 @@ class UiLayout
 			//ui.add(grey); testManualConstraints();
 			
 			ui.add(red); ui.add(green); ui.add(blue);
-			//testManualHboxConstraints();			
+			testManualHboxConstraints();			
 			//testContainerConstraints();
 			
-			ui.add(yellow);
+			//ui.add(yellow);
 			//testManualNestedContainerConstraints();		
-			testNestedContainerConstraints();		
+			//testNestedContainerConstraints();		
 			
 		}
 		catch (e:Dynamic) trace("ERROR:", e);
@@ -116,41 +116,45 @@ class UiLayout
 				(peoteView.layout.x == 0) | Strength.REQUIRED,
 				(peoteView.layout.y == 0) | Strength.REQUIRED,
 
-				ui.layout.centerX == peoteView.layout.centerX,
-				ui.layout.top == 10,
-				(ui.layout.width == peoteView.layout.width - 20) | Strength.STRONG,
-				(ui.layout.bottom == peoteView.layout.bottom - 10) | Strength.STRONG,
-				(ui.layout.width <= 1000) | Strength.WEAK,
+				(ui.layout.centerX == peoteView.layout.centerX) | new Strength(200),
+				//(ui.layout.left == peoteView.layout.left) | new Strength(300),
+				//(ui.layout.right == peoteView.layout.right) | new Strength(200),
+				(ui.layout.width == peoteView.layout.width) | new Strength(100),
+				
+				(ui.layout.top == 0) | Strength.MEDIUM,
+				(ui.layout.bottom == peoteView.layout.bottom) | Strength.MEDIUM,
+				(ui.layout.width <= 1000) | Strength.MEDIUM,
 			
 				// constraints for ui-elements
 				
 				// size restriction
-				(red.layout.width <= 300) | Strength.MEDIUM,
-				(red.layout.width >= 100) | Strength.MEDIUM,
-				//(red.layout.width == 200) | Strength.MEDIUM,
+				(red.layout.width <= 100) | new Strength(500),
+				(red.layout.width >= 50) | new Strength(500),
+				//(red.layout.width == 200) | new Strength(500),
 				
-				(green.layout.width <= 300) | Strength.MEDIUM,
-				(green.layout.width >= 100) | Strength.MEDIUM,
-				//(green.layout.width == 300) | Strength.MEDIUM,
+				(green.layout.width <= 200) | new Strength(500),
+				(green.layout.width >= 100) | new Strength(500),
+				//(green.layout.width == 300) | new Strength(500),
 				
-				//(blue.layout.width <= 300) | Strength.MEDIUM,
-				(blue.layout.width >= 150) | Strength.MEDIUM,
-				//(blue.layout.width == 300) | Strength.MEDIUM,
+				//(blue.layout.width <= 300) | new Strength(500),
+				(blue.layout.width >= 150) | new Strength(500),
+				(blue.layout.width <= 300) | new Strength(500),
 				
 				// manual hbox constraints
 				
-				//(red.layout.width <= (ui.layout.width-20) / 3) | Strength.WEAK,
-				//(green.layout.width <= (ui.layout.width-20) / 3) | Strength.WEAK,
-				//(blue.layout.width <= (ui.layout.width-20) / 3) | Strength.WEAK,
+				(red.layout.width   == (ui.layout.width) * ((100+ 50)/2) / ((100+50)/2 + (200+100)/2 + (300+150)/2)) | Strength.WEAK,
+				(green.layout.width == (ui.layout.width) * ((200+100)/2) / ((100+50)/2 + (200+100)/2 + (300+150)/2)) | Strength.WEAK,
+				//(blue.layout.width  == (ui.layout.width) * ((300+150)/2) / ((100+50)/2 + (200+100)/2 + (300+150)/2)) | Strength.WEAK,
 				
-				(red.layout.width == green.layout.width) | Strength.WEAK,
+/*				(red.layout.width == green.layout.width) | Strength.WEAK,
 				(red.layout.width == blue.layout.width) | Strength.WEAK,
 				(green.layout.width == blue.layout.width) | Strength.WEAK,
-				
-				(red.layout.left == ui.layout.left) | Strength.MEDIUM,
-				(green.layout.left == red.layout.right + 10 ) | Strength.MEDIUM,
-				(blue.layout.left == green.layout.right + 10 ) | Strength.MEDIUM,
-				(blue.layout.right == ui.layout.right) | new Strength(500),
+*/				
+				(red.layout.left == ui.layout.left) | new Strength(400),
+				(green.layout.left == red.layout.right ) | new Strength(400),
+				(blue.layout.left == green.layout.right ) | new Strength(400),
+				(blue.layout.right == ui.layout.right) | new Strength(300),
+				//(blue.layout.right == ui.layout.right) | Strength.WEAK,
 				
 				(red.layout.top == ui.layout.top) | Strength.MEDIUM,
 				(red.layout.bottom == ui.layout.bottom) | Strength.MEDIUM,
@@ -266,7 +270,7 @@ class UiLayout
 				
 				// constraints for the Elements into ui-Display
 				new Hbox([
-					new Hbox([ red, yellow ]),
+					new Hbox([ new Hbox([red]), yellow ]),
 					new Hbox([ blue ]),
 					green
 				]).getConstraints(ui)
@@ -277,6 +281,46 @@ class UiLayout
 	}
 
 	
+	// ----------------------------------------------------------------
+		
+/*	public function simplifyingAPI()
+	{
+		layoutSolver = new LayoutSolver
+		(	
+			// new Shelf( peoteView, Orientation.Horizontal, Align.Top, {width:320, minWidth:200, maxWidth:400, height:170, minHeight:100, maxHeight:200},
+			// new HShelf( peoteView, Align.Top, sizeOptions,   // Align.Center is default
+			// HorizontalShelf // alias should also work
+			HShelf.Top( peoteView, sizeOptions,    // ".Center", ".Top", ".Bottom" , ".Left", ".Right" or in combination like ".TopLeft"
+			[
+				new HShelf( uiDisplay, {minWidth:200, maxWidth:400}
+				[
+					new Spacer( {min:200, max:300} ),
+					
+					blueWidget, // no size limits !
+					
+					new Box( greenWidget, Align.BottomRight,{width:300, minHeight:100, maxHeight:200} ),
+					// same as: new Box( Align.CenterRight, {width:300, minHeight:100, maxHeight:200}, [ greenWidget ] ),
+					// or like Box.bottomRight(greenWidget, {width:300, minHeight:100, maxHeight:200})
+					
+					new Spacer(250)
+				]),
+					
+				new VShelf( {height:150},
+				[
+					magentaDisplay,
+					orangeDisplay
+				]),
+				
+			]),
+			
+			// optional/additional manual constraints
+			// []
+		);
+		
+		layoutSolver.suggestValues([peoteView.width, peoteView.height]).update();
+	}
+
+*/	
 	
 	
 	// ----------------------------------------

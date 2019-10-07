@@ -10,10 +10,17 @@ import jasper.Strength;
 
 class UIContainer extends UIElement
 {
+	static inline var ALIGN_LEFT:Int = 1;
+	static inline var ALIGN_BOTTOM:Int = 2;
+	//static inline var FIT_WIDTH:Int = 4;
+	//static inline var FIT_HEIGHT:Int = 8;
+	
+	var options:Int = 0;
+		
 	var childs:Array<Layout>;
 	
 	public function new(xPosition:Int = 0, yPosition:Int = 0, width:Int = 100, height:Int = 100, zIndex:Int = 0, skin:Skin = null, style:Style = null,
-		childs:Array<Layout>) 
+		childs:Array<Layout>, options:Int=0) 
 	{
 		super(xPosition, yPosition, width, height, zIndex, skin, style);
 		
@@ -96,6 +103,8 @@ class Hbox extends UIContainer
 		//var strong = Strength.create(1, 0, 0, weight);
 		//var required = Strength.create(1, 1, 1, weight);		
 		
+		// TODO: not smaller than all childs-minWidth together
+		// TODO: not greater that all childs-maxWidth together (only if there is no one with maxWidth==-1)
 /*		// get max height
 		var minChildHeight:Int = 0;
 		var maxChildHeight:Int = -1;
@@ -120,7 +129,8 @@ class Hbox extends UIContainer
 			else {
 				// force same width
 				for (j in (i + 1)...childs.length) {
-					constraints.push( (childs[i].width == childs[j].width) | weak); // TODO: check alternative methods
+					// TODO: better trying to force maxWidth for every child here
+					constraints.push( (childs[i].width == childs[j].width) | weak);
 				}
 			}
 			
@@ -128,9 +138,11 @@ class Hbox extends UIContainer
 			constraints.push( (childs[i].top == parentLayout.top) | medium );
 			
 			if (childs.length == 1)
-				constraints.push( (childs[i].bottom == parentLayout.bottom) | weak9 );
+				//constraints.push( (childs[i].bottom == parentLayout.bottom) | weak9 );
+				constraints.push( (childs[i].bottom == parentLayout.bottom) | Strength.create(0, 0, 900, weight) );
 			else if (childs[i].maxHeight == -1 )
-				constraints.push( (childs[i].bottom == parentLayout.bottom) | weak3 );
+				//constraints.push( (childs[i].bottom == parentLayout.bottom) | weak3 );
+				constraints.push( (childs[i].bottom == parentLayout.bottom) | Strength.create(0, 0, 300, weight) );
 			else
 				constraints.push( (childs[i].bottom == parentLayout.bottom) | Strength.create(0, 0, 100+i*10, weight));
 
