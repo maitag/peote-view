@@ -15,6 +15,7 @@ import peote.ui.Layout;
 import peote.ui.skin.Skin;
 import peote.ui.skin.Style;
 import peote.ui.UIContainer;
+import peote.ui.LayoutContainer;
 
 import jasper.Constraint;
 import jasper.Strength;
@@ -45,12 +46,14 @@ class UiLayout
 			//ui.add(grey); testManualConstraints();
 			
 			ui.add(red); ui.add(green); ui.add(blue);
-			testManualHboxConstraints();			
+			//testManualHboxConstraints();			
 			//testContainerConstraints();
 			
-			//ui.add(yellow);
+			ui.add(yellow);
 			//testManualNestedContainerConstraints();		
-			//testNestedContainerConstraints();		
+			//testNestedContainerConstraints();	
+			
+			simplifyingAPI();
 			
 		}
 		catch (e:Dynamic) trace("ERROR:", e);
@@ -262,7 +265,7 @@ class UiLayout
 		//ui.layout.maxSize(1600, 1000);
 		
 		
-		layoutSolver = new LayoutSolver (		
+		layoutSolver = new LayoutSolver (	
 			peoteView, // root Layout (automatically set its width and height as editable Vars)
 			[
 				// constraints for the Displays
@@ -283,9 +286,29 @@ class UiLayout
 	
 	// ----------------------------------------------------------------
 		
-/*	public function simplifyingAPI()
+	public function simplifyingAPI()
 	{
-		layoutSolver = new LayoutSolver
+		// testing LayoutContainer abstracts
+		layoutSolver = new LayoutSolver (
+			peoteView, // root Layout (automatically set its width and height as editable Vars)
+			[
+				[ (peoteView.layout.x == 0) | Strength.REQUIRED, (peoteView.layout.y == 0) | Strength.REQUIRED ],
+
+				new Box(peoteView, [
+					new Box(ui, [
+						new Box(red, [
+							new Box(green, [
+								blue
+							])
+						])
+					])
+				]),
+				
+				
+			]
+		);
+		
+/*		layoutSolver = new LayoutSolver
 		(	
 			// new Shelf( peoteView, Orientation.Horizontal, Align.Top, {width:320, minWidth:200, maxWidth:400, height:170, minHeight:100, maxHeight:200},
 			// new HShelf( peoteView, Align.Top, sizeOptions,   // Align.Center is default
@@ -316,11 +339,11 @@ class UiLayout
 			// optional/additional manual constraints
 			// []
 		);
-		
+*/		
 		layoutSolver.suggestValues([peoteView.width, peoteView.height]).update();
 	}
 
-*/	
+	
 	
 	
 	// ----------------------------------------

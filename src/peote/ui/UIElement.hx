@@ -64,7 +64,6 @@ class UIElement
 				height = Std.int(layout.height.m_value);
 				update();
 			}
-		layout.updateChilds();
 	}
 	#end
 	

@@ -17,7 +17,6 @@ class Display
 		if (y != Std.int(layout.y.m_value)) y = Std.int(layout.y.m_value);
 		width  = Std.int(layout.width.m_value);
 		height = Std.int(layout.height.m_value);
-		layout.updateChilds();
 	}
 	#end
 	

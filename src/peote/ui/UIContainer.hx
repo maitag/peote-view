@@ -34,6 +34,7 @@ class UIContainer extends UIElement
 		//trace("update childs");
 		for (child in childs) {
 			child.update();
+			child.updateChilds();
 		}
 	}
 	

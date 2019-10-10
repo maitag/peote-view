@@ -92,6 +92,7 @@ class LayoutSolver
         solver.updateVariables();
 		if (rootLayout != null) {
 			rootLayout.update();
+			rootLayout.updateChilds();
 		}
 		if (layoutsToUpdate != null) {
 			for (layout in layoutsToUpdate) layout.update();

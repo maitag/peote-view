@@ -22,7 +22,7 @@ abstract NestedArrayItem<T>(Array<T>) from Array<T> to Array<T>
     	}
         return item;
     }
-
+	
     @:from
     public static function fromArray<T>(a:Array<T>):NestedArrayItem<T> {
         var item = new NestedArrayItem<T>();
@@ -65,7 +65,13 @@ abstract NestedArray<T>(Array<NestedArrayItem<T>>) from Array<NestedArrayItem<T>
 		for (item in this) for (v in item) a.push(v);
 		return a;
 	}
-	
-	
+		
+/*	@:to
+	public function toNestedArrayItem<T>():NestedArrayItem<T> {
+		var a = new NestedArrayItem<T>();
+		for (item in this) for (v in item) a.push(v);
+		return a;
+	}
+*/	
 }
 
