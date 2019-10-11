@@ -12,6 +12,26 @@ import jasper.Constraint;
 import jasper.Strength;
 
 
+abstract Align(Int) from Int to Int {
+	public static inline var center:Int = 1;
+	public static inline var left:Int = 2;
+	public static inline var right:Int = 3;
+	public static inline var top:Int = 4;
+	public static inline var bottom:Int = 5;
+	
+	public static inline var topLeft:Int = 6;
+	public static inline var topRight:Int = 7;
+	public static inline var bottomLeft:Int = 8;
+	public static inline var bottomRight:Int = 9;
+	
+	public static inline var leftTop:Int = 6;
+	public static inline var rightTop:Int = 7;
+	public static inline var leftBottom:Int = 8;
+	public static inline var rightBottom:Int = 9;
+}
+
+
+@:allow(peote.ui)
 class Size {
 	var _size:Null<Int>;
 	var _percent:Null<Float>;
@@ -20,7 +40,7 @@ class Size {
 	
 	var size:Variable;
 	
-	function new(pixel:Null<Int>, percent:Null<Float>, min:Null<Int>, max:Null<Int>) {
+	inline function new(pixel:Null<Int>, percent:Null<Float>, min:Null<Int>, max:Null<Int>) {
 		size = new Variable();
 	}
 	
@@ -43,21 +63,22 @@ class Size {
 
 @:forwardStatics
 abstract Width(Size) from Size to Size {
+	@:from public static inline function fromInt(i:Int):Width return Size.px(i);
 }
 
 @:forwardStatics
 abstract Height(Size) from Size to Size {
-
+	@:from public static inline  function fromInt(i:Int):Height return Size.px(i);
 }
 
 @:forwardStatics
 abstract HSpace(Size) from Size to Size {
-
+	@:from public static inline  function fromInt(i:Int):HSpace return Size.px(i);
 }
 
 @:forwardStatics
 abstract VSpace(Size) from Size to Size {
-
+	@:from public static inline  function fromInt(i:Int):VSpace return Size.px(i);
 }
 
 

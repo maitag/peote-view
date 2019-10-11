@@ -295,12 +295,12 @@ class UiLayout
 			[
 				[ (peoteView.layout.x == 0) | Strength.REQUIRED, (peoteView.layout.y == 0) | Strength.REQUIRED ],
 
-				new Box(peoteView, [
-					new Box(ui,
+				Box.center(peoteView, [
+					Box.left(ui, 700, 500,
 					[
-						new Box(red, Width.max(400), Height.max(300),
+						Box.topLeft(red, Width.max(400), Height.max(300),
 						[
-							new Box(green, Align.Left, HSpace.px(10), VSpace.min(20), Width.px(100, 50, 200), Height.min(200),
+							new Box(green, Width.px(100, 50, 200), Height.min(200), Align.left, HSpace.px(10), VSpace.min(20),
 							[
 								blue
 							])

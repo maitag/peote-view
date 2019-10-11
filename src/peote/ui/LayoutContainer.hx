@@ -7,42 +7,23 @@ import utils.NestedArray;
 import peote.ui.Layout;
 
 
-abstract Align(Int) from Int to Int {
-	public static inline var Center:Int = 1;
-	public static inline var Left:Int = 2;
-	public static inline var Right:Int = 3;
-	public static inline var Top:Int = 4;
-	public static inline var Bottom:Int = 5;
-	
-	public static inline var TopLeft:Int = 6;
-	public static inline var TopRight:Int = 7;
-	public static inline var BottomLeft:Int = 8;
-	public static inline var BottomRight:Int = 9;
-	
-	public static inline var LeftTop:Int = 6;
-	public static inline var RightTop:Int = 7;
-	public static inline var LeftBottom:Int = 8;
-	public static inline var RightBottom:Int = 9;
-}
-
-
-
 @:allow(peote.ui)
 class LayoutContainer
 {
 	var layout:Layout;
 	var childs:Array<Layout>;
 
-	public function new(layout:Layout = null, align:Align = Align.Center, widthOptions:Width = null, heightOptions:Height = null, hSpacer:HSpace = null, vSpacer:VSpace = null, childs:Array<Layout> = null) 
+	public function new(layout:Layout = null, width:Width = null, height:Height = null, align:Align = Align.center, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null) 
 	{
 		if (layout == null)
 			this.layout = new Layout();
 		else this.layout = layout;
 		
 		this.childs = childs;
-		layout.updateChilds = updateChilds;		
+		layout.updateChilds = updateChilds;	
+		
 	}
-	
+		
 	function updateChilds() {
 		trace("update childs", childs.length);
 		for (child in childs) {
@@ -50,6 +31,8 @@ class LayoutContainer
 			child.updateChilds();
 		}
 	}
+	//function addChildConstraints(parentLayout:Layout, constraints:NestedArray<Constraint>, weight:Float = 1.0)
+	//{}
 	
 	public function getConstraints():NestedArray<Constraint>
 	{
@@ -70,20 +53,35 @@ class LayoutContainer
 // -------------------------------------------------------------------------------------------------
 // -----------------------------     Box    --------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
-@:forward abstract Box(LayoutContainer) from LayoutContainer to LayoutContainer
+@:forward @:forwardStatics abstract Box(LayoutContainer) //from LayoutContainer to LayoutContainer
 {
-	public inline function new(layout:Layout = null, align:Align = Align.Center, widthOptions:Width = null, heightOptions:Height = null, hSpacer:HSpace = null, vSpacer:VSpace = null, childs:Array<Layout> = null) 
+	public inline function new(layout:Layout = null, width:Width = null, height:Height = null, align:Align = Align.center, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null) 
 	{
-		this = new LayoutContainer(layout, widthOptions, heightOptions, hSpacer, vSpacer, childs) ;
+		this = new LayoutContainer(layout, width, height, align, hSpace, vSpace, childs) ;
 		this.layout.addChildConstraints = addChildConstraints;
 	}
+	// ---------- static helpers
+	public static inline function center       (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Box return new Box(layout, width, height, Align.center,      hSpace, vSpace, childs); 
+	public static inline function left         (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Box return new Box(layout, width, height, Align.left,        hSpace, vSpace, childs); 
+	public static inline function right        (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Box return new Box(layout, width, height, Align.right,       hSpace, vSpace, childs); 
+	public static inline function top          (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Box return new Box(layout, width, height, Align.top,         hSpace, vSpace, childs); 
+	public static inline function bottom       (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Box return new Box(layout, width, height, Align.bottom,      hSpace, vSpace, childs); 
+	public static inline function topLeft      (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Box return new Box(layout, width, height, Align.topLeft,     hSpace, vSpace, childs); 
+	public static inline function topRight     (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Box return new Box(layout, width, height, Align.topRight,    hSpace, vSpace, childs); 
+	public static inline function bottomLeft   (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Box return new Box(layout, width, height, Align.bottomLeft,  hSpace, vSpace, childs); 
+	public static inline function bottomRight  (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Box return new Box(layout, width, height, Align.bottomRight, hSpace, vSpace, childs); 
+	public static inline function leftTop      (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Box return new Box(layout, width, height, Align.topLeft,     hSpace, vSpace, childs); 
+	public static inline function rightTop     (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Box return new Box(layout, width, height, Align.topRight,    hSpace, vSpace, childs); 
+	public static inline function leftBottom   (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Box return new Box(layout, width, height, Align.bottomLeft,  hSpace, vSpace, childs); 
+	public static inline function rightBottom  (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Box return new Box(layout, width, height, Align.bottomRight, hSpace, vSpace, childs); 
 	
 	@:to public function toNestedArray():NestedArray<Constraint> return(this.getConstraints());
 	@:to public function toNestedArrayItem():NestedArrayItem<Constraint> return(this.getConstraints().toArray());	
 	@:to public function toLayout():Layout return(this.layout);
 
-	function addChildConstraints(parentLayout:Layout, constraints:NestedArray<Constraint>, weight:Float = 1.0)
+	function addChildConstraints(parentLayout:Layout, constraints:NestedArray<Constraint>, weight:Float = 1.0):Void
 	{
+		trace("addChildConstraints");
 		var weak = Strength.create(0, 0, 1, weight);
 		var medium = Strength.create(0, 1, 0, weight);
 		
@@ -110,11 +108,11 @@ class LayoutContainer
 // -----------------------------   HShelf   --------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
-@:forward abstract HShelf(LayoutContainer) from LayoutContainer to LayoutContainer
+/*@:forward abstract HShelf(LayoutContainer) from LayoutContainer to LayoutContainer
 {
-	public inline function new(layout:Layout = null, align:Align = Align.Center, widthOptions:Width = null, heightOptions:Height = null, hSpacer:HSpace, vSpacer:VSpace, childs:Array<Layout> = null) 
+	public inline function new(layout:Layout = null, width:Width = null, height:Height = null, align:Align = Align.center, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null) 
 	{
-		this = new LayoutContainer(layout, widthOptions, heightOptions, hSpacer, vSpacer, childs) ;
+		this = new LayoutContainer(layout, width, height, align, hSpace, vSpace, childs) ;
 		this.layout.addChildConstraints = addChildConstraints;
 	}
 	
@@ -160,4 +158,4 @@ class LayoutContainer
 				
 	}
 	
-}
+}*/
