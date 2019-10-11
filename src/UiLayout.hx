@@ -11,10 +11,11 @@ import peote.view.PeoteView;
 import peote.view.Color;
 import peote.ui.UIDisplay;
 import peote.ui.Button;
-import peote.ui.Layout;
 import peote.ui.skin.Skin;
 import peote.ui.skin.Style;
 import peote.ui.UIContainer;
+import peote.ui.Layout;
+import peote.ui.LayoutSolver;
 import peote.ui.LayoutContainer;
 
 import jasper.Constraint;
@@ -295,9 +296,12 @@ class UiLayout
 				[ (peoteView.layout.x == 0) | Strength.REQUIRED, (peoteView.layout.y == 0) | Strength.REQUIRED ],
 
 				new Box(peoteView, [
-					new Box(ui, [
-						new Box(red, [
-							new Box(green, [
+					new Box(ui,
+					[
+						new Box(red, Width.max(400), Height.max(300),
+						[
+							new Box(green, Align.Left, HSpace.px(10), VSpace.min(20), Width.px(100, 50, 200), Height.min(200),
+							[
 								blue
 							])
 						])

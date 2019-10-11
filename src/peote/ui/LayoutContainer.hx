@@ -2,7 +2,9 @@ package peote.ui;
 
 import jasper.Strength;
 import jasper.Constraint;
+import jasper.Variable;
 import utils.NestedArray;
+import peote.ui.Layout;
 
 
 abstract Align(Int) from Int to Int {
@@ -23,25 +25,15 @@ abstract Align(Int) from Int to Int {
 	public static inline var RightBottom:Int = 9;
 }
 
-typedef SizeOptions = {
-	?width:Int,
-	?height:Int,
-	?percentWidth:Float,
-	?percentHeight:Float,
-	?minWidth:Int,
-	?maxWidth:Int,
-	?minHeight:Int,
-	?maxHeight:Int,
-}
+
 
 @:allow(peote.ui)
 class LayoutContainer
 {
-	var sizeOptions:SizeOptions;
 	var layout:Layout;
 	var childs:Array<Layout>;
 
-	public function new(layout:Layout = null, align:Align = Align.Center, sizeOptions:SizeOptions = null, childs:Array<Layout> = null) 
+	public function new(layout:Layout = null, align:Align = Align.Center, widthOptions:Width = null, heightOptions:Height = null, hSpacer:HSpace = null, vSpacer:VSpace = null, childs:Array<Layout> = null) 
 	{
 		if (layout == null)
 			this.layout = new Layout();
@@ -80,9 +72,9 @@ class LayoutContainer
 // -------------------------------------------------------------------------------------------------
 @:forward abstract Box(LayoutContainer) from LayoutContainer to LayoutContainer
 {
-	public inline function new(layout:Layout = null, align:Align = Align.Center, sizeOptions:SizeOptions = null, childs:Array<Layout> = null) 
+	public inline function new(layout:Layout = null, align:Align = Align.Center, widthOptions:Width = null, heightOptions:Height = null, hSpacer:HSpace = null, vSpacer:VSpace = null, childs:Array<Layout> = null) 
 	{
-		this = new LayoutContainer(layout, sizeOptions, childs) ;
+		this = new LayoutContainer(layout, widthOptions, heightOptions, hSpacer, vSpacer, childs) ;
 		this.layout.addChildConstraints = addChildConstraints;
 	}
 	
@@ -120,9 +112,9 @@ class LayoutContainer
 
 @:forward abstract HShelf(LayoutContainer) from LayoutContainer to LayoutContainer
 {
-	public inline function new(layout:Layout = null, align:Align = Align.Center, sizeOptions:SizeOptions = null, childs:Array<Layout> = null) 
+	public inline function new(layout:Layout = null, align:Align = Align.Center, widthOptions:Width = null, heightOptions:Height = null, hSpacer:HSpace, vSpacer:VSpace, childs:Array<Layout> = null) 
 	{
-		this = new LayoutContainer(layout, sizeOptions, childs) ;
+		this = new LayoutContainer(layout, widthOptions, heightOptions, hSpacer, vSpacer, childs) ;
 		this.layout.addChildConstraints = addChildConstraints;
 	}
 	
