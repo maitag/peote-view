@@ -13,7 +13,6 @@ import peote.ui.UIDisplay;
 import peote.ui.Button;
 import peote.ui.skin.Skin;
 import peote.ui.skin.Style;
-import peote.ui.UIContainer;
 import peote.ui.Layout;
 import peote.ui.LayoutSolver;
 import peote.ui.LayoutContainer;
@@ -47,14 +46,9 @@ class UiLayout
 			//ui.add(grey); testManualConstraints();
 			
 			ui.add(red); ui.add(green); ui.add(blue);
-			//testManualHboxConstraints();			
-			//testContainerConstraints();
+			testLayoutSimpleBox();			
 			
-			ui.add(yellow);
-			//testManualNestedContainerConstraints();		
-			//testNestedContainerConstraints();	
-			
-			simplifyingAPI();
+			//ui.add(yellow); testLayoutNestedBox();
 			
 		}
 		catch (e:Dynamic) trace("ERROR:", e);
@@ -107,7 +101,7 @@ class UiLayout
 
 	// ----------------------------------------------------------------
 		
-	public function testManualHboxConstraints()
+	public function testManualRowConstraints()
 	{
 		layoutSolver = new LayoutSolver (
 			
@@ -174,111 +168,23 @@ class UiLayout
 
 	// ----------------------------------------------------------------
 		
-	public function testContainerConstraints()
+	public function testLayoutSimpleBox()
 	{
-		layoutSolver = new LayoutSolver (
-			peoteView, // root Layout (automatically set its width and height as editable Vars)
-			[	
-				// constraints for the Displays
-				new Hbox([ui]).getViewConstraints(peoteView),
-				
-				// constraints for the Elements into ui-Display
-				new Hbox([
-					red,
-					green,
-					blue
-				]).getConstraints(ui)			
-			]
-		);
-		layoutSolver.suggestValues([peoteView.width, peoteView.height]).update();	
-	}
-
-	// ----------------------------------------------------------------
-		
-	public function testManualNestedContainerConstraints()
-	{
-		var innerHbox = new Hbox(0,0,0,0,-1,mySkin, new Style(0x440011ff), [ red, yellow ]); 
-		ui.add(innerHbox);
-		
-		layoutSolver = new LayoutSolver (
-			peoteView, // root Layout (automatically set its width and height as editable Vars)
-			[ui, innerHbox, red, yellow, green, blue], // elements that needs to update
-			
-			// constraints
-			[
-				// size restriction
-				(red.layout.width <= 100) | Strength.MEDIUM,
-				(red.layout.width >= 50) | Strength.MEDIUM,
-				(yellow.layout.width >= 50) | Strength.MEDIUM,
-				(yellow.layout.width <= 250) | Strength.MEDIUM,
-				(green.layout.width >= 50) | Strength.MEDIUM,
-				(blue.layout.width == 200) | Strength.MEDIUM,
-
-				// constraints for the Displays
-				new Hbox([ui]).getViewConstraints(peoteView),
-
-				(innerHbox.layout.width == green.layout.width) | Strength.WEAK,
-				(innerHbox.layout.width == blue.layout.width) | Strength.WEAK,
-				(green.layout.width == blue.layout.width) | Strength.WEAK,
-
-				(innerHbox.layout.left == ui.layout.left) | Strength.MEDIUM,
-				(green.layout.left == innerHbox.layout.right + 10 ) | Strength.MEDIUM,
-				(blue.layout.left == green.layout.right + 10 ) | Strength.MEDIUM,
-				(blue.layout.right == ui.layout.right) | new Strength(500),
-
-				(innerHbox.layout.top == ui.layout.top) | Strength.MEDIUM,
-				(innerHbox.layout.bottom == ui.layout.bottom) | Strength.MEDIUM,
-				(green.layout.top == ui.layout.top) | Strength.MEDIUM,
-				(green.layout.bottom == ui.layout.bottom) | Strength.MEDIUM,
-				(blue.layout.top == ui.layout.top) | Strength.MEDIUM,
-				(blue.layout.bottom == ui.layout.bottom) | Strength.MEDIUM,
-
-				// inner:
-					(red.layout.width == yellow.layout.width) | Strength.WEAK,
-				
-					(red.layout.left == innerHbox.layout.left) | Strength.MEDIUM,
-					(yellow.layout.left == red.layout.right + 10 ) | Strength.MEDIUM,
-					(yellow.layout.right == innerHbox.layout.right) | new Strength(500),
-
-					(red.layout.top == innerHbox.layout.top) | Strength.MEDIUM,
-					(red.layout.bottom == innerHbox.layout.bottom) | Strength.MEDIUM,
-					(yellow.layout.top == innerHbox.layout.top) | Strength.MEDIUM,
-					(yellow.layout.bottom == innerHbox.layout.bottom) | Strength.MEDIUM,
-
-			]
-		);
-		layoutSolver.suggestValues([peoteView.width, peoteView.height]).update();
-	}
-
-	// ----------------------------------------------------------------
-		
-	public function testNestedContainerConstraints()
-	{
-		// TODO: keep aspect ration!
-		
-		//restrict size:
-		red.layout.minSize(50, 50);      red.layout.maxSize(100, 100);
-		yellow.layout.minSize(100, 100); yellow.layout.maxSize(200, 200);		
-		green.layout.minSize(200, 200);  green.layout.maxSize(300, 300);
-		blue.layout.minSize(400, 400);   blue.layout.maxSize(800,800);
-		
-		//ui.layout.minSize(70, 70);	
-		//ui.layout.maxSize(1600, 1000);
-		
-		
-		layoutSolver = new LayoutSolver (	
+		layoutSolver = new LayoutSolver
+		(
 			peoteView, // root Layout (automatically set its width and height as editable Vars)
 			[
-				// constraints for the Displays
-				new Hbox([ui]).getViewConstraints(peoteView),
-				
-				// constraints for the Elements into ui-Display
-				new Hbox([
-					new Hbox([ new Hbox([red]), yellow ]),
-					new Hbox([ blue ]),
-					green
-				]).getConstraints(ui)
+				[ (peoteView.layout.x == 0) | Strength.REQUIRED, (peoteView.layout.y == 0) | Strength.REQUIRED ],
 
+				Box.left(peoteView,
+				[
+					new Box(ui, Width.px(300, 150), Height.percent(0.5, 100, 300),
+					[
+						new Box(red, Width.px(200), Height.percent(0.5, 100, 300) )
+					])
+				]),
+				
+				
 			]
 		);
 		layoutSolver.suggestValues([peoteView.width, peoteView.height]).update();
@@ -287,22 +193,23 @@ class UiLayout
 	
 	// ----------------------------------------------------------------
 		
-	public function simplifyingAPI()
+/*	public function testLayoutNestedBox()
 	{
-		// testing LayoutContainer abstracts
-		layoutSolver = new LayoutSolver (
+		layoutSolver = new LayoutSolver
+		(
 			peoteView, // root Layout (automatically set its width and height as editable Vars)
 			[
 				[ (peoteView.layout.x == 0) | Strength.REQUIRED, (peoteView.layout.y == 0) | Strength.REQUIRED ],
 
-				Box.center(peoteView, [
+				Box.center(peoteView,
+				[
 					Box.left(ui, 700, 500,
 					[
 						Box.topLeft(red, Width.max(400), Height.max(300),
 						[
 							new Box(green, Width.px(100, 50, 200), Height.min(200), Align.left, HSpace.px(10), VSpace.min(20),
 							[
-								blue
+								blue, yellow
 							])
 						])
 					])
@@ -311,42 +218,9 @@ class UiLayout
 				
 			]
 		);
-		
-/*		layoutSolver = new LayoutSolver
-		(	
-			// new Shelf( peoteView, Orientation.Horizontal, Align.Top, {width:320, minWidth:200, maxWidth:400, height:170, minHeight:100, maxHeight:200},
-			// new HShelf( peoteView, Align.Top, sizeOptions,   // Align.Center is default
-			// HorizontalShelf // alias should also work
-			HShelf.Top( peoteView, sizeOptions,    // ".Center", ".Top", ".Bottom" , ".Left", ".Right" or in combination like ".TopLeft"
-			[
-				new HShelf( uiDisplay, {minWidth:200, maxWidth:400}
-				[
-					new Spacer( {min:200, max:300} ),
-					
-					blueWidget, // no size limits !
-					
-					new Box( greenWidget, Align.BottomRight,{width:300, minHeight:100, maxHeight:200} ),
-					// same as: new Box( Align.CenterRight, {width:300, minHeight:100, maxHeight:200}, [ greenWidget ] ),
-					// or like Box.bottomRight(greenWidget, {width:300, minHeight:100, maxHeight:200})
-					
-					new Spacer(250)
-				]),
-					
-				new VShelf( {height:150},
-				[
-					magentaDisplay,
-					orangeDisplay
-				]),
-				
-			]),
-			
-			// optional/additional manual constraints
-			// []
-		);
-*/		
 		layoutSolver.suggestValues([peoteView.width, peoteView.height]).update();
 	}
-
+*/
 	
 	
 	
@@ -361,6 +235,7 @@ class UiLayout
 		// calculates new Layout and updates all Elements 
 		layoutSolver.suggestValues([width, height]).update();
 		// or layoutSolver.suggest(peoteView.layout.width, width).suggest(peoteView.layout.height, height).update();
+		trace(ui.width);
 	}
 	
 	public function render() peoteView.render();

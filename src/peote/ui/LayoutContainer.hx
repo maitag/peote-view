@@ -16,23 +16,21 @@ class LayoutContainer
 	public function new(layout:Layout = null, width:Width = null, height:Height = null, align:Align = Align.center, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null) 
 	{
 		if (layout == null)
-			this.layout = new Layout();
-		else this.layout = layout;
+			this.layout = new Layout(width, height, align, hSpace, vSpace);
+		else {
+			this.layout = layout.set(width, height, align, hSpace, vSpace);
+		}
 		
 		this.childs = childs;
-		layout.updateChilds = updateChilds;	
-		
+		layout.updateChilds = updateChilds;			
 	}
 		
 	function updateChilds() {
-		trace("update childs", childs.length);
-		for (child in childs) {
+		if (this.childs != null) for (child in childs) {
 			child.update();
 			child.updateChilds();
 		}
 	}
-	//function addChildConstraints(parentLayout:Layout, constraints:NestedArray<Constraint>, weight:Float = 1.0)
-	//{}
 	
 	public function getConstraints():NestedArray<Constraint>
 	{
@@ -53,7 +51,7 @@ class LayoutContainer
 // -------------------------------------------------------------------------------------------------
 // -----------------------------     Box    --------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
-@:forward @:forwardStatics abstract Box(LayoutContainer) //from LayoutContainer to LayoutContainer
+@:forward @:forwardStatics abstract Box(LayoutContainer) // from LayoutContainer to LayoutContainer
 {
 	public inline function new(layout:Layout = null, width:Width = null, height:Height = null, align:Align = Align.center, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null) 
 	{
@@ -81,23 +79,48 @@ class LayoutContainer
 
 	function addChildConstraints(parentLayout:Layout, constraints:NestedArray<Constraint>, weight:Float = 1.0):Void
 	{
-		trace("addChildConstraints");
 		var weak = Strength.create(0, 0, 1, weight);
 		var medium = Strength.create(0, 1, 0, weight);
+		//var strong = Strength.create(1, 0, 0, weight);
 		
-		if (this.childs != null)
-			for (i in 0...this.childs.length)
-			{	
-				// horizontal
-				constraints.push( (this.childs[i].centerX == parentLayout.centerX) | medium );
-				constraints.push( (this.childs[i].width == parentLayout.width-20) | medium );
-				// vertical
-				constraints.push( (this.childs[i].centerY == parentLayout.centerY) | medium );
-				constraints.push( (this.childs[i].height == parentLayout.height-20) | medium );
-				
-				// recursive Container
-				this.childs[i].addChildConstraints(this.childs[i], constraints, weight+0.05);
-			}
+		// TODO: not smaller than all childs-minWidth together
+		// TODO: not greater that all childs-maxWidth together (only if there is no one with maxWidth==-1)
+/*		// get max height
+		var minChildHeight:Int = 0;
+		var maxChildHeight:Int = -1;
+		for (child in childs) {
+			if (child.minHeight < minChildHeight) minChildHeight = child.minHeight;
+			if (child.maxHeight > maxChildHeight) maxChildHeight = child.maxHeight;
+		}
+		//parentLayout.minHeight = minChildHeight;
+		//parentLayout.maxHeight = maxChildHeight;
+*/		
+		
+		if (this.childs != null) for (i in 0...this.childs.length)
+		{	
+			trace("addChildConstraints");
+			// horizontal
+			
+			constraints.push( (this.childs[i].centerX == parentLayout.centerX) | medium );
+			//constraints.push( (this.childs[i].width == parentLayout.width) | medium );
+			
+			// width constraints
+			this.childs[i].widthSize.addConstraints(constraints, this.layout.widthSize, weight);
+			
+			
+			// vertical
+			constraints.push( (this.childs[i].centerY == parentLayout.centerY) | medium );
+			//constraints.push( (this.childs[i].height == parentLayout.height) | medium );
+			
+			// height constraints
+			this.childs[i].heightSize.addConstraints(constraints, this.layout.heightSize, weight);
+			
+			
+			
+			
+			// recursive Container
+			this.childs[i].addChildConstraints(this.childs[i], constraints, weight);// -0.05);
+		}
 				
 	}
 	
@@ -108,7 +131,7 @@ class LayoutContainer
 // -----------------------------   HShelf   --------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
-/*@:forward abstract HShelf(LayoutContainer) from LayoutContainer to LayoutContainer
+/*@:forward @:forwardStatics abstract HShelf(LayoutContainer) from LayoutContainer to LayoutContainer
 {
 	public inline function new(layout:Layout = null, width:Width = null, height:Height = null, align:Align = Align.center, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null) 
 	{
@@ -131,12 +154,12 @@ class LayoutContainer
 			{	
 				// horizontal
 				if (i == 0)  // first
-					constraints.push( (this.childs[i].left == parentLayout.left) | medium );
+					constraints.push( (this.childs[i].left == this.layout.left) | medium );
 				else
 					constraints.push( (this.childs[i].left == this.childs[i-1].right + 10) | medium );
 				
 				if (i == this.childs.length - 1) {  // last
-					constraints.push( (this.childs[i].right == parentLayout.right) | weak5);
+					constraints.push( (this.childs[i].right == this.layout.right) | medium);
 				}
 				else {
 					// force same width
@@ -145,10 +168,19 @@ class LayoutContainer
 					}
 				}
 				
-				// vertical
-				constraints.push( (this.childs[i].top == parentLayout.top) | medium );
+				//this.childs[i].widthSize.addConstraints(constraints, this.layout.widthSize, weight);
 				
-				constraints.push( (this.childs[i].bottom == parentLayout.bottom) | weak );
+				// vertical
+				constraints.push( (this.childs[i].top == this.layout.top) | medium );
+				
+				constraints.push( (this.childs[i].bottom == this.layout.bottom) | weak );
+				
+				//if (childs.length == 1)
+					//constraints.push( (childs[i].bottom == parentLayout.bottom) | weak9 );
+				//else if (childs[i].heightSize == null )
+					//constraints.push( (childs[i].bottom == parentLayout.bottom) | weak3 );
+				//else
+					//constraints.push( (childs[i].bottom == parentLayout.bottom) | Strength.create(0, 0, 100+i*10, weight));
 				
 					
 				// recursive Container

@@ -38,9 +38,19 @@ class Size {
 	var _min:Null<Int>;
 	var _max:Null<Int>;
 	
-	var size:Variable;
+	public var size:Variable;
 	
 	inline function new(pixel:Null<Int>, percent:Null<Float>, min:Null<Int>, max:Null<Int>) {
+		_size = pixel;
+		_percent = percent;
+		_min = min;
+		_max = max;
+		
+		if (_min == _max && _min != null) {
+			_size = _min;
+			_percent = _min = _max = null;
+		}
+		
 		size = new Variable();
 	}
 	
@@ -55,29 +65,62 @@ class Size {
 	}
 	public static inline function max(max:Int):Size {
 		return new Size(null, null, null, max);
-	}	
+	}
+	
+	public function addConstraints(constraints:NestedArray<Constraint>, parentSize:Size, weight:Float)
+	{
+		//var weak = Strength.create(0, 0, 1, weight);
+		//var weak1 = Strength.create(0, 0, 100, weight);		
+		var medium = Strength.create(0, 1, 0, weight);
+		var medium1 = Strength.create(0, 100, 0, weight);
+		var medium2 = Strength.create(0, 200, 0, weight);
+		var medium3 = Strength.create(0, 300, 0, weight);
+
+		if (_size != null) {
+			constraints.push( (size == _size) | medium1 ); // TODO: separate min/max handling here
+			constraints.push( (size <= parentSize.size) | medium2 );
+		}
+		else if (_percent != null) {
+			constraints.push( (size == _percent*parentSize.size) | medium1 );
+		}
+		else {
+			constraints.push( (size == parentSize.size) | medium1 );
+		}
+		
+		if (_min != null)
+			constraints.push( (size >= _min) | medium3 );
+		else
+			constraints.push( (size >= 0) | medium3 );
+		
+		if (_max != null)
+			constraints.push( (size <= _max) | medium3 );
+	}
 	
 }
 
 // ---------- Size helpers
 
-@:forwardStatics
+@:forward @:forwardStatics
 abstract Width(Size) from Size to Size {
+	public inline function new(width:Int) this = Size.px(width);
 	@:from public static inline function fromInt(i:Int):Width return Size.px(i);
 }
 
-@:forwardStatics
+@:forward @:forwardStatics
 abstract Height(Size) from Size to Size {
-	@:from public static inline  function fromInt(i:Int):Height return Size.px(i);
+	public inline function new(height:Int) this = Size.px(height);
+	@:from public static inline function fromInt(i:Int):Height return Size.px(i);
 }
 
 @:forwardStatics
 abstract HSpace(Size) from Size to Size {
+	public inline function new(width:Int) this = Size.px(width);
 	@:from public static inline  function fromInt(i:Int):HSpace return Size.px(i);
 }
 
 @:forwardStatics
 abstract VSpace(Size) from Size to Size {
+	public inline function new(width:Int) this = Size.px(width);
 	@:from public static inline  function fromInt(i:Int):VSpace return Size.px(i);
 }
 
@@ -87,97 +130,101 @@ abstract VSpace(Size) from Size to Size {
 @:allow(peote.ui, peote.view)
 class _Layout_
 {
-	public var x:Variable;
-	public var y:Variable;	
-	public var width:Variable;
-	public var height:Variable;	
+	public var x(default,null):Variable;
+	public var y(default,null):Variable;	
 	
+	public var widthSize:Width;
+	public var heightSize:Height;
+	public var align:Align;	
+	public var hSpace:HSpace;
+	public var vSpace:VSpace;	
+	
+	public var width(get, never):Variable;
+	public var height(get, never):Variable;	
+	public inline function get_width():Variable return widthSize.size;
+	public inline function get_height():Variable return heightSize.size;
+		
 	public var centerX:Expression;
 	public var centerY:Expression;
 
-	public var left:Expression;
-	public var top:Expression;
-	public var right:Expression;
-	public var bottom:Expression;
+	public var left(default,null):Expression;
+	public var top(default, null):Expression;
+	public var right(default,null):Expression;
+	public var bottom(default,null):Expression;
 	
-
-	public function addWidthConstraints(constraints:NestedArray<Constraint>, strength:Strength) 
-	{
-		// restrict width
-		if (minWidth == maxWidth)
-			constraints.push( (width == maxWidth) | strength );
-		else {
-			constraints.push( (width >= minWidth) | strength );
-			if (maxWidth > -1) constraints.push( (width <= maxWidth) | strength );
-		}
-	}
-	public function addHeightConstraints(constraints:NestedArray<Constraint>, strength:Strength)
-	{
-		// restrict height
-		if (minHeight == maxHeight)
-			constraints.push( (height == maxHeight) | strength );
-		else {
-			constraints.push( (height >= minHeight) | strength );
-			if (maxHeight > -1) constraints.push( (height <= maxHeight) | strength );
-		}
-	}
-
 	var addChildConstraints:Layout->NestedArray<Constraint>->?Float->Void = function(parentLayout:Layout, constraints:NestedArray<Constraint>, weight:Float = 1.0) {};
 	
 	var update:Void->Void = function() {};
 	var updateChilds:Void->Void = function() {};
+
 	
-	public function new()
+	public function addHConstraints(constraints:NestedArray<Constraint>, start:Variable, end:Variable, weight:Float)
+	{
+		var medium1 = Strength.create(0, 100, 0, weight);
+		constraints.push( (x == start) | medium1 );
+		constraints.push( (right == end) | medium1 );
+	}
+	public function addVConstraints(constraints:NestedArray<Constraint>, start:Variable, end:Variable, weight:Float)
+	{
+		var medium1 = Strength.create(0, 100, 0, weight);
+		constraints.push( (y == start) | medium1 );
+		constraints.push( (bottom == end) | medium1 );
+	}
+	
+
+	public function new(widthSize:Width, heightSize:Height, align:Align, hSpace:HSpace, vSpace:VSpace)
 	{
 		x = new Variable();
 		y = new Variable();
-		width = new Variable();
-		height = new Variable();
+		if (widthSize == null) this.widthSize = Width.min(0) else this.widthSize = widthSize;
+		if (heightSize == null) this.heightSize = Height.min(0) else this.heightSize = heightSize;
 		
-		centerX = new Term(x) + (new Term(width) / 2.0);
-		centerY = new Term(y) + (new Term(height) / 2.0);
+		this.align = align;
+		this.hSpace = hSpace;
+		this.vSpace = vSpace;
 		
 		left = new Expression([new Term(x)]);
 		top  = new Expression([new Term(y)]);
-		right  = new Term(x) + new Term(width);
+		
+		setHAlias();
+		setVAlias();
+	}
+	
+	public function setHAlias() {
+		centerX = new Term(x) + (new Term(width) / 2.0);
+		right  = new Term(x) + new Term(width);		
+	}
+	
+	public function setVAlias() {
+		centerY = new Term(y) + (new Term(height) / 2.0);
 		bottom = new Term(y) + new Term(height);		
-	}
-	
-	// for constraints to restrict size
-	public var minWidth = 0;
-	public var maxWidth = -1;
-
-	public var minHeight = 0;
-	public var maxHeight = -1;
-	
-	public function minSize(minWidth:Int = 0, minHeight:Int = 0) {
-		this.minWidth = Std.int(Math.max(0, minWidth));
-		this.minHeight = Std.int(Math.max(0, minHeight));
-		if (maxWidth > -1 && maxWidth < this.minWidth) maxWidth = minWidth;
-		if (maxHeight > -1 && maxHeight < this.minHeight) maxHeight = minHeight;
-	}
-	public function maxSize(maxWidth:Null<Int> = null, maxHeight:Null<Int> = null) {
-		if (maxWidth == null) this.maxWidth = -1;
-		else {
-			this.maxWidth = maxWidth;
-			if (minWidth > maxWidth) minWidth = maxWidth;
-		}
-		if (maxHeight == null) this.maxHeight = -1;
-		else {
-			this.maxHeight = maxHeight;
-			if (minHeight > maxHeight) minHeight = maxHeight;
-		}
 	}
 	
 }
 
+
 @:forward
-abstract Layout(_Layout_) to _Layout_
+abstract Layout(_Layout_) from _Layout_ to _Layout_
 {
-    public function new()
+    public function new(widthSize:Width=null, heightSize:Height=null, align:Align = Align.center, hSpace:HSpace = null, vSpace:VSpace = null)
     {
-        this = new _Layout_();
+        this = new _Layout_(widthSize, heightSize, align, hSpace, vSpace);
     }
+	
+	public inline function set(widthSize:Width=null, heightSize:Height=null, align:Align = null, hSpace:HSpace = null, vSpace:VSpace = null):Layout {
+		if (widthSize != null) {
+			this.widthSize = widthSize;
+			this.setHAlias();
+		}
+		if (heightSize != null) {
+			this.heightSize = heightSize;
+			this.setVAlias();
+		}
+		if (align!=null) this.align = align;
+		this.hSpace = hSpace;
+		this.vSpace = vSpace;
+		return this;
+	}
 		
 	@:from static public function fromPeoteView(v:PeoteView) {
 		return v.layout;
