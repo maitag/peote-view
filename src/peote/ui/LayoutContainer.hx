@@ -37,7 +37,7 @@ class LayoutContainer
 		var constraints = new NestedArray<Constraint>();
 		
 		// recursive Container
-		this.layout.addChildConstraints(this.layout, constraints, 1.0);
+		this.layout.addChildConstraints(this.layout, constraints, 500);
 		
 		// max/min size constraints
 		//this.layout.addWidthConstraints(constraints, Strength.create(0, 0, 600, 1.0));
@@ -77,49 +77,69 @@ class LayoutContainer
 	@:to public function toNestedArrayItem():NestedArrayItem<Constraint> return(this.getConstraints().toArray());	
 	@:to public function toLayout():Layout return(this.layout);
 
-	function addChildConstraints(parentLayout:Layout, constraints:NestedArray<Constraint>, weight:Float = 1.0):Void
+	function addChildConstraints(parentLayout:Layout, constraints:NestedArray<Constraint>, weight:Int):Void
 	{
-		var weak = Strength.create(0, 0, 1, weight);
-		var medium = Strength.create(0, 1, 0, weight);
-		//var strong = Strength.create(1, 0, 0, weight);
-		
-		// TODO: not smaller than all childs-minWidth together
-		// TODO: not greater that all childs-maxWidth together (only if there is no one with maxWidth==-1)
-/*		// get max height
-		var minChildHeight:Int = 0;
-		var maxChildHeight:Int = -1;
-		for (child in childs) {
-			if (child.minHeight < minChildHeight) minChildHeight = child.minHeight;
-			if (child.maxHeight > maxChildHeight) maxChildHeight = child.maxHeight;
-		}
-		//parentLayout.minHeight = minChildHeight;
-		//parentLayout.maxHeight = maxChildHeight;
-*/		
-		
+		var weak = Strength.create(0, 0, weight);
+		var weak1 = Strength.create(0, 0, weight+10);
+		var medium = Strength.create(0, weight, 0);
+		var medium1 = Strength.create(0, weight+10, 0);
+		var medium2 = Strength.create(0, weight+20, 0);
+		var strong = Strength.create(weight, 0, 0);
+				
 		if (this.childs != null) for (i in 0...this.childs.length)
 		{	
 			trace("addChildConstraints");
-			// horizontal
+			var child = this.childs[i];
+			// ------- horizontal
 			
-			constraints.push( (this.childs[i].centerX == parentLayout.centerX) | medium );
-			//constraints.push( (this.childs[i].width == parentLayout.width) | medium );
+			// TODO: if there is hspace -> allways do with extra-calculated procentual size for both!
+			if (child.hSpace != null) 
+				if (child.hSpace._percent != null) constraints.push( (child.hSpace.size == child.hSpace._percent*this.layout.width) | weak1 );
 			
-			// width constraints
-			this.childs[i].widthSize.addConstraints(constraints, this.layout.widthSize, weight);
+			if (this.childs[i].widthSize._percent != null)  {
+				constraints.push( (child.width == child.widthSize._percent*this.layout.width) | weak );
+			}
+			else {
+				if (child.hSpace == null) constraints.push( (child.width == this.layout.width) | weak );
+				else constraints.push( (child.width + child.hSpace.size == this.layout.width) | weak );
+			}
+			
+			if (Align.isLeft(child.align))
+			{
+				if (child.hSpace == null) constraints.push( (child.x == this.layout.x) | medium );	 // left
+				else constraints.push( (child.x == this.layout.x + child.hSpace.size) | medium );
+			}
+			else if (Align.isRight(child.align))
+			{
+				if (child.hSpace == null) constraints.push( (child.right == this.layout.right) | medium );  // right
+				else constraints.push( (child.right + child.hSpace.size == this.layout.right) | medium );
+			}
+			else 
+			{
+				constraints.push( (child.centerX == this.layout.centerX) | medium );  // center
+			}
+			
+			if (child.hSpace == null) constraints.push( (child.width <= this.layout.width) | Strength.create(0, 1000-weight, 0) );			
+			else constraints.push( (child.width + child.hSpace.size <= this.layout.width) | Strength.create(0, 1000-weight, 0) );			
+			
+			child.widthSize.addFlexConstraints(constraints, Strength.create(0, 1000 - weight, 0));
+			if (child.hSpace != null) child.hSpace.addFlexConstraints(constraints, Strength.create(0, 1000-weight, 0)); // hspace
 			
 			
-			// vertical
-			constraints.push( (this.childs[i].centerY == parentLayout.centerY) | medium );
-			//constraints.push( (this.childs[i].height == parentLayout.height) | medium );
+			
+			//  ------- vertical
+			
+			constraints.push( (child.centerY == parentLayout.centerY) | medium );
+			//constraints.push( (child.height == parentLayout.height) | medium );
 			
 			// height constraints
-			this.childs[i].heightSize.addConstraints(constraints, this.layout.heightSize, weight);
+			child.heightSize.addConstraints(constraints, this.layout.heightSize, weight);
 			
 			
 			
 			
 			// recursive Container
-			this.childs[i].addChildConstraints(this.childs[i], constraints, weight);// -0.05);
+			child.addChildConstraints(child, constraints, weight-100);
 		}
 				
 	}

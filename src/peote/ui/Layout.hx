@@ -11,7 +11,7 @@ import jasper.Variable;
 import jasper.Constraint;
 import jasper.Strength;
 
-
+@:allow(peote.ui)
 abstract Align(Int) from Int to Int {
 	public static inline var center:Int = 1;
 	public static inline var left:Int = 2;
@@ -28,59 +28,44 @@ abstract Align(Int) from Int to Int {
 	public static inline var rightTop:Int = 7;
 	public static inline var leftBottom:Int = 8;
 	public static inline var rightBottom:Int = 9;
+	
+	static function isLeft(align:Align):Bool return (align == left || align == topLeft || align == bottomLeft);
+	static function isRight(align:Align):Bool return (align == right || align == topRight || align == bottomRight);
+
 }
 
 
 @:allow(peote.ui)
 class Size {
-	var _size:Null<Int>;
 	var _percent:Null<Float>;
 	var _min:Null<Int>;
 	var _max:Null<Int>;
 	
 	public var size:Variable;
 	
-	inline function new(pixel:Null<Int>, percent:Null<Float>, min:Null<Int>, max:Null<Int>) {
-		_size = pixel;
+	inline function new(percent:Null<Float>, min:Null<Int>, max:Null<Int>) {
 		_percent = percent;
 		_min = min;
 		_max = max;
-		
-		if (_min == _max && _min != null) {
-			_size = _min;
-			_percent = _min = _max = null;
-		}
-		
 		size = new Variable();
 	}
 	
-	public static inline function px(pixel:Int, min:Null<Int> = null, max:Null<Int> = null):Size {
-		return new Size(pixel, null, min, max);
-	}
-	public static inline function percent(percent:Float, min:Null<Int> = null, max:Null<Int> = null):Size {
-		return new Size(null, percent, min, max);
-	}
-	public static inline function min(min:Int):Size {
-		return new Size(null, null, min, null);
-	}
-	public static inline function max(max:Int):Size {
-		return new Size(null, null, null, max);
-	}
+	public static inline function px(pixel:Int):Size return new Size(null, pixel,pixel);
+	public static inline function percent(percent:Float, min:Null<Int> = null, max:Null<Int> = null):Size return new Size(percent, min, max);
+	public static inline function min(min:Int):Size return new Size(null, min, null);
+	public static inline function max(max:Int):Size return new Size(null, null, max);
+	public static inline function flex(min:Int, max:Int):Size return new Size(null, min, max);
 	
-	public function addConstraints(constraints:NestedArray<Constraint>, parentSize:Size, weight:Float)
+	public function addConstraints(constraints:NestedArray<Constraint>, parentSize:Size, weight:Int)
 	{
-		//var weak = Strength.create(0, 0, 1, weight);
-		//var weak1 = Strength.create(0, 0, 100, weight);		
-		var medium = Strength.create(0, 1, 0, weight);
-		var medium1 = Strength.create(0, 100, 0, weight);
-		var medium2 = Strength.create(0, 200, 0, weight);
-		var medium3 = Strength.create(0, 300, 0, weight);
+		//var weak = Strength.create(0, 0, weight);
+		//var weak1 = Strength.create(0, 0, weight+10);		
+		var medium = Strength.create(0, weight, 0);
+		var medium1 = Strength.create(0, weight+10, 0);
+		var medium2 = Strength.create(0, weight+20, 0);
+		var medium3 = Strength.create(0, weight+30, 0);
 
-		if (_size != null) {
-			constraints.push( (size == _size) | medium1 ); // TODO: separate min/max handling here
-			constraints.push( (size <= parentSize.size) | medium2 );
-		}
-		else if (_percent != null) {
+		if (_percent != null) {
 			constraints.push( (size == _percent*parentSize.size) | medium1 );
 		}
 		else {
@@ -96,6 +81,22 @@ class Size {
 			constraints.push( (size <= _max) | medium3 );
 	}
 	
+	public function addFlexConstraints(constraints:NestedArray<Constraint>, strength:Strength)
+	{
+		if (_min != null && _min == _max )
+			constraints.push( (size == _min) | strength );
+		else
+		{
+			if (_min != null)
+				constraints.push( (size >= _min) | strength );
+			else
+				constraints.push( (size >= 0) | strength );
+			
+			if (_max != null)
+				constraints.push( (size <= _max) | strength );
+		}
+	}
+	
 }
 
 // ---------- Size helpers
@@ -104,24 +105,44 @@ class Size {
 abstract Width(Size) from Size to Size {
 	public inline function new(width:Int) this = Size.px(width);
 	@:from public static inline function fromInt(i:Int):Width return Size.px(i);
+	public static inline function px(pixel:Int):Width return new Size(null, pixel,pixel);
+	public static inline function percent(percent:Float, min:Null<Int> = null, max:Null<Int> = null):Width return new Size(percent, min, max);
+	public static inline function min(min:Int):Width return new Size(null, min, null);
+	public static inline function max(max:Int):Width return new Size(null, null, max);
+	public static inline function flex(min:Int, max:Int):Width return new Size(null, min, max);
 }
 
 @:forward @:forwardStatics
 abstract Height(Size) from Size to Size {
 	public inline function new(height:Int) this = Size.px(height);
 	@:from public static inline function fromInt(i:Int):Height return Size.px(i);
+	public static inline function px(pixel:Int):Height return new Size(null, pixel,pixel);
+	public static inline function percent(percent:Float, min:Null<Int> = null, max:Null<Int> = null):Height return new Size(percent, min, max);
+	public static inline function min(min:Int):Height return new Size(null, min, null);
+	public static inline function max(max:Int):Height return new Size(null, null, max);
+	public static inline function flex(min:Int, max:Int):Height return new Size(null, min, max);
 }
 
-@:forwardStatics
+@:forward @:forwardStatics
 abstract HSpace(Size) from Size to Size {
 	public inline function new(width:Int) this = Size.px(width);
 	@:from public static inline  function fromInt(i:Int):HSpace return Size.px(i);
+	public static inline function px(pixel:Int):HSpace return new Size(null, pixel,pixel);
+	public static inline function percent(percent:Float, min:Null<Int> = null, max:Null<Int> = null):HSpace return new Size(percent, min, max);
+	public static inline function min(min:Int):HSpace return new Size(null, min, null);
+	public static inline function max(max:Int):HSpace return new Size(null, null, max);
+	public static inline function flex(min:Int, max:Int):HSpace return new Size(null, min, max);
 }
 
-@:forwardStatics
+@:forward @:forwardStatics
 abstract VSpace(Size) from Size to Size {
 	public inline function new(width:Int) this = Size.px(width);
 	@:from public static inline  function fromInt(i:Int):VSpace return Size.px(i);
+	public static inline function px(pixel:Int):VSpace return new Size(null, pixel,pixel);
+	public static inline function percent(percent:Float, min:Null<Int> = null, max:Null<Int> = null):VSpace return new Size(percent, min, max);
+	public static inline function min(min:Int):VSpace return new Size(null, min, null);
+	public static inline function max(max:Int):VSpace return new Size(null, null, max);
+	public static inline function flex(min:Int, max:Int):VSpace return new Size(null, min, max);
 }
 
 
@@ -135,7 +156,8 @@ class _Layout_
 	
 	public var widthSize:Width;
 	public var heightSize:Height;
-	public var align:Align;	
+	public var align:Align;
+	
 	public var hSpace:HSpace;
 	public var vSpace:VSpace;	
 	
@@ -152,7 +174,7 @@ class _Layout_
 	public var right(default,null):Expression;
 	public var bottom(default,null):Expression;
 	
-	var addChildConstraints:Layout->NestedArray<Constraint>->?Float->Void = function(parentLayout:Layout, constraints:NestedArray<Constraint>, weight:Float = 1.0) {};
+	var addChildConstraints:Layout->NestedArray<Constraint>->Int->Void = function(parentLayout:Layout, constraints:NestedArray<Constraint>, weight:Int) {};
 	
 	var update:Void->Void = function() {};
 	var updateChilds:Void->Void = function() {};

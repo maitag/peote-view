@@ -176,11 +176,17 @@ class UiLayout
 			[
 				[ (peoteView.layout.x == 0) | Strength.REQUIRED, (peoteView.layout.y == 0) | Strength.REQUIRED ],
 
-				Box.left(peoteView,
+				new Box(peoteView,
 				[
-					new Box(ui, Width.px(300, 150), Height.percent(0.5, 100, 300),
+					Box.center(ui, Width.percent(0.5, 75, 400), Height.percent(0.5, 100, 500),
 					[
-						new Box(red, Width.px(200), Height.percent(0.5, 100, 300) )
+						Box.center(red, Width.flex(100, 300), Height.percent(0.6, 100, 400),
+						[
+							Box.right(green, Width.percent(0.8, 125, 250), Height.percent(0.7, 100, 300),
+							[
+								Box.left(blue, Width.flex(100, 130), Height.percent(0.8, 50, 100) , HSpace.flex(10,50) )  
+							])
+						])
 					])
 				]),
 				
