@@ -37,7 +37,7 @@ class LayoutContainer
 		var constraints = new NestedArray<Constraint>();
 		
 		// recursive Container
-		this.layout.addChildConstraints(this.layout, constraints, 500);
+		this.layout.addChildConstraints(this.layout, constraints);
 		
 		// max/min size constraints
 		//this.layout.addWidthConstraints(constraints, Strength.create(0, 0, 600, 1.0));
@@ -77,69 +77,99 @@ class LayoutContainer
 	@:to public function toNestedArrayItem():NestedArrayItem<Constraint> return(this.getConstraints().toArray());	
 	@:to public function toLayout():Layout return(this.layout);
 
-	function addChildConstraints(parentLayout:Layout, constraints:NestedArray<Constraint>, weight:Int):Void
+	function addChildConstraints(parentLayout:Layout, constraints:NestedArray<Constraint>, 
+		sizeSpaceWeight:Int  = 900, // weak
+		sizeChildWeight:Int  = 900, // medium
+		positionWeight:Int   = 100,   // strong
+		outerLimitWeight:Int = 100,
+		spaceLimitWeight:Int = 100,
+		childLimitWeight:Int = 100
+	):Void
 	{
-		var weak = Strength.create(0, 0, weight);
-		var weak1 = Strength.create(0, 0, weight+10);
-		var medium = Strength.create(0, weight, 0);
-		var medium1 = Strength.create(0, weight+10, 0);
-		var medium2 = Strength.create(0, weight+20, 0);
-		var strong = Strength.create(weight, 0, 0);
-				
+		sizeSpaceWeight  -= 10;
+		sizeChildWeight  -= 10;
+		positionWeight   += 10;  
+		outerLimitWeight += 10;
+		spaceLimitWeight += 10;
+		childLimitWeight += 10;
+		
+		var sizeSpaceStrength  = Strength.create(0, 0, sizeSpaceWeight); // weak
+		var sizeChildStrength  = Strength.create(0, sizeChildWeight,0 ); // medium
+		var positionStrength   = Strength.create( positionWeight,0,  0); // strong
+		var outerLimitStrength = Strength.create( outerLimitWeight,0, 0);
+		var spaceLimitStrength = Strength.create( spaceLimitWeight,0, 0);
+		var childLimitStrength = Strength.create( childLimitWeight,0, 0);
+		
 		if (this.childs != null) for (i in 0...this.childs.length)
 		{	
 			trace("addChildConstraints");
 			var child = this.childs[i];
-			// ------- horizontal
 			
-			// TODO: if there is hspace -> allways do with extra-calculated procentual size for both!
-			if (child.hSpace != null) 
-				if (child.hSpace._percent != null) constraints.push( (child.hSpace.size == child.hSpace._percent*this.layout.width) | weak1 );
+			// --------------------------------- horizontal ---------------------------------------
 			
-			if (this.childs[i].widthSize._percent != null)  {
-				constraints.push( (child.width == child.widthSize._percent*this.layout.width) | weak );
-			}
-			else {
-				if (child.hSpace == null) constraints.push( (child.width == this.layout.width) | weak );
-				else constraints.push( (child.width + child.hSpace.size == this.layout.width) | weak );
-			}
-			
-			if (Align.isLeft(child.align))
+			if (child.hSpace != null) // ------------- Spacer ---------------
 			{
-				if (child.hSpace == null) constraints.push( (child.x == this.layout.x) | medium );	 // left
-				else constraints.push( (child.x == this.layout.x + child.hSpace.size) | medium );
+				var childPercent = child.widthSize._percent;
+				var spacePercent = child.hSpace._percent;
+				
+				// normalize procentuals
+				if (childPercent != null && spacePercent != null) {
+					if (childPercent + spacePercent > 1.0) {
+						var n = (childPercent + spacePercent - 1.0) / 2;
+						childPercent -= n;
+						spacePercent -= n;
+					}
+				}
+				
+				if (childPercent != null) constraints.push( (child.width == childPercent * this.layout.width) | sizeChildStrength );     // SIZECHILD
+				
+				constraints.push( (child.hSpace.size + child.width == this.layout.width) | sizeSpaceStrength );         // SIZESPACE
+				
+				if (spacePercent != null) constraints.push( (child.hSpace.size == spacePercent*this.layout.width ) | sizeSpaceStrength );   // SIZESPACE
+				else {
+					if (child.hSpace._min != null && child.hSpace._max != null) constraints.push( (child.hSpace.size == child.hSpace._min ) | sizeSpaceStrength );
+					else if (child.hSpace._min != null) constraints.push( (child.hSpace.size == child.hSpace._min ) | sizeSpaceStrength );
+					else if (child.hSpace._max != null) constraints.push( (child.hSpace.size == 0 ) | sizeSpaceStrength );
+					else constraints.push( (child.hSpace.size == 0 ) | sizeSpaceStrength );
+				}
+				
+				if (Align.isLeft(child.align)) constraints.push( (child.x == this.layout.x + child.hSpace.size) | positionStrength );               // POSITION left
+				else if (Align.isRight(child.align)) constraints.push( (child.right + child.hSpace.size == this.layout.right) | positionStrength ); // POSITION right
+				else constraints.push( (child.centerX == this.layout.centerX) | positionStrength );                                                 // POSITION center
+				
+				constraints.push( (child.width + child.hSpace.size <= this.layout.width) | outerLimitStrength ); // OUTERLIMIT
+				child.hSpace.addLimitConstraints(constraints, spaceLimitStrength );                               // SPACELIMIT
 			}
-			else if (Align.isRight(child.align))
+			else  // ---------------- no Spacer -------------------
 			{
-				if (child.hSpace == null) constraints.push( (child.right == this.layout.right) | medium );  // right
-				else constraints.push( (child.right + child.hSpace.size == this.layout.right) | medium );
+				if (this.childs[i].widthSize._percent != null) constraints.push( (child.width == child.widthSize._percent*this.layout.width) | sizeChildStrength );  // SIZECHILD
+				else constraints.push( (child.width == this.layout.width) | sizeChildStrength );
+				
+				if (Align.isLeft(child.align)) constraints.push( (child.x == this.layout.x) | positionStrength );	            // POSITION left 
+				else if (Align.isRight(child.align)) constraints.push( (child.right == this.layout.right) | positionStrength ); // POSITION right
+				else constraints.push( (child.centerX == this.layout.centerX) | positionStrength );                             // POSITION center
+				
+				constraints.push( (child.width <= this.layout.width) | outerLimitStrength );   // OUTERLIMIT	
 			}
-			else 
-			{
-				constraints.push( (child.centerX == this.layout.centerX) | medium );  // center
-			}
 			
-			if (child.hSpace == null) constraints.push( (child.width <= this.layout.width) | Strength.create(0, 1000-weight, 0) );			
-			else constraints.push( (child.width + child.hSpace.size <= this.layout.width) | Strength.create(0, 1000-weight, 0) );			
-			
-			child.widthSize.addFlexConstraints(constraints, Strength.create(0, 1000 - weight, 0));
-			if (child.hSpace != null) child.hSpace.addFlexConstraints(constraints, Strength.create(0, 1000-weight, 0)); // hspace
+			child.widthSize.addLimitConstraints(constraints, childLimitStrength);               // CHILDLIMIT
 			
 			
 			
-			//  ------- vertical
+			// --------------------------------- vertical ---------------------------------------
+			// TODO
 			
-			constraints.push( (child.centerY == parentLayout.centerY) | medium );
+			constraints.push( (child.centerY == parentLayout.centerY) | positionStrength );
 			//constraints.push( (child.height == parentLayout.height) | medium );
 			
 			// height constraints
-			child.heightSize.addConstraints(constraints, this.layout.heightSize, weight);
+			child.heightSize.addConstraints(constraints, this.layout.heightSize, positionWeight);
 			
 			
 			
+			// ------------------------- recursive childs --------------------------
+			child.addChildConstraints(child, constraints, sizeSpaceWeight, sizeChildWeight, positionWeight, outerLimitWeight, spaceLimitWeight , childLimitWeight);
 			
-			// recursive Container
-			child.addChildConstraints(child, constraints, weight-100);
 		}
 				
 	}

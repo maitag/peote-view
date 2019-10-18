@@ -81,9 +81,9 @@ class Size {
 			constraints.push( (size <= _max) | medium3 );
 	}
 	
-	public function addFlexConstraints(constraints:NestedArray<Constraint>, strength:Strength)
+	public function addLimitConstraints(constraints:NestedArray<Constraint>, strength:Strength)
 	{
-		if (_min != null && _min == _max )
+		if (_min != null && _max != null && _min >= _max )
 			constraints.push( (size == _min) | strength );
 		else
 		{
@@ -174,7 +174,14 @@ class _Layout_
 	public var right(default,null):Expression;
 	public var bottom(default,null):Expression;
 	
-	var addChildConstraints:Layout->NestedArray<Constraint>->Int->Void = function(parentLayout:Layout, constraints:NestedArray<Constraint>, weight:Int) {};
+	var addChildConstraints:Layout->NestedArray<Constraint>->?Int->?Int->?Int->?Int->?Int->?Int->Void =
+		function(parentLayout:Layout, constraints:NestedArray<Constraint>,	
+			?sizeSpaceWeight:Int,
+			?sizeChildWeight:Int,
+			?positionWeight:Int,
+			?outerLimitWeight:Int,
+			?spaceLimitWeight:Int,
+			?childLimitWeight:Int) {};
 	
 	var update:Void->Void = function() {};
 	var updateChilds:Void->Void = function() {};
