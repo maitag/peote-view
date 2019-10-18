@@ -80,7 +80,7 @@ class LayoutContainer
 	function addChildConstraints(parentLayout:Layout, constraints:NestedArray<Constraint>, 
 		sizeSpaceWeight:Int  = 900, // weak
 		sizeChildWeight:Int  = 900, // medium
-		positionWeight:Int   = 100,   // strong
+		positionWeight:Int   = 100, // strong
 		outerLimitWeight:Int = 100,
 		spaceLimitWeight:Int = 100,
 		childLimitWeight:Int = 100
@@ -122,8 +122,7 @@ class LayoutContainer
 				}
 				
 				if (childPercent != null) constraints.push( (child.width == childPercent * this.layout.width) | sizeChildStrength );     // SIZECHILD
-				
-				constraints.push( (child.hSpace.size + child.width == this.layout.width) | sizeSpaceStrength );         // SIZESPACE
+				else constraints.push( (child.hSpace.size + child.width == this.layout.width) | sizeChildStrength ); 
 				
 				if (spacePercent != null) constraints.push( (child.hSpace.size == spacePercent*this.layout.width ) | sizeSpaceStrength );   // SIZESPACE
 				else {

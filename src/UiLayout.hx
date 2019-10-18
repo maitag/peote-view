@@ -180,11 +180,11 @@ class UiLayout
 
 				new Box(peoteView,
 				[
-					Box.center(ui, Width.percent(0.9, 75, 900), Height.percent(0.5, 100, 500),
+					Box.center(ui, Width.percent(0.9, 75, 1000), Height.percent(0.5, 100, 500),
 					[
 						Box.center(red, Width.flex(10, 800), Height.percent(0.6, 100, 400),
 						[
-							Box.left(green, Width.percent(0.8, 50, 350), Height.percent(0.7, 100, 300), HSpace.percent(0.2, 20, 50),
+							Box.left(green, Width.percent(0.8, 50, 500), Height.percent(0.7, 100, 300), HSpace.percent(0.1, 20),
 							[
 								Box.left(blue, Width.flex(100, 150), Height.percent(0.8, 50, 100), HSpace.flex(20, 50) )  
 							])
