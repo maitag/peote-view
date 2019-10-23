@@ -1,5 +1,6 @@
 package peote.ui;
 
+import jasper.Expression;
 import jasper.Strength;
 import jasper.Constraint;
 import jasper.Variable;
@@ -13,7 +14,7 @@ class LayoutContainer
 	var layout:Layout;
 	var childs:Array<Layout>;
 
-	public function new(layout:Layout = null, width:Width = null, height:Height = null, align:Align = Align.center, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null) 
+	function new(layout:Layout = null, width:Width = null, height:Height = null, align:Align = Align.center, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null) 
 	{
 		if (layout == null)
 			this.layout = new Layout(width, height, align, hSpace, vSpace);
@@ -32,26 +33,47 @@ class LayoutContainer
 		}
 	}
 	
-	public function getConstraints():NestedArray<Constraint>
+	function getConstraints():NestedArray<Constraint>
 	{
 		var constraints = new NestedArray<Constraint>();
 		
 		// recursive Container
 		this.layout.addChildConstraints(this.layout, constraints);
 		
-		// max/min size constraints
-		//this.layout.addWidthConstraints(constraints, Strength.create(0, 0, 600, 1.0));
-		//this.layout.addHeightConstraints(constraints, Strength.create(0, 0, 600, 1.0));
-		
 		return(constraints);
 	}
+	
+	function addPrefConstraints(size:Size, start:Variable, spStart:Size = null, end:Expression, spEnd:Size = null,
+		constraints:NestedArray<Constraint>, positionStrength:Strength, childLimitStrength:Strength, spaceLimitStrength:Strength):Void
+	{
+		if (spStart != null && spEnd != null) constraints.push( (start == end + spEnd.size + spStart.size) | positionStrength );
+		else if (spStart != null) constraints.push( (start == end + spStart.size) | positionStrength );
+		else if (spEnd != null) constraints.push( (start == end + spEnd.size) | positionStrength );
+		else constraints.push( (start == end) | positionStrength );
+		
+		if (spEnd != null) spEnd.addLimitConstraints(constraints, spaceLimitStrength);      // SPACELIMIT
+		if (spStart != null) spStart.addLimitConstraints(constraints, spaceLimitStrength);  // SPACELIMIT
+				
+		size.addLimitConstraints(constraints, childLimitStrength);      // CHILDLIMIT
+	}
+	
+	function addOuterConstraints(end:Expression, spEnd:Size = null, outEnd:Expression,
+		constraints:NestedArray<Constraint>, spaceLimitStrength:Strength, outerLimitStrength:Strength):Void
+	{		
+		if (spEnd != null) {
+			spEnd.addLimitConstraints(constraints, spaceLimitStrength); // SPACELIMIT
+			constraints.push( (end + spEnd.size <= outEnd) | outerLimitStrength ); // OUTERLIMIT
+		}
+		else constraints.push( (end <= outEnd) | outerLimitStrength ); // OUTERLIMIT
+	}
+	
 	
 }
 
 // -------------------------------------------------------------------------------------------------
 // -----------------------------     Box    --------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
-@:forward @:forwardStatics abstract Box(LayoutContainer) // from LayoutContainer to LayoutContainer
+abstract Box(LayoutContainer) // from LayoutContainer to LayoutContainer
 {
 	public inline function new(layout:Layout = null, width:Width = null, height:Height = null, align:Align = Align.center, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null) 
 	{
@@ -100,11 +122,9 @@ class LayoutContainer
 		var spaceLimitStrength = Strength.create( spaceLimitWeight,0, 0);
 		var childLimitStrength = Strength.create( childLimitWeight,0, 0);
 		
-		if (this.childs != null) for (i in 0...this.childs.length)
+		if (this.childs != null) for (child in this.childs)
 		{	
-			trace("addChildConstraints");
-			var child = this.childs[i];
-			
+			trace("Box - addChildConstraints");
 			// --------------------------------- horizontal ---------------------------------------
 			
 			if (child.hSpace != null) // ------------- Spacer ---------------
@@ -137,11 +157,12 @@ class LayoutContainer
 				else constraints.push( (child.centerX == this.layout.centerX) | positionStrength );                                                 // POSITION center
 				
 				constraints.push( (child.width + child.hSpace.size <= this.layout.width) | outerLimitStrength ); // OUTERLIMIT
+				
 				child.hSpace.addLimitConstraints(constraints, spaceLimitStrength );                               // SPACELIMIT
 			}
 			else  // ---------------- no Spacer -------------------
 			{
-				if (this.childs[i].widthSize._percent != null) constraints.push( (child.width == child.widthSize._percent*this.layout.width) | sizeChildStrength );  // SIZECHILD
+				if (child.widthSize._percent != null) constraints.push( (child.width == child.widthSize._percent*this.layout.width) | sizeChildStrength );  // SIZECHILD
 				else constraints.push( (child.width == this.layout.width) | sizeChildStrength );
 				
 				if (Align.isLeft(child.align)) constraints.push( (child.x == this.layout.x) | positionStrength );	            // POSITION left 
@@ -156,15 +177,10 @@ class LayoutContainer
 			
 			
 			// --------------------------------- vertical ---------------------------------------
-			// TODO
-			
+			// TODO			
 			constraints.push( (child.centerY == parentLayout.centerY) | positionStrength );
-			//constraints.push( (child.height == parentLayout.height) | medium );
-			
-			// height constraints
 			child.heightSize.addConstraints(constraints, this.layout.heightSize, positionWeight);
-			
-			
+						
 			
 			// ------------------------- recursive childs --------------------------
 			child.addChildConstraints(child, constraints, sizeSpaceWeight, sizeChildWeight, positionWeight, outerLimitWeight, spaceLimitWeight , childLimitWeight);
@@ -180,63 +196,136 @@ class LayoutContainer
 // -----------------------------   HShelf   --------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
-/*@:forward @:forwardStatics abstract HShelf(LayoutContainer) from LayoutContainer to LayoutContainer
+abstract Shelf(LayoutContainer) from LayoutContainer to LayoutContainer
 {
 	public inline function new(layout:Layout = null, width:Width = null, height:Height = null, align:Align = Align.center, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null) 
 	{
 		this = new LayoutContainer(layout, width, height, align, hSpace, vSpace, childs) ;
 		this.layout.addChildConstraints = addChildConstraints;
 	}
+	// ---------- static helpers
+	public static inline function center       (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Shelf return new Shelf(layout, width, height, Align.center,      hSpace, vSpace, childs); 
+	public static inline function left         (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Shelf return new Shelf(layout, width, height, Align.left,        hSpace, vSpace, childs); 
+	public static inline function right        (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Shelf return new Shelf(layout, width, height, Align.right,       hSpace, vSpace, childs); 
+	public static inline function top          (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Shelf return new Shelf(layout, width, height, Align.top,         hSpace, vSpace, childs); 
+	public static inline function bottom       (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Shelf return new Shelf(layout, width, height, Align.bottom,      hSpace, vSpace, childs); 
+	public static inline function topLeft      (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Shelf return new Shelf(layout, width, height, Align.topLeft,     hSpace, vSpace, childs); 
+	public static inline function topRight     (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Shelf return new Shelf(layout, width, height, Align.topRight,    hSpace, vSpace, childs); 
+	public static inline function bottomLeft   (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Shelf return new Shelf(layout, width, height, Align.bottomLeft,  hSpace, vSpace, childs); 
+	public static inline function bottomRight  (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Shelf return new Shelf(layout, width, height, Align.bottomRight, hSpace, vSpace, childs); 
+	public static inline function leftTop      (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Shelf return new Shelf(layout, width, height, Align.topLeft,     hSpace, vSpace, childs); 
+	public static inline function rightTop     (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Shelf return new Shelf(layout, width, height, Align.topRight,    hSpace, vSpace, childs); 
+	public static inline function leftBottom   (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Shelf return new Shelf(layout, width, height, Align.bottomLeft,  hSpace, vSpace, childs); 
+	public static inline function rightBottom  (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Shelf return new Shelf(layout, width, height, Align.bottomRight, hSpace, vSpace, childs); 
 	
 	@:to public function toNestedArray():NestedArray<Constraint> return(this.getConstraints());
 	@:to public function toNestedArrayItem():NestedArrayItem<Constraint> return(this.getConstraints().toArray());	
 	@:to public function toLayout():Layout return(this.layout);
 
-	function addChildConstraints(parentLayout:Layout, constraints:NestedArray<Constraint>, weight:Float = 1.0)
+	function addChildConstraints(parentLayout:Layout, constraints:NestedArray<Constraint>, 
+		sizeSpaceWeight:Int  = 900, // weak
+		sizeChildWeight:Int  = 900, // medium
+		positionWeight:Int   = 100, // strong
+		outerLimitWeight:Int = 100,
+		spaceLimitWeight:Int = 100,
+		childLimitWeight:Int = 100
+	):Void
 	{
-		var weak = Strength.create(0, 0, 1, weight);
-		var weak5 = Strength.create(0, 0, 500, weight);
-		var medium = Strength.create(0, 1, 0, weight);
+		sizeSpaceWeight  -= 10;
+		sizeChildWeight  -= 10;
+		positionWeight   += 10;  
+		outerLimitWeight += 10;
+		spaceLimitWeight += 10;
+		childLimitWeight += 10;
 		
-		if (this.childs != null)
-			for (i in 0...this.childs.length)
-			{	
-				// horizontal
-				if (i == 0)  // first
-					constraints.push( (this.childs[i].left == this.layout.left) | medium );
-				else
-					constraints.push( (this.childs[i].left == this.childs[i-1].right + 10) | medium );
-				
-				if (i == this.childs.length - 1) {  // last
-					constraints.push( (this.childs[i].right == this.layout.right) | medium);
-				}
-				else {
-					// force same width
-					for (j in (i + 1)...this.childs.length) {
-						constraints.push( (this.childs[i].width == this.childs[j].width) | weak);
+		var sizeSpaceStrength  = Strength.create(0, 0, sizeSpaceWeight); // weak
+		var sizeChildStrength  = Strength.create(0, sizeChildWeight,0 ); // medium
+		var positionStrength   = Strength.create( positionWeight,0,  0); // strong
+		var outerLimitStrength = Strength.create( outerLimitWeight,0, 0);
+		var spaceLimitStrength = Strength.create( spaceLimitWeight,0, 0);
+		var childLimitStrength = Strength.create( childLimitWeight,0, 0);
+		
+		// calculate procentual
+		var procentuals = new Array<{space:Null<Float>, child:Null<Float>, spaceMax:Null<Int>, childMax:Null<Int>, spaceMin:Int, childMin:Int}>();
+		var anz_percent:Int = 0;
+		var sum_percent:Float = 0.0;
+		var anz_min:Int = 0;
+		var greatest_min:Int = 0;
+		var sum_min:Int = 0;
+		var greatest_max:Int = 0;
+		var sum_max:Int = 0;
+		if (this.childs != null) {
+			for (child in this.childs) {
+				var p = {space:null, child:null, spaceMax:null, childMax:null, spaceMin:0, childMin:0};
+				if (child.hSpace != null) {
+					if (child.hSpace._percent != null) {
+						p.space = child.hSpace._percent;
+						sum_percent += p.space;
+						anz_percent++;
+					} 
+					else if (child.hSpace._max != null) {
+						p.spaceMax = child.hSpace._max - ((child.hSpace._min == null) ? 0 : child.hSpace._min);
+						sum_max += p.spaceMax;
+					}
+					else if (child.hSpace._min != null) {
+						p.spaceMin = child.hSpace._min;
+						sum_min += p.spaceMin;
 					}
 				}
-				
-				//this.childs[i].widthSize.addConstraints(constraints, this.layout.widthSize, weight);
-				
-				// vertical
-				constraints.push( (this.childs[i].top == this.layout.top) | medium );
-				
-				constraints.push( (this.childs[i].bottom == this.layout.bottom) | weak );
-				
-				//if (childs.length == 1)
-					//constraints.push( (childs[i].bottom == parentLayout.bottom) | weak9 );
-				//else if (childs[i].heightSize == null )
-					//constraints.push( (childs[i].bottom == parentLayout.bottom) | weak3 );
-				//else
-					//constraints.push( (childs[i].bottom == parentLayout.bottom) | Strength.create(0, 0, 100+i*10, weight));
-				
-					
-				// recursive Container
-				this.childs[i].addChildConstraints(this.childs[i], constraints, weight+0.05);
-
+				if (child.widthSize._percent != null) {
+					p.child = child.widthSize._percent;
+					sum_percent += p.child;
+					anz_percent++;
+				}
+				else if (child.widthSize._max != null) {
+					p.childMax = child.widthSize._max - ((child.widthSize._min == null) ? 0 : child.widthSize._min);
+					sum_max += p.childMax;
+				}
+				else if (child.widthSize._min != null) {
+					p.childMin = child.widthSize._min;
+					sum_min += p.childMin;
+				}
+				procentuals.push(p);
 			}
+			for (p in procentuals) {
+				
+			}
+		}
+		
+		if (this.childs != null) for (i in 0...this.childs.length)
+		{	
+			trace("Shelf - addChildConstraints");
+			var child = this.childs[i];
+
+			// horizontal -----------
+			if (i == 0)  // first
+				constraints.push( (child.left == this.layout.left) | positionStrength );
+			else
+				constraints.push( (child.left == this.childs[i-1].right) | positionStrength );
+			
+			if (i == this.childs.length - 1) {  // last
+				constraints.push( (child.right <= this.layout.right) | outerLimitStrength);
+			}
+			
+			// procentual size
+			
+			child.widthSize.addLimitConstraints(constraints, childLimitStrength);               // CHILDLIMIT
+			
+			
+			
+			// TODO: vertical
+			constraints.push( (this.childs[i].top == this.layout.top) | positionStrength );			
+			constraints.push( (this.childs[i].bottom <= this.layout.bottom) | outerLimitStrength );
+			// height constraints
+			child.heightSize.addConstraints(constraints, this.layout.heightSize, positionWeight);
+			
+			
+				
+			// recursive Container
+			child.addChildConstraints(child, constraints, sizeSpaceWeight, sizeChildWeight, positionWeight, outerLimitWeight, spaceLimitWeight , childLimitWeight);
+
+		}
 				
 	}
 	
-}*/
+}

@@ -46,9 +46,11 @@ class UiLayout
 			//ui.add(grey); testManualConstraints();
 			
 			ui.add(red); ui.add(green); ui.add(blue);
-			testLayoutSimpleBox();			
+			testManualRowConstraints();
+			//testLayoutNestedBoxes();
 			
-			//ui.add(yellow); testLayoutNestedBox();
+			//ui.add(yellow);
+			//testLayoutNestedShelfes();
 			
 		}
 		catch (e:Dynamic) trace("ERROR:", e);
@@ -128,26 +130,26 @@ class UiLayout
 				// size restriction
 				(red.layout.width <= 100) | new Strength(500),
 				(red.layout.width >= 50) | new Strength(500),
-				//(red.layout.width == 200) | new Strength(500),
+				//(red.layout.width == 100) | new Strength(500),
 				
 				(green.layout.width <= 200) | new Strength(500),
 				(green.layout.width >= 100) | new Strength(500),
-				//(green.layout.width == 300) | new Strength(500),
+				//(green.layout.width == 200) | new Strength(500),
 				
-				//(blue.layout.width <= 300) | new Strength(500),
-				(blue.layout.width >= 150) | new Strength(500),
 				(blue.layout.width <= 300) | new Strength(500),
+				(blue.layout.width >= 150) | new Strength(500),
+				//(blue.layout.width == 300) | new Strength(500),
 				
 				// manual hbox constraints
 				
-				(red.layout.width   == (ui.layout.width) * ((100+ 50)/2) / ((100+50)/2 + (200+100)/2 + (300+150)/2)) | Strength.WEAK,
-				(green.layout.width == (ui.layout.width) * ((200+100)/2) / ((100+50)/2 + (200+100)/2 + (300+150)/2)) | Strength.WEAK,
+				//(red.layout.width   == (ui.layout.width) * ((100+ 50)/2) / ((100+50)/2 + (200+100)/2 + (300+150)/2)) | Strength.WEAK,
+				//(green.layout.width == (ui.layout.width) * ((200+100)/2) / ((100+50)/2 + (200+100)/2 + (300+150)/2)) | Strength.WEAK,
 				//(blue.layout.width  == (ui.layout.width) * ((300+150)/2) / ((100+50)/2 + (200+100)/2 + (300+150)/2)) | Strength.WEAK,
 				
-/*				(red.layout.width == green.layout.width) | Strength.WEAK,
-				(red.layout.width == blue.layout.width) | Strength.WEAK,
+				(red.layout.width == green.layout.width) | Strength.WEAK,
+				//(red.layout.width == blue.layout.width) | Strength.WEAK,
 				(green.layout.width == blue.layout.width) | Strength.WEAK,
-*/				
+				
 				(red.layout.left == ui.layout.left) | new Strength(400),
 				(green.layout.left == red.layout.right ) | new Strength(400),
 				(blue.layout.left == green.layout.right ) | new Strength(400),
@@ -168,7 +170,7 @@ class UiLayout
 
 	// ----------------------------------------------------------------
 		
-	public function testLayoutSimpleBox()
+	public function testLayoutNestedBoxes()
 	{
 		var hspace = HSpace.flex(0, 50);
 		
@@ -180,13 +182,13 @@ class UiLayout
 
 				new Box(peoteView,
 				[
-					Box.center(ui, Width.percent(0.9, 75, 1000), Height.percent(0.5, 100, 500),
-					[
-						Box.center(red, Width.flex(10, 800), Height.percent(0.6, 100, 400),
-						[
-							Box.left(green, Width.percent(0.8, 50, 500), Height.percent(0.7, 100, 300), HSpace.percent(0.1, 20),
-							[
-								Box.left(blue, Width.flex(100, 150), Height.percent(0.8, 50, 100), HSpace.flex(20, 50) )  
+					Box.center(           ui   , Width.percent(0.6, 75, 1000), 50,
+					[                                                          
+						Box.center(       red  , Width.flex(10, 800)         , 50,
+						[                                                      
+							Box.left(     green, Width.percent(0.8, 50, 500) , 50, HSpace.percent(0.1, 20),
+							[                                                  
+								Box.left( blue,  Width.flex(100, 150)        , 50, HSpace.flex(20, 50) )  
 							])
 						])
 					])
@@ -201,7 +203,7 @@ class UiLayout
 	
 	// ----------------------------------------------------------------
 		
-/*	public function testLayoutNestedBox()
+	public function testLayoutNestedShelfes()
 	{
 		layoutSolver = new LayoutSolver
 		(
@@ -211,15 +213,12 @@ class UiLayout
 
 				Box.center(peoteView,
 				[
-					Box.left(ui, 700, 500,
+					Shelf.center(ui, HSpace.percent(0.1), VSpace.percent(0.1),
 					[
-						Box.topLeft(red, Width.max(400), Height.max(300),
-						[
-							new Box(green, Width.px(100, 50, 200), Height.min(200), Align.left, HSpace.px(10), VSpace.min(20),
-							[
-								blue, yellow
-							])
-						])
+						Box.left(red,   Width.flex(100,300)),
+						Box.left(green, Width.flex(200,300)),
+						//Box.topLeft(green, Width.min(200)),
+						//Box.topLeft(blue,  Width.min(100))
 					])
 				]),
 				
@@ -228,7 +227,7 @@ class UiLayout
 		);
 		layoutSolver.suggestValues([peoteView.width, peoteView.height]).update();
 	}
-*/
+
 	
 	
 	
@@ -248,11 +247,21 @@ class UiLayout
 	
 	public function render() peoteView.render();
 
+	
+	var sizeEmulation = false;
 	// delegate mouse-events to UIDisplay
 	public function onWindowLeave () ui.onWindowLeave();
-	public function onMouseMove (x:Float, y:Float) ui.onMouseMove(peoteView, x, y);
+	public function onMouseMove (x:Float, y:Float) {
+		ui.onMouseMove(peoteView, x, y);
+		if (sizeEmulation) layoutSolver.suggestValues([Std.int(x),Std.int(y)]).update();
+	}
 	public function onMouseDown (x:Float, y:Float, button:MouseButton) ui.onMouseDown(peoteView, x, y, button);
-	public function onMouseUp (x:Float, y:Float, button:MouseButton) ui.onMouseUp(peoteView, x, y, button);
+	public function onMouseUp (x:Float, y:Float, button:MouseButton) {
+		ui.onMouseUp(peoteView, x, y, button);
+		sizeEmulation = !sizeEmulation; 
+		if (sizeEmulation) layoutSolver.suggestValues([Std.int(x), Std.int(y)]).update();
+		else layoutSolver.suggestValues([peoteView.width, peoteView.height]).update();
+	}
 	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier) ui.onKeyDown(keyCode, modifier);	
 	public function onPreloadComplete ():Void { trace("preload complete"); }
 	public function update(deltaTime:Int):Void {}

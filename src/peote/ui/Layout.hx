@@ -56,6 +56,7 @@ class Size {
 	public static inline function max(max:Int):Size return new Size(null, null, max);
 	public static inline function flex(min:Int, max:Int):Size return new Size(null, min, max);
 	
+	// TODO: dummy
 	public function addConstraints(constraints:NestedArray<Constraint>, parentSize:Size, weight:Int)
 	{
 		//var weak = Strength.create(0, 0, weight);
