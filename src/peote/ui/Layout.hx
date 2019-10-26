@@ -111,6 +111,7 @@ abstract Width(Size) from Size to Size {
 	public static inline function min(min:Int):Width return new Size(null, min, null);
 	public static inline function max(max:Int):Width return new Size(null, null, max);
 	public static inline function flex(min:Int, max:Int):Width return new Size(null, min, max);
+	// TODO: ratio to Height
 }
 
 @:forward @:forwardStatics
@@ -122,6 +123,7 @@ abstract Height(Size) from Size to Size {
 	public static inline function min(min:Int):Height return new Size(null, min, null);
 	public static inline function max(max:Int):Height return new Size(null, null, max);
 	public static inline function flex(min:Int, max:Int):Height return new Size(null, min, max);
+	// TODO: ratio to Width
 }
 
 @:forward @:forwardStatics

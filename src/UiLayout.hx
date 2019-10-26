@@ -46,8 +46,8 @@ class UiLayout
 			//ui.add(grey); testManualConstraints();
 			
 			ui.add(red); ui.add(green); ui.add(blue);
-			testManualRowConstraints();
-			//testLayoutNestedBoxes();
+			//testManualRowConstraints();
+			testLayoutNestedBoxes();
 			
 			//ui.add(yellow);
 			//testLayoutNestedShelfes();
@@ -182,6 +182,18 @@ class UiLayout
 
 				new Box(peoteView,
 				[
+					Box.left(           ui   , Width.flex(200, 800),
+					[                                                          
+						Box.left(       red  , Width.flex(150, 500),
+						[                                                      
+							Box.left( green,  Width.flex(100, 150) , 200),
+							//Box.left( blue,  Width.flex(100, 150), 100 ),
+							
+						])
+					])
+				]),
+/*				new Box(peoteView,
+				[
 					Box.center(           ui   , Width.percent(0.6, 75, 1000), 50,
 					[                                                          
 						Box.center(       red  , Width.flex(10, 800)         , 50,
@@ -193,7 +205,7 @@ class UiLayout
 						])
 					])
 				]),
-				
+*/				
 				
 			]
 		);

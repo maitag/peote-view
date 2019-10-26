@@ -43,28 +43,33 @@ class LayoutContainer
 		return(constraints);
 	}
 	
-	function addPrefConstraints(size:Size, start:Variable, spStart:Size = null, end:Expression, spEnd:Size = null,
-		constraints:NestedArray<Constraint>, positionStrength:Strength, childLimitStrength:Strength, spaceLimitStrength:Strength):Void
-	{
-		if (spStart != null && spEnd != null) constraints.push( (start == end + spEnd.size + spStart.size) | positionStrength );
-		else if (spStart != null) constraints.push( (start == end + spStart.size) | positionStrength );
-		else if (spEnd != null) constraints.push( (start == end + spEnd.size) | positionStrength );
-		else constraints.push( (start == end) | positionStrength );
-		
-		if (spEnd != null) spEnd.addLimitConstraints(constraints, spaceLimitStrength);      // SPACELIMIT
-		if (spStart != null) spStart.addLimitConstraints(constraints, spaceLimitStrength);  // SPACELIMIT
-				
-		size.addLimitConstraints(constraints, childLimitStrength);      // CHILDLIMIT
+	function addStartConstraints(start:Variable, outStart:Variable, spStart:Size = null, constraints:NestedArray<Constraint>, outerLimitStrength:Strength):Void
+	{		
+		if (spStart != null) constraints.push( (start == outStart + spStart.size) | outerLimitStrength ); // OUTERLIMIT
+		else constraints.push( (start == outStart) | outerLimitStrength ); // OUTERLIMIT
 	}
 	
-	function addOuterConstraints(end:Expression, spEnd:Size = null, outEnd:Expression,
-		constraints:NestedArray<Constraint>, spaceLimitStrength:Strength, outerLimitStrength:Strength):Void
+	function addEndConstraints(end:Expression, outEnd:Expression, spEnd:Size = null, constraints:NestedArray<Constraint>, outerLimitStrength:Strength):Void
 	{		
-		if (spEnd != null) {
-			spEnd.addLimitConstraints(constraints, spaceLimitStrength); // SPACELIMIT
-			constraints.push( (end + spEnd.size <= outEnd) | outerLimitStrength ); // OUTERLIMIT
-		}
-		else constraints.push( (end <= outEnd) | outerLimitStrength ); // OUTERLIMIT
+		if (spEnd != null) constraints.push( (outEnd == end + spEnd.size) | outerLimitStrength ); // OUTERLIMIT
+		else constraints.push( (outEnd == end) | outerLimitStrength ); // OUTERLIMIT
+	}
+	
+	function addPrefConstraints(start:Variable, prefEnd:Expression, spStart:Size = null, spPrefEnd:Size = null, constraints:NestedArray<Constraint>, positionStrength:Strength):Void
+	{
+		if (spStart != null && spPrefEnd != null) constraints.push( (start == prefEnd + spPrefEnd.size + spStart.size) | positionStrength );
+		else if (spStart != null) constraints.push( (start == prefEnd + spStart.size) | positionStrength );
+		else if (spPrefEnd != null) constraints.push( (start == prefEnd + spPrefEnd.size) | positionStrength );
+		else constraints.push( (start == prefEnd) | positionStrength );
+	}
+	
+	function addLimitConstraints(size:Size, spStart:Size = null, spEnd:Size = null,
+		constraints:NestedArray<Constraint>, childLimitStrength:Strength, spaceLimitStrength:Strength):Void
+	{		
+		size.addLimitConstraints(constraints, childLimitStrength);      // CHILDLIMIT
+		if (spStart != null) spStart.addLimitConstraints(constraints, spaceLimitStrength);  // SPACELIMIT
+		if (spEnd != null) spEnd.addLimitConstraints(constraints, spaceLimitStrength);      // SPACELIMIT
+				
 	}
 	
 	
@@ -127,7 +132,11 @@ abstract Box(LayoutContainer) // from LayoutContainer to LayoutContainer
 			trace("Box - addChildConstraints");
 			// --------------------------------- horizontal ---------------------------------------
 			
-			if (child.hSpace != null) // ------------- Spacer ---------------
+			this.addStartConstraints(child.x, this.layout.x, null, constraints, outerLimitStrength);
+			this.addEndConstraints(child.right, this.layout.right, null, constraints, outerLimitStrength);
+			this.addLimitConstraints(child.widthSize, child.hSpace, null, constraints, childLimitStrength, spaceLimitStrength);
+			
+/*			if (child.hSpace != null) // ------------- Spacer ---------------
 			{
 				var childPercent = child.widthSize._percent;
 				var spacePercent = child.hSpace._percent;
@@ -173,7 +182,7 @@ abstract Box(LayoutContainer) // from LayoutContainer to LayoutContainer
 			}
 			
 			child.widthSize.addLimitConstraints(constraints, childLimitStrength);               // CHILDLIMIT
-			
+*/			
 			
 			
 			// --------------------------------- vertical ---------------------------------------
