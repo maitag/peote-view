@@ -14,12 +14,12 @@ class LayoutContainer
 	var layout:Layout;
 	var childs:Array<Layout>;
 
-	function new(layout:Layout = null, width:Width = null, height:Height = null, align:Align = Align.center, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null) 
+	function new(layout:Layout, width:Width, height:Height,	hSpace:HSpace, lSpace:LSpace, rSpace:RSpace, vSpace:VSpace, tSpace:TSpace, bSpace:BSpace, childs:Array<Layout>) 
 	{
 		if (layout == null)
-			this.layout = new Layout(width, height, align, hSpace, vSpace);
+			this.layout = new Layout(width, height, hSpace, lSpace, rSpace, vSpace, tSpace, bSpace);
 		else {
-			this.layout = layout.set(width, height, align, hSpace, vSpace);
+			this.layout = layout.set(width, height, hSpace, lSpace, rSpace, vSpace, tSpace, bSpace);
 		}
 		
 		this.childs = childs;
@@ -80,25 +80,14 @@ class LayoutContainer
 // -------------------------------------------------------------------------------------------------
 abstract Box(LayoutContainer) // from LayoutContainer to LayoutContainer
 {
-	public inline function new(layout:Layout = null, width:Width = null, height:Height = null, align:Align = Align.center, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null) 
+	public inline function new(layout:Layout = null, width:Width = null, height:Height = null, 
+		hSpace:HorizontalSpace = null, lSpace:LeftSpace = null, rSpace:RightSpace = null,
+		vSpace:VerticalSpace = null, tSpace:TopSpace = null, bSpace:BottomSpace = null,
+		childs:Array<Layout> = null) 
 	{
-		this = new LayoutContainer(layout, width, height, align, hSpace, vSpace, childs) ;
+		this = new LayoutContainer(layout, width, height, hSpace, lSpace, rSpace, vSpace, tSpace, bSpace, childs) ;
 		this.layout.addChildConstraints = addChildConstraints;
 	}
-	// ---------- static helpers
-	public static inline function center       (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Box return new Box(layout, width, height, Align.center,      hSpace, vSpace, childs); 
-	public static inline function left         (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Box return new Box(layout, width, height, Align.left,        hSpace, vSpace, childs); 
-	public static inline function right        (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Box return new Box(layout, width, height, Align.right,       hSpace, vSpace, childs); 
-	public static inline function top          (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Box return new Box(layout, width, height, Align.top,         hSpace, vSpace, childs); 
-	public static inline function bottom       (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Box return new Box(layout, width, height, Align.bottom,      hSpace, vSpace, childs); 
-	public static inline function topLeft      (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Box return new Box(layout, width, height, Align.topLeft,     hSpace, vSpace, childs); 
-	public static inline function topRight     (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Box return new Box(layout, width, height, Align.topRight,    hSpace, vSpace, childs); 
-	public static inline function bottomLeft   (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Box return new Box(layout, width, height, Align.bottomLeft,  hSpace, vSpace, childs); 
-	public static inline function bottomRight  (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Box return new Box(layout, width, height, Align.bottomRight, hSpace, vSpace, childs); 
-	public static inline function leftTop      (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Box return new Box(layout, width, height, Align.topLeft,     hSpace, vSpace, childs); 
-	public static inline function rightTop     (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Box return new Box(layout, width, height, Align.topRight,    hSpace, vSpace, childs); 
-	public static inline function leftBottom   (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Box return new Box(layout, width, height, Align.bottomLeft,  hSpace, vSpace, childs); 
-	public static inline function rightBottom  (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Box return new Box(layout, width, height, Align.bottomRight, hSpace, vSpace, childs); 
 	
 	@:to public function toNestedArray():NestedArray<Constraint> return(this.getConstraints());
 	@:to public function toNestedArrayItem():NestedArrayItem<Constraint> return(this.getConstraints().toArray());	
@@ -135,55 +124,7 @@ abstract Box(LayoutContainer) // from LayoutContainer to LayoutContainer
 			this.addStartConstraints(child.x, this.layout.x, null, constraints, outerLimitStrength);
 			this.addEndConstraints(child.right, this.layout.right, null, constraints, outerLimitStrength);
 			this.addLimitConstraints(child.widthSize, child.hSpace, null, constraints, childLimitStrength, spaceLimitStrength);
-			
-/*			if (child.hSpace != null) // ------------- Spacer ---------------
-			{
-				var childPercent = child.widthSize._percent;
-				var spacePercent = child.hSpace._percent;
-				
-				// normalize procentuals
-				if (childPercent != null && spacePercent != null) {
-					if (childPercent + spacePercent > 1.0) {
-						var n = (childPercent + spacePercent - 1.0) / 2;
-						childPercent -= n;
-						spacePercent -= n;
-					}
-				}
-				
-				if (childPercent != null) constraints.push( (child.width == childPercent * this.layout.width) | sizeChildStrength );     // SIZECHILD
-				else constraints.push( (child.hSpace.size + child.width == this.layout.width) | sizeChildStrength ); 
-				
-				if (spacePercent != null) constraints.push( (child.hSpace.size == spacePercent*this.layout.width ) | sizeSpaceStrength );   // SIZESPACE
-				else {
-					if (child.hSpace._min != null && child.hSpace._max != null) constraints.push( (child.hSpace.size == child.hSpace._min ) | sizeSpaceStrength );
-					else if (child.hSpace._min != null) constraints.push( (child.hSpace.size == child.hSpace._min ) | sizeSpaceStrength );
-					else if (child.hSpace._max != null) constraints.push( (child.hSpace.size == 0 ) | sizeSpaceStrength );
-					else constraints.push( (child.hSpace.size == 0 ) | sizeSpaceStrength );
-				}
-				
-				if (Align.isLeft(child.align)) constraints.push( (child.x == this.layout.x + child.hSpace.size) | positionStrength );               // POSITION left
-				else if (Align.isRight(child.align)) constraints.push( (child.right + child.hSpace.size == this.layout.right) | positionStrength ); // POSITION right
-				else constraints.push( (child.centerX == this.layout.centerX) | positionStrength );                                                 // POSITION center
-				
-				constraints.push( (child.width + child.hSpace.size <= this.layout.width) | outerLimitStrength ); // OUTERLIMIT
-				
-				child.hSpace.addLimitConstraints(constraints, spaceLimitStrength );                               // SPACELIMIT
-			}
-			else  // ---------------- no Spacer -------------------
-			{
-				if (child.widthSize._percent != null) constraints.push( (child.width == child.widthSize._percent*this.layout.width) | sizeChildStrength );  // SIZECHILD
-				else constraints.push( (child.width == this.layout.width) | sizeChildStrength );
-				
-				if (Align.isLeft(child.align)) constraints.push( (child.x == this.layout.x) | positionStrength );	            // POSITION left 
-				else if (Align.isRight(child.align)) constraints.push( (child.right == this.layout.right) | positionStrength ); // POSITION right
-				else constraints.push( (child.centerX == this.layout.centerX) | positionStrength );                             // POSITION center
-				
-				constraints.push( (child.width <= this.layout.width) | outerLimitStrength );   // OUTERLIMIT	
-			}
-			
-			child.widthSize.addLimitConstraints(constraints, childLimitStrength);               // CHILDLIMIT
-*/			
-			
+						
 			
 			// --------------------------------- vertical ---------------------------------------
 			// TODO			
@@ -207,25 +148,14 @@ abstract Box(LayoutContainer) // from LayoutContainer to LayoutContainer
 
 abstract Shelf(LayoutContainer) from LayoutContainer to LayoutContainer
 {
-	public inline function new(layout:Layout = null, width:Width = null, height:Height = null, align:Align = Align.center, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null) 
+	public inline function new(layout:Layout = null, width:Width = null, height:Height = null,
+		hSpace:HorizontalSpace = null, lSpace:LeftSpace = null, rSpace:RightSpace = null,
+		vSpace:VerticalSpace = null, tSpace:TopSpace = null, bSpace:BottomSpace = null,
+		childs:Array<Layout> = null) 
 	{
-		this = new LayoutContainer(layout, width, height, align, hSpace, vSpace, childs) ;
+		this = new LayoutContainer(layout, width, height, hSpace, lSpace, rSpace, vSpace, tSpace, bSpace, childs) ;
 		this.layout.addChildConstraints = addChildConstraints;
 	}
-	// ---------- static helpers
-	public static inline function center       (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Shelf return new Shelf(layout, width, height, Align.center,      hSpace, vSpace, childs); 
-	public static inline function left         (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Shelf return new Shelf(layout, width, height, Align.left,        hSpace, vSpace, childs); 
-	public static inline function right        (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Shelf return new Shelf(layout, width, height, Align.right,       hSpace, vSpace, childs); 
-	public static inline function top          (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Shelf return new Shelf(layout, width, height, Align.top,         hSpace, vSpace, childs); 
-	public static inline function bottom       (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Shelf return new Shelf(layout, width, height, Align.bottom,      hSpace, vSpace, childs); 
-	public static inline function topLeft      (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Shelf return new Shelf(layout, width, height, Align.topLeft,     hSpace, vSpace, childs); 
-	public static inline function topRight     (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Shelf return new Shelf(layout, width, height, Align.topRight,    hSpace, vSpace, childs); 
-	public static inline function bottomLeft   (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Shelf return new Shelf(layout, width, height, Align.bottomLeft,  hSpace, vSpace, childs); 
-	public static inline function bottomRight  (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Shelf return new Shelf(layout, width, height, Align.bottomRight, hSpace, vSpace, childs); 
-	public static inline function leftTop      (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Shelf return new Shelf(layout, width, height, Align.topLeft,     hSpace, vSpace, childs); 
-	public static inline function rightTop     (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Shelf return new Shelf(layout, width, height, Align.topRight,    hSpace, vSpace, childs); 
-	public static inline function leftBottom   (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Shelf return new Shelf(layout, width, height, Align.bottomLeft,  hSpace, vSpace, childs); 
-	public static inline function rightBottom  (layout:Layout = null, width:Width = null, height:Height = null, hSpace:HSpace = null, vSpace:VSpace = null, childs:Array<Layout> = null):Shelf return new Shelf(layout, width, height, Align.bottomRight, hSpace, vSpace, childs); 
 	
 	@:to public function toNestedArray():NestedArray<Constraint> return(this.getConstraints());
 	@:to public function toNestedArrayItem():NestedArrayItem<Constraint> return(this.getConstraints().toArray());	

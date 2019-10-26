@@ -11,29 +11,6 @@ import jasper.Variable;
 import jasper.Constraint;
 import jasper.Strength;
 
-@:allow(peote.ui)
-abstract Align(Int) from Int to Int {
-	public static inline var center:Int = 1;
-	public static inline var left:Int = 2;
-	public static inline var right:Int = 3;
-	public static inline var top:Int = 4;
-	public static inline var bottom:Int = 5;
-	
-	public static inline var topLeft:Int = 6;
-	public static inline var topRight:Int = 7;
-	public static inline var bottomLeft:Int = 8;
-	public static inline var bottomRight:Int = 9;
-	
-	public static inline var leftTop:Int = 6;
-	public static inline var rightTop:Int = 7;
-	public static inline var leftBottom:Int = 8;
-	public static inline var rightBottom:Int = 9;
-	
-	static function isLeft(align:Align):Bool return (align == left || align == topLeft || align == bottomLeft);
-	static function isRight(align:Align):Bool return (align == right || align == topRight || align == bottomRight);
-
-}
-
 
 @:allow(peote.ui)
 class Size {
@@ -126,6 +103,7 @@ abstract Height(Size) from Size to Size {
 	// TODO: ratio to Width
 }
 
+typedef HorizontalSpace = HSpace;
 @:forward @:forwardStatics
 abstract HSpace(Size) from Size to Size {
 	public inline function new(width:Int) this = Size.px(width);
@@ -137,6 +115,7 @@ abstract HSpace(Size) from Size to Size {
 	public static inline function flex(min:Int, max:Int):HSpace return new Size(null, min, max);
 }
 
+typedef VerticalSpace = VSpace;
 @:forward @:forwardStatics
 abstract VSpace(Size) from Size to Size {
 	public inline function new(width:Int) this = Size.px(width);
@@ -146,6 +125,54 @@ abstract VSpace(Size) from Size to Size {
 	public static inline function min(min:Int):VSpace return new Size(null, min, null);
 	public static inline function max(max:Int):VSpace return new Size(null, null, max);
 	public static inline function flex(min:Int, max:Int):VSpace return new Size(null, min, max);
+}
+
+typedef LeftSpace = LSpace;
+@:forward @:forwardStatics
+abstract LSpace(Size) from Size to Size {
+	public inline function new(width:Int) this = Size.px(width);
+	@:from public static inline  function fromInt(i:Int):LSpace return Size.px(i);
+	public static inline function px(pixel:Int):LSpace return new Size(null, pixel,pixel);
+	public static inline function percent(percent:Float, min:Null<Int> = null, max:Null<Int> = null):LSpace return new Size(percent, min, max);
+	public static inline function min(min:Int):LSpace return new Size(null, min, null);
+	public static inline function max(max:Int):LSpace return new Size(null, null, max);
+	public static inline function flex(min:Int, max:Int):LSpace return new Size(null, min, max);
+}
+
+typedef RightSpace = RSpace;
+@:forward @:forwardStatics
+abstract RSpace(Size) from Size to Size {
+	public inline function new(width:Int) this = Size.px(width);
+	@:from public static inline  function fromInt(i:Int):RSpace return Size.px(i);
+	public static inline function px(pixel:Int):RSpace return new Size(null, pixel,pixel);
+	public static inline function percent(percent:Float, min:Null<Int> = null, max:Null<Int> = null):RSpace return new Size(percent, min, max);
+	public static inline function min(min:Int):RSpace return new Size(null, min, null);
+	public static inline function max(max:Int):RSpace return new Size(null, null, max);
+	public static inline function flex(min:Int, max:Int):RSpace return new Size(null, min, max);
+}
+
+typedef TopSpace = TSpace;
+@:forward @:forwardStatics
+abstract TSpace(Size) from Size to Size {
+	public inline function new(width:Int) this = Size.px(width);
+	@:from public static inline  function fromInt(i:Int):TSpace return Size.px(i);
+	public static inline function px(pixel:Int):TSpace return new Size(null, pixel,pixel);
+	public static inline function percent(percent:Float, min:Null<Int> = null, max:Null<Int> = null):TSpace return new Size(percent, min, max);
+	public static inline function min(min:Int):TSpace return new Size(null, min, null);
+	public static inline function max(max:Int):TSpace return new Size(null, null, max);
+	public static inline function flex(min:Int, max:Int):TSpace return new Size(null, min, max);
+}
+
+typedef BottomSpace = BSpace;
+@:forward @:forwardStatics
+abstract BSpace(Size) from Size to Size {
+	public inline function new(width:Int) this = Size.px(width);
+	@:from public static inline  function fromInt(i:Int):BSpace return Size.px(i);
+	public static inline function px(pixel:Int):BSpace return new Size(null, pixel,pixel);
+	public static inline function percent(percent:Float, min:Null<Int> = null, max:Null<Int> = null):BSpace return new Size(percent, min, max);
+	public static inline function min(min:Int):BSpace return new Size(null, min, null);
+	public static inline function max(max:Int):BSpace return new Size(null, null, max);
+	public static inline function flex(min:Int, max:Int):BSpace return new Size(null, min, max);
 }
 
 
@@ -159,10 +186,13 @@ class _Layout_
 	
 	public var widthSize:Width;
 	public var heightSize:Height;
-	public var align:Align;
 	
 	public var hSpace:HSpace;
+	public var lSpace:LSpace;	
+	public var rSpace:RSpace;
 	public var vSpace:VSpace;	
+	public var tSpace:TSpace;
+	public var bSpace:BSpace;	
 	
 	public var width(get, never):Variable;
 	public var height(get, never):Variable;	
@@ -189,29 +219,13 @@ class _Layout_
 	var update:Void->Void = function() {};
 	var updateChilds:Void->Void = function() {};
 
-	
-	public function addHConstraints(constraints:NestedArray<Constraint>, start:Variable, end:Variable, weight:Float)
-	{
-		var medium1 = Strength.create(0, 100, 0, weight);
-		constraints.push( (x == start) | medium1 );
-		constraints.push( (right == end) | medium1 );
-	}
-	public function addVConstraints(constraints:NestedArray<Constraint>, start:Variable, end:Variable, weight:Float)
-	{
-		var medium1 = Strength.create(0, 100, 0, weight);
-		constraints.push( (y == start) | medium1 );
-		constraints.push( (bottom == end) | medium1 );
-	}
-	
-
-	public function new(widthSize:Width, heightSize:Height, align:Align, hSpace:HSpace, vSpace:VSpace)
+    public function new(widthSize:Width, heightSize:Height, hSpace:HSpace, lSpace:LSpace, rSpace:RSpace, vSpace:VSpace, tSpace:TSpace, bSpace:BSpace)
 	{
 		x = new Variable();
 		y = new Variable();
 		if (widthSize == null) this.widthSize = Width.min(0) else this.widthSize = widthSize;
 		if (heightSize == null) this.heightSize = Height.min(0) else this.heightSize = heightSize;
 		
-		this.align = align;
 		this.hSpace = hSpace;
 		this.vSpace = vSpace;
 		
@@ -238,12 +252,12 @@ class _Layout_
 @:forward
 abstract Layout(_Layout_) from _Layout_ to _Layout_
 {
-    public function new(widthSize:Width=null, heightSize:Height=null, align:Align = Align.center, hSpace:HSpace = null, vSpace:VSpace = null)
+    public function new(widthSize:Width=null, heightSize:Height=null, hSpace:HSpace = null, lSpace:LSpace = null, rSpace:RSpace = null, vSpace:VSpace = null, tSpace:TSpace = null, bSpace:BSpace = null)
     {
-        this = new _Layout_(widthSize, heightSize, align, hSpace, vSpace);
+        this = new _Layout_(widthSize, heightSize, hSpace, lSpace, rSpace, vSpace, tSpace, bSpace);
     }
 	
-	public inline function set(widthSize:Width=null, heightSize:Height=null, align:Align = null, hSpace:HSpace = null, vSpace:VSpace = null):Layout {
+	public inline function set(widthSize:Width=null, heightSize:Height=null, hSpace:HSpace = null, lSpace:LSpace = null, rSpace:RSpace = null, vSpace:VSpace = null, tSpace:TSpace = null, bSpace:BSpace = null):Layout {
 		if (widthSize != null) {
 			this.widthSize = widthSize;
 			this.setHAlias();
@@ -252,9 +266,12 @@ abstract Layout(_Layout_) from _Layout_ to _Layout_
 			this.heightSize = heightSize;
 			this.setVAlias();
 		}
-		if (align!=null) this.align = align;
 		this.hSpace = hSpace;
+		this.lSpace = lSpace;
+		this.rSpace = rSpace;
 		this.vSpace = vSpace;
+		this.tSpace = tSpace;
+		this.bSpace = bSpace;
 		return this;
 	}
 		

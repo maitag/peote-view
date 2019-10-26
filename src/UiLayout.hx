@@ -46,8 +46,8 @@ class UiLayout
 			//ui.add(grey); testManualConstraints();
 			
 			ui.add(red); ui.add(green); ui.add(blue);
-			//testManualRowConstraints();
-			testLayoutNestedBoxes();
+			testManualRowConstraints();
+			//testLayoutNestedBoxes();
 			
 			//ui.add(yellow);
 			//testLayoutNestedShelfes();
@@ -182,25 +182,25 @@ class UiLayout
 
 				new Box(peoteView,
 				[
-					Box.left(           ui   , Width.flex(200, 800),
+					new Box(           ui   , Width.flex(200, 800),
 					[                                                          
-						Box.left(       red  , Width.flex(150, 500),
+						new Box(       red  , Width.flex(150, 500),
 						[                                                      
-							Box.left( green,  Width.flex(100, 150) , 200),
-							//Box.left( blue,  Width.flex(100, 150), 100 ),
+							new Box( green,  Width.flex(100, 150) , 200),
+							//new Box( blue,  Width.flex(100, 150), 100 ),
 							
 						])
 					])
 				]),
 /*				new Box(peoteView,
 				[
-					Box.center(           ui   , Width.percent(0.6, 75, 1000), 50,
+					new Box(           ui   , Width.percent(0.6, 75, 1000), 50,
 					[                                                          
-						Box.center(       red  , Width.flex(10, 800)         , 50,
+						new Box(       red  , Width.flex(10, 800)         , 50,
 						[                                                      
-							Box.left(     green, Width.percent(0.8, 50, 500) , 50, HSpace.percent(0.1, 20),
+							new Box(     green, Width.percent(0.8, 50, 500) , 50, HSpace.percent(0.1, 20),
 							[                                                  
-								Box.left( blue,  Width.flex(100, 150)        , 50, HSpace.flex(20, 50) )  
+								new Box( blue,  Width.flex(100, 150)        , 50, HSpace.flex(20, 50) )  
 							])
 						])
 					])
@@ -223,14 +223,14 @@ class UiLayout
 			[
 				[ (peoteView.layout.x == 0) | Strength.REQUIRED, (peoteView.layout.y == 0) | Strength.REQUIRED ],
 
-				Box.center(peoteView,
+				new Box(peoteView,
 				[
-					Shelf.center(ui, HSpace.percent(0.1), VSpace.percent(0.1),
+					new Shelf(ui, HSpace.percent(0.1), VSpace.percent(0.1),
 					[
-						Box.left(red,   Width.flex(100,300)),
-						Box.left(green, Width.flex(200,300)),
-						//Box.topLeft(green, Width.min(200)),
-						//Box.topLeft(blue,  Width.min(100))
+						new Box(red,   Width.flex(100,300)),
+						new Box(green, Width.flex(200,300)),
+						//new Box(green, Width.min(200)),
+						//new Box(blue,  Width.min(100))
 					])
 				]),
 				
