@@ -12,6 +12,181 @@ import jasper.Constraint;
 import jasper.Strength;
 
 
+@:allow(peote.ui, peote.view)
+class _Layout_
+{
+	public var x(default,null):Variable;
+	public var y(default,null):Variable;	
+	public var width(get, never):Variable;
+	public var height(get, never):Variable;	
+	public inline function get_width():Variable return hSize.size;
+	public inline function get_height():Variable return vSize.size;
+	
+	public var hSize:Width;
+	public var vSize:Height;
+	
+	public var hSpace:HSpace;
+	public var lSpace:LSpace;	
+	public var rSpace:RSpace;
+	public var vSpace:VSpace;	
+	public var tSpace:TSpace;
+	public var bSpace:BSpace;	
+	
+		
+	public var centerX:Expression;
+	public var centerY:Expression;
+
+	//public var width(default,null):Expression;
+	//public var height(default,null):Expression;
+	public var left(default,null):Expression;
+	public var top(default, null):Expression;
+	public var right(default,null):Expression;
+	public var bottom(default,null):Expression;
+	
+	var addChildConstraints:Layout->NestedArray<Constraint>->?Int->?Int->?Int->?Int->?Int->?Int->Void =
+		function(parentLayout:Layout, constraints:NestedArray<Constraint>,	
+			?sizeSpaceWeight:Int,
+			?sizeChildWeight:Int,
+			?positionWeight:Int,
+			?outerLimitWeight:Int,
+			?spaceLimitWeight:Int,
+			?childLimitWeight:Int) {};
+	
+	var update:Void->Void = function() {};
+	var updateChilds:Void->Void = function() {};
+
+    public function new(hSize:Width, vSize:Height, hSpace:HSpace, lSpace:LSpace, rSpace:RSpace, vSpace:VSpace, tSpace:TSpace, bSpace:BSpace)
+	{
+		x = new Variable();
+		y = new Variable();
+		if (hSize == null) this.hSize = Width.min(0) else this.hSize = hSize;
+		if (vSize == null) this.vSize = Height.min(0) else this.vSize = vSize;
+		
+		this.hSpace = hSpace;
+		this.lSpace = lSpace;
+		this.rSpace = rSpace;
+		this.vSpace = vSpace;
+		this.tSpace = tSpace;
+		this.bSpace = bSpace;
+		setHAlias();
+		setVAlias();
+	}
+	
+	public function setHAlias() {
+		if (hSpace != null && lSpace != null) left = new Term(x) - lSpace.size - hSpace.size;
+		else if (hSpace != null) left = new Term(x) - hSpace.size;
+		else if (lSpace != null) left = new Term(x) - lSpace.size;
+		else left = new Expression([new Term(x)]);
+		
+		if (hSpace != null && rSpace != null) right = new Term(x) + width + rSpace.size + hSpace.size;
+		else if (hSpace != null) right = new Term(x) + width + hSpace.size;
+		else if (rSpace != null) right = new Term(x) + width + rSpace.size;
+		else right = new Term(x) + width;
+		
+		centerX = new Term(x) + (width / 2.0);
+	}
+	
+	public function setVAlias() {
+		if (vSpace != null && tSpace != null) top = new Term(y) - tSpace.size - vSpace.size;
+		else if (vSpace != null) top = new Term(y) - vSpace.size;
+		else if (tSpace != null) top = new Term(y) - tSpace.size;
+		else top = new Expression([new Term(y)]);
+		
+		if (vSpace != null && bSpace != null) bottom = new Term(y) + height + bSpace.size + vSpace.size;
+		else if (vSpace != null) bottom = new Term(y) + height + vSpace.size;
+		else if (bSpace != null) bottom = new Term(y) + height + bSpace.size;
+		else bottom = new Term(y) + height;
+		
+		centerY = new Term(y) + (height / 2.0);
+	}
+	
+	public function addHSizeConstraints(constraints:NestedArray<Constraint>, strength:Strength)
+	{
+		hSize.addLimitConstraints(constraints, strength);
+	}
+	
+	public function addVSizeConstraints(constraints:NestedArray<Constraint>, strength:Strength)
+	{
+		vSize.addLimitConstraints(constraints, strength);
+	}
+	
+	public function addHSpaceConstraints(constraints:NestedArray<Constraint>, innerStrength:Strength, outerStrength:Strength)
+	{
+		if (lSpace != null) lSpace.addLimitConstraints(constraints, innerStrength);
+		if (rSpace != null) rSpace.addLimitConstraints(constraints, innerStrength);
+		if (hSpace != null) hSpace.addLimitConstraints(constraints, outerStrength);
+	}
+	
+	public function addVSpaceConstraints(constraints:NestedArray<Constraint>, innerStrength:Strength, outerStrength:Strength)
+	{
+		if (tSpace != null) tSpace.addLimitConstraints(constraints, innerStrength);
+		if (bSpace != null) bSpace.addLimitConstraints(constraints, innerStrength);
+		if (vSpace != null) vSpace.addLimitConstraints(constraints, outerStrength);
+	}
+	
+	public function hasMaxWidth():Bool {
+		if (hSize._max == null) return false;
+		if (lSpace != null) {if (lSpace._max == null) return false;}
+		if (rSpace != null) {if (rSpace._max == null) return false;}
+		if (hSpace != null) {if (hSpace._max == null) return false;}
+		return true;
+	}
+	public function hasMinWidth():Bool {
+		if (hSize._min != null) return true;
+		if (lSpace != null) {if (lSpace._max != null) return true;}
+		if (rSpace != null) {if (rSpace._max != null) return true;}
+		if (hSpace != null) {if (hSpace._max != null) return true;}
+		return false;
+	}
+	
+}
+
+
+// ----------------- Layout -------------------
+
+@:forward abstract Layout(_Layout_) from _Layout_ to _Layout_
+{
+    public function new(hSize:Width=null, vSize:Height=null, hSpace:HSpace = null, lSpace:LSpace = null, rSpace:RSpace = null, vSpace:VSpace = null, tSpace:TSpace = null, bSpace:BSpace = null)
+    {
+        this = new _Layout_(hSize, vSize, hSpace, lSpace, rSpace, vSpace, tSpace, bSpace);
+    }
+	
+	public inline function set(hSize:Width = null, vSize:Height = null, hSpace:HSpace = null, lSpace:LSpace = null, rSpace:RSpace = null, vSpace:VSpace = null, tSpace:TSpace = null, bSpace:BSpace = null):Layout
+	{
+		if (hSize != null) this.hSize = hSize;
+		if (vSize != null) this.vSize = vSize;
+
+		this.hSpace = hSpace;
+		this.lSpace = lSpace;
+		this.rSpace = rSpace;
+		this.vSpace = vSpace;
+		this.tSpace = tSpace;
+		this.bSpace = bSpace;
+		
+		if (hSize != null || hSpace != null || lSpace != null || rSpace != null) this.setHAlias();
+		if (vSize != null || hSpace != null || tSpace != null || bSpace != null) this.setVAlias();
+		
+		return this;
+	}
+		
+	@:from static public function fromPeoteView(v:PeoteView) {
+		return v.layout;
+	}
+	
+	@:from static public function fromDisplay(d:Display) {
+		return d.layout;
+	}
+	
+	@:from static public function fromUIElement(e:UIElement) {
+		return e.layout;
+	}
+}
+
+
+
+// ----------------- Size -------------------
+
+
 @:allow(peote.ui)
 class Size {
 	var _percent:Null<Float>;
@@ -32,33 +207,7 @@ class Size {
 	public static inline function min(min:Int):Size return new Size(null, min, null);
 	public static inline function max(max:Int):Size return new Size(null, null, max);
 	public static inline function flex(min:Int, max:Int):Size return new Size(null, min, max);
-	
-	// TODO: dummy
-	public function addConstraints(constraints:NestedArray<Constraint>, parentSize:Size, weight:Int)
-	{
-		//var weak = Strength.create(0, 0, weight);
-		//var weak1 = Strength.create(0, 0, weight+10);		
-		var medium = Strength.create(0, weight, 0);
-		var medium1 = Strength.create(0, weight+10, 0);
-		var medium2 = Strength.create(0, weight+20, 0);
-		var medium3 = Strength.create(0, weight+30, 0);
-
-		if (_percent != null) {
-			constraints.push( (size == _percent*parentSize.size) | medium1 );
-		}
-		else {
-			constraints.push( (size == parentSize.size) | medium1 );
-		}
 		
-		if (_min != null)
-			constraints.push( (size >= _min) | medium3 );
-		else
-			constraints.push( (size >= 0) | medium3 );
-		
-		if (_max != null)
-			constraints.push( (size <= _max) | medium3 );
-	}
-	
 	public function addLimitConstraints(constraints:NestedArray<Constraint>, strength:Strength)
 	{
 		if (_min != null && _max != null && _min >= _max )
@@ -175,115 +324,3 @@ abstract BSpace(Size) from Size to Size {
 	public static inline function flex(min:Int, max:Int):BSpace return new Size(null, min, max);
 }
 
-
-// ----------------- Layout -------------------
-
-@:allow(peote.ui, peote.view)
-class _Layout_
-{
-	public var x(default,null):Variable;
-	public var y(default,null):Variable;	
-	
-	public var widthSize:Width;
-	public var heightSize:Height;
-	
-	public var hSpace:HSpace;
-	public var lSpace:LSpace;	
-	public var rSpace:RSpace;
-	public var vSpace:VSpace;	
-	public var tSpace:TSpace;
-	public var bSpace:BSpace;	
-	
-	public var width(get, never):Variable;
-	public var height(get, never):Variable;	
-	public inline function get_width():Variable return widthSize.size;
-	public inline function get_height():Variable return heightSize.size;
-		
-	public var centerX:Expression;
-	public var centerY:Expression;
-
-	public var left(default,null):Expression;
-	public var top(default, null):Expression;
-	public var right(default,null):Expression;
-	public var bottom(default,null):Expression;
-	
-	var addChildConstraints:Layout->NestedArray<Constraint>->?Int->?Int->?Int->?Int->?Int->?Int->Void =
-		function(parentLayout:Layout, constraints:NestedArray<Constraint>,	
-			?sizeSpaceWeight:Int,
-			?sizeChildWeight:Int,
-			?positionWeight:Int,
-			?outerLimitWeight:Int,
-			?spaceLimitWeight:Int,
-			?childLimitWeight:Int) {};
-	
-	var update:Void->Void = function() {};
-	var updateChilds:Void->Void = function() {};
-
-    public function new(widthSize:Width, heightSize:Height, hSpace:HSpace, lSpace:LSpace, rSpace:RSpace, vSpace:VSpace, tSpace:TSpace, bSpace:BSpace)
-	{
-		x = new Variable();
-		y = new Variable();
-		if (widthSize == null) this.widthSize = Width.min(0) else this.widthSize = widthSize;
-		if (heightSize == null) this.heightSize = Height.min(0) else this.heightSize = heightSize;
-		
-		this.hSpace = hSpace;
-		this.vSpace = vSpace;
-		
-		left = new Expression([new Term(x)]);
-		top  = new Expression([new Term(y)]);
-		
-		setHAlias();
-		setVAlias();
-	}
-	
-	public function setHAlias() {
-		centerX = new Term(x) + (new Term(width) / 2.0);
-		right  = new Term(x) + new Term(width);		
-	}
-	
-	public function setVAlias() {
-		centerY = new Term(y) + (new Term(height) / 2.0);
-		bottom = new Term(y) + new Term(height);		
-	}
-	
-}
-
-
-@:forward
-abstract Layout(_Layout_) from _Layout_ to _Layout_
-{
-    public function new(widthSize:Width=null, heightSize:Height=null, hSpace:HSpace = null, lSpace:LSpace = null, rSpace:RSpace = null, vSpace:VSpace = null, tSpace:TSpace = null, bSpace:BSpace = null)
-    {
-        this = new _Layout_(widthSize, heightSize, hSpace, lSpace, rSpace, vSpace, tSpace, bSpace);
-    }
-	
-	public inline function set(widthSize:Width=null, heightSize:Height=null, hSpace:HSpace = null, lSpace:LSpace = null, rSpace:RSpace = null, vSpace:VSpace = null, tSpace:TSpace = null, bSpace:BSpace = null):Layout {
-		if (widthSize != null) {
-			this.widthSize = widthSize;
-			this.setHAlias();
-		}
-		if (heightSize != null) {
-			this.heightSize = heightSize;
-			this.setVAlias();
-		}
-		this.hSpace = hSpace;
-		this.lSpace = lSpace;
-		this.rSpace = rSpace;
-		this.vSpace = vSpace;
-		this.tSpace = tSpace;
-		this.bSpace = bSpace;
-		return this;
-	}
-		
-	@:from static public function fromPeoteView(v:PeoteView) {
-		return v.layout;
-	}
-	
-	@:from static public function fromDisplay(d:Display) {
-		return d.layout;
-	}
-	
-	@:from static public function fromUIElement(e:UIElement) {
-		return e.layout;
-	}
-}
