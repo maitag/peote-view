@@ -37,11 +37,11 @@ class UiLayout
 			ui = new UIDisplay(0, 0, window.width, window.height, Color.GREY3);
 			peoteView.addDisplay(ui);
 			
-			grey  = new Button(mySkin, new Style(Color.GREY1));		
-			red   = new Button(mySkin, new Style(Color.RED));
-			green = new Button(mySkin, new Style(Color.GREEN));
-			blue  = new Button(mySkin, new Style(Color.BLUE));
-			yellow= new Button(mySkin, new Style(Color.YELLOW));
+			grey  = new Button(-100, mySkin, new Style(Color.GREY1));		
+			red   = new Button(-100, mySkin, new Style(Color.RED));
+			green = new Button(-100, mySkin, new Style(Color.GREEN));
+			blue  = new Button(-100, mySkin, new Style(Color.BLUE));
+			yellow= new Button(-100, mySkin, new Style(Color.YELLOW));
 
 			//ui.add(grey); testManualConstraints();
 			
@@ -182,15 +182,15 @@ class UiLayout
 
 				new Box(peoteView,
 				[
-					new Box(           ui   , Width.flex(200, 500), LSpace.flex(20,50), RSpace.flex(20,100), 
+					new Box( ui   , //Width.flex(50, 1000), LSpace.max(50), RSpace.max(100),
 					[                                                          
-/*						new Box(       red  , Width.flex(150, 500),
+						new Box( red  , Width.min(150),  LSpace.max(50), RSpace.max(100),
 						[                                                      
-							new Box( green,  Width.flex(100, 150) , 200),
-							//new Box( blue,  Width.flex(100, 150), 100 ),
+							//new Box( green,  Width.flex(200, 350) , LSpace.min(25), RSpace.min(50) ),
+							//new Box( blue,  Width.max(100), HSpace.min(100) ),
 							
 						])
-*/					])
+					])
 				]),
 /*				new Box(peoteView,
 				[

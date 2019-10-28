@@ -85,30 +85,32 @@ abstract Box(LayoutContainer) // from LayoutContainer to LayoutContainer
 	@:to public function toLayout():Layout return(this.layout);
 
 	function addChildConstraints(parentLayout:Layout, constraints:NestedArray<Constraint>, 
-		sizeSpaceWeight:Int  = 900, // weak
-		sizeChildWeight:Int  = 900, // medium
-		positionWeight:Int   = 100, // strong
+		sizeSpaceWeight:Int  = 900,
+		sizeChildWeight:Int  = 900,
+		positionWeight:Int   = 100,
 		outerLimitWeight:Int = 100,
-		spaceLimitWeight:Int = 100,
-		childLimitWeight:Int = 100
+		spaceLimitWeight:Int = 500,
+		childLimitWeight:Int = 500
 	):Void
 	{
 		sizeSpaceWeight  -= 10;
 		sizeChildWeight  -= 10;
-		positionWeight   += 10;  
+		
+		//positionWeight   += 10;  
 		outerLimitWeight += 10;
 		spaceLimitWeight += 10;
 		childLimitWeight += 10;
 		
 		var sizeSpaceStrength  = Strength.create(0, 0, sizeSpaceWeight); // weak
-		var sizeSpaceStrength1  = Strength.create(0, 0, sizeSpaceWeight+3); // weak
-		var sizeSpaceStrength2  = Strength.create(0, 0, sizeSpaceWeight+6); // weak
-		var sizeSpaceStrength3  = Strength.create(0, 0, sizeSpaceWeight+9); // weak
+		var sizeSpaceStrength1  = Strength.create(0, 0, sizeSpaceWeight+2); // weak
+		var sizeSpaceStrength2  = Strength.create(0, 0, sizeSpaceWeight+4); // weak
+		var sizeSpaceStrength3  = Strength.create(0, 0, sizeSpaceWeight+6); // weak
 		var sizeChildStrength  = Strength.create(0, sizeChildWeight,0 ); // medium
-		var positionStrength   = Strength.create( positionWeight,0,  0); // strong
-		var outerLimitStrength = Strength.create( outerLimitWeight,0, 0);
-		var spaceLimitStrength = Strength.create( spaceLimitWeight,0, 0);
-		var childLimitStrength = Strength.create( childLimitWeight,0, 0);
+		
+		//var positionStrength   = Strength.create( positionWeight,0,  0); // strong
+		var outerLimitStrength = Strength.create( 0,outerLimitWeight,0);
+		var spaceLimitStrength = Strength.create( 0,spaceLimitWeight,0);
+		var childLimitStrength = Strength.create( 0,childLimitWeight,0);
 		
 		if (this.childs != null) for (child in this.childs)
 		{	
@@ -120,28 +122,66 @@ abstract Box(LayoutContainer) // from LayoutContainer to LayoutContainer
 			child.addHSpaceConstraints(constraints, spaceLimitStrength, spaceLimitStrength);
 
 			//constraints.push( (child.width == this.layout.x + this.layout.width) | sizeChildStrength );
-			if (child.lSpace != null) constraints.push( (child.lSpace.size == 0) | sizeSpaceStrength1 );
-			if (child.rSpace != null) constraints.push( (child.rSpace.size == 0) | sizeSpaceStrength );
-			//if (child.hSpace != null) constraints.push( (child.hSpace.size == 0) | sizeSpaceStrength );
 			
+			if (child.lSpace != null && child.rSpace != null) {
+				//if (child.lSpace._max == null && child.lSpace._max == null)
+					constraints.push( (child.lSpace.size == child.rSpace.size) | sizeSpaceStrength );
+			}
+
+			if (child.lSpace != null) {
+				if (child.lSpace._percent != null) {
+					
+				}
+				else {
+					if (child.lSpace._min != null && child.lSpace._max != null) constraints.push( (child.lSpace.size == child.lSpace._max) | sizeSpaceStrength1 );
+					else if (child.lSpace._min != null) constraints.push( (child.lSpace.size == child.lSpace._min) | sizeSpaceStrength1 );
+					else if (child.lSpace._max != null) constraints.push( (child.lSpace.size == child.lSpace._max) | sizeSpaceStrength1 );
+				}
+			}
+			if (child.rSpace != null) {
+				if (child.rSpace._percent != null) {
+					
+				}
+				else {
+					if (child.rSpace._min != null && child.rSpace._max != null) constraints.push( (child.rSpace.size == child.rSpace._max) | sizeSpaceStrength2 );
+					else if (child.rSpace._min != null) constraints.push( (child.rSpace.size == child.rSpace._min) | sizeSpaceStrength2 );
+					else if (child.rSpace._max != null) constraints.push( (child.rSpace.size == child.rSpace._max) | sizeSpaceStrength2 );
+				}
+			}			
+			if (child.hSpace != null) {
+				if (child.hSpace._percent != null) {
+					
+				}
+				else {
+					if (child.hSpace._min != null && child.hSpace._max != null) constraints.push( (child.hSpace.size == child.hSpace._max) | sizeSpaceStrength2 );
+					else if (child.hSpace._min != null) constraints.push( (child.hSpace.size == child.hSpace._min) | sizeSpaceStrength2 );
+					else if (child.hSpace._max != null) constraints.push( (child.hSpace.size == child.hSpace._max) | sizeSpaceStrength2 );
+				}
+			}			
 			
 			// left right
 			var startRestSpace:HSpace = null;
-			if (child.hasMinWidth()) {
-				trace("add start REST SPACER");
-				startRestSpace = HSpace.min(0);
-				constraints.push( (startRestSpace.size == 0) | sizeSpaceStrength3 );
-				//constraints.push( (restSpace.size >= 0) | spaceLimitStrength );
-			}
 			var endRestSpace:HSpace = null;
 			if (child.hasMaxWidth()) {
-				trace("add end REST SPACER");
-				endRestSpace = HSpace.min(0);
-				constraints.push( (endRestSpace.size == 0) | sizeSpaceStrength2 );
-				//constraints.push( (restSpace.size >= 0) | spaceLimitStrength );
+				trace(" REST SPACER ");
+				var restSpace = HSpace.min(0);				
+				constraints.push( (restSpace.size == 0) | sizeSpaceStrength3 );
+				constraints.push( (restSpace.size >= 0) | spaceLimitStrength ); // TODO
+				
+				if ( (child.lSpace == null && child.rSpace == null) || (child.lSpace != null && child.rSpace != null) ) {
+					startRestSpace = endRestSpace = restSpace; trace("LEFT/RIGHT");
+				}
+				else if (child.lSpace != null) {
+					endRestSpace = restSpace; trace("LEFT");
+				}
+				else if (child.rSpace != null) {
+					startRestSpace = restSpace; trace("RIGHT");
+				}
 			}
 			this.addStartConstraints(child.left, this.layout.x, startRestSpace, constraints, outerLimitStrength);
 			this.addEndConstraints(child.right, this.layout.x + this.layout.width, endRestSpace, constraints, outerLimitStrength);
+			
+			
 			
 			
 			// --------------------------------- vertical ---------------------------------------
@@ -149,7 +189,7 @@ abstract Box(LayoutContainer) // from LayoutContainer to LayoutContainer
 			child.addVSizeConstraints(constraints, childLimitStrength);
 			child.addVSpaceConstraints(constraints, spaceLimitStrength, spaceLimitStrength);
 			
-			constraints.push( (child.height == this.layout.y + this.layout.height) | sizeChildStrength );
+			constraints.push( (child.height == this.layout.y + this.layout.height) | childLimitStrength );
 
 			// top bottom
 			this.addStartConstraints(child.top, this.layout.y, null, constraints, outerLimitStrength);
