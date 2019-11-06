@@ -172,8 +172,6 @@ class UiLayout
 		
 	public function testLayoutNestedBoxes()
 	{
-		var hspace = HSpace.flex(0, 50);
-		
 		layoutSolver = new LayoutSolver
 		(
 			peoteView, // root Layout (automatically set its width and height as editable Vars)
@@ -184,7 +182,7 @@ class UiLayout
 				[
 					new Box( ui   , //Width.flex(50, 1000), LSpace.max(50), RSpace.max(100),
 					[                                                          
-						new Box( red  , Width.min(150),  LSpace.max(50), RSpace.max(100),
+						new Box( red  , Width.flex(50,300),  LSpace.max(50), RSpace.max(100),
 						[                                                      
 							//new Box( green,  Width.flex(200, 350) , LSpace.min(25), RSpace.min(50) ),
 							//new Box( blue,  Width.max(100), HSpace.min(100) ),
@@ -225,7 +223,7 @@ class UiLayout
 
 				new Box(peoteView,
 				[
-					new Shelf(ui, HSpace.percent(0.1), VSpace.percent(0.1),
+					new Shelf(ui,
 					[
 						new Box(red,   Width.flex(100,300)),
 						new Box(green, Width.flex(200,300)),

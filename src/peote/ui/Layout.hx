@@ -25,10 +25,8 @@ class _Layout_
 	public var hSize:Width;
 	public var vSize:Height;
 	
-	public var hSpace:HSpace;
 	public var lSpace:LSpace;	
 	public var rSpace:RSpace;
-	public var vSpace:VSpace;	
 	public var tSpace:TSpace;
 	public var bSpace:BSpace;	
 	
@@ -55,17 +53,15 @@ class _Layout_
 	var update:Void->Void = function() {};
 	var updateChilds:Void->Void = function() {};
 
-    public function new(hSize:Width, vSize:Height, hSpace:HSpace, lSpace:LSpace, rSpace:RSpace, vSpace:VSpace, tSpace:TSpace, bSpace:BSpace)
+    public function new(hSize:Width, vSize:Height, lSpace:LSpace, rSpace:RSpace, tSpace:TSpace, bSpace:BSpace)
 	{
 		x = new Variable();
 		y = new Variable();
 		if (hSize == null) this.hSize = Width.min(0) else this.hSize = hSize;
 		if (vSize == null) this.vSize = Height.min(0) else this.vSize = vSize;
 		
-		this.hSpace = hSpace;
 		this.lSpace = lSpace;
 		this.rSpace = rSpace;
-		this.vSpace = vSpace;
 		this.tSpace = tSpace;
 		this.bSpace = bSpace;
 		setHAlias();
@@ -73,31 +69,93 @@ class _Layout_
 	}
 	
 	public function setHAlias() {
-		if (hSpace != null && lSpace != null) left = new Term(x) - lSpace.size - hSpace.size;
-		else if (hSpace != null) left = new Term(x) - hSpace.size;
-		else if (lSpace != null) left = new Term(x) - lSpace.size;
+		if (lSpace != null) left = new Term(x) - lSpace.size;
 		else left = new Expression([new Term(x)]);
 		
-		if (hSpace != null && rSpace != null) right = new Term(x) + width + rSpace.size + hSpace.size;
-		else if (hSpace != null) right = new Term(x) + width + hSpace.size;
-		else if (rSpace != null) right = new Term(x) + width + rSpace.size;
+		if (rSpace != null) right = new Term(x) + width + rSpace.size;
 		else right = new Term(x) + width;
 		
 		centerX = new Term(x) + (width / 2.0);
 	}
 	
 	public function setVAlias() {
-		if (vSpace != null && tSpace != null) top = new Term(y) - tSpace.size - vSpace.size;
-		else if (vSpace != null) top = new Term(y) - vSpace.size;
-		else if (tSpace != null) top = new Term(y) - tSpace.size;
+		if (tSpace != null) top = new Term(y) - tSpace.size;
 		else top = new Expression([new Term(y)]);
 		
-		if (vSpace != null && bSpace != null) bottom = new Term(y) + height + bSpace.size + vSpace.size;
-		else if (vSpace != null) bottom = new Term(y) + height + vSpace.size;
-		else if (bSpace != null) bottom = new Term(y) + height + bSpace.size;
+		if (bSpace != null) bottom = new Term(y) + height + bSpace.size;
 		else bottom = new Term(y) + height;
 		
 		centerY = new Term(y) + (height / 2.0);
+	}
+	
+	public function addConstraints(sizes:Array<Size>, parentSize:Size = null, constraints:NestedArray<Constraint>,
+		percentStrength:Strength, firstMinStrength:Strength, equalMinStrength:Strength, equalMaxStrength:Strength, minStrength:Strength, maxStrength:Strength=null):Bool
+	{
+		var greatestMax:Size = null;
+		var firstMin:Size = null;
+
+		for (size in sizes) if (size != null) {
+			if (size._percent == null && size._max != null) {
+				if (size._max > size._min) {
+					if (greatestMax == null) greatestMax = size;
+					else if (size._max > greatestMax._max) greatestMax = size;
+				}
+			}
+		}
+		
+		for (size in sizes) if (size != null)
+		{
+			if (size._percent != null) // percentual size
+			{
+				constraints.push( (size.size == size._percent * parentSize.size) | percentStrength );
+				// limit
+				if (size._max == null) constraints.push( (size.size >= size._min) | minStrength );
+				else {
+					if (size._max > size._min) {
+						constraints.push( (size.size >= size._min) | minStrength );
+						constraints.push( (size.size <= size._max) | maxStrength );
+					}
+					else constraints.push( (size.size == size._min) | minStrength );
+				}
+			}
+			else if (size._max == null) // variable size
+			{
+				// set to greatest 
+				if (firstMin == null)
+				{
+					if (greatestMax != null) 
+						constraints.push( (greatestMax.size - greatestMax._min <= size.size - size._min) | firstMinStrength );
+				
+					// min limit
+					constraints.push( (size.size >= size._min) | minStrength );
+					
+					firstMin = size;
+					
+				}
+				else 
+				{
+					constraints.push( (size.size - size._min == firstMin.size - firstMin._min) | equalMinStrength );
+				}
+			}
+			else if (size._max > size._min) // restricted size
+			{ 
+				if (size != greatestMax) {
+					constraints.push( ( (size.size - size._min) * (greatestMax._max - greatestMax._min) == (size._max - size._min) * (greatestMax.size - greatestMax._min) ) | equalMaxStrength );
+				}
+				else {
+					// first one gets limit
+					constraints.push( (size.size >= size._min) | minStrength );
+					constraints.push( (size.size <= size._max) | maxStrength );
+				}
+			}
+			else // fixed size
+			{ 
+				constraints.push( (size.size == size._min) | minStrength );	
+			}
+			
+		}
+		
+		return(firstMin == null);
 	}
 	
 	public function addHSizeConstraints(constraints:NestedArray<Constraint>, strength:Strength)
@@ -114,31 +172,28 @@ class _Layout_
 	{
 		if (lSpace != null) lSpace.addLimitConstraints(constraints, innerStrength);
 		if (rSpace != null) rSpace.addLimitConstraints(constraints, innerStrength);
-		if (hSpace != null) hSpace.addLimitConstraints(constraints, outerStrength);
 	}
 	
 	public function addVSpaceConstraints(constraints:NestedArray<Constraint>, innerStrength:Strength, outerStrength:Strength)
 	{
 		if (tSpace != null) tSpace.addLimitConstraints(constraints, innerStrength);
 		if (bSpace != null) bSpace.addLimitConstraints(constraints, innerStrength);
-		if (vSpace != null) vSpace.addLimitConstraints(constraints, outerStrength);
 	}
 	
 	public function hasMaxWidth():Bool {
-		if (hSize._max == null) return false;
-		if (lSpace != null) {if (lSpace._max == null) return false;}
-		if (rSpace != null) {if (rSpace._max == null) return false;}
-		if (hSpace != null) {if (hSpace._max == null) return false;}
+		if (hSize._max == null && hSize._percent != null) return false; // TODO
+		if (lSpace != null) {if (lSpace._max == null && lSpace._percent != null) return false;}
+		if (rSpace != null) {if (rSpace._max == null && rSpace._percent != null) return false;}
 		return true;
 	}
-	public function hasMinWidth():Bool {
+/*	public function hasMinWidth():Bool {
 		if (hSize._min != null) return true;
 		if (lSpace != null) {if (lSpace._max != null) return true;}
 		if (rSpace != null) {if (rSpace._max != null) return true;}
 		if (hSpace != null) {if (hSpace._max != null) return true;}
 		return false;
 	}
-	
+*/	
 }
 
 
@@ -146,25 +201,23 @@ class _Layout_
 
 @:forward abstract Layout(_Layout_) from _Layout_ to _Layout_
 {
-    public function new(hSize:Width=null, vSize:Height=null, hSpace:HSpace = null, lSpace:LSpace = null, rSpace:RSpace = null, vSpace:VSpace = null, tSpace:TSpace = null, bSpace:BSpace = null)
+    public function new(hSize:Width=null, vSize:Height=null, lSpace:LSpace = null, rSpace:RSpace = null, tSpace:TSpace = null, bSpace:BSpace = null)
     {
-        this = new _Layout_(hSize, vSize, hSpace, lSpace, rSpace, vSpace, tSpace, bSpace);
+        this = new _Layout_(hSize, vSize, lSpace, rSpace, tSpace, bSpace);
     }
 	
-	public inline function set(hSize:Width = null, vSize:Height = null, hSpace:HSpace = null, lSpace:LSpace = null, rSpace:RSpace = null, vSpace:VSpace = null, tSpace:TSpace = null, bSpace:BSpace = null):Layout
+	public inline function set(hSize:Width = null, vSize:Height = null, lSpace:LSpace = null, rSpace:RSpace = null, tSpace:TSpace = null, bSpace:BSpace = null):Layout
 	{
 		if (hSize != null) this.hSize = hSize;
 		if (vSize != null) this.vSize = vSize;
 
-		this.hSpace = hSpace;
 		this.lSpace = lSpace;
 		this.rSpace = rSpace;
-		this.vSpace = vSpace;
 		this.tSpace = tSpace;
 		this.bSpace = bSpace;
 		
-		if (hSize != null || hSpace != null || lSpace != null || rSpace != null) this.setHAlias();
-		if (vSize != null || hSpace != null || tSpace != null || bSpace != null) this.setVAlias();
+		if (hSize != null || lSpace != null || rSpace != null) this.setHAlias();
+		if (vSize != null || tSpace != null || bSpace != null) this.setVAlias();
 		
 		return this;
 	}
@@ -208,19 +261,21 @@ class Size {
 	public static inline function max(max:Int):Size return new Size(null, null, max);
 	public static inline function flex(min:Int, max:Int):Size return new Size(null, min, max);
 		
-	public function addLimitConstraints(constraints:NestedArray<Constraint>, strength:Strength)
+	public function addLimitConstraints(constraints:NestedArray<Constraint>, minStrength:Strength, maxStrength:Strength=null)
 	{
+		if (maxStrength == null) maxStrength = minStrength;
+		
 		if (_min != null && _max != null && _min >= _max )
-			constraints.push( (size == _min) | strength );
+			constraints.push( (size == _min) | minStrength );
 		else
 		{
 			if (_min != null)
-				constraints.push( (size >= _min) | strength );
+				constraints.push( (size >= _min) | minStrength );
 			else
-				constraints.push( (size >= 0) | strength );
+				constraints.push( (size >= 0) | minStrength );
 			
 			if (_max != null)
-				constraints.push( (size <= _max) | strength );
+				constraints.push( (size <= _max) | maxStrength );
 		}
 	}
 	
@@ -250,30 +305,6 @@ abstract Height(Size) from Size to Size {
 	public static inline function max(max:Int):Height return new Size(null, null, max);
 	public static inline function flex(min:Int, max:Int):Height return new Size(null, min, max);
 	// TODO: ratio to Width
-}
-
-typedef HorizontalSpace = HSpace;
-@:forward @:forwardStatics
-abstract HSpace(Size) from Size to Size {
-	public inline function new(width:Int) this = Size.px(width);
-	@:from public static inline  function fromInt(i:Int):HSpace return Size.px(i);
-	public static inline function px(pixel:Int):HSpace return new Size(null, pixel,pixel);
-	public static inline function percent(percent:Float, min:Null<Int> = null, max:Null<Int> = null):HSpace return new Size(percent, min, max);
-	public static inline function min(min:Int):HSpace return new Size(null, min, null);
-	public static inline function max(max:Int):HSpace return new Size(null, null, max);
-	public static inline function flex(min:Int, max:Int):HSpace return new Size(null, min, max);
-}
-
-typedef VerticalSpace = VSpace;
-@:forward @:forwardStatics
-abstract VSpace(Size) from Size to Size {
-	public inline function new(width:Int) this = Size.px(width);
-	@:from public static inline  function fromInt(i:Int):VSpace return Size.px(i);
-	public static inline function px(pixel:Int):VSpace return new Size(null, pixel,pixel);
-	public static inline function percent(percent:Float, min:Null<Int> = null, max:Null<Int> = null):VSpace return new Size(percent, min, max);
-	public static inline function min(min:Int):VSpace return new Size(null, min, null);
-	public static inline function max(max:Int):VSpace return new Size(null, null, max);
-	public static inline function flex(min:Int, max:Int):VSpace return new Size(null, min, max);
 }
 
 typedef LeftSpace = LSpace;
