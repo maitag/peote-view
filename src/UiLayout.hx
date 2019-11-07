@@ -180,30 +180,24 @@ class UiLayout
 
 				new Box(peoteView,
 				[
-					new Box( ui   , //Width.min(200), LSpace.max(50), RSpace.max(100),
+					new Box( ui   , //Width.percent(0.9, 100, 900), LSpace.max(50), //RSpace.max(100),
 					[                                                          
-						new Box( red  , Width.flex(150,300),  LSpace.flex(100,200), RSpace.min(50),
+						new Box( red  , Width.flex(20, 600), //LSpace.flex(25,100), RSpace.max(100),
 						[                                                      
-							//new Box( green,  Width.flex(200, 350) , LSpace.min(25), RSpace.min(50) ),
-							//new Box( blue,  Width.max(100), HSpace.min(100) ),
+							//new Box( green,  Width.flex(50, 300), LSpace.flex(50,100), RSpace.min(50) ),
+							//new Box( green,  Width.flex(50, 300), LSpace.flex(50,100) ),
+							new Box( green,  Width.flex(50, 300), LSpace.flex(50,100), RSpace.flex(20,130) ),
+							//new Box( green,  Width.flex(50, 300) ),
+							//new Box( green,  Width.flex(50, 300) ,LSpace.min(100), RSpace.min(50) ),
+							//new Box( green,  Width.flex(50, 300) ,LSpace.max(100), RSpace.max(50) ),
+							//new Box( green,  Width.max(300) ,LSpace.max(100), RSpace.max(50) ),
+							
+							new Box( blue,  Width.flex(100,150)  )
+							//new Box( blue,  Width.flex(100,150) ,LSpace.min(100) )
 							
 						])
 					])
 				]),
-/*				new Box(peoteView,
-				[
-					new Box(           ui   , Width.percent(0.6, 75, 1000), 50,
-					[                                                          
-						new Box(       red  , Width.flex(10, 800)         , 50,
-						[                                                      
-							new Box(     green, Width.percent(0.8, 50, 500) , 50, HSpace.percent(0.1, 20),
-							[                                                  
-								new Box( blue,  Width.flex(100, 150)        , 50, HSpace.flex(20, 50) )  
-							])
-						])
-					])
-				]),
-*/				
 				
 			]
 		);

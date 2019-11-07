@@ -4,6 +4,7 @@ import utils.NestedArray;
 
 import peote.view.PeoteView;
 import peote.view.Display;
+import peote.ui.LayoutContainer;
 
 import jasper.Expression;
 import jasper.Term;
@@ -39,14 +40,8 @@ class _Layout_
 	public var right(default,null):Expression;
 	public var bottom(default,null):Expression;
 	
-	var addChildConstraints:Layout->NestedArray<Constraint>->?Int->?Int->?Int->?Int->?Int->?Int->Void =
-		function(parentLayout:Layout, constraints:NestedArray<Constraint>,	
-			?sizeSpaceWeight:Int,
-			?sizeChildWeight:Int,
-			?positionWeight:Int,
-			?outerLimitWeight:Int,
-			?spaceLimitWeight:Int,
-			?childLimitWeight:Int) {};
+	var addChildConstraints:Layout->NestedArray<Constraint>->?Int->Limit =
+	function(parentLayout:Layout, constraints:NestedArray<Constraint>, ?weight:Int):Limit {return {width:0,height:0}};
 	
 	var update:Void->Void = function() {};
 	var updateChilds:Void->Void = function() {};
@@ -86,77 +81,6 @@ class _Layout_
 		centerY = new Term(y) + (height / 2.0);
 	}
 	
-	public function addConstraints(sizes:Array<Size>, parentSize:Size = null, constraints:NestedArray<Constraint>,
-		percentStrength:Strength, firstMinStrength:Strength, equalMinStrength:Strength, equalMaxStrength:Strength, minStrength:Strength, maxStrength:Strength=null):Bool
-	{
-		var greatestMax:Size = null;
-		var firstMin:Size = null;
-		
-		for (size in sizes) if (size != null) {
-			if (size._percent == null && size._max != null) {
-				if (size._max > size._min) {
-					if (greatestMax == null) greatestMax = size;
-					else if (size._max > greatestMax._max) greatestMax = size;
-					trace("greatestMax", greatestMax._max);
-				}
-			}
-		}
-		
-		for (size in sizes) if (size != null)
-		{
-			if (size._percent != null) // percentual size
-			{trace("a");
-				constraints.push( (size.size == size._percent * parentSize.size) | percentStrength );
-				// limit
-				if (size._max == null) constraints.push( (size.size >= size._min) | minStrength );
-				else {
-					if (size._max > size._min) {
-						constraints.push( (size.size >= size._min) | minStrength );
-						constraints.push( (size.size <= size._max) | maxStrength );
-					}
-					else constraints.push( (size.size == size._min) | minStrength );
-				}
-			}
-			else if (size._max == null) // variable size
-			{trace("b");
-				// set to greatest 
-				if (firstMin == null)
-				{
-					if (greatestMax != null) {
-						constraints.push( (greatestMax.size - greatestMax._min <= size.size - size._min) | equalMinStrength );
-						constraints.push( (size.size == size._min) | firstMinStrength );
-					}
-					// min limit
-					constraints.push( (size.size >= size._min) | minStrength );
-					
-					firstMin = size;
-					
-				}
-				else 
-				{
-					constraints.push( (size.size - size._min == firstMin.size - firstMin._min) | equalMinStrength );
-				}
-			}
-			else if (size._max > size._min) // restricted size
-			{ //trace("c");
-				if (size != greatestMax) { trace("c1");
-					constraints.push( ( (size.size - size._min) * (greatestMax._max - greatestMax._min) == (size._max - size._min) * (greatestMax.size - greatestMax._min) ) | equalMaxStrength );
-				}
-				else { trace("c2");
-					// first one gets limit
-					constraints.push( (size.size >= size._min) | minStrength );
-					constraints.push( (size.size <= size._max) | maxStrength );
-				}
-			}
-			else // fixed size
-			{ trace("d");
-				constraints.push( (size.size == size._min) | minStrength );	
-			}
-			
-		}
-		
-		return(firstMin == null);
-	}
 	
 	public function addHSizeConstraints(constraints:NestedArray<Constraint>, strength:Strength)
 	{
@@ -180,20 +104,7 @@ class _Layout_
 		if (bSpace != null) bSpace.addLimitConstraints(constraints, innerStrength);
 	}
 	
-	public function hasMaxWidth():Bool {
-		if (hSize._max == null && hSize._percent != null) return false; // TODO
-		if (lSpace != null) {if (lSpace._max == null && lSpace._percent != null) return false;}
-		if (rSpace != null) {if (rSpace._max == null && rSpace._percent != null) return false;}
-		return true;
-	}
-/*	public function hasMinWidth():Bool {
-		if (hSize._min != null) return true;
-		if (lSpace != null) {if (lSpace._max != null) return true;}
-		if (rSpace != null) {if (rSpace._max != null) return true;}
-		if (hSpace != null) {if (hSpace._max != null) return true;}
-		return false;
-	}
-*/	
+
 }
 
 
