@@ -34,8 +34,6 @@ class _Layout_
 	public var centerX:Expression;
 	public var centerY:Expression;
 
-	//public var width(default,null):Expression;
-	//public var height(default,null):Expression;
 	public var left(default,null):Expression;
 	public var top(default, null):Expression;
 	public var right(default,null):Expression;
@@ -93,12 +91,13 @@ class _Layout_
 	{
 		var greatestMax:Size = null;
 		var firstMin:Size = null;
-
+		
 		for (size in sizes) if (size != null) {
 			if (size._percent == null && size._max != null) {
 				if (size._max > size._min) {
 					if (greatestMax == null) greatestMax = size;
 					else if (size._max > greatestMax._max) greatestMax = size;
+					trace("greatestMax", greatestMax._max);
 				}
 			}
 		}
@@ -106,7 +105,7 @@ class _Layout_
 		for (size in sizes) if (size != null)
 		{
 			if (size._percent != null) // percentual size
-			{
+			{trace("a");
 				constraints.push( (size.size == size._percent * parentSize.size) | percentStrength );
 				// limit
 				if (size._max == null) constraints.push( (size.size >= size._min) | minStrength );
@@ -119,13 +118,14 @@ class _Layout_
 				}
 			}
 			else if (size._max == null) // variable size
-			{
+			{trace("b");
 				// set to greatest 
 				if (firstMin == null)
 				{
-					if (greatestMax != null) 
-						constraints.push( (greatestMax.size - greatestMax._min <= size.size - size._min) | firstMinStrength );
-				
+					if (greatestMax != null) {
+						constraints.push( (greatestMax.size - greatestMax._min <= size.size - size._min) | equalMinStrength );
+						constraints.push( (size.size == size._min) | firstMinStrength );
+					}
 					// min limit
 					constraints.push( (size.size >= size._min) | minStrength );
 					
@@ -138,18 +138,18 @@ class _Layout_
 				}
 			}
 			else if (size._max > size._min) // restricted size
-			{ 
-				if (size != greatestMax) {
+			{ //trace("c");
+				if (size != greatestMax) { trace("c1");
 					constraints.push( ( (size.size - size._min) * (greatestMax._max - greatestMax._min) == (size._max - size._min) * (greatestMax.size - greatestMax._min) ) | equalMaxStrength );
 				}
-				else {
+				else { trace("c2");
 					// first one gets limit
 					constraints.push( (size.size >= size._min) | minStrength );
 					constraints.push( (size.size <= size._max) | maxStrength );
 				}
 			}
 			else // fixed size
-			{ 
+			{ trace("d");
 				constraints.push( (size.size == size._min) | minStrength );	
 			}
 			
@@ -243,14 +243,15 @@ class _Layout_
 @:allow(peote.ui)
 class Size {
 	var _percent:Null<Float>;
-	var _min:Null<Int>;
+	//var _min:Null<Int>;
+	var _min:Int = 0;
 	var _max:Null<Int>;
 	
 	public var size:Variable;
 	
 	inline function new(percent:Null<Float>, min:Null<Int>, max:Null<Int>) {
 		_percent = percent;
-		_min = min;
+		if (min != null) _min = min;
 		_max = max;
 		size = new Variable();
 	}

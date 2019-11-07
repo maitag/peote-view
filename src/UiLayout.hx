@@ -180,9 +180,9 @@ class UiLayout
 
 				new Box(peoteView,
 				[
-					new Box( ui   , //Width.flex(50, 1000), LSpace.max(50), RSpace.max(100),
+					new Box( ui   , //Width.min(200), LSpace.max(50), RSpace.max(100),
 					[                                                          
-						new Box( red  , Width.flex(50,300),  LSpace.max(50), RSpace.max(100),
+						new Box( red  , Width.flex(150,300),  LSpace.flex(100,200), RSpace.min(50),
 						[                                                      
 							//new Box( green,  Width.flex(200, 350) , LSpace.min(25), RSpace.min(50) ),
 							//new Box( blue,  Width.max(100), HSpace.min(100) ),

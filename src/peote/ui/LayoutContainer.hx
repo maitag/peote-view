@@ -119,55 +119,23 @@ abstract Box(LayoutContainer) // from LayoutContainer to LayoutContainer
 			trace("Box - addChildConstraints");
 			
 			// --------------------------------- horizontal ---------------------------------------
+			var s0 = Strength.create( 0, 1, 0);			
+			var s1 = Strength.create( 0, 10, 0);			
+			var s2 = Strength.create( 0, 20, 0);			
+			var s3 = Strength.create( 0, 30, 0);			
+			var s4 = Strength.create( 0, 30, 0);			
+			var isVariable = child.addConstraints([child.lSpace, child.hSize, child.rSpace], this.layout.hSize, constraints, 
+				s1,s0,s1,s1,s4,s4);
+			//	percentStrength, firstMinStrength, equalMinStrength, equalMaxStrength, minStrength, maxStrength);
 			
-			//child.addConstraints([child.lSpace, child.hSize, child.rSpace], this.layout.hSize, toMinMaxSize, constraints, 
-			//	percentStrength, toMinMaxStrength, toMinStrength, minStrength, maxStrength);
-			
-			
-			
-			// size
-			child.addHSizeConstraints(constraints, childLimitStrength);
-			child.addHSpaceConstraints(constraints, spaceLimitStrength, spaceLimitStrength);
-
-			if (child.hSize._percent != null) {
-				constraints.push( (child.width == child.hSize._percent*this.layout.width) | sizeChildStrength );
-			}
-			//constraints.push( (child.width == this.layout.x + this.layout.width) | sizeChildStrength );
-			
-			if (child.lSpace != null && child.rSpace != null) {
-				//if (child.lSpace._max == null && child.lSpace._max == null)
-					constraints.push( (child.lSpace.size == child.rSpace.size) | sizeSpaceStrength3 );
-			}
-
-			if (child.lSpace != null) {
-				if (child.lSpace._percent != null) {
-					constraints.push( (child.lSpace.size == child.lSpace._percent*this.layout.width) | sizeSpaceStrength4 );
-				}
-				else {
-					if (child.lSpace._min != null && child.lSpace._max != null) constraints.push( (child.lSpace.size == child.lSpace._max) | sizeSpaceStrength1 );
-					else if (child.lSpace._min != null) constraints.push( (child.lSpace.size == child.lSpace._min) | sizeSpaceStrength1 );
-					else if (child.lSpace._max != null) constraints.push( (child.lSpace.size == child.lSpace._max) | sizeSpaceStrength1 );
-				}
-			}
-			if (child.rSpace != null) {
-				if (child.rSpace._percent != null) {
-					constraints.push( (child.rSpace.size == child.rSpace._percent*this.layout.width) | sizeSpaceStrength4 );
-				}
-				else {
-					if (child.rSpace._min != null && child.rSpace._max != null) constraints.push( (child.rSpace.size == child.rSpace._max) | sizeSpaceStrength2 );
-					else if (child.rSpace._min != null) constraints.push( (child.rSpace.size == child.rSpace._min) | sizeSpaceStrength2 );
-					else if (child.rSpace._max != null) constraints.push( (child.rSpace.size == child.rSpace._max) | sizeSpaceStrength2 );
-				}
-			}			
-						
-			// left right
+			// connect to outer
 			var startRestSpace:Size = null;
 			var endRestSpace:Size = null;
-			if (child.hasMaxWidth()) {
+			if (isVariable) {
 				trace(" REST SPACER ");
 				var restSpace = Size.min(0);				
-				constraints.push( (restSpace.size == 0) | sizeChildStrength );
-				constraints.push( (restSpace.size >= 0) | spaceLimitStrength ); // TODO
+				constraints.push( (restSpace.size == 0) | s0 );
+				constraints.push( (restSpace.size >= 0) | s4 );
 				
 				if ( (child.lSpace == null && child.rSpace == null) || (child.lSpace != null && child.rSpace != null) ) {
 					startRestSpace = endRestSpace = restSpace; trace("LEFT/RIGHT");
@@ -179,10 +147,8 @@ abstract Box(LayoutContainer) // from LayoutContainer to LayoutContainer
 					startRestSpace = restSpace; trace("RIGHT");
 				}
 			}
-			this.addStartConstraints(child.left, this.layout.x, startRestSpace, constraints, outerLimitStrength);
-			this.addEndConstraints(child.right, this.layout.x + this.layout.width, endRestSpace, constraints, outerLimitStrength);
-			
-			
+			this.addStartConstraints(child.left, this.layout.x, startRestSpace, constraints, s3);
+			this.addEndConstraints(child.right, this.layout.x + this.layout.width, endRestSpace, constraints, s2);
 			
 			
 			// --------------------------------- vertical ---------------------------------------
@@ -250,7 +216,7 @@ abstract Shelf(LayoutContainer) from LayoutContainer to LayoutContainer
 		var childLimitStrength = Strength.create( childLimitWeight,0, 0);
 		
 		// calculate procentual
-		var procentuals = new Array<{space:Null<Float>, child:Null<Float>, spaceMax:Null<Int>, childMax:Null<Int>, spaceMin:Int, childMin:Int}>();
+/*		var procentuals = new Array<{space:Null<Float>, child:Null<Float>, spaceMax:Null<Int>, childMax:Null<Int>, spaceMin:Int, childMin:Int}>();
 		var anz_percent:Int = 0;
 		var sum_percent:Float = 0.0;
 		var anz_min:Int = 0;
@@ -280,7 +246,7 @@ abstract Shelf(LayoutContainer) from LayoutContainer to LayoutContainer
 				
 			}
 		}
-		
+*/		
 		if (this.childs != null) for (i in 0...this.childs.length)
 		{	
 			trace("Shelf - addChildConstraints");
