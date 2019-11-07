@@ -164,84 +164,82 @@ abstract Box(LayoutContainer) // from LayoutContainer to LayoutContainer
 	{
 		weight++;
 		var w = weight * 10;
-		var restStrength = Strength.create(0, 300 - w, 0);
-		var restStrengthHalf = Strength.create(0, 150 - w, 0);
 		
-		var equalMinStrength = Strength.create(0, 200 - w, 0); // weight here also splitted ?
+		var equalMinStrength = Strength.create(0, 200 - w, 0); // weight here also splitted by childlength ?
 		
 		var percentStrength = Strength.create(0, 200, 0);
 		
-		var firstMinStrength = Strength.create(0, 100, 0);
+		var firstMinStrength = Strength.create(0, 10, 0); // TODO: all here also splitted by childlength
 		var equalMaxStrength = Strength.create(0, 200, 0);
 		
 		var limitStrength = Strength.create(0, 400, 0);
 		
 		var limit = {width:0, height:0};
 		
-		var i = 0;
-		if (this.childs != null) for (child in this.childs)  // the restStrength weight needs splitted depending on childnumber
-		{	
-			trace("Box - addChildConstraints");
-		//todo:
-		//var restStrength = Strength.create(0, 300 - w, 500-i*10);
-		//var restStrengthHalf = Strength.create(0, 150 - w, 0);
-		i++;
-		
-			// ------------------------- recursive childs --------------------------
-			var innerLimit = child.addChildConstraints(child, constraints, weight);
+		if (this.childs != null)
+		{
+			var restStrength = Strength.create(0, (300 - w) / this.childs.length, 0); // TODO: not good for many childs
+			var restStrengthHalf = Strength.create(0, (300 - w) /2/this.childs.length, 0);
 			
-			if (child.hSize._min < innerLimit.width) child.hSize._min = innerLimit.width;
+			for (child in this.childs)
+			{	
+				trace("Box - addChildConstraints");
 			
-			var newLimit = ((child.lSpace != null) ? child.lSpace._min:0) +
-			               ((child.hSize  != null) ? child.hSize._min :0) +
-			               ((child.rSpace != null) ? child.rSpace._min:0);
-			
-			if (newLimit > limit.width) limit.width = newLimit;
-			
-			// --------------------------------- horizontal ---------------------------------------
-			var isVariable = this.addConstraints([child.lSpace, child.hSize, child.rSpace], this.layout.hSize, constraints, 
-				percentStrength, firstMinStrength, equalMinStrength, equalMaxStrength, limitStrength, limitStrength);
-			
-			// connect to outer
-			var startRestSpace:Size = null;
-			var endRestSpace:Size = null;
-			if (isVariable) {
-				trace(" REST SPACER ");
-				var restSpace = Size.min(0);				
-				constraints.push( (restSpace.size >= 0) | limitStrength );
+				// ------------------------- recursive childs --------------------------
+				var innerLimit = child.addChildConstraints(child, constraints, weight);
 				
-				if ( (child.lSpace == null && child.rSpace == null) || (child.lSpace != null && child.rSpace != null) ) {
-					constraints.push( (restSpace.size == 0) | restStrength ); // <-- shrinking weight !
-					startRestSpace = endRestSpace = restSpace; trace("LEFT/RIGHT");
+				if (child.hSize._min < innerLimit.width) child.hSize._min = innerLimit.width;
+				
+				var newLimit = ((child.lSpace != null) ? child.lSpace._min:0) +
+							   ((child.hSize  != null) ? child.hSize._min :0) +
+							   ((child.rSpace != null) ? child.rSpace._min:0);
+				
+				if (newLimit > limit.width) limit.width = newLimit;
+				
+				// --------------------------------- horizontal ---------------------------------------
+				var isVariable = this.addConstraints([child.lSpace, child.hSize, child.rSpace], this.layout.hSize, constraints, 
+					percentStrength, firstMinStrength, equalMinStrength, equalMaxStrength, limitStrength, limitStrength);
+				
+				// connect to outer
+				var startRestSpace:Size = null;
+				var endRestSpace:Size = null;
+				if (isVariable) {
+					trace(" REST SPACER ");
+					var restSpace = Size.min(0);				
+					constraints.push( (restSpace.size >= 0) | limitStrength );
+					
+					if ( (child.lSpace == null && child.rSpace == null) || (child.lSpace != null && child.rSpace != null) ) {
+						constraints.push( (restSpace.size == 0) | restStrength ); // <-- shrinking weight !
+						startRestSpace = endRestSpace = restSpace; trace("LEFT/RIGHT");
+					}
+					else if (child.lSpace != null) {
+						constraints.push( (restSpace.size == 0) | restStrengthHalf ); // <-- shrinking weight !
+						endRestSpace = restSpace; trace("LEFT");
+					}
+					else if (child.rSpace != null) {
+						constraints.push( (restSpace.size == 0) | restStrengthHalf ); // <-- shrinking weight !
+						startRestSpace = restSpace; trace("RIGHT");
+					}
 				}
-				else if (child.lSpace != null) {
-					constraints.push( (restSpace.size == 0) | restStrengthHalf ); // <-- shrinking weight !
-					endRestSpace = restSpace; trace("LEFT");
-				}
-				else if (child.rSpace != null) {
-					constraints.push( (restSpace.size == 0) | restStrengthHalf ); // <-- shrinking weight !
-					startRestSpace = restSpace; trace("RIGHT");
-				}
+				this.addStartConstraints(child.left, this.layout.x, startRestSpace, constraints, limitStrength);
+				this.addEndConstraints(child.right, this.layout.x + this.layout.width, endRestSpace, constraints, limitStrength);
+				
+				
+				
+				// TODO
+				// --------------------------------- vertical ---------------------------------------
+				// size
+				child.addVSizeConstraints(constraints, Strength.MEDIUM);
+				child.addVSpaceConstraints(constraints, Strength.MEDIUM, Strength.MEDIUM);
+				var restSpace = Size.px(0);
+				constraints.push( (restSpace.size == 8) | Strength.MEDIUM );
+				this.addStartConstraints(child.top, this.layout.y, restSpace, constraints, Strength.MEDIUM);
+				this.addEndConstraints(child.bottom, this.layout.y + this.layout.height, restSpace, constraints, Strength.MEDIUM);
+				
+				
+				
 			}
-			this.addStartConstraints(child.left, this.layout.x, startRestSpace, constraints, limitStrength);
-			this.addEndConstraints(child.right, this.layout.x + this.layout.width, endRestSpace, constraints, limitStrength);
-			
-			
-			
-			// TODO
-			// --------------------------------- vertical ---------------------------------------
-			// size
-			child.addVSizeConstraints(constraints, Strength.MEDIUM);
-			child.addVSpaceConstraints(constraints, Strength.MEDIUM, Strength.MEDIUM);
-			var restSpace = Size.px(0);
-			constraints.push( (restSpace.size == 8) | Strength.MEDIUM );
-			this.addStartConstraints(child.top, this.layout.y, restSpace, constraints, Strength.MEDIUM);
-			this.addEndConstraints(child.bottom, this.layout.y + this.layout.height, restSpace, constraints, Strength.MEDIUM);
-			
-			
-			
 		}
-		
 		return limit;
 	}
 	

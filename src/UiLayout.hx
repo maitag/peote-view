@@ -182,7 +182,7 @@ class UiLayout
 				[
 					new Box( ui   , //Width.percent(0.9, 100, 900), LSpace.max(50), //RSpace.max(100),
 					[                                                          
-						new Box( red  , Width.flex(20, 600), //LSpace.flex(25,100), RSpace.max(100),
+						new Box( red  , Width.flex(20, 700), //LSpace.flex(25,100), RSpace.max(100),
 						[                                                      
 							//new Box( green,  Width.flex(50, 300), LSpace.flex(50,100), RSpace.min(50) ),
 							//new Box( green,  Width.flex(50, 300), LSpace.flex(50,100) ),
@@ -192,8 +192,9 @@ class UiLayout
 							//new Box( green,  Width.flex(50, 300) ,LSpace.max(100), RSpace.max(50) ),
 							//new Box( green,  Width.max(300) ,LSpace.max(100), RSpace.max(50) ),
 							
-							new Box( blue,  Width.flex(100,150)  )
+							//new Box( blue,  Width.flex(100,150)  )
 							//new Box( blue,  Width.flex(100,150) ,LSpace.min(100) )
+							new Box( blue,  Width.flex(100,150) ,LSpace.min(100), RSpace.flex(20,130) )
 							
 						])
 					])
