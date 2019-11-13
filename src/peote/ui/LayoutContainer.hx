@@ -44,75 +44,94 @@ class LayoutContainer
 	}
 	
 	public function addConstraints(sizes:Array<Size>, parentSize:Size = null, constraints:NestedArray<Constraint>,
-		percentStrength:Strength, firstMinStrength:Strength, equalMinStrength:Strength, equalMaxStrength:Strength, minStrength:Strength, maxStrength:Strength=null):Bool
+		percentStrength:Strength, equalStrength:Strength, stretchStrength:Strength, limitStrength:Strength):{min:Int, noMax:Bool}
 	{
 		var greatestMax:Size = null;
-		var firstMin:Size = null;
+		var greatestMin:Size = null;
+		var limit:{min:Int, noMax:Bool } = {min:0, noMax:false};
 		
 		for (size in sizes) if (size != null) {
-			if (size._percent == null && size._max != null) {
-				if (size._max > size._min) {
+			if (size._percent == null)
+			{
+				if (size._max != null)
+				{
 					if (greatestMax == null) greatestMax = size;
 					else if (size._max - size._min > greatestMax._max - greatestMax._min) greatestMax = size;
-					trace("greatestMax", greatestMax._max);
+				}
+				else
+				{
+					limit.noMax = true; // unlimited in size
+					if (greatestMin == null) greatestMin = size;
+					else if (size._min > greatestMin._min) greatestMin = size;
 				}
 			}
+			limit.min += size._min;
 		}
+
+		if (greatestMin != null) trace("greatestMin", greatestMin._min);
+		if (greatestMax != null) trace("greatestMax", greatestMax._max);
 		
 		for (size in sizes) if (size != null)
 		{
 			if (size._percent != null) // percentual size
-			{trace("a");
+			{
+				trace("set limit for procentuals");
+				// TODO:
 				constraints.push( (size.size == size._percent * parentSize.size) | percentStrength );
 				// limit
-				if (size._max == null) constraints.push( (size.size >= size._min) | minStrength );
+				if (size._max == null) constraints.push( (size.size >= size._min) | limitStrength );
 				else {
 					if (size._max > size._min) {
-						constraints.push( (size.size >= size._min) | minStrength );
-						constraints.push( (size.size <= size._max) | maxStrength );
+						constraints.push( (size.size >= size._min) | limitStrength );
+						constraints.push( (size.size <= size._max) | limitStrength );
 					}
-					else constraints.push( (size.size == size._min) | minStrength );
+					else constraints.push( (size.size == size._min) | limitStrength );
 				}
 			}
-			else if (size._max == null) // variable size
-			{trace("b");
+			else if (size._max == null) // variable size (only min)
+			{
 				// set to greatest 
-				if (firstMin == null)
-				{
+				if (size == greatestMin)
+				{	trace("set limit for greatestMin");
 					if (greatestMax != null) {
-						constraints.push( (greatestMax.size - greatestMax._min <= size.size - size._min) | equalMinStrength );
-						constraints.push( (size.size == size._min) | firstMinStrength );
+						trace("constrain greatestMin with greatestMax");
+						//constraints.push( (greatestMax.size - greatestMax._min <= size.size - size._min) | equalStrength );
+						
+						// TODO: equal did not work if outer spacer is variable
+						constraints.push( (size._min * greatestMax.size == size.size * greatestMax._min) | stretchStrength );
 					}
-					// min limit
-					constraints.push( (size.size >= size._min) | minStrength );
-					
-					firstMin = size;
-					
+					// only the greatestMin gets the limit
+					constraints.push( (size.size >= size._min) | limitStrength );
 				}
 				else 
-				{
-					constraints.push( (size.size - size._min == firstMin.size - firstMin._min) | equalMinStrength );
+				{	trace("constrain other _min sizes with greatestMin");
+					//constraints.push( (size.size - size._min == greatestMin.size - greatestMin._min) | equalStrength );
+					constraints.push( (size.size * greatestMin._min == size._min * greatestMin.size) | equalStrength );
 				}
 			}
-			else if (size._max > size._min) // restricted size
-			{ //trace("c");
-				if (size != greatestMax) { trace("c1");
-					constraints.push( ( (size.size - size._min) * (greatestMax._max - greatestMax._min) == (size._max - size._min) * (greatestMax.size - greatestMax._min) ) | equalMaxStrength );
+			else if (size._max > size._min) // limit size
+			{
+				if (size == greatestMax) 
+				{	trace("set limit for greatestMax");
+					if (greatestMin == null) { trace("stretch greatestMax to _max");
+						constraints.push( (size.size == size._max) | stretchStrength ); // <- STRETCH					
+					}
+					// only the greatesMax gets the limit
+					constraints.push( (size.size >= size._min) | limitStrength );
+					constraints.push( (size.size <= size._max) | limitStrength );
 				}
-				else { trace("c2");
-					// first one gets limit
-					constraints.push( (size.size >= size._min) | minStrength );
-					constraints.push( (size.size <= size._max) | maxStrength );
+				else { trace("constrain other _max sizes with greatestMax");
+					constraints.push( ( (size.size - size._min) * (greatestMax._max - greatestMax._min) == (size._max - size._min) * (greatestMax.size - greatestMax._min) ) | equalStrength );
 				}
 			}
 			else // fixed size
-			{ trace("d");
-				constraints.push( (size.size == size._min) | minStrength );	
+			{
+				constraints.push( (size.size == size._min) | limitStrength );	
 			}
 			
 		}
 		
-		return(firstMin == null);
+		return(limit); //returns the min and max limits (max can be null)
 	}
 
 	function addStartConstraints(start:Expression, outStart:Variable, spStart:Size = null, constraints:NestedArray<Constraint>, outerLimitStrength:Strength):Void
@@ -165,72 +184,59 @@ abstract Box(LayoutContainer) // from LayoutContainer to LayoutContainer
 		weight++;
 		var w = weight * 10;
 		
-		var equalMinStrength = Strength.create(0, 200 - w, 0); // weight here also splitted by childlength ?
-		
 		var percentStrength = Strength.create(0, 200, 0);
-		
-		var firstMinStrength = Strength.create(0, 10, 0); // TODO: all here also splitted by childlength
-		var equalMaxStrength = Strength.create(0, 200, 0);
-		
-		var limitStrength = Strength.create(0, 400, 0);
+		var limitStrength = Strength.create(0, 900, 0);
+		//var limitStrength = Strength.create(800 ,0, 0);
 		
 		var limit = {width:0, height:0};
 		
 		if (this.childs != null)
 		{
-			var restStrength = Strength.create(0, (300 - w) / this.childs.length, 0); // TODO: not good for many childs
-			var restStrengthHalf = Strength.create(0, (300 - w) /2/this.childs.length, 0);
+			var stretchStrength = Strength.create(0, 0, 500 );
+
+			var equalStrength = Strength.create(0, 800 / this.childs.length, 0 );
+			var restStrength  = Strength.create(0, 800 / this.childs.length, 0 );
 			
 			for (child in this.childs)
 			{	
 				trace("Box - addChildConstraints");
 			
 				// ------------------------- recursive childs --------------------------
-				var innerLimit = child.addChildConstraints(child, constraints, weight);
-				
-				if (child.hSize._min < innerLimit.width) child.hSize._min = innerLimit.width;
-				
-				var newLimit = ((child.lSpace != null) ? child.lSpace._min:0) +
-							   ((child.hSize  != null) ? child.hSize._min :0) +
-							   ((child.rSpace != null) ? child.rSpace._min:0);
-				
-				if (newLimit > limit.width) limit.width = newLimit;
-				
+				var innerLimit = child.addChildConstraints(child, constraints, weight);				
+				trace("----");
 				// --------------------------------- horizontal ---------------------------------------
-				var isVariable = this.addConstraints([child.lSpace, child.hSize, child.rSpace], this.layout.hSize, constraints, 
-					percentStrength, firstMinStrength, equalMinStrength, equalMaxStrength, limitStrength, limitStrength);
-				
-				// connect to outer
-				var startRestSpace:Size = null;
-				var endRestSpace:Size = null;
-				if (isVariable) {
-					trace(" REST SPACER ");
-					var restSpace = Size.min(0);				
-					constraints.push( (restSpace.size >= 0) | limitStrength );
-					
-					if ( (child.lSpace == null && child.rSpace == null) || (child.lSpace != null && child.rSpace != null) ) {
-						constraints.push( (restSpace.size == 0) | restStrength ); // <-- shrinking weight !
-						startRestSpace = endRestSpace = restSpace; trace("LEFT/RIGHT");
-					}
-					else if (child.lSpace != null) {
-						constraints.push( (restSpace.size == 0) | restStrengthHalf ); // <-- shrinking weight !
-						endRestSpace = restSpace; trace("LEFT");
-					}
-					else if (child.rSpace != null) {
-						constraints.push( (restSpace.size == 0) | restStrengthHalf ); // <-- shrinking weight !
-						startRestSpace = restSpace; trace("RIGHT");
-					}
+				if (child.hSize._min < innerLimit.width) {
+					child.hSize._min = innerLimit.width;
+					if (child.hSize._max != null) child.hSize._max = Std.int(Math.max(child.hSize._max, child.hSize._min));
 				}
-				this.addStartConstraints(child.left, this.layout.x, startRestSpace, constraints, limitStrength);
-				this.addEndConstraints(child.right, this.layout.x + this.layout.width, endRestSpace, constraints, limitStrength);
+				
+				var outerLimit = this.addConstraints([child.lSpace, child.hSize, child.rSpace], this.layout.hSize, constraints,
+					percentStrength, equalStrength, stretchStrength, limitStrength);
+				
+				
+				if (outerLimit.min > limit.width) limit.width = outerLimit.min;
+
+				// rest-spacer
+				var restSpace:Size = null;
+				
+				if (!outerLimit.noMax) { trace("REST spacer injection");
+					restSpace = Size.min(0);
+					constraints.push( (restSpace.size >= 0) | limitStrength );
+					// TODO: only need if the one of the inner is using the stretching 
+					//       from greatestMin to greatestMax or the greatestMaxStretching if it is alone ??? 
+					//constraints.push( (restSpace.size == 0) | restStrength );
+				}
+				
+				this.addStartConstraints(child.left, this.layout.x, restSpace, constraints, limitStrength);
+				this.addEndConstraints(child.right, this.layout.x + this.layout.width, restSpace, constraints, limitStrength);
 				
 				
 				
 				// TODO
 				// --------------------------------- vertical ---------------------------------------
 				// size
-				child.addVSizeConstraints(constraints, Strength.MEDIUM);
-				child.addVSpaceConstraints(constraints, Strength.MEDIUM, Strength.MEDIUM);
+				//child.addVSizeConstraints(constraints, Strength.MEDIUM);
+				//child.addVSpaceConstraints(constraints, Strength.MEDIUM, Strength.MEDIUM);
 				var restSpace = Size.px(0);
 				constraints.push( (restSpace.size == 8) | Strength.MEDIUM );
 				this.addStartConstraints(child.top, this.layout.y, restSpace, constraints, Strength.MEDIUM);

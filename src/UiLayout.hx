@@ -43,13 +43,13 @@ class UiLayout
 			blue  = new Button(-100, mySkin, new Style(Color.BLUE));
 			yellow= new Button(-100, mySkin, new Style(Color.YELLOW));
 
-			//ui.add(grey); testManualConstraints();
+			ui.add(grey); ui.add(red); ui.add(green); ui.add(blue); ui.add(yellow);
 			
-			ui.add(red); ui.add(green); ui.add(blue);
+			//testManualConstraints();
 			//testManualRowConstraints();
 			testLayoutNestedBoxes();
 			
-			//ui.add(yellow);
+			
 			//testLayoutNestedShelfes();
 			
 		}
@@ -180,21 +180,29 @@ class UiLayout
 
 				new Box(peoteView,
 				[
-					new Box( ui   , //Width.percent(0.9, 100, 900), LSpace.max(50), //RSpace.max(100),
+					new Box( ui   , //Width.percent(0.9, 100, 900), LSpace.min(0, 50), //RSpace.min(0, 100),
 					[                                                          
-						new Box( red  , Width.flex(20, 700), //LSpace.flex(25,100), RSpace.max(100),
+						//new Box( red  , Width.min(100), LSpace.min(50), //RSpace.min(25),
+						//new Box( red  , Width.min(200), LSpace.min(50,100), RSpace.min(100),
+						//new Box( red  , Width.min(200,400), LSpace.min(50), RSpace.min(50,100),
+						new Box( red  , Width.min(200,700), //LSpace.min(50),// RSpace.min(25,150),
 						[                                                      
-							//new Box( green,  Width.flex(50, 300), LSpace.flex(50,100), RSpace.min(50) ),
-							//new Box( green,  Width.flex(50, 300), LSpace.flex(50,100) ),
-							new Box( green,  Width.flex(50, 300), LSpace.flex(50,100), RSpace.flex(20,130) ),
-							//new Box( green,  Width.flex(50, 300) ),
-							//new Box( green,  Width.flex(50, 300) ,LSpace.min(100), RSpace.min(50) ),
-							//new Box( green,  Width.flex(50, 300) ,LSpace.max(100), RSpace.max(50) ),
-							//new Box( green,  Width.max(300) ,LSpace.max(100), RSpace.max(50) ),
+							//new Box( green,  Width.min(50, 300), LSpace.min(50,100), RSpace.min(50) ),
+							//new Box( green,  Width.min(50, 300), LSpace.min(50,100) ),
+							//new Box( green,  Width.min(50, 300), LSpace.min(50,100), RSpace.min(20,130) ),
 							
-							//new Box( blue,  Width.flex(100,150)  )
-							//new Box( blue,  Width.flex(100,150) ,LSpace.min(100) )
-							new Box( blue,  Width.flex(100,150) ,LSpace.min(100), RSpace.flex(20,130) )
+							
+							//new Box( green,  Width.min(50, 300) ,LSpace.min(100), RSpace.min(50) ),
+							//new Box( green,  Width.min(50, 300) ,LSpace.min(0, 100), RSpace.min(0, 50) ),
+							//new Box( green,  Width.min(300) ,LSpace.min(100), RSpace.min(0, 50) ),
+							
+							//new Box( blue,  Width.min(100)  )
+							//new Box( blue,  Width.min(100,150) ,LSpace.min(150) )
+							//new Box( blue,  Width.min(100) ,LSpace.min(50) ,RSpace.min(50) )
+							
+							//new Box( green,  Width.min(100,500) ,LSpace.min(50,100) ),
+							new Box( blue,   Width.min(100,300), LSpace.min(50) ),
+							//new Box( yellow, Width.min(150,200), LSpace.min(25,80) ,RSpace.min(50,150) ),
 							
 						])
 					])
@@ -220,8 +228,8 @@ class UiLayout
 				[
 					new Shelf(ui,
 					[
-						new Box(red,   Width.flex(100,300)),
-						new Box(green, Width.flex(200,300)),
+						new Box(red,   Width.min(100,300)),
+						new Box(green, Width.min(200,300)),
 						//new Box(green, Width.min(200)),
 						//new Box(blue,  Width.min(100))
 					])
