@@ -7,6 +7,7 @@ import jasper.Variable;
 import utils.NestedArray;
 import peote.ui.Layout;
 
+typedef Limit = { width:Int, height:Int }
 
 @:allow(peote.ui)
 class LayoutContainer
@@ -43,6 +44,26 @@ class LayoutContainer
 		return(constraints);
 	}
 	
+	function addStartConstraints(start:Expression, outStart:Variable, spStart:Size = null, constraints:NestedArray<Constraint>, outerLimitStrength:Strength):Void
+	{		
+		if (spStart != null) constraints.push( (start == outStart + spStart.size) | outerLimitStrength ); // OUTERLIMIT
+		else constraints.push( (start == outStart) | outerLimitStrength ); // OUTERLIMIT
+	}
+	
+	function addEndConstraints(end:Expression, outEnd:Expression, spEnd:Size = null, constraints:NestedArray<Constraint>, outerLimitStrength:Strength):Void
+	{		
+		if (spEnd != null) constraints.push( (outEnd == end + spEnd.size) | outerLimitStrength ); // OUTERLIMIT
+		else constraints.push( (outEnd == end) | outerLimitStrength ); // OUTERLIMIT
+	}
+	
+	function addPrefConstraints(start:Expression, prefEnd:Expression, spStart:Size = null, spPrefEnd:Size = null, constraints:NestedArray<Constraint>, positionStrength:Strength):Void
+	{
+		if (spStart != null && spPrefEnd != null) constraints.push( (start == prefEnd + spPrefEnd.size + spStart.size) | positionStrength );
+		else if (spStart != null) constraints.push( (start == prefEnd + spStart.size) | positionStrength );
+		else if (spPrefEnd != null) constraints.push( (start == prefEnd + spPrefEnd.size) | positionStrength );
+		else constraints.push( (start == prefEnd) | positionStrength );
+	}
+
 	public function addConstraints(sizes:Array<Size>, parentSize:Size = null, constraints:NestedArray<Constraint>,
 		percentStrength:Strength, equalStrength:Strength, stretchStrength:Strength, limitStrength:Strength):{min:Int, noMax:Bool}
 	{
@@ -96,24 +117,26 @@ class LayoutContainer
 					if (greatestMax != null) {
 						trace("constrain greatestMin with greatestMax");
 						
-						// TODO: equal did not work if outer spacer is variable
-						// TODO: was wenn size._min null ist ??
-						if (greatestMin._min == 0 || greatestMax._min == 0) {
-							//constraints.push( (greatestMax.size - greatestMax._min == greatestMin.size - greatestMin._min) | stretchStrength );
-							constraints.push( (greatestMax.size == greatestMax._max) | stretchStrength ); // <- STRETCH
+						// TODO: "==" maybe did not work if outer spacer is variable
+						if (greatestMax._max > greatestMax._min)
+						{
+							if (greatestMin._min == 0 || greatestMax._min == 0) {
+								//constraints.push( (greatestMax.size - greatestMax._min == greatestMin.size - greatestMin._min) | stretchStrength );
+								constraints.push( (greatestMax.size == greatestMax._max) | stretchStrength ); // <- STRETCH
+								//constraints.push( (greatestMax.size == greatestMax._max) | Strength.create(0, 100, 0 ) ); // <- STRETCH
+							}
+							else constraints.push( (greatestMin._min * greatestMax.size == greatestMin.size * greatestMax._min) | stretchStrength );
+							// todo: noch die min mit einbeziehen
 						}
-						else
-							constraints.push( (greatestMin._min * greatestMax.size == greatestMin.size * greatestMax._min) | stretchStrength );
 					}
 					// only the greatestMin gets the limit
 					constraints.push( (size.size >= size._min) | limitStrength );
 				}
 				else 
 				{	trace("constrain other _min sizes with greatestMin");
-					if (size._min == 0 || greatestMin._min == 0)
-						constraints.push( (size.size - size._min == greatestMin.size - greatestMin._min) | equalStrength );
-					else
-						constraints.push( (size.size * greatestMin._min == size._min * greatestMin.size) | equalStrength );
+					if (size._min == greatestMin._min) constraints.push( (size.size == greatestMin.size) | equalStrength );
+					else if (size._min == 0) constraints.push( (size.size == 0) | equalStrength );
+					else constraints.push( (size.size * greatestMin._min == size._min * greatestMin.size) | equalStrength );
 				}
 			}
 			else if (size._max > size._min) // limit size
@@ -121,7 +144,7 @@ class LayoutContainer
 				if (size == greatestMax) 
 				{	trace("set limit for greatestMax");
 					if (greatestMin == null) { trace("stretch greatestMax to _max");
-						constraints.push( (size.size == size._max) | stretchStrength ); // <- STRETCH					
+						constraints.push( (greatestMax.size == greatestMax._max) | stretchStrength ); // <- STRETCH					
 					}
 					// only the greatesMax gets the limit
 					constraints.push( (size.size >= size._min) | limitStrength );
@@ -141,31 +164,7 @@ class LayoutContainer
 		return(limit); //returns the min and max limits (max can be null)
 	}
 
-	function addStartConstraints(start:Expression, outStart:Variable, spStart:Size = null, constraints:NestedArray<Constraint>, outerLimitStrength:Strength):Void
-	{		
-		if (spStart != null) constraints.push( (start == outStart + spStart.size) | outerLimitStrength ); // OUTERLIMIT
-		else constraints.push( (start == outStart) | outerLimitStrength ); // OUTERLIMIT
-	}
 	
-	function addEndConstraints(end:Expression, outEnd:Expression, spEnd:Size = null, constraints:NestedArray<Constraint>, outerLimitStrength:Strength):Void
-	{		
-		if (spEnd != null) constraints.push( (outEnd == end + spEnd.size) | outerLimitStrength ); // OUTERLIMIT
-		else constraints.push( (outEnd == end) | outerLimitStrength ); // OUTERLIMIT
-	}
-	
-	function addPrefConstraints(start:Expression, prefEnd:Expression, spStart:Size = null, spPrefEnd:Size = null, constraints:NestedArray<Constraint>, positionStrength:Strength):Void
-	{
-		if (spStart != null && spPrefEnd != null) constraints.push( (start == prefEnd + spPrefEnd.size + spStart.size) | positionStrength );
-		else if (spStart != null) constraints.push( (start == prefEnd + spStart.size) | positionStrength );
-		else if (spPrefEnd != null) constraints.push( (start == prefEnd + spPrefEnd.size) | positionStrength );
-		else constraints.push( (start == prefEnd) | positionStrength );
-	}
-
-	
-}
-
-typedef Limit = {
-	width:Int, height:Int
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -229,11 +228,10 @@ abstract Box(LayoutContainer) // from LayoutContainer to LayoutContainer
 				var restSpace:Size = null;
 				
 				if (!outerLimit.noMax) { trace("REST spacer injection");
-					restSpace = Size.min(0);
-					constraints.push( (restSpace.size >= 0) | limitStrength );
+					//restSpace = Size.min(0); constraints.push( (restSpace.size >= 0) | limitStrength );
 					// TODO: only need if the one of the inner is using the stretching 
 					//       from greatestMin to greatestMax or the greatestMaxStretching if it is alone ??? 
-					constraints.push( (restSpace.size == 0) | restStrength );
+					//constraints.push( (restSpace.size == 0) | restStrength );
 				}
 				
 				this.addStartConstraints(child.left, this.layout.x, restSpace, constraints, limitStrength);

@@ -180,13 +180,13 @@ class UiLayout
 
 				new Box(peoteView,
 				[
-					new Box( ui   , Width.min(100, 900), LSpace.min(0,50), RSpace.min(0),// TODO: min(0) checken (wegen restspacer-optimierung)
+					new Box( ui   , Width.min(200), LSpace.min(0), RSpace.min(0),
 					[                                                          
 						//new Box( red  , Width.min(100), LSpace.min(50), //RSpace.min(25),
 						//new Box( red  , Width.min(200), LSpace.min(50,100), RSpace.min(100),
 						//new Box( red  , Width.min(200,400), LSpace.min(50), RSpace.min(50,100),
 						//new Box( red  , Width.min(200,700), //LSpace.min(50),// RSpace.min(25,150),
-						new Box( red  , Width.min(200,700), LSpace.min(0), RSpace.min(0), // TODO: min(0) geht hier komischerweise
+						new Box( red  , Width.min(200,700), LSpace.min(0), RSpace.min(0),
 						[                                                      
 							//new Box( green,  Width.min(50, 300), LSpace.min(50,100), RSpace.min(50) ),
 							//new Box( green,  Width.min(50, 300), LSpace.min(50,100) ),
@@ -201,9 +201,9 @@ class UiLayout
 							//new Box( blue,  Width.min(100,150) ,LSpace.min(150) )
 							//new Box( blue,  Width.min(100) ,LSpace.min(50) ,RSpace.min(50) )
 							
-							new Box( green,  Width.min(100,500) ,LSpace.min(50) ),
-							new Box( blue,   Width.min(100,500), LSpace.min(0), RSpace.min(0) ),
-							new Box( yellow, Width.min(100), LSpace.min(50,200) ,RSpace.min(50,250) ),
+							new Box( green,  Width.min(100,200) ,LSpace.min(50) ),
+							//new Box( blue,   Width.min(100,200), LSpace.min(0), RSpace.min(0) ),
+							//new Box( yellow, Width.min(100), LSpace.min(50) ,RSpace.min(250) ),
 							
 						])
 					])
