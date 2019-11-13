@@ -95,18 +95,25 @@ class LayoutContainer
 				{	trace("set limit for greatestMin");
 					if (greatestMax != null) {
 						trace("constrain greatestMin with greatestMax");
-						//constraints.push( (greatestMax.size - greatestMax._min <= size.size - size._min) | equalStrength );
 						
 						// TODO: equal did not work if outer spacer is variable
-						constraints.push( (size._min * greatestMax.size == size.size * greatestMax._min) | stretchStrength );
+						// TODO: was wenn size._min null ist ??
+						if (greatestMin._min == 0 || greatestMax._min == 0) {
+							//constraints.push( (greatestMax.size - greatestMax._min == greatestMin.size - greatestMin._min) | stretchStrength );
+							constraints.push( (greatestMax.size == greatestMax._max) | stretchStrength ); // <- STRETCH
+						}
+						else
+							constraints.push( (greatestMin._min * greatestMax.size == greatestMin.size * greatestMax._min) | stretchStrength );
 					}
 					// only the greatestMin gets the limit
 					constraints.push( (size.size >= size._min) | limitStrength );
 				}
 				else 
 				{	trace("constrain other _min sizes with greatestMin");
-					//constraints.push( (size.size - size._min == greatestMin.size - greatestMin._min) | equalStrength );
-					constraints.push( (size.size * greatestMin._min == size._min * greatestMin.size) | equalStrength );
+					if (size._min == 0 || greatestMin._min == 0)
+						constraints.push( (size.size - size._min == greatestMin.size - greatestMin._min) | equalStrength );
+					else
+						constraints.push( (size.size * greatestMin._min == size._min * greatestMin.size) | equalStrength );
 				}
 			}
 			else if (size._max > size._min) // limit size
@@ -192,9 +199,12 @@ abstract Box(LayoutContainer) // from LayoutContainer to LayoutContainer
 		
 		if (this.childs != null)
 		{
-			var stretchStrength = Strength.create(0, 0, 500 );
+			var stretchStrength = Strength.create(0, 0, 500 );// TODO: muessen nicht nur die Strecht-teile shrinken?
 
 			var equalStrength = Strength.create(0, 800 / this.childs.length, 0 );
+			
+			// TODO: lieber vorher ermitteln ob (!outerLimit.noMax) restspace braucht und dann jeweils einen RestSpacer
+			// vorne und hingen an die Liste bei this.addConstraints reinmachen um die dort zu gewichten !!!
 			var restStrength  = Strength.create(0, 800 / this.childs.length, 0 );
 			
 			for (child in this.childs)
@@ -213,7 +223,6 @@ abstract Box(LayoutContainer) // from LayoutContainer to LayoutContainer
 				var outerLimit = this.addConstraints([child.lSpace, child.hSize, child.rSpace], this.layout.hSize, constraints,
 					percentStrength, equalStrength, stretchStrength, limitStrength);
 				
-				
 				if (outerLimit.min > limit.width) limit.width = outerLimit.min;
 
 				// rest-spacer
@@ -224,7 +233,7 @@ abstract Box(LayoutContainer) // from LayoutContainer to LayoutContainer
 					constraints.push( (restSpace.size >= 0) | limitStrength );
 					// TODO: only need if the one of the inner is using the stretching 
 					//       from greatestMin to greatestMax or the greatestMaxStretching if it is alone ??? 
-					//constraints.push( (restSpace.size == 0) | restStrength );
+					constraints.push( (restSpace.size == 0) | restStrength );
 				}
 				
 				this.addStartConstraints(child.left, this.layout.x, restSpace, constraints, limitStrength);
