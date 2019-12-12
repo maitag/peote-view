@@ -7,7 +7,7 @@ import jasper.Variable;
 import utils.NestedArray;
 import peote.ui.Layout;
 
-typedef Limit = { width:Int, height:Int }
+typedef InnerLimit = { width:Int, height:Int }
 
 @:allow(peote.ui)
 class LayoutContainer
@@ -20,7 +20,9 @@ class LayoutContainer
 		if (layout == null)
 			this.layout = new Layout(width, height, lSpace, rSpace, tSpace, bSpace);
 		else {
-			this.layout = layout.set(width, height, lSpace, rSpace, tSpace, bSpace);
+			layout.hSize = new SizeSpaced(width, lSpace, rSpace);
+			layout.vSize = new SizeSpaced(height, tSpace, bSpace);
+			this.layout = layout; // TODO
 		}
 		
 		this.childs = childs;
@@ -39,131 +41,22 @@ class LayoutContainer
 		var constraints = new NestedArray<Constraint>();
 		
 		// recursive Container
-		this.layout.addChildConstraints(this.layout, constraints);
+		var innerLimit = this.layout.addChildConstraints(this.layout, constraints);
+		trace(innerLimit.width);
+		constraints.push( (this.layout.width >= innerLimit.width) | Strength.create(0,900,0) );
+		constraints.push( (this.layout.height >= innerLimit.height) | Strength.create(0,900,0) );
 		
 		return(constraints);
 	}
 	
-	function addStartConstraints(start:Expression, outStart:Variable, spStart:Size = null, constraints:NestedArray<Constraint>, outerLimitStrength:Strength):Void
-	{		
-		if (spStart != null) constraints.push( (start == outStart + spStart.size) | outerLimitStrength ); // OUTERLIMIT
-		else constraints.push( (start == outStart) | outerLimitStrength ); // OUTERLIMIT
-	}
-	
-	function addEndConstraints(end:Expression, outEnd:Expression, spEnd:Size = null, constraints:NestedArray<Constraint>, outerLimitStrength:Strength):Void
-	{		
-		if (spEnd != null) constraints.push( (outEnd == end + spEnd.size) | outerLimitStrength ); // OUTERLIMIT
-		else constraints.push( (outEnd == end) | outerLimitStrength ); // OUTERLIMIT
-	}
-	
-	function addPrefConstraints(start:Expression, prefEnd:Expression, spStart:Size = null, spPrefEnd:Size = null, constraints:NestedArray<Constraint>, positionStrength:Strength):Void
+/*	function addPrefConstraints(start:Expression, prefEnd:Expression, spStart:Size = null, spPrefEnd:Size = null, constraints:NestedArray<Constraint>, positionStrength:Strength):Void
 	{
 		if (spStart != null && spPrefEnd != null) constraints.push( (start == prefEnd + spPrefEnd.size + spStart.size) | positionStrength );
 		else if (spStart != null) constraints.push( (start == prefEnd + spStart.size) | positionStrength );
 		else if (spPrefEnd != null) constraints.push( (start == prefEnd + spPrefEnd.size) | positionStrength );
 		else constraints.push( (start == prefEnd) | positionStrength );
 	}
-
-	public function addConstraints(sizes:Array<Size>, parentSize:Size = null, constraints:NestedArray<Constraint>,
-		percentStrength:Strength, equalStrength:Strength, stretchStrength:Strength, limitStrength:Strength):{min:Int, noMax:Bool}
-	{
-		var greatestMax:Size = null;
-		var greatestMin:Size = null;
-		var limit:{min:Int, noMax:Bool } = {min:0, noMax:false};
-		
-		for (size in sizes) if (size != null) {
-			if (size._percent == null)
-			{
-				if (size._max != null)
-				{
-					if (greatestMax == null) greatestMax = size;
-					else if (size._max - size._min > greatestMax._max - greatestMax._min) greatestMax = size;
-				}
-				else
-				{
-					limit.noMax = true; // unlimited in size
-					if (greatestMin == null) greatestMin = size;
-					else if (size._min > greatestMin._min) greatestMin = size;
-				}
-			}
-			limit.min += size._min;
-		}
-
-		if (greatestMin != null) trace("greatestMin", greatestMin._min);
-		if (greatestMax != null) trace("greatestMax", greatestMax._max);
-		
-		for (size in sizes) if (size != null)
-		{
-			if (size._percent != null) // percentual size
-			{
-				trace("set limit for procentuals");
-				// TODO:
-				constraints.push( (size.size == size._percent * parentSize.size) | percentStrength );
-				// limit
-				if (size._max == null) constraints.push( (size.size >= size._min) | limitStrength );
-				else {
-					if (size._max > size._min) {
-						constraints.push( (size.size >= size._min) | limitStrength );
-						constraints.push( (size.size <= size._max) | limitStrength );
-					}
-					else constraints.push( (size.size == size._min) | limitStrength );
-				}
-			}
-			else if (size._max == null) // variable size (only min)
-			{
-				// set to greatest 
-				if (size == greatestMin)
-				{	trace("set limit for greatestMin");
-					if (greatestMax != null) {
-						trace("constrain greatestMin with greatestMax");
-						
-						// TODO: "==" maybe did not work if outer spacer is variable
-						if (greatestMax._max > greatestMax._min)
-						{
-							if (greatestMin._min == 0 || greatestMax._min == 0) {
-								//constraints.push( (greatestMax.size - greatestMax._min == greatestMin.size - greatestMin._min) | stretchStrength );
-								constraints.push( (greatestMax.size == greatestMax._max) | stretchStrength ); // <- STRETCH
-								//constraints.push( (greatestMax.size == greatestMax._max) | Strength.create(0, 100, 0 ) ); // <- STRETCH
-							}
-							else constraints.push( (greatestMin._min * greatestMax.size == greatestMin.size * greatestMax._min) | stretchStrength );
-							// todo: noch die min mit einbeziehen
-						}
-					}
-					// only the greatestMin gets the limit
-					constraints.push( (size.size >= size._min) | limitStrength );
-				}
-				else 
-				{	trace("constrain other _min sizes with greatestMin");
-					if (size._min == greatestMin._min) constraints.push( (size.size == greatestMin.size) | equalStrength );
-					else if (size._min == 0) constraints.push( (size.size == 0) | equalStrength );
-					else constraints.push( (size.size * greatestMin._min == size._min * greatestMin.size) | equalStrength );
-				}
-			}
-			else if (size._max > size._min) // limit size
-			{
-				if (size == greatestMax) 
-				{	trace("set limit for greatestMax");
-					if (greatestMin == null) { trace("stretch greatestMax to _max");
-						constraints.push( (greatestMax.size == greatestMax._max) | stretchStrength ); // <- STRETCH					
-					}
-					// only the greatesMax gets the limit
-					constraints.push( (size.size >= size._min) | limitStrength );
-					constraints.push( (size.size <= size._max) | limitStrength );
-				}
-				else { trace("constrain other _max sizes with greatestMax");
-					constraints.push( ( (size.size - size._min) * (greatestMax._max - greatestMax._min) == (size._max - size._min) * (greatestMax.size - greatestMax._min) ) | equalStrength );
-				}
-			}
-			else // fixed size
-			{
-				constraints.push( (size.size == size._min) | limitStrength );	
-			}
-			
-		}
-		
-		return(limit); //returns the min and max limits (max can be null)
-	}
-
+*/
 	
 }
 
@@ -185,26 +78,19 @@ abstract Box(LayoutContainer) // from LayoutContainer to LayoutContainer
 	@:to public function toNestedArrayItem():NestedArrayItem<Constraint> return(this.getConstraints().toArray());	
 	@:to public function toLayout():Layout return(this.layout);
 
-	function addChildConstraints(parentLayout:Layout, constraints:NestedArray<Constraint>, weight:Int = 0):Limit
+	function addChildConstraints(parentLayout:Layout, constraints:NestedArray<Constraint>, weight:Int = 0):InnerLimit
 	{
 		weight++;
 		var w = weight * 10;
 		
-		var percentStrength = Strength.create(0, 200, 0);
 		var limitStrength = Strength.create(0, 900, 0);
-		//var limitStrength = Strength.create(800 ,0, 0);
 		
-		var limit = {width:0, height:0};
+		var childsLimit = {width:0, height:0};
 		
 		if (this.childs != null)
 		{
-			var stretchStrength = Strength.create(0, 0, 500 );// TODO: muessen nicht nur die Strecht-teile shrinken?
-
-			var equalStrength = Strength.create(0, 800 / this.childs.length, 0 );
-			
-			// TODO: lieber vorher ermitteln ob (!outerLimit.noMax) restspace braucht und dann jeweils einen RestSpacer
-			// vorne und hingen an die Liste bei this.addConstraints reinmachen um die dort zu gewichten !!!
-			var restStrength  = Strength.create(0, 800 / this.childs.length, 0 );
+			var stretchStrength = Strength.create(0, 0, (800) / this.childs.length);
+			var equalStrength = Strength.create(0, (800) / this.childs.length, 0 );
 			
 			for (child in this.childs)
 			{	
@@ -214,46 +100,37 @@ abstract Box(LayoutContainer) // from LayoutContainer to LayoutContainer
 				var innerLimit = child.addChildConstraints(child, constraints, weight);				
 				trace("----");
 				// --------------------------------- horizontal ---------------------------------------
-				if (child.hSize._min < innerLimit.width) {
-					child.hSize._min = innerLimit.width;
-					if (child.hSize._max != null) child.hSize._max = Std.int(Math.max(child.hSize._max, child.hSize._min));
+				if (child.hSize.middle.limit._min < innerLimit.width) {
+					child.hSize.middle.limit._min = innerLimit.width;
+					if (child.hSize.middle.limit._max != null) 
+						child.hSize.middle.limit._max = Std.int(Math.max(child.hSize.middle.limit._max, child.hSize.middle.limit._min));
 				}
 				
-				var outerLimit = this.addConstraints([child.lSpace, child.hSize, child.rSpace], this.layout.hSize, constraints,
-					percentStrength, equalStrength, stretchStrength, limitStrength);
+				if (child.hSize.getMin() > childsLimit.width) childsLimit.width = child.hSize.getMin();
 				
-				if (outerLimit.min > limit.width) limit.width = outerLimit.min;
+				// TODO: add span left or right or both sides if not fit
+				
+				var sLimit:Variable = null;
+				var sSpan:Variable = null;
+				child.addHConstraints(constraints, sLimit, sSpan, equalStrength, stretchStrength);
+				if (sSpan != null) {
+					constraints.push( (sSpan == this.layout.width - child.hSize.getLimitMax() ) | stretchStrength );
+				}
 
-				// rest-spacer
-				var restSpace:Size = null;
-				
-				if (!outerLimit.noMax) { trace("REST spacer injection");
-					//restSpace = Size.min(0); constraints.push( (restSpace.size >= 0) | limitStrength );
-					// TODO: only need if the one of the inner is using the stretching 
-					//       from greatestMin to greatestMax or the greatestMaxStretching if it is alone ??? 
-					//constraints.push( (restSpace.size == 0) | restStrength );
-				}
-				
-				this.addStartConstraints(child.left, this.layout.x, restSpace, constraints, limitStrength);
-				this.addEndConstraints(child.right, this.layout.x + this.layout.width, restSpace, constraints, limitStrength);
+				constraints.push( (child.left == this.layout.x) | limitStrength );
+				constraints.push( (child.right == this.layout.x + this.layout.width) | limitStrength );
 				
 				
 				
 				// TODO
 				// --------------------------------- vertical ---------------------------------------
-				// size
-				//child.addVSizeConstraints(constraints, Strength.MEDIUM);
-				//child.addVSpaceConstraints(constraints, Strength.MEDIUM, Strength.MEDIUM);
-				var restSpace = Size.px(0);
-				constraints.push( (restSpace.size == 8) | Strength.MEDIUM );
-				this.addStartConstraints(child.top, this.layout.y, restSpace, constraints, Strength.MEDIUM);
-				this.addEndConstraints(child.bottom, this.layout.y + this.layout.height, restSpace, constraints, Strength.MEDIUM);
-				
+				constraints.push( (child.top == this.layout.y) | limitStrength );
+				constraints.push( (child.bottom == this.layout.y + this.layout.height) | limitStrength );
 				
 				
 			}
 		}
-		return limit;
+		return childsLimit;
 	}
 	
 }
@@ -262,6 +139,9 @@ abstract Box(LayoutContainer) // from LayoutContainer to LayoutContainer
 // -------------------------------------------------------------------------------------------------
 // -----------------------------   HShelf   --------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
+
+// TODO: only Stack and Shelf 
+// (shelf is horizontally aligned [but vertically splitted;])
 
 abstract Shelf(LayoutContainer) from LayoutContainer to LayoutContainer
 {
@@ -277,11 +157,11 @@ abstract Shelf(LayoutContainer) from LayoutContainer to LayoutContainer
 	@:to public function toNestedArrayItem():NestedArrayItem<Constraint> return(this.getConstraints().toArray());	
 	@:to public function toLayout():Layout return(this.layout);
 
-	function addChildConstraints(parentLayout:Layout, constraints:NestedArray<Constraint>, weight:Int = 0):Limit
+	function addChildConstraints(parentLayout:Layout, constraints:NestedArray<Constraint>, weight:Int = 0):InnerLimit
 	{
 		weight++;
 			// ------------------------- recursive childs --------------------------
-			var limit = {width:0, height:0};
+			var childsLimit = {width:0, height:0};
 		
 		// calculate procentual
 /*		var procentuals = new Array<{space:Null<Float>, child:Null<Float>, spaceMax:Null<Int>, childMax:Null<Int>, spaceMin:Int, childMin:Int}>();
@@ -333,7 +213,7 @@ abstract Shelf(LayoutContainer) from LayoutContainer to LayoutContainer
 
 		}
 		
-		return limit;
+		return childsLimit;
 	}
 	
 }

@@ -27,7 +27,7 @@ class LayoutSolver
 		if (rootLayout == null && editableLayoutVars == null) throw("Error: needs at least a rootLayout if no editableLayoutVars specified");
 
 		if (rootLayout != null) {
-			solver.addEditVariable(rootLayout.width, Strength.create( 0, 100, 0));
+			solver.addEditVariable(rootLayout.width, Strength.create( 0, 850, 0));
 			solver.addEditVariable(rootLayout.height, Strength.create( 0, 800, 0));
 		}
 

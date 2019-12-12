@@ -46,8 +46,8 @@ class UiLayout
 			ui.add(grey); ui.add(red); ui.add(green); ui.add(blue); ui.add(yellow);
 			
 			//testManualConstraints();
-			//testManualRowConstraints();
-			testLayoutNestedBoxes();
+			testManualRowConstraints();
+			//testLayoutNestedBoxes();
 			
 			
 			//testLayoutNestedShelfes();
@@ -165,7 +165,7 @@ class UiLayout
 				
 			]
 		);
-		layoutSolver.suggestValues([peoteView.width, peoteView.height]).update();	
+		layoutSolver.suggestValues([peoteView.width, peoteView.height]).update();
 	}
 
 	// ----------------------------------------------------------------
@@ -180,13 +180,14 @@ class UiLayout
 
 				new Box(peoteView,
 				[
-					new Box( ui   , Width.min(200), LSpace.min(0), RSpace.min(0),
+				
+					new Box( ui   , Width.is(200,700), LSpace.min(), RSpace.min(),
 					[                                                          
-						//new Box( red  , Width.min(100), LSpace.min(50), //RSpace.min(25),
+						//new Box( red  , Width.min(100), LSpace.min(50,100), RSpace.min(10),
 						//new Box( red  , Width.min(200), LSpace.min(50,100), RSpace.min(100),
 						//new Box( red  , Width.min(200,400), LSpace.min(50), RSpace.min(50,100),
 						//new Box( red  , Width.min(200,700), //LSpace.min(50),// RSpace.min(25,150),
-						new Box( red  , Width.min(200,700), LSpace.min(0), RSpace.min(0),
+/*						new Box( red  , Width.is(200,400), LSpace.min(20), RSpace.min(0),
 						[                                                      
 							//new Box( green,  Width.min(50, 300), LSpace.min(50,100), RSpace.min(50) ),
 							//new Box( green,  Width.min(50, 300), LSpace.min(50,100) ),
@@ -201,12 +202,12 @@ class UiLayout
 							//new Box( blue,  Width.min(100,150) ,LSpace.min(150) )
 							//new Box( blue,  Width.min(100) ,LSpace.min(50) ,RSpace.min(50) )
 							
-							new Box( green,  Width.min(100,200) ,LSpace.min(50) ),
-							//new Box( blue,   Width.min(100,200), LSpace.min(0), RSpace.min(0) ),
-							//new Box( yellow, Width.min(100), LSpace.min(50) ,RSpace.min(250) ),
+							//new Box( green,  Width.min(100) ,LSpace.min(50) ),
+							//new Box( blue,   Width.min(100,200), LSpace.min(10), RSpace.min(10) ),
+							//new Box( yellow, Width.min(100), LSpace.min(50,100) ,RSpace.min(50) ),
 							
 						])
-					])
+*/					])
 				]),
 				
 			]
