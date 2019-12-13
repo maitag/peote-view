@@ -66,16 +66,18 @@ class _Layout_
 		
 		centerX = new Term(x) + (width / 2.0);
 		centerY = new Term(y) + (height / 2.0);
-	}
+	}	
 	
-	
-	public function addHConstraints(constraints:NestedArray<Constraint>, sLimit:Variable, sSpan:Variable, strength:Strength, strengthLow:Strength) {
+	public function addHConstraints(constraints:NestedArray<Constraint>, sizeVars:SizeVars, strength:Strength):SizeVars {
+		sizeVars = hSize.addConstraints(constraints, sizeVars, strength);
 		constraints.push( (width == hSize.middle.size) | strength );
-		hSize.addConstraints(constraints, sLimit, sSpan, strength, strengthLow);
+		return sizeVars;
 	}
-	public function addVConstraints(constraints:NestedArray<Constraint>, sLimit:Variable, sSpan:Variable, strength:Strength, strengthLow:Strength) {
+	
+	public function addVConstraints(constraints:NestedArray<Constraint>, sizeVars:SizeVars, strength:Strength):SizeVars {
+		sizeVars = vSize.addConstraints(constraints, sizeVars, strength);
 		constraints.push( (height == vSize.middle.size) | strength );
-		vSize.addConstraints(constraints, sLimit, sSpan, strength, strengthLow);
+		return sizeVars;
 	}
 	
 
@@ -113,43 +115,46 @@ class Size
 	public var size(get, never):Expression;
 	public function get_size():Expression {
 		if (sizeLimit == null && sizeSpan == null) return new Expression([], limit._min); // CHECK!
-		else if (sizeLimit!= null) return limit._min + new Term(sizeLimit) * (limit._max - limit._min);
-		else if (sizeSpan != null) return limit._min + new Term(sizeSpan) * limit._weight;
-		else return limit._min + new Term(sizeLimit) * (limit._max - limit._min) + new Term(sizeSpan) * limit._weight;
+		else if (sizeLimit== null) return limit._min + (new Term(sizeSpan) * limit._weight);
+		else if (sizeSpan == null) return limit._min + (new Term(sizeLimit) * (limit._max - limit._min));
+		else return limit._min + (new Term(sizeLimit) * (limit._max - limit._min)) + (new Term(sizeSpan) * limit._weight);
 	}
 	
-	public var sizeLimit:Variable = null;
-	public var sizeSpan:Variable = null;
+	public var sizeLimit:Null<Variable> = null;
+	public var sizeSpan:Null<Variable> = null;
 	
 	public function new(limit:Limit) {
 		this.limit = limit;
 	}
 	
-	public function addConstraints(constraints:NestedArray<Constraint>, sLimit:Variable, sSpan:Variable, strength:Strength, strengthLow:Strength) {
+	public function addConstraints(constraints:NestedArray<Constraint>, sizeVars:SizeVars, strength:Strength):SizeVars {
 		// constant
 		if (limit.const) {
+			trace("CONSTANT");
 			//constraints.push( (sizeLimit == limit._min) | strength ); // need this?
 		}
 		else {
-			if (sLimit == null) {
-				sLimit = new Variable();
-				constraints.push( (sLimit >= 0) | strength );
-				//constraints.push( (sLimit <= 1) | strength ); // need this?
+			if (sizeVars.sLimit == null) {
+				trace("NEW LIMIT VAR");
+				sizeVars.sLimit = new Variable();
+				constraints.push( (sizeVars.sLimit >= 0) | strength );
+				constraints.push( (sizeVars.sLimit <= 1) | strength ); // need this?
 			}
-			sizeLimit = sLimit;
-			//constraints.push( (sizeLimit >= limit._min) | strength );
-			//constraints.push( (sizeLimit <= limit._max) | strength );
+			sizeLimit = sizeVars.sLimit;
+			//constraints.push( (sLimit >= limit._min) | strength );
+			//constraints.push( (sLimit <= limit._max) | strength );
 		}
 		
 		if (limit.span) {
-			if (sSpan == null) {
-				sSpan = new Variable();
-				constraints.push( (sSpan >= 0) | strength );
+			if (sizeVars.sSpan == null) {
+				trace("NEW SPAN VAR");
+				sizeVars.sSpan = new Variable();
+				constraints.push( (sizeVars.sSpan >= 0) | strength );
 			}
-			sizeLimit = sLimit;
+			sizeSpan = sizeVars.sSpan;
 			//constraints.push( (sizeSpan == parentSpan * limit.weight) | strengthLow );
 		}
-		
+		return sizeVars;
 	}
 	
 }
@@ -163,8 +168,8 @@ class SizeSpaced
 	public var size(get, never):Expression;
 	inline function get_size():Expression {
 		if (first==null && last==null) return middle.size;
-		else if (first!= null) return first.size + middle.size;
-		else if (last != null) return middle.size + last.size;
+		else if (first== null) return middle.size + last.size;
+		else if (last == null) return first.size + middle.size;
 		else return first.size + middle.size + last.size;
 	}
 	
@@ -174,10 +179,14 @@ class SizeSpaced
 		if (limitLast  != null) last  = new Size(limitLast);
 	}
 	
-	public function addConstraints(constraints:NestedArray<Constraint>, sLimit:Variable, sSpan:Variable, strength:Strength, strengthLow:Strength) {
-		middle.addConstraints(constraints, sLimit, sSpan, strength, strengthLow);
-		if (first != null) first.addConstraints(constraints, sLimit, sSpan, strength, strengthLow);
-		if (last != null) last.addConstraints(constraints, sLimit, sSpan, strength, strengthLow);
+	public function addConstraints(constraints:NestedArray<Constraint>, sizeVars:SizeVars, strength:Strength):SizeVars {
+		trace("middle.addConstraints");
+		sizeVars = middle.addConstraints(constraints, sizeVars, strength);
+		trace("first.addConstraints");
+		if (first != null) sizeVars = first.addConstraints(constraints, sizeVars, strength);
+		trace("last.addConstraints");
+		if (last != null) sizeVars = last.addConstraints(constraints, sizeVars, strength);
+		return sizeVars;
 	}
 	
 	public function getMin():Int {
@@ -186,11 +195,19 @@ class SizeSpaced
 		if (last != null) min += last.limit._min;
 		return min;
 	}
+	
 	public function getLimitMax():Int {
 		var limitMax:Int = (middle.limit._max != null) ? middle.limit._max : middle.limit._min;
 		if (first != null) limitMax += (first.limit._max != null) ? first.limit._max : first.limit._min;
 		if (last != null) limitMax += (last.limit._max != null) ? last.limit._max : last.limit._min;
 		return limitMax;
+	}
+	
+	public function getSumWeight():Float {
+		var sumWeight:Float = (middle.sizeSpan != null) ? middle.limit._weight : 0.0;
+		if (first != null) if (first.sizeSpan != null) sumWeight += first.limit._weight;
+		if (last != null) if (last.sizeSpan != null) sumWeight += last.limit._weight;
+		return sumWeight;
 	}
 }
 
@@ -201,22 +218,22 @@ class Limit {
 	
 	var _min:Int = 0;
 	var _max:Null<Int>;
-	var _weight:Null<Float>;
+	var _weight:Float = 1.0;
 	
 	inline function new(min:Null<Int> = null, max:Null<Int> = null, weight:Null<Float> = null, span = true) {
 		if (min != null && max != null) {
 			if (min > max) {
 				_min = max;
 				_max = min;
-				const = false;
 			} else {
 				_min = min;
 				_max = max;
+				const = false;
 			}
 		}
 		else if (min != null) _min = min;
 		else _max = max;
-		_weight = weight;
+		if (weight != null) _weight = weight;
 		this.span = span;
 	}
 	public static inline function is (min:Null<Int> = null, max:Null<Int> = null):Limit return new Limit(min, max, false);

@@ -8,6 +8,7 @@ import utils.NestedArray;
 import peote.ui.Layout;
 
 typedef InnerLimit = { width:Int, height:Int }
+typedef SizeVars = { sLimit:Null<Variable>, sSpan:Null<Variable> }
 
 @:allow(peote.ui)
 class LayoutContainer
@@ -22,7 +23,7 @@ class LayoutContainer
 		else {
 			layout.hSize = new SizeSpaced(width, lSpace, rSpace);
 			layout.vSize = new SizeSpaced(height, tSpace, bSpace);
-			this.layout = layout; // TODO
+			this.layout = layout;
 		}
 		
 		this.childs = childs;
@@ -83,15 +84,13 @@ abstract Box(LayoutContainer) // from LayoutContainer to LayoutContainer
 		weight++;
 		var w = weight * 10;
 		
-		var limitStrength = Strength.create(0, 900, 0);
+		var strength = Strength.create(0, 900, 0);
+		var strengthLow = Strength.create(0, 0, 900);
 		
 		var childsLimit = {width:0, height:0};
 		
 		if (this.childs != null)
 		{
-			var stretchStrength = Strength.create(0, 0, (800) / this.childs.length);
-			var equalStrength = Strength.create(0, (800) / this.childs.length, 0 );
-			
 			for (child in this.childs)
 			{	
 				trace("Box - addChildConstraints");
@@ -110,22 +109,22 @@ abstract Box(LayoutContainer) // from LayoutContainer to LayoutContainer
 				
 				// TODO: add span left or right or both sides if not fit
 				
-				var sLimit:Variable = null;
-				var sSpan:Variable = null;
-				child.addHConstraints(constraints, sLimit, sSpan, equalStrength, stretchStrength);
-				if (sSpan != null) {
-					constraints.push( (sSpan == this.layout.width - child.hSize.getLimitMax() ) | stretchStrength );
-				}
-
-				constraints.push( (child.left == this.layout.x) | limitStrength );
-				constraints.push( (child.right == this.layout.x + this.layout.width) | limitStrength );
+				var sizeVars:SizeVars = {sLimit:null, sSpan:null};
 				
+				sizeVars = child.addHConstraints(constraints, sizeVars, strength);
+				if (sizeVars.sSpan != null) {
+					trace("child.hSize.getLimitMax()", child.hSize.getLimitMax());
+					constraints.push( (sizeVars.sSpan == (this.layout.width - child.hSize.getLimitMax()) / child.hSize.getSumWeight() ) | strengthLow );
+				}
+				
+				constraints.push( (child.left == this.layout.x) | strength );
+				constraints.push( (child.right == this.layout.x + this.layout.width) | strength );
 				
 				
 				// TODO
 				// --------------------------------- vertical ---------------------------------------
-				constraints.push( (child.top == this.layout.y) | limitStrength );
-				constraints.push( (child.bottom == this.layout.y + this.layout.height) | limitStrength );
+				constraints.push( (child.top == this.layout.y) | strength );
+				constraints.push( (child.bottom == this.layout.y + this.layout.height) | strength );
 				
 				
 			}
