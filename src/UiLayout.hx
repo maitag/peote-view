@@ -176,21 +176,21 @@ class UiLayout
 		(
 			peoteView, // root Layout (automatically set its width and height as editable Vars)
 			[
-				[ (peoteView.layout.x == 0) | Strength.REQUIRED, (peoteView.layout.y == 0) | Strength.REQUIRED ],
-
+				//[ (peoteView.layout.x == 0) | Strength.REQUIRED, (peoteView.layout.y == 0) | Strength.REQUIRED ],
+				[], // TODO -> without it casts to array of layouts
+				
 				new Box(peoteView,
 				[
-				
-					new Box( ui   , Width.is(100,500), //LSpace.is(50,100), //RSpace.min(50,100),
+					new Box( ui   , Width.is(100,700), //LSpace.is(50,100), //RSpace.min(50,100),
 					[                                                          
-						new Box( red  , Width.is(100,400),
+						new Box( red  , Width.is(100,600),
 						[                                                      
-							new Box( green,  Width.is(50, 300) ),							
-							new Box( blue,   Width.min(50, 150), LSpace.min(50) ),
-							new Box( yellow, Width.is(50, 150),  LSpace.min(0,100), RSpace.is(50) ),
+							new Box( green,  Width.is(50, 300),  Height.is(100,400)),							
+							new Box( blue,   Width.min(50, 150), Height.is(100,300), LSpace.min(50) ),
+							new Box( yellow, Width.is(50, 150),  Height.is(200,200), LSpace.min(0,100), RSpace.is(50) ),
 						])
 					])
-				]),
+				])
 				
 			]
 		);

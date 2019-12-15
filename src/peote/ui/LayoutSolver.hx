@@ -15,6 +15,7 @@ class LayoutSolver
 	
 	var solver:Solver;
 	
+	// TODO: separate functios to set editableLayoutVars and layoutsToUpdate
 	public function new(rootLayout:Layout=null, editableLayoutVars:Array<Variable>=null, layoutsToUpdate:Array<Layout>=null, constraints:NestedArray<Constraint>=null) 
 	{
 		this.rootLayout = rootLayout;

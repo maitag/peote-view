@@ -41,12 +41,39 @@ class LayoutContainer
 		var constraints = new NestedArray<Constraint>();
 		
 		// recursive Container
-		var innerLimit = this.layout.addChildConstraints(this.layout, constraints);
+		var innerLimit = this.layout.addChildConstraints(constraints);
 		trace(innerLimit.width);
 		constraints.push( (this.layout.width >= innerLimit.width) | Strength.create(0,900,0) );
 		constraints.push( (this.layout.height >= innerLimit.height) | Strength.create(0,900,0) );
 		
 		return(constraints);
+	}
+	
+	// TODO
+	function autoLimitAndSpacer(size:SizeSpaced, childSize:SizeSpaced, limit:Int) 
+	{
+		if (childSize.middle.limit._min < limit) {
+			childSize.middle.limit._min = limit;
+			if (childSize.middle.limit._max != null) 
+				childSize.middle.limit._max = Std.int(Math.max(childSize.middle.limit._max, childSize.middle.limit._min));
+		}
+		
+		if (!childSize.hasSpan()) {
+			if ( size.middle.limit.span || 
+				 childSize.getLimitMax() < ( (size.middle.limit._max != null) ? size.middle.limit._max : size.middle.limit._min) )
+			{
+				trace(" -----  add span  ------ ");
+				if (childSize.first != null && childSize.last != null) {
+					childSize.first.limit.span = true;
+					childSize.last.limit.span = true;
+				}
+				else {
+					if (childSize.first == null) childSize.first = new Size(Limit.min());
+					if (childSize.last  == null) childSize.last = new Size(Limit.min());
+				}
+				
+			}					
+		}		
 	}
 	
 /*	function addPrefConstraints(start:Expression, prefEnd:Expression, spStart:Size = null, spPrefEnd:Size = null, constraints:NestedArray<Constraint>, positionStrength:Strength):Void
@@ -78,10 +105,9 @@ abstract Box(LayoutContainer) // from LayoutContainer to LayoutContainer
 	@:to public function toNestedArrayItem():NestedArrayItem<Constraint> return(this.getConstraints().toArray());	
 	@:to public function toLayout():Layout return(this.layout);
 
-	// TODO: remove parentLayout and weight-param
-	function addChildConstraints(parentLayout:Layout, constraints:NestedArray<Constraint>, weight:Int = 0):InnerLimit
+	function addChildConstraints(constraints:NestedArray<Constraint>):InnerLimit
 	{	
-		var strength = Strength.create(0, 900, 0);
+		var strength = Strength.create(0, 900, 0); // TODO: gloabalstatic
 		var strengthLow = Strength.create(0, 0, 900);
 		
 		var childsLimit = {width:0, height:0};
@@ -93,38 +119,16 @@ abstract Box(LayoutContainer) // from LayoutContainer to LayoutContainer
 				trace("Box - addChildConstraints");
 			
 				// ------------------------- recursive childs --------------------------
-				var innerLimit = child.addChildConstraints(child, constraints, weight);				
+				var innerLimit = child.addChildConstraints(constraints);				
 				trace("----");
-				// --------------------------------- horizontal ---------------------------------------
-				if (child.hSize.middle.limit._min < innerLimit.width) {
-					child.hSize.middle.limit._min = innerLimit.width;
-					if (child.hSize.middle.limit._max != null) 
-						child.hSize.middle.limit._max = Std.int(Math.max(child.hSize.middle.limit._max, child.hSize.middle.limit._min));
-				}
+				
+				// --------------------------------- horizontal ---------------------------------------				
+				this.autoLimitAndSpacer(this.layout.hSize, child.hSize, innerLimit.width);
 				
 				if (child.hSize.getMin() > childsLimit.width) childsLimit.width = child.hSize.getMin();
 				
-				if (!child.hSize.hasSpan()) {
-					if ( this.layout.hSize.middle.limit.span || 
-					     child.hSize.getLimitMax() < ( (this.layout.hSize.middle.limit._max != null) ? this.layout.hSize.middle.limit._max : this.layout.hSize.middle.limit._min) )
-					{
-						trace(" -----  add span  ------ ");
-						if (child.hSize.first != null && child.hSize.last != null) {
-							child.hSize.first.limit.span = true;
-							child.hSize.last.limit.span = true;
-						}
-						else {
-							if (child.hSize.first == null) child.hSize.first = new Size(Limit.min());
-							if (child.hSize.last  == null) child.hSize.last = new Size(Limit.min());
-						}
-						
-					}					
-				}
-				
-				var sizeVars:SizeVars = {sLimit:null, sSpan:null};
-				
-				sizeVars = child.addHConstraints(constraints, sizeVars, strength);
-				
+				var sizeVars:SizeVars = {sLimit:null, sSpan:null};				
+				sizeVars = child.addHConstraints(constraints, sizeVars, strength);				
 				if (sizeVars.sSpan != null) {
 					trace("child.hSize.getLimitMax()", child.hSize.getLimitMax());
 					constraints.push( (sizeVars.sSpan == (this.layout.width - child.hSize.getLimitMax()) / child.hSize.getSumWeight() ) | strengthLow );
@@ -133,9 +137,18 @@ abstract Box(LayoutContainer) // from LayoutContainer to LayoutContainer
 				constraints.push( (child.left == this.layout.x) | strength );
 				constraints.push( (child.right == this.layout.x + this.layout.width) | strength );
 				
-				
-				// TODO
 				// --------------------------------- vertical ---------------------------------------
+				this.autoLimitAndSpacer(this.layout.vSize, child.vSize, innerLimit.height);
+				
+				if (child.vSize.getMin() > childsLimit.height) childsLimit.height = child.vSize.getMin();
+				
+				var sizeVars:SizeVars = {sLimit:null, sSpan:null};				
+				sizeVars = child.addVConstraints(constraints, sizeVars, strength);				
+				if (sizeVars.sSpan != null) {
+					trace("child.vSize.getLimitMax()", child.vSize.getLimitMax());
+					constraints.push( (sizeVars.sSpan == (this.layout.height - child.vSize.getLimitMax()) / child.vSize.getSumWeight() ) | strengthLow );
+				}
+				
 				constraints.push( (child.top == this.layout.y) | strength );
 				constraints.push( (child.bottom == this.layout.y + this.layout.height) | strength );
 				
@@ -168,7 +181,7 @@ abstract Shelf(LayoutContainer) from LayoutContainer to LayoutContainer
 	@:to public function toNestedArrayItem():NestedArrayItem<Constraint> return(this.getConstraints().toArray());	
 	@:to public function toLayout():Layout return(this.layout);
 
-	function addChildConstraints(parentLayout:Layout, constraints:NestedArray<Constraint>, weight:Int = 0):InnerLimit
+	function addChildConstraints(constraints:NestedArray<Constraint>):InnerLimit
 	{
 		// ------------------------- recursive childs --------------------------
 		var childsLimit = {width:0, height:0};
@@ -177,7 +190,7 @@ abstract Shelf(LayoutContainer) from LayoutContainer to LayoutContainer
 		if (this.childs != null) for (i in 0...this.childs.length)
 		{	
 			trace("Shelf - addChildConstraints");
-			var child = this.childs[i];
+			//var child = this.childs[i];
 
 			// horizontal -----------
 /*			if (i == 0)  // first
