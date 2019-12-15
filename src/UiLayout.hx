@@ -181,13 +181,13 @@ class UiLayout
 				new Box(peoteView,
 				[
 				
-					new Box( ui   , Width.is(100,500), LSpace.is(50,100), RSpace.min(50,100),
+					new Box( ui   , Width.is(100,500), //LSpace.is(50,100), //RSpace.min(50,100),
 					[                                                          
-						new Box( red  , Width.is(100,400), LSpace.min(20), RSpace.min(20),
+						new Box( red  , Width.is(100,400),
 						[                                                      
-							new Box( green,  Width.min(50, 150), RSpace.min(50) ),
-							new Box( yellow,  Width.is(50, 150), LSpace.min(50,100), RSpace.min(50) ),
-							new Box( blue,  Width.min(50, 100), LSpace.min(50) ),							
+							new Box( green,  Width.is(50, 300) ),							
+							new Box( blue,   Width.min(50, 150), LSpace.min(50) ),
+							new Box( yellow, Width.is(50, 150),  LSpace.min(0,100), RSpace.is(50) ),
 						])
 					])
 				]),

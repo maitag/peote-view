@@ -1,6 +1,5 @@
 package peote.ui;
 
-import jasper.Expression;
 import jasper.Strength;
 import jasper.Constraint;
 import jasper.Variable;
@@ -71,7 +70,7 @@ abstract Box(LayoutContainer) // from LayoutContainer to LayoutContainer
 		tSpace:TopSpace = null, bSpace:BottomSpace = null,
 		childs:Array<Layout> = null) 
 	{
-		this = new LayoutContainer(layout, width, height, lSpace, rSpace, tSpace, bSpace, childs) ;
+		this = new LayoutContainer(layout, width, height, lSpace, rSpace, tSpace, bSpace, childs);
 		this.layout.addChildConstraints = addChildConstraints;
 	}
 	
@@ -79,11 +78,9 @@ abstract Box(LayoutContainer) // from LayoutContainer to LayoutContainer
 	@:to public function toNestedArrayItem():NestedArrayItem<Constraint> return(this.getConstraints().toArray());	
 	@:to public function toLayout():Layout return(this.layout);
 
+	// TODO: remove parentLayout and weight-param
 	function addChildConstraints(parentLayout:Layout, constraints:NestedArray<Constraint>, weight:Int = 0):InnerLimit
-	{
-		weight++;
-		var w = weight * 10;
-		
+	{	
 		var strength = Strength.create(0, 900, 0);
 		var strengthLow = Strength.create(0, 0, 900);
 		
@@ -107,11 +104,27 @@ abstract Box(LayoutContainer) // from LayoutContainer to LayoutContainer
 				
 				if (child.hSize.getMin() > childsLimit.width) childsLimit.width = child.hSize.getMin();
 				
-				// TODO: add span left or right or both sides if not fit
+				if (!child.hSize.hasSpan()) {
+					if ( this.layout.hSize.middle.limit.span || 
+					     child.hSize.getLimitMax() < ( (this.layout.hSize.middle.limit._max != null) ? this.layout.hSize.middle.limit._max : this.layout.hSize.middle.limit._min) )
+					{
+						trace(" -----  add span  ------ ");
+						if (child.hSize.first != null && child.hSize.last != null) {
+							child.hSize.first.limit.span = true;
+							child.hSize.last.limit.span = true;
+						}
+						else {
+							if (child.hSize.first == null) child.hSize.first = new Size(Limit.min());
+							if (child.hSize.last  == null) child.hSize.last = new Size(Limit.min());
+						}
+						
+					}					
+				}
 				
 				var sizeVars:SizeVars = {sLimit:null, sSpan:null};
 				
 				sizeVars = child.addHConstraints(constraints, sizeVars, strength);
+				
 				if (sizeVars.sSpan != null) {
 					trace("child.hSize.getLimitMax()", child.hSize.getLimitMax());
 					constraints.push( (sizeVars.sSpan == (this.layout.width - child.hSize.getLimitMax()) / child.hSize.getSumWeight() ) | strengthLow );
@@ -138,10 +151,9 @@ abstract Box(LayoutContainer) // from LayoutContainer to LayoutContainer
 // -------------------------------------------------------------------------------------------------
 // -----------------------------   HShelf   --------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
-
-// TODO: only Stack and Shelf 
-// (shelf is horizontally aligned [but vertically splitted;])
-
+// TODO: HBox and VBox
+// OR:
+// Shelf(left to right) and  Stack(top to bottom)
 abstract Shelf(LayoutContainer) from LayoutContainer to LayoutContainer
 {
 	public inline function new(layout:Layout = null, width:Width = null, height:Height = null,
@@ -158,42 +170,10 @@ abstract Shelf(LayoutContainer) from LayoutContainer to LayoutContainer
 
 	function addChildConstraints(parentLayout:Layout, constraints:NestedArray<Constraint>, weight:Int = 0):InnerLimit
 	{
-		weight++;
-			// ------------------------- recursive childs --------------------------
-			var childsLimit = {width:0, height:0};
+		// ------------------------- recursive childs --------------------------
+		var childsLimit = {width:0, height:0};
 		
-		// calculate procentual
-/*		var procentuals = new Array<{space:Null<Float>, child:Null<Float>, spaceMax:Null<Int>, childMax:Null<Int>, spaceMin:Int, childMin:Int}>();
-		var anz_percent:Int = 0;
-		var sum_percent:Float = 0.0;
-		var anz_min:Int = 0;
-		var greatest_min:Int = 0;
-		var sum_min:Int = 0;
-		var greatest_max:Int = 0;
-		var sum_max:Int = 0;
-		if (this.childs != null) {
-			for (child in this.childs) {
-				var p = {space:null, child:null, spaceMax:null, childMax:null, spaceMin:0, childMin:0};
-				if (child.hSize._percent != null) {
-					p.child = child.hSize._percent;
-					sum_percent += p.child;
-					anz_percent++;
-				}
-				else if (child.hSize._max != null) {
-					p.childMax = child.hSize._max - ((child.hSize._min == null) ? 0 : child.hSize._min);
-					sum_max += p.childMax;
-				}
-				else if (child.hSize._min != null) {
-					p.childMin = child.hSize._min;
-					sum_min += p.childMin;
-				}
-				procentuals.push(p);
-			}
-			for (p in procentuals) {
-				
-			}
-		}
-*/		
+
 		if (this.childs != null) for (i in 0...this.childs.length)
 		{	
 			trace("Shelf - addChildConstraints");
@@ -214,5 +194,7 @@ abstract Shelf(LayoutContainer) from LayoutContainer to LayoutContainer
 		
 		return childsLimit;
 	}
-	
+
+
+
 }

@@ -174,7 +174,7 @@ class SizeSpaced
 	}
 	
 	public function new(limitMiddle:Limit, limitFirst:Limit = null, limitLast:Limit = null) {
-		middle = new Size(limitMiddle);
+		middle = new Size( (limitMiddle != null) ? limitMiddle : Limit.min() );
 		if (limitFirst != null) first = new Size(limitFirst);
 		if (limitLast  != null) last  = new Size(limitLast);
 	}
@@ -192,21 +192,28 @@ class SizeSpaced
 	public function getMin():Int {
 		var min:Int = middle.limit._min;
 		if (first != null) min += first.limit._min;
-		if (last != null) min += last.limit._min;
+		if (last  != null) min += last.limit._min;
 		return min;
+	}
+	
+	public function hasSpan():Bool {
+		if (middle.limit.span) return true;
+		if (first != null) if (first.limit.span) return true;
+		if (last  != null) if (last.limit.span) return true;
+		return false;
 	}
 	
 	public function getLimitMax():Int {
 		var limitMax:Int = (middle.limit._max != null) ? middle.limit._max : middle.limit._min;
 		if (first != null) limitMax += (first.limit._max != null) ? first.limit._max : first.limit._min;
-		if (last != null) limitMax += (last.limit._max != null) ? last.limit._max : last.limit._min;
+		if (last  != null) limitMax += (last.limit._max  != null) ? last.limit._max : last.limit._min;
 		return limitMax;
 	}
 	
 	public function getSumWeight():Float {
 		var sumWeight:Float = (middle.sizeSpan != null) ? middle.limit._weight : 0.0;
 		if (first != null) if (first.sizeSpan != null) sumWeight += first.limit._weight;
-		if (last != null) if (last.sizeSpan != null) sumWeight += last.limit._weight;
+		if (last  != null) if (last.sizeSpan  != null) sumWeight += last.limit._weight;
 		return sumWeight;
 	}
 }
