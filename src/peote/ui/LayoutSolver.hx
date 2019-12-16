@@ -16,35 +16,48 @@ class LayoutSolver
 	var solver:Solver;
 	
 	// TODO: separate functios to set editableLayoutVars and layoutsToUpdate
-	public function new(rootLayout:Layout=null, editableLayoutVars:Array<Variable>=null, layoutsToUpdate:Array<Layout>=null, constraints:NestedArray<Constraint>=null) 
+	public function new(rootLayout:Layout=null, constraints:NestedArray<Constraint>=null) 
 	{
 		this.rootLayout = rootLayout;
-		this.editableLayoutVars = editableLayoutVars;
-		this.layoutsToUpdate = layoutsToUpdate;
 		this.constraints = constraints;
 				
 		solver = new Solver();
 		
-		if (rootLayout == null && editableLayoutVars == null) throw("Error: needs at least a rootLayout if no editableLayoutVars specified");
-
 		if (rootLayout != null) {
 			solver.addEditVariable(rootLayout.width, Strength.create( 0, 900, 0));
 			solver.addEditVariable(rootLayout.height, Strength.create( 0, 900, 0));
 		}
-
+		
+		if (constraints != null) addConstraints(constraints);
+	}
+	
+	public function toSuggest(editableLayoutVars:Array<Variable>=null)
+	{
+		this.editableLayoutVars = editableLayoutVars;
 		if (editableLayoutVars != null) {
 			for (editableLayoutVar in editableLayoutVars) {
 				solver.addEditVariable(editableLayoutVar, Strength.create( 0, 900, 0));
 			}
 		}
-		
-		if (constraints != null) addConstraints(constraints);
+	}
+	
+	public function toUpdate(layoutsToUpdate:Array<Layout>=null)
+	{
+		this.layoutsToUpdate = layoutsToUpdate;		
 	}
 	
 	public inline function addConstraints(constraints:Array<Constraint>):LayoutSolver
 	{
 		for (constraint in constraints) {
 			solver.addConstraint(constraint);
+		}
+		return this;
+	}
+	
+	public inline function removeConstraints(constraints:Array<Constraint>):LayoutSolver
+	{
+		for (constraint in constraints) {
+			solver.removeConstraint(constraint);
 		}
 		return this;
 	}

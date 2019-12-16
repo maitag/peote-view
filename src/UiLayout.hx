@@ -26,7 +26,7 @@ class UiLayout
 	var ui:UIDisplay;
 	var mySkin = new Skin();
 	
-	var grey:Button; var red:Button; var green:Button; var blue:Button;	var yellow:Button;
+	var red:Button; var green:Button; var blue:Button;	var yellow:Button; var grey:Button; var cyan:Button;
 			
 	var layoutSolver:LayoutSolver;
 	
@@ -37,13 +37,14 @@ class UiLayout
 			ui = new UIDisplay(0, 0, window.width, window.height, Color.GREY3);
 			peoteView.addDisplay(ui);
 			
-			grey  = new Button(-100, mySkin, new Style(Color.GREY1));		
 			red   = new Button(-100, mySkin, new Style(Color.RED));
 			green = new Button(-100, mySkin, new Style(Color.GREEN));
 			blue  = new Button(-100, mySkin, new Style(Color.BLUE));
 			yellow= new Button(-100, mySkin, new Style(Color.YELLOW));
+			grey  = new Button(-100, mySkin, new Style(Color.GREY1));		
+			cyan  = new Button(-100, mySkin, new Style(Color.CYAN));		
 
-			ui.add(grey); ui.add(red); ui.add(green); ui.add(blue); ui.add(yellow);
+			ui.add(red); ui.add(green); ui.add(blue); ui.add(yellow); ui.add(grey); ui.add(cyan); 
 			
 			//testManualConstraints();
 			//testManualRowConstraints();
@@ -56,15 +57,10 @@ class UiLayout
 
 	// ----------------------------------------------------------------
 	
-	public function testManualConstraints() {
-		layoutSolver = new LayoutSolver (
-			
-			[peoteView.layout.width, peoteView.layout.height], // editable Vars (used in suggest() and suggestValues())
-			
-			[ui, grey], // UI-Displays and UI-Elements to update
-			
-			// constraints
-			[
+	public function testManualConstraints()
+	{
+		layoutSolver = new LayoutSolver ([
+				// constraints
 				(peoteView.layout.x == 0) | Strength.REQUIRED,
 				(peoteView.layout.y == 0) | Strength.REQUIRED,
 
@@ -85,8 +81,7 @@ class UiLayout
 				(grey.layout.width >= 200) | Strength.MEDIUM,
 				(grey.layout.height <= 400) | Strength.MEDIUM,
 				(grey.layout.height >= 200) | Strength.MEDIUM
-			]
-		);
+		]);
 		
 		// adding constraints afterwards:
 		var limitHeight:Constraint = (ui.layout.height <= 800) | Strength.WEAK;
@@ -94,7 +89,13 @@ class UiLayout
 		
 		// that constraints can also be removed again:
 		// layoutSolver.removeConstraint(limitHeight);
-
+		
+		// UI-Displays and UI-Elements to update
+		layoutSolver.toUpdate([ui, grey]);
+		
+		// editable Vars (used in suggest() and suggestValues())	
+		layoutSolver.toSuggest([peoteView.layout.width, peoteView.layout.height]);
+		
 		// set the constraints editable values to actual view size and updating (same as in onResize)
 		layoutSolver.suggestValues([peoteView.width, peoteView.height]).update();
 	}
@@ -103,83 +104,80 @@ class UiLayout
 		
 	public function testManualRowConstraints()
 	{
-		layoutSolver = new LayoutSolver (
-			
-			[peoteView.layout.width, peoteView.layout.height], // editable Vars (used in suggest() and suggestValues())			
-			
-			[ui, red, green, blue], // UI-Displays and UI-Elements to update
-			
-			// constraints
-			[	// for the Displays
-				(peoteView.layout.x == 0) | Strength.REQUIRED,
-				(peoteView.layout.y == 0) | Strength.REQUIRED,
+		layoutSolver = new LayoutSolver ([
+			// constraints for the Displays
+			(peoteView.layout.x == 0) | Strength.REQUIRED,
+			(peoteView.layout.y == 0) | Strength.REQUIRED,
 
-				(ui.layout.centerX == peoteView.layout.centerX) | new Strength(200),
-				//(ui.layout.left == peoteView.layout.left) | new Strength(300),
-				//(ui.layout.right == peoteView.layout.right) | new Strength(200),
-				(ui.layout.width == peoteView.layout.width) | new Strength(100),
-				
-				(ui.layout.top == 0) | Strength.MEDIUM,
-				(ui.layout.bottom == peoteView.layout.bottom) | Strength.MEDIUM,
-				(ui.layout.width <= 1000) | Strength.MEDIUM,
+			(ui.layout.centerX == peoteView.layout.centerX) | new Strength(200),
+			//(ui.layout.left == peoteView.layout.left) | new Strength(300),
+			//(ui.layout.right == peoteView.layout.right) | new Strength(200),
+			(ui.layout.width == peoteView.layout.width) | new Strength(100),
 			
-				// constraints for ui-elements
-				
-				// size restriction
-				(red.layout.width <= 100) | new Strength(500),
-				(red.layout.width >= 50) | new Strength(500),
-				//(red.layout.width == 100) | new Strength(500),
-				
-				(green.layout.width <= 200) | new Strength(500),
-				(green.layout.width >= 100) | new Strength(500),
-				//(green.layout.width == 200) | new Strength(500),
-				
-				(blue.layout.width <= 300) | new Strength(500),
-				(blue.layout.width >= 150) | new Strength(500),
-				//(blue.layout.width == 300) | new Strength(500),
-				
-				// manual hbox constraints
-				
-				//(red.layout.width   == (ui.layout.width) * ((100+ 50)/2) / ((100+50)/2 + (200+100)/2 + (300+150)/2)) | Strength.WEAK,
-				//(green.layout.width == (ui.layout.width) * ((200+100)/2) / ((100+50)/2 + (200+100)/2 + (300+150)/2)) | Strength.WEAK,
-				//(blue.layout.width  == (ui.layout.width) * ((300+150)/2) / ((100+50)/2 + (200+100)/2 + (300+150)/2)) | Strength.WEAK,
-				
-				(red.layout.width == green.layout.width) | Strength.WEAK,
-				//(red.layout.width == blue.layout.width) | Strength.WEAK,
-				(green.layout.width == blue.layout.width) | Strength.WEAK,
-				
-				(red.layout.left == ui.layout.left) | new Strength(400),
-				(green.layout.left == red.layout.right ) | new Strength(400),
-				(blue.layout.left == green.layout.right ) | new Strength(400),
-				(blue.layout.right == ui.layout.right) | new Strength(300),
-				//(blue.layout.right == ui.layout.right) | Strength.WEAK,
-				
-				(red.layout.top == ui.layout.top) | Strength.MEDIUM,
-				(red.layout.bottom == ui.layout.bottom) | Strength.MEDIUM,
-				(green.layout.top == ui.layout.top) | Strength.MEDIUM,
-				(green.layout.bottom == ui.layout.bottom) | Strength.MEDIUM,
-				(blue.layout.top == ui.layout.top) | Strength.MEDIUM,
-				(blue.layout.bottom == ui.layout.bottom) | Strength.MEDIUM,
-				
-			]
-		);
-		layoutSolver.suggestValues([peoteView.width, peoteView.height]).update();
+			(ui.layout.top == 0) | Strength.MEDIUM,
+			(ui.layout.bottom == peoteView.layout.bottom) | Strength.MEDIUM,
+			(ui.layout.width <= 1000) | Strength.MEDIUM,
+		
+			// constraints for ui-elements
+			
+			// size restriction
+			(red.layout.width <= 100) | new Strength(500),
+			(red.layout.width >= 50) | new Strength(500),
+			//(red.layout.width == 100) | new Strength(500),
+			
+			(green.layout.width <= 200) | new Strength(500),
+			(green.layout.width >= 100) | new Strength(500),
+			//(green.layout.width == 200) | new Strength(500),
+			
+			(blue.layout.width <= 300) | new Strength(500),
+			(blue.layout.width >= 150) | new Strength(500),
+			//(blue.layout.width == 300) | new Strength(500),
+			
+			// manual hbox constraints
+			
+			//(red.layout.width   == (ui.layout.width) * ((100+ 50)/2) / ((100+50)/2 + (200+100)/2 + (300+150)/2)) | Strength.WEAK,
+			//(green.layout.width == (ui.layout.width) * ((200+100)/2) / ((100+50)/2 + (200+100)/2 + (300+150)/2)) | Strength.WEAK,
+			//(blue.layout.width  == (ui.layout.width) * ((300+150)/2) / ((100+50)/2 + (200+100)/2 + (300+150)/2)) | Strength.WEAK,
+			
+			(red.layout.width == green.layout.width) | Strength.WEAK,
+			//(red.layout.width == blue.layout.width) | Strength.WEAK,
+			(green.layout.width == blue.layout.width) | Strength.WEAK,
+			
+			(red.layout.left == ui.layout.left) | new Strength(400),
+			(green.layout.left == red.layout.right ) | new Strength(400),
+			(blue.layout.left == green.layout.right ) | new Strength(400),
+			(blue.layout.right == ui.layout.right) | new Strength(300),
+			//(blue.layout.right == ui.layout.right) | Strength.WEAK,
+			
+			(red.layout.top == ui.layout.top) | Strength.MEDIUM,
+			(red.layout.bottom == ui.layout.bottom) | Strength.MEDIUM,
+			(green.layout.top == ui.layout.top) | Strength.MEDIUM,
+			(green.layout.bottom == ui.layout.bottom) | Strength.MEDIUM,
+			(blue.layout.top == ui.layout.top) | Strength.MEDIUM,
+			(blue.layout.bottom == ui.layout.bottom) | Strength.MEDIUM,			
+		]);
+		
+		layoutSolver.toUpdate([ui, red, green, blue]); // UI-Displays and UI-Elements to update
+		layoutSolver.toSuggest([peoteView.layout.width, peoteView.layout.height]); // editable Vars (used in suggest() and suggestValues())	
+		layoutSolver.suggestValues([peoteView.width, peoteView.height]).update(); // set the constraints editable values to actual view size and updating (same as in onResize)
 	}
 
+
+	
+	
 	// ----------------------------------------------------------------
-		
+	
+	
+	
 	public function testLayoutNestedBoxes()
 	{
 		layoutSolver = new LayoutSolver
 		(
-			peoteView, // root Layout (automatically set its width and height as editable Vars)
+			peoteView, // root Layout (automatically set width and height as suggestable and all childs toUpdate)
 			[
-				//[ (peoteView.layout.x == 0) | Strength.REQUIRED, (peoteView.layout.y == 0) | Strength.REQUIRED ],
-				[], // TODO -> without it casts to array of layouts
-				
 				new Box(peoteView,
 				[
-					new Box( ui   , Width.is(100,700), //LSpace.is(50,100), //RSpace.min(50,100),
+					new Box( ui   , Width.is(100,700),
 					[                                                          
 						new Box( red  , Width.is(100,600),
 						[                                                      
@@ -194,26 +192,28 @@ class UiLayout
 		);
 		layoutSolver.suggestValues([peoteView.width, peoteView.height]).update();
 	}
+
 	
 	// ----------------------------------------------------------------
+
 		
 	public function testLayoutRows()
 	{
 		layoutSolver = new LayoutSolver
 		(
-			peoteView, // root Layout (automatically set its width and height as editable Vars)
+			peoteView, // root Layout (automatically set width and height as suggestable and all childs toUpdate)
 			[
-				[ (peoteView.layout.x == 0) | Strength.REQUIRED, (peoteView.layout.y == 0) | Strength.REQUIRED ],
-
 				new Box(peoteView,
 				[
 					new HBox(ui,
 					[
 						new Box(red,   200, 200 ,LSpace.is(10,50)),
 						new Box(green, Width.is(200,250),  LSpace.is(10,20), RSpace.is(10,20), TSpace.is(50) ),
-						new Box(blue,  Width.is(100, 250), RSpace.is(10, 50), 
-						[
-							new Box(yellow,  150, 300, TSpace.is(50,100), BSpace.min(50) )
+						new VBox(blue,  Width.is(100, 250), RSpace.is(10, 50), 
+						[	
+							new Box(yellow, 100, Height.is(50,100), TSpace.is(50,100) ),
+							new Box(cyan, Width.is(100,150), 100, LSpace.is(0,50), TSpace.is(0,15)),
+							new Box(grey, Height.is(50), TSpace.is(0,30), BSpace.min(50) )
 						])
 					])
 				]),

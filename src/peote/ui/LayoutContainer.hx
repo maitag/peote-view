@@ -80,7 +80,7 @@ class LayoutContainer
 // -------------------------------------------------------------------------------------------------
 // -----------------------------     Box    --------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
-abstract Box(LayoutContainer)
+@:forward abstract Box(LayoutContainer)
 {
 	public inline function new(layout:Layout = null, width:Width = null, height:Height = null, 
 		lSpace:LeftSpace = null, rSpace:RightSpace = null, tSpace:TopSpace = null, bSpace:BottomSpace = null,
@@ -133,21 +133,20 @@ abstract Box(LayoutContainer)
 			}
 		}
 		return childsLimit;
-	}
-	
+	}	
 }
 
 
 // -------------------------------------------------------------------------------------------------
 // -----------------------------   HBox   ----------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
-abstract HBox(LayoutContainer)
+abstract HBox(Box) to Box
 {
 	public inline function new(layout:Layout = null, width:Width = null, height:Height = null,
 		lSpace:LeftSpace = null, rSpace:RightSpace = null, tSpace:TopSpace = null, bSpace:BottomSpace = null,
 		childs:Array<Layout> = null) 
 	{
-		this = new LayoutContainer(layout, width, height, lSpace, rSpace, tSpace, bSpace, childs) ;
+		this = new Box(layout, width, height, lSpace, rSpace, tSpace, bSpace, childs) ;
 		this.layout.addChildConstraints = addChildConstraints;
 	}
 	
@@ -223,7 +222,92 @@ abstract HBox(LayoutContainer)
 		}		
 		return childsLimit;
 	}
+}
 
 
+// -------------------------------------------------------------------------------------------------
+// -----------------------------   VBox   ----------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+abstract VBox(Box) to Box
+{
+	public inline function new(layout:Layout = null, width:Width = null, height:Height = null,
+		lSpace:LeftSpace = null, rSpace:RightSpace = null, tSpace:TopSpace = null, bSpace:BottomSpace = null,
+		childs:Array<Layout> = null) 
+	{
+		this = new Box(layout, width, height, lSpace, rSpace, tSpace, bSpace, childs) ;
+		this.layout.addChildConstraints = addChildConstraints;
+	}
+	
+	@:to public function toNestedArray():NestedArray<Constraint> return(this.getConstraints());
+	@:to public function toNestedArrayItem():NestedArrayItem<Constraint> return(this.getConstraints().toArray());	
+	@:to public function toLayout():Layout return(this.layout);
 
+	function addChildConstraints(constraints:NestedArray<Constraint>):InnerLimit
+	{
+		var strength = Strength.create(0, 900, 0); // TODO: gloabalstatic
+		var strengthLow = Strength.create(0, 0, 900);		
+		var childsLimit = {width:0, height:0};
+
+		if (this.childs != null)
+		{
+			var vSizeVars:SizeVars = {sLimit:null, sSpan:null};
+			var vLimitMax:Int = 0;
+			var vSumWeight:Float = 0.0;			
+			var noChildHasSpan = true;
+			
+			for (child in this.childs) {
+				if (noChildHasSpan && child.vSize.hasSpan()) noChildHasSpan = false;
+				vLimitMax += child.vSize.getLimitMax();
+			}
+			
+			if (noChildHasSpan && this.childs.length>0) {
+				if ( this.layout.vSize.middle.limit.span || vLimitMax < ( (this.layout.vSize.middle.limit._max != null) ? this.layout.vSize.middle.limit._max : this.layout.vSize.middle.limit._min) )
+				{
+					if (this.childs[0].vSize.first != null && this.childs[this.childs.length-1].vSize.last != null) {
+						this.childs[0].vSize.first.limit.span = true;
+						this.childs[this.childs.length-1].vSize.last.limit.span = true;
+					}
+					else {
+						if (this.childs[0].vSize.first == null) this.childs[0].vSize.first = new Size(Limit.min());
+						if (this.childs[this.childs.length-1].vSize.last  == null) this.childs[this.childs.length-1].vSize.last = new Size(Limit.min());
+					}					
+				}					
+			}
+			
+			for (i in 0...this.childs.length)
+			{	
+				var child = this.childs[i];
+				// ------------------------- recursive childs --------------------------
+				var innerLimit = child.addChildConstraints(constraints);			
+				
+				// --------------------------------- horizontal ---------------------------------------				
+				this.fixLimit(child.hSize, innerLimit.width);
+				this.fixSpacer(this.layout.hSize, child.hSize);
+				
+				if (child.hSize.getMin() > childsLimit.width) childsLimit.width = child.hSize.getMin();
+				
+				var hSizeVars = child.addHConstraints(constraints, {sLimit:null, sSpan:null}, strength);				
+				if (hSizeVars.sSpan != null) constraints.push( (hSizeVars.sSpan == (this.layout.width - child.hSize.getLimitMax()) / child.hSize.getSumWeight() ) | strengthLow );
+				
+				constraints.push( (child.left == this.layout.x) | strength );
+				constraints.push( (child.right == this.layout.x + this.layout.width) | strength );
+				
+				// --------------------------------- vertical ---------------------------------------
+				this.fixLimit(child.vSize, innerLimit.height);
+				
+				childsLimit.height += child.vSize.getMin();
+				
+				vSizeVars = child.addVConstraints(constraints, vSizeVars, strength);
+				vSumWeight += child.vSize.getSumWeight();
+				
+				if (i == 0) constraints.push( (child.top == this.layout.y) | strength ); // first
+				else constraints.push( (child.top == this.childs[i-1].bottom) | strength ); // not first
+				if (i == this.childs.length - 1) constraints.push( (child.bottom == this.layout.y + this.layout.height) | strength ); // last
+			}
+			// -------------------------
+			if (vSizeVars.sSpan != null) constraints.push( (vSizeVars.sSpan == (this.layout.height - vLimitMax) / vSumWeight ) | strengthLow );
+			
+		}		
+		return childsLimit;
+	}
 }
