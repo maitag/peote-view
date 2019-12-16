@@ -145,8 +145,7 @@ class Size
 			sizeSpan = sizeVars.sSpan;
 		}
 		return sizeVars;
-	}
-	
+	}	
 }
 
 class SizeSpaced 
@@ -170,11 +169,8 @@ class SizeSpaced
 	}
 	
 	public function addConstraints(constraints:NestedArray<Constraint>, sizeVars:SizeVars, strength:Strength):SizeVars {
-		trace("middle.addConstraints");
 		sizeVars = middle.addConstraints(constraints, sizeVars, strength);
-		trace("first.addConstraints");
 		if (first != null) sizeVars = first.addConstraints(constraints, sizeVars, strength);
-		trace("last.addConstraints");
 		if (last != null) sizeVars = last.addConstraints(constraints, sizeVars, strength);
 		return sizeVars;
 	}
@@ -240,7 +236,7 @@ class Limit {
 @:forward @:forwardStatics
 abstract Width(Limit) from Limit to Limit {
 	public inline function new(width:Int) this = Limit.is(width);
-	@:from public static inline function fromInt(i:Int):Width return Limit.is(i);
+	@:from static inline function fromInt(i:Int):Width return Limit.is(i);
 	public static inline function is (min:Null<Int> = null, max:Null<Int> = null):Width return new Limit(min, max, false);
 	public static inline function min(min:Null<Int> = null, max:Null<Int> = null, weight:Null<Float> = null):Width return new Limit(min, max, weight);
 	// TODO: ratio to Height?
@@ -249,7 +245,7 @@ abstract Width(Limit) from Limit to Limit {
 @:forward @:forwardStatics
 abstract Height(Limit) from Limit to Limit {
 	public inline function new(height:Int) this = Limit.is(height);
-	@:from public static inline function fromInt(i:Int):Height return Limit.is(i);
+	@:from static inline function fromInt(i:Int):Height return Limit.is(i);
 	public static inline function is (min:Null<Int> = null, max:Null<Int> = null):Height return new Limit(min, max, false);
 	public static inline function min(min:Null<Int> = null, max:Null<Int> = null, weight:Null<Float> = null):Height return new Limit(min, max, weight);
 	// TODO: ratio to Width
@@ -259,7 +255,7 @@ typedef LeftSpace = LSpace;
 @:forward @:forwardStatics
 abstract LSpace(Limit) from Limit to Limit {
 	public inline function new(width:Int) this = Limit.is(width);
-	@:from public static inline  function fromInt(i:Int):LSpace return Limit.is(i);
+	@:from static inline  function fromInt(i:Int):LSpace return Limit.is(i);
 	public static inline function is (min:Null<Int> = null, max:Null<Int> = null):LSpace return new Limit(min, max, false);
 	public static inline function min(min:Null<Int> = null, max:Null<Int> = null, weight:Null<Float> = null):LSpace return new Limit(min, max, weight);
 }
@@ -268,7 +264,7 @@ typedef RightSpace = RSpace;
 @:forward @:forwardStatics
 abstract RSpace(Limit) from Limit to Limit {
 	public inline function new(width:Int) this = Limit.is(width);
-	@:from public static inline  function fromInt(i:Int):RSpace return Limit.is(i);
+	@:from static inline  function fromInt(i:Int):RSpace return Limit.is(i);
 	public static inline function is (min:Null<Int> = null, max:Null<Int> = null):RSpace return new Limit(min, max, false);
 	public static inline function min(min:Null<Int> = null, max:Null<Int> = null, weight:Null<Float> = null):RSpace return new Limit(min, max, weight);
 }
@@ -277,7 +273,7 @@ typedef TopSpace = TSpace;
 @:forward @:forwardStatics
 abstract TSpace(Limit) from Limit to Limit {
 	public inline function new(height:Int) this = Limit.is(height);
-	@:from public static inline  function fromInt(i:Int):TSpace return Limit.is(i);
+	@:from static inline  function fromInt(i:Int):TSpace return Limit.is(i);
 	public static inline function is (min:Null<Int> = null, max:Null<Int> = null):TSpace return new Limit(min, max, false);
 	public static inline function min(min:Null<Int> = null, max:Null<Int> = null, weight:Null<Float> = null):TSpace return new Limit(min, max, weight);
 }
@@ -286,7 +282,7 @@ typedef BottomSpace = BSpace;
 @:forward @:forwardStatics
 abstract BSpace(Limit) from Limit to Limit {
 	public inline function new(height:Int) this = Limit.is(height);
-	@:from public static inline  function fromInt(i:Int):BSpace return Limit.is(i);
+	@:from static inline  function fromInt(i:Int):BSpace return Limit.is(i);
 	public static inline function is (min:Null<Int> = null, max:Null<Int> = null):BSpace return new Limit(min, max, false);
 	public static inline function min(min:Null<Int> = null, max:Null<Int> = null, weight:Null<Float> = null):BSpace return new Limit(min, max, weight);
 }

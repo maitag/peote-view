@@ -194,7 +194,6 @@ class UiLayout
 		);
 		layoutSolver.suggestValues([peoteView.width, peoteView.height]).update();
 	}
-
 	
 	// ----------------------------------------------------------------
 		
@@ -210,10 +209,11 @@ class UiLayout
 				[
 					new HBox(ui,
 					[
-						new Box(red,   200, 300  ,LSpace.is(10,50)),
-						new Box(green, Width.is(200,250) ,LSpace.is(10,20),RSpace.is(10,20)),
-						new Box(blue,  Width.is(100,250) ,RSpace.is(10,50), [
-							new Box(yellow,  150, 300, TSpace.is(50,100)  )
+						new Box(red,   200, 200 ,LSpace.is(10,50)),
+						new Box(green, Width.is(200,250),  LSpace.is(10,20), RSpace.is(10,20), TSpace.is(50) ),
+						new Box(blue,  Width.is(100, 250), RSpace.is(10, 50), 
+						[
+							new Box(yellow,  150, 300, TSpace.is(50,100), BSpace.min(50) )
 						])
 					])
 				]),
