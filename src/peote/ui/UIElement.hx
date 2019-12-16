@@ -53,7 +53,18 @@ class UIElement
 	public function updateLayout() {
 		//trace("update element");
 		if (uiDisplay != null)
-			if (x != Std.int(layout.x.m_value) - uiDisplay.x ||
+			if (x != Math.round(layout.x.m_value) - uiDisplay.x ||
+				y != Math.round(layout.y.m_value) - uiDisplay.y || 
+				width != Math.round(layout.width.m_value) ||
+				height != Math.round(layout.height.m_value))
+			{
+				x = Math.round(layout.x.m_value) - uiDisplay.x;
+				y = Math.round(layout.y.m_value) - uiDisplay.y;
+				width = Math.round(layout.width.m_value);
+				height = Math.round(layout.height.m_value);
+				update();
+			}
+/*			if (x != Std.int(layout.x.m_value) - uiDisplay.x ||
 				y != Std.int(layout.y.m_value) - uiDisplay.y || 
 				width != Std.int(layout.width.m_value) ||
 				height != Std.int(layout.height.m_value))
@@ -64,7 +75,7 @@ class UIElement
 				height = Std.int(layout.height.m_value);
 				update();
 			}
-	}
+*/	}
 	#end
 	
 	var mouseOver :UIEventParams;

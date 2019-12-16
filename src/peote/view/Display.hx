@@ -13,11 +13,15 @@ class Display
 	public var layout(default, null) = new peote.ui.Layout.Layout();
 	public function updateLayout() {
 		//trace("update display");
-		if (x != Std.int(layout.x.m_value)) x = Std.int(layout.x.m_value);
+		if (x != Math.round(layout.x.m_value)) x = Math.round(layout.x.m_value);
+		if (y != Math.round(layout.y.m_value)) y = Math.round(layout.y.m_value);
+		width  = Math.round(layout.width.m_value);
+		height = Math.round(layout.height.m_value);
+/*		if (x != Std.int(layout.x.m_value)) x = Std.int(layout.x.m_value);
 		if (y != Std.int(layout.y.m_value)) y = Std.int(layout.y.m_value);
 		width  = Std.int(layout.width.m_value);
 		height = Std.int(layout.height.m_value);
-	}
+*/	}
 	#end
 	
 	public var x(default, set):Int = 0;

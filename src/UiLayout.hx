@@ -47,10 +47,8 @@ class UiLayout
 			
 			//testManualConstraints();
 			//testManualRowConstraints();
-			testLayoutNestedBoxes();
-			
-			
-			//testLayoutNestedShelfes();
+			//testLayoutNestedBoxes();
+			testLayoutRows();
 			
 		}
 		catch (e:Dynamic) trace("ERROR:", e);
@@ -200,7 +198,7 @@ class UiLayout
 	
 	// ----------------------------------------------------------------
 		
-	public function testLayoutNestedShelfes()
+	public function testLayoutRows()
 	{
 		layoutSolver = new LayoutSolver
 		(
@@ -210,12 +208,13 @@ class UiLayout
 
 				new Box(peoteView,
 				[
-					new Shelf(ui,
+					new HBox(ui,
 					[
-						new Box(red,   Width.min(100,300)),
-						new Box(green, Width.min(200,300)),
-						//new Box(green, Width.min(200)),
-						//new Box(blue,  Width.min(100))
+						new Box(red,   200, 300  ,LSpace.is(10,50)),
+						new Box(green, Width.is(200,250) ,LSpace.is(10,20),RSpace.is(10,20)),
+						new Box(blue,  Width.is(100,250) ,RSpace.is(10,50), [
+							new Box(yellow,  150, 300, TSpace.is(50,100)  )
+						])
 					])
 				]),
 				

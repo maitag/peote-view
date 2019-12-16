@@ -127,32 +127,22 @@ class Size
 		this.limit = limit;
 	}
 	
-	public function addConstraints(constraints:NestedArray<Constraint>, sizeVars:SizeVars, strength:Strength):SizeVars {
-		// constant
-		if (limit.const) {
-			trace("CONSTANT");
-			//constraints.push( (sizeLimit == limit._min) | strength ); // need this?
-		}
-		else {
+	public function addConstraints(constraints:NestedArray<Constraint>, sizeVars:SizeVars, strength:Strength):SizeVars
+	{
+		if (!limit.const) {
 			if (sizeVars.sLimit == null) {
-				trace("NEW LIMIT VAR");
 				sizeVars.sLimit = new Variable();
 				constraints.push( (sizeVars.sLimit >= 0) | strength );
-				constraints.push( (sizeVars.sLimit <= 1) | strength ); // need this?
 			}
 			sizeLimit = sizeVars.sLimit;
-			//constraints.push( (sLimit >= limit._min) | strength );
-			//constraints.push( (sLimit <= limit._max) | strength );
 		}
 		
 		if (limit.span) {
 			if (sizeVars.sSpan == null) {
-				trace("NEW SPAN VAR");
 				sizeVars.sSpan = new Variable();
 				constraints.push( (sizeVars.sSpan >= 0) | strength );
 			}
 			sizeSpan = sizeVars.sSpan;
-			//constraints.push( (sizeSpan == parentSpan * limit.weight) | strengthLow );
 		}
 		return sizeVars;
 	}
