@@ -209,7 +209,7 @@ class UiLayout
 					[
 						new Box(red,   200, 200 ,LSpace.is(10,50)),
 						new Box(green, Width.is(200,250),  LSpace.is(10,20), RSpace.is(10,20), TSpace.is(50) ),
-						new VBox(blue,  Width.is(100, 250), RSpace.is(10, 50), 
+						new VBox(blue, Width.is(100, 250), RSpace.is(10, 50), 
 						[	
 							new Box(yellow, 100, Height.is(50,100), TSpace.is(50,100) ),
 							new Box(cyan, Width.is(100,150), 100, LSpace.is(0,50), TSpace.is(0,15)),

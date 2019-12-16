@@ -26,7 +26,7 @@ class LayoutContainer
 		}
 		
 		this.childs = childs;
-		layout.updateChilds = updateChilds;			
+		this.layout.updateChilds = updateChilds;	
 	}
 		
 	function updateChilds() {

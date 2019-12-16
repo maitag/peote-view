@@ -15,7 +15,6 @@ class LayoutSolver
 	
 	var solver:Solver;
 	
-	// TODO: separate functios to set editableLayoutVars and layoutsToUpdate
 	public function new(rootLayout:Layout=null, constraints:NestedArray<Constraint>=null) 
 	{
 		this.rootLayout = rootLayout;
@@ -31,7 +30,7 @@ class LayoutSolver
 		if (constraints != null) addConstraints(constraints);
 	}
 	
-	public function toSuggest(editableLayoutVars:Array<Variable>=null)
+	public function toSuggest(editableLayoutVars:Array<Variable>=null) // TODO
 	{
 		this.editableLayoutVars = editableLayoutVars;
 		if (editableLayoutVars != null) {
@@ -41,7 +40,7 @@ class LayoutSolver
 		}
 	}
 	
-	public function toUpdate(layoutsToUpdate:Array<Layout>=null)
+	public function toUpdate(layoutsToUpdate:Array<Layout>=null) // TODO
 	{
 		this.layoutsToUpdate = layoutsToUpdate;		
 	}
