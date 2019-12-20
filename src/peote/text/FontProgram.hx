@@ -125,8 +125,8 @@ class FontProgramMacro
 								glyph.x = penX + metric.left * width;
 								if (font.kerning && prev_charcode != -1) { // KERNING
 									penX += fontData.kerning[prev_charcode][charcode] * width;
+									prev_charcode = charcode;
 								}
-								prev_charcode = charcode;
 								penX += metric.advance * width;
 							}
 						}
@@ -399,8 +399,16 @@ class FontProgramMacro
 					{
 						var glyph = new Glyph<$styleType>();
 						line.glyphes.push(glyph);
-						addGlyph(glyph, charcode, glyphStyle);					
+						line.chars.push(charcode);
+						addGlyph(glyph, charcode, glyphStyle);	//TODO: return				
 					});
+				}
+				
+				public function removeLine(line:Line<$styleType>)
+				{
+					for (glyph in line.glyphes) {
+						removeGlyph(glyph);
+					}
 				}
 				
 				public function insertIntoLine(line:Line<$styleType>, chars:String, xPosition:Int=0, yPosition:Int=0) {
@@ -408,9 +416,35 @@ class FontProgramMacro
 				}
 			
 				public function updateLine(line:Line<$styleType>) {
-					for (glyph in line.glyphes) {
-						updateGlyph(glyph);
+					
+					if (line.updateStyleFrom < line.updatePosFrom) line.updatePosFrom = line.updateStyleFrom;
+					
+					// TODO: line height for greatest glyphstyle
+					
+					penY = line.y;
+					
+					//trace("updateLine", line.updatePosFrom, line.updateStyleFrom, line.updateStyleTo);
+
+					// TODO: optimized for nonpacked fonts or global glyph-height
+					for (i in line.updatePosFrom...line.glyphes.length) 
+					{
+						if (i >= line.updateStyleFrom && i < line.updateStyleTo) 
+						{
+							if (i == line.updateStyleFrom) penX = line.glyphes[i].x;
+							if (setCharcode(line.glyphes[i], line.chars[i])) {
+								updateGlyph(line.glyphes[i]);
+							}
+							//setPositionOffsets for rest if the next is not at PenX
+							if (i == line.updateStyleTo - 1 && i + 1 < line.glyphes.length) {
+								if (penX != line.glyphes[i + 1].x)
+									line.setPositionOffset(penX - line.glyphes[i+1].x, 0, i+1, line.glyphes.length);
+							}
+						} 
+						else updateGlyph(line.glyphes[i]);
 					}
+					
+					line.updatePosFrom = line.updateStyleFrom = 0x1000000;
+					line.updateStyleTo = 0;
 				}
 			
 			} // end class

@@ -89,8 +89,8 @@ class TextRendering
 				
 				var glyphStyle1 = new GlyphStyle();
 				glyphStyle1.color = Color.YELLOW;
-				glyphStyle1.width = font.config.width * 5.0;
-				glyphStyle1.height = font.config.height * 5.0;
+				glyphStyle1.width = font.config.width * 1.0;
+				glyphStyle1.height = font.config.height * 1.0;
 				//glyphStyle1.zIndex = 1;
 				//glyphStyle1.rotation = 22.5;
 								
@@ -111,14 +111,14 @@ class TextRendering
 				
 				var glyphStyle2 = new GlyphStyle();
 				glyphStyle2.color = Color.RED;
-				glyphStyle2.width = font.config.width * 10.0;
-				glyphStyle2.height = font.config.height * 10.0;
+				glyphStyle2.width = font.config.width * 2.0;
+				glyphStyle2.height = font.config.height * 2.0;
 				
 				//fontProgram.setFontStyle(glyphStyle2);
 				
 				var glyph2 = new Glyph<GlyphStyle>();
 				//0x2e25
-				if (fontProgram.addGlyph( glyph2, 66, 20, 50, glyphStyle2)) {
+				if (fontProgram.addGlyph( glyph2, 66, 30, 0, glyphStyle2)) {
 					//glyph2.setStyle(glyphStyle1);
 					//fontProgram.updateGlyph(glyph2);
 				}
@@ -127,26 +127,28 @@ class TextRendering
 				
 				// -------- Lines  ---------
 				
-				var line = new Line<GlyphStyle>();
-				fontProgram.addLine(line, "Hello World...", 0, 120, glyphStyle);
-				
-				// TODO: line.setStyle(glyphStyle2, 0, 4);
-				line.setPosition(120, 0);
-				// TODO: line.setPositionStyle(120, 0, glyphStyle2);
-				fontProgram.updateLine(line);
-
 				var tilted = new GlyphStyle();
 				tilted.tilt = 0.4;
 				tilted.color = 0xaabb22ff;
 				tilted.width = font.config.width;
 				tilted.height = font.config.height;
-				fontProgram.addLine(new Line<GlyphStyle>(), "tilted", 120, 30, tilted);
+				fontProgram.addLine(new Line<GlyphStyle>(), "tilted", 0, 130, tilted);
 				
 				var thick = new GlyphStyle();
 				thick.weight = 0.48;
 				thick.width = font.config.width;
 				thick.height = font.config.height;
-				fontProgram.addLine(new Line<GlyphStyle>(), "bold", 120, 60, thick);
+				fontProgram.addLine(new Line<GlyphStyle>(), "bold", 0, 160, thick);
+				
+				var line = new Line<GlyphStyle>();
+				fontProgram.addLine(line, "Hello World", 100, 0, glyphStyle);
+				
+				// TODO: 
+				line.setPosition(100, 130);
+				//line.setStyle(glyphStyle2);
+				line.setStyle(glyphStyle2, 5, 8);
+				line.setStyle(glyphStyle2, 1, 3);
+				fontProgram.updateLine(line);
 				
 				/*
 				fontProgram.addGlyphToLine(line, 68 , 0, true); // true -> from end

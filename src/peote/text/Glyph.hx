@@ -192,7 +192,7 @@ class GlyphMacro
 			});
 			
 			// TODO
-			// to cut of a glyph horizontal
+			// to cut of a glyph horizontal - only for non-monospaced!
 /*			c.fields.push({
 				name:  "txOffset",
 				meta: [{name:"texPosX", params:[], pos:Context.currentPos()}],
@@ -236,11 +236,11 @@ class GlyphMacro
 			});
 			
 			if (glyphStyleHasField.zIndex) {
-				var meta = [{name:"sizeX", params:[], pos:Context.currentPos()}];
+				var meta = [{name:"zIndex", params:[], pos:Context.currentPos()}];
 				if (!glyphStyleHasField.local_zIndex) meta.push({name:"@const", params:[], pos:Context.currentPos()});
 				c.fields.push({
 					name:  "zIndex",
-					meta:  [{name:"zIndex", params:[], pos:Context.currentPos()}],
+					meta:  meta,
 					access:  [Access.APublic],
 					kind: FieldType.FVar(macro:Int, macro 0),
 					pos: Context.currentPos(),
@@ -249,10 +249,10 @@ class GlyphMacro
 			
 			if (glyphStyleHasField.rotation) {
 				var meta = [{name:"rotation", params:[], pos:Context.currentPos()}];
-				if (!glyphStyleHasField.local_zIndex) meta.push({name:"@const", params:[], pos:Context.currentPos()});
+				if (!glyphStyleHasField.local_rotation) meta.push({name:"@const", params:[], pos:Context.currentPos()});
 				c.fields.push({
 					name:  "rotation",
-					meta:  [{name:"rotation", params:[], pos:Context.currentPos()}],
+					meta:  meta,
 					access:  [Access.APublic],
 					kind: FieldType.FVar(macro:Float, macro 0.0),
 					pos: Context.currentPos(),
@@ -301,7 +301,7 @@ class GlyphMacro
 						})
 					});
 				}
-				
+								
 				if (glyphStyleHasField.local_height) {
 					c.fields.push({
 						name:  "height",

@@ -79,83 +79,61 @@ class LineMacro
 
 			class $className
 			{
-
 				public var x:Float = 0.0;
 				public var y:Float = 0.0;
 				public var width:Float = 0.0;
-				public var height:Float = 0.0;
-				public var baseline:Float = 0.0;
+				public var height:Float = 0.0; // TODO:height from greatest Glyphstyle
 				
+				// TODO
+				//public var baseline:Float = 0.0;
+
 				public var xDirection:Int = 1;
 				public var yDirection:Int = 0;
 				
-				// TODO: 
-				// public var height:Float; // storing the max-line-height in kind of glyphstyles
 				
-				
-				
-				// TODO: optimize here for js/neko
+				// TODO: optimize here for js/neko/cpp
 				public var glyphes = new Array<$glyphType>();
+				public var chars = new Array<Int>();
+				
+				@:allow(peote.text) var updatePosFrom:Int = 0x1000000;
+				@:allow(peote.text) var updateStyleFrom:Int = 0x1000000;
+				@:allow(peote.text) var updateStyleTo:Int = 0;
 				
 				public function new() 
 				{
-					
 				}
 				
-/*				function setStyleThatChangePosition(glyphStyle:$styleType , from:Int = 0, to:Int = 0)
+				public inline function setStyle(glyphStyle:$styleType, from:Int = 0, to:Null<Int> = null)
 				{
+					if (to == null) to = glyphes.length;
 					
+					if (from < updateStyleFrom) updateStyleFrom = from;
+					if (to > updateStyleTo) updateStyleTo = to;
+					
+					for (i in from...to) glyphes[i].setStyle(glyphStyle);
 				}
-*/				
-				public function setStyle(glyphStyle:$styleType)
+						
+				public inline function setPosition(xNew:Float, yNew:Float)
 				{
-					for (glyph in glyphes) glyph.setStyle(glyphStyle);
+					setPositionOffset(xNew - x, yNew - y, 0, glyphes.length); 
+					x = xNew;
+					y = yNew;
+					updatePosFrom = 0;
 				}
 				
-				public function setStyleFromTo(glyphStyle:$styleType , from:Int = 0, to:Int = 0)
+				@:allow(peote.text) inline function setPositionOffset(deltaX:Float, deltaY:Float, from:Int, to:Int)
 				{
-					// TODO: errorcheck for from and to only with conditional compilation
-					
-					//var deltaX:Float = 0;
-					//var oldWidth:Float;
-					for (i in from...to) {
-						
-						// TODO: needs metrics.left and other stuff from fontprogramm for packed fonts !!!
-						//glyphes[i].x += deltaX;
-						
-						//var oldWidth = glyphes[i].w;
-						//var oldHeight = glyphes[i].h;
-						//var oldY = glyphes[i].y - y;
-						
-						glyphes[i].setStyle(glyphStyle);
-						
-						//glyphes[i].y = y + glyphes[i].h / oldHeight * oldY;
-						
-						//deltaX += glyphes[i].w - oldWidth;
-					}
-					
-					
-					//for (i in to...glyphes.length) {
-					//	glyphes[i].x += deltaX;
-					//}
-
+					if (deltaX == 0)
+						for (i in from...to) glyphes[i].y += deltaY;
+					else if (deltaY == 0)
+						for (i in from...to) glyphes[i].x += deltaX;
+					else 
+						for (i in from...to) {
+							glyphes[i].x += deltaX;
+							glyphes[i].y += deltaY;
+						}
 				}
 						
-				public inline function setPosition(xNew:Int, yNew:Int)
-				{
-					var deltaX:Float = xNew - x;
-					var deltaY:Float = yNew - y;
-					for (glyph in glyphes) {
-						glyph.x += deltaX;
-						glyph.y += deltaY;
-					}
-				}
-						
-				public inline function setPositionStyle(xNew:Int, yNew:Int, glyphStyle:$styleType)
-				{
-					setPosition(xNew, yNew);
-					setStyle(glyphStyle);
-				}
 						
 
 				
