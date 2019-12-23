@@ -98,6 +98,7 @@ class LineMacro
 				@:allow(peote.text) var updatePosFrom:Int = 0x1000000;
 				@:allow(peote.text) var updateStyleFrom:Int = 0x1000000;
 				@:allow(peote.text) var updateStyleTo:Int = 0;
+				@:allow(peote.text) var posHasChanged:Bool = false;
 				
 				public function new() 
 				{
@@ -119,6 +120,7 @@ class LineMacro
 					x = xNew;
 					y = yNew;
 					updatePosFrom = 0;
+					posHasChanged = true;
 				}
 				
 				@:allow(peote.text) inline function setPositionOffset(deltaX:Float, deltaY:Float, from:Int, to:Int)

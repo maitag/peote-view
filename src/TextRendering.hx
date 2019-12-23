@@ -98,7 +98,7 @@ class TextRendering
 				// -----------
 
 				var glyph1 = new Glyph<GlyphStyle>();
-				fontProgram.addGlyph(glyph1, 65, 0, 0, glyphStyle1);
+				fontProgram.addGlyph(glyph1, 65, 0, 50, glyphStyle1);
 				
 
 				//fontProgram.setCharcode(glyph1, 0x1201);
@@ -118,7 +118,7 @@ class TextRendering
 				
 				var glyph2 = new Glyph<GlyphStyle>();
 				//0x2e25
-				if (fontProgram.addGlyph( glyph2, 66, 30, 0, glyphStyle2)) {
+				if (fontProgram.addGlyph( glyph2, 66, 30, 50, glyphStyle2)) {
 					//glyph2.setStyle(glyphStyle1);
 					//fontProgram.updateGlyph(glyph2);
 				}
@@ -127,7 +127,7 @@ class TextRendering
 				
 				// -------- Lines  ---------
 				
-				var tilted = new GlyphStyle();
+/*				var tilted = new GlyphStyle();
 				tilted.tilt = 0.4;
 				tilted.color = 0xaabb22ff;
 				tilted.width = font.config.width;
@@ -139,17 +139,17 @@ class TextRendering
 				thick.width = font.config.width;
 				thick.height = font.config.height;
 				fontProgram.addLine(new Line<GlyphStyle>(), "bold", 0, 160, thick);
-				
+*/				
 				var line = new Line<GlyphStyle>();
-				fontProgram.addLine(line, "Hello World", 100, 0, glyphStyle);
+				fontProgram.addLine(line, "Hello World ;)", 100, 0, glyphStyle);
 				
-				// TODO: 
-				line.setPosition(100, 130);
+				//line.setPosition(100, 130);
 				//line.setStyle(glyphStyle2);
-				line.setStyle(glyphStyle2, 5, 8);
 				line.setStyle(glyphStyle2, 1, 3);
+				line.setStyle(glyphStyle1, 5, 8);
 				fontProgram.updateLine(line);
 				
+				// TODO:
 				/*
 				fontProgram.addGlyphToLine(line, 68 , 0, true); // true -> from end
 				fontProgram.addGlyphesToLine(line,  Glyphes.fromString("brave new "), 6);
