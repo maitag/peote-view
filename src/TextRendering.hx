@@ -23,7 +23,7 @@ import peote.text.Range;
 import peote.text.Line;
 //import peote.text.Page;
 
-@packed
+@packed       // glyphes are packed into textureatlas with ttfcompile (gl3font)
 //@multiSlot    // multiple slots per texture to store multiple unicode-ranges
 //@multiTexture // multiple textures to store multiple unicode-ranges
 //@useInt // TODO
@@ -49,7 +49,7 @@ class GlyphStyle {
 	public var weight:Float = 0.5;
 	
 	
-	
+	// TODO: bgColor:Color = Color.ORANGE
 	// TODO: outline/glow for distance field fonts
 	
 	public function new() {}

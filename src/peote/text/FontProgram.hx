@@ -290,6 +290,7 @@ class FontProgramMacro
 							}}
 							
 							if (metric != null) {
+								// TODO: let glyphes-width also include metrics with tex-offsets on need
 								glyph.tx = metric.u; // TODO: offsets for THICK letters
 								glyph.ty = metric.v;
 								glyph.tw = metric.w;
@@ -496,18 +497,17 @@ class FontProgramMacro
 					}
 				}
 				
-				public function insertIntoLine(line:Line<$styleType>, chars:String, xPosition:Int=0, yPosition:Int=0) {
+				public function insertIntoLine(line:Line<$styleType>, chars:String, position:Int=0, glyphStyle:$styleType) {
 					
 				}
-			
+				
+				// TODO: more optimization if changeStyle(), changePos() and changeStylePos() in FontProgram and not into Line
 				public function updateLine(line:Line<$styleType>)
 				{
-					if (line.updateStyleFrom < line.updatePosFrom) line.updatePosFrom = line.updateStyleFrom;
-					
 					// TODO: line height for greatest glyphstyle
-					
 					penY = line.y;
 					
+					if (line.updateStyleFrom < line.updatePosFrom) line.updatePosFrom = line.updateStyleFrom;
 					trace("updateLine", line.updatePosFrom, line.updateStyleFrom, line.updateStyleTo);
 
 					// TODO: optimized for nonpacked fonts or global glyph-height
@@ -521,7 +521,7 @@ class FontProgramMacro
 								if (i==0) penX = line.x else penX = rightGlyphPos(line.glyphes[i-1], line.chars[i-1]);
 							}
 							
-							// TODO: let glyphes-width also include metrics with tex-offsets
+							// TODO: let glyphes-width also include metrics with tex-offsets on need
 							
 							// TODO if only stylechanges: setPosition(line.glyphes[i], line.chars[i]))
 							// else (for new chars):

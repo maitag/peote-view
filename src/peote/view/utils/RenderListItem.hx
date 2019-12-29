@@ -1,5 +1,6 @@
 package peote.view.utils;
 
+// #if !hl @:generic#end
 @:generic
 class RenderListItem<T>
 {

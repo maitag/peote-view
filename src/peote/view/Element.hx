@@ -549,7 +549,7 @@ class ElementImpl
 			pivotX:         { formula:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
 			pivotY:         { formula:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
 			rotation:       { formula:"", isVarying:false, isAltType:false, vStart:0.0, vEnd:0.0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
-			zIndex:         { formula:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
+			zIndex:         { formula:"", isVarying:false, isAltType:false, vStart:0.0, vEnd:0.0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
 
 			colorDefault:   { formula:"", isVarying:false, isAltType:false, vStart:0xFF0000FF, vEnd:0xFF0000FF, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, color:[],
 			
@@ -1562,7 +1562,7 @@ class ElementImpl
 			pos: Context.currentPos(),
 			kind: FFun({
 				args: [],
-				expr: (conf.zIndex.name != "") ? macro return($i{conf.zIndex.name}) : macro return($v{Std.parseInt(conf.zIndex.vStart)}),
+				expr: (conf.zIndex.name != "") ? macro return($i{conf.zIndex.name}) : macro return(0),
 				ret: macro:Int
 			})
 		});

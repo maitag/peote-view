@@ -1,5 +1,5 @@
 package;
-import peote.ui.skin.Style;
+
 #if sampleUserInterface
 import lime.ui.Window;
 import lime.ui.KeyCode;
@@ -11,6 +11,7 @@ import peote.view.Color;
 import peote.ui.UIDisplay;
 import peote.ui.Button;
 import peote.ui.skin.Skin;
+import peote.ui.skin.Style;
 
 class UserInterface 
 {

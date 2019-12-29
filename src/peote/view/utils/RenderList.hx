@@ -96,6 +96,7 @@ class RenderList<T>
 
 }
 
+//#if !hl @:generic#end
 @:generic
 private class RenderListIterator<T> {
 	var item:RenderListItem<T>;

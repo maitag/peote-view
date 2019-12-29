@@ -76,7 +76,8 @@ class Util
 	}
 	
 	static public inline function regexpIdentifier(identifier:String):EReg {
-		return new EReg('^$identifier\\b.*?|(.*?[^\\w.])$identifier\\b.*?', "g");
+		//return new EReg('^$identifier\\b.*?|(.*?[^\\w.])$identifier\\b.*?', "g"); // <-- not work with HashLink
+		return new EReg('(^|.*?[^\\w.])$identifier\\b.*?', "g");
 	}
 	
 }
