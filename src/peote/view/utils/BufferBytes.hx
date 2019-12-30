@@ -1,11 +1,11 @@
 package peote.view.utils;
 
-#if (neko || cpp) // ----------- neko, cpp
+#if (!html5) // ----------- neko, cpp
 
 typedef BufferBytes = haxe.io.Bytes;
 
 
-#elseif html5 // ------------------ javascript
+#else // ------------------ javascript
 
 import haxe.io.BytesData;
 
