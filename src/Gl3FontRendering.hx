@@ -1,7 +1,7 @@
 package;
 #if sampleGl3FontRendering
 import haxe.Timer;
-import haxe.io.Bytes;
+import lime.utils.Bytes;
 
 import lime.ui.Window;
 import lime.ui.KeyCode;

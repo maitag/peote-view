@@ -8,6 +8,7 @@ package peote.text;
 // thanks to deltalucas gl3font lib -> https://github.com/deltaluca/gl3font
 
 import haxe.ds.Vector;
+import lime.utils.Bytes;
 
 class Gl3FontData 
 {
@@ -21,7 +22,7 @@ class Gl3FontData
     public var ascender:Float;
     public var descender:Float;
 
-    public function new(bytes:haxe.io.Bytes, rangeMin:Int, rangeMax:Int, isKerning:Bool = true)
+    public function new(bytes:Bytes, rangeMin:Int, rangeMax:Int, isKerning:Bool = true)
 	{
 		this.rangeMin = rangeMin;
 		this.rangeMax = rangeMax;

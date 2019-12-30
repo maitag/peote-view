@@ -76,7 +76,7 @@ class Loader
 		#if html5
 		if (corsServer != "" && ~/^https?:\/\//.match(name)) name = "//"+corsServer+"/"+name;
 		#end
-		var future = Bytes.loadFromFile(name);		
+		var future = Bytes.loadFromFile(name);	
 		if (debug) {
 			trace('Start loading bytes "$name"');
 			future.onProgress( function(a:Int, b:Int) onProgressDebug(a, b, name) );

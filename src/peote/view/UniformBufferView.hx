@@ -1,8 +1,7 @@
 package peote.view;
 
-import haxe.io.Bytes;
-
 import peote.view.PeoteGL.GLBuffer;
+import peote.view.utils.BufferBytes;
 import peote.view.utils.GLBufferPointer;
 
 class UniformBufferView 
@@ -17,12 +16,12 @@ class UniformBufferView
 	public static inline var block:Int = 0;
 	public var uniformBuffer:GLBuffer;
 	
-	var uniformBytes:Bytes;
+	var uniformBytes:BufferBytes;
 	
 	public function new() 
 	{
 		//uniformBytes = Bytes.alloc(5 * 4);
-		uniformBytes = Bytes.alloc(3 * 4*4); // alignment to vec4 (3 values)
+		uniformBytes = BufferBytes.alloc(3 * 4*4); // alignment to vec4 (3 values)
 		//uniformBytes = Bytes.alloc( 256   +    3 * 4*4); // for multiple ranges
 		resolutionBufferPointer = new GLBufferPointer(uniformBytes, 0);
 		xOffestBufferPointer = new GLBufferPointer(uniformBytes, 8);

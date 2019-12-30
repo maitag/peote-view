@@ -346,10 +346,10 @@ class FontMacro
 							else return path + rParseEnding.replace(v.image, ".dat");
 						}),
 						true,
-						function(index:Int, bytes:haxe.io.Bytes) { // after .dat is loaded
+						function(index:Int, bytes:lime.utils.Bytes) { // after .dat is loaded
 							gl3FontData[index] = new peote.text.Gl3FontData(bytes, config.ranges[index].range.min, config.ranges[index].range.max, kerning);
 						},
-						function(bytes:Array<haxe.io.Bytes>) { // after all .dat is loaded
+						function(bytes:Array<lime.utils.Bytes>) { // after all .dat is loaded
 							loadImages(gl3FontData, onProgressOverall, onLoad);
 						}
 					);

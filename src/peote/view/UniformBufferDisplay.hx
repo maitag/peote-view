@@ -1,8 +1,7 @@
 package peote.view;
 
-import haxe.io.Bytes;
-
 import peote.view.PeoteGL.GLBuffer;
+import peote.view.utils.BufferBytes;
 import peote.view.utils.GLBufferPointer;
 
 class UniformBufferDisplay
@@ -15,13 +14,13 @@ class UniformBufferDisplay
 	public static inline var block:Int = 1;
 	public var uniformBuffer:GLBuffer;
 	
-	var uniformBytes:Bytes;
+	var uniformBytes:BufferBytes;
 	
 
 	public function new() 
 	{
 		//uniformBytes = Bytes.alloc(3 * 4);
-		uniformBytes = Bytes.alloc(2 * 4*4);  // alignment to vec4 (2 values)
+		uniformBytes = BufferBytes.alloc(2 * 4*4);  // alignment to vec4 (2 values)
 		xOffestBufferPointer  = new GLBufferPointer(uniformBytes, 0);
 		yOffestBufferPointer  = new GLBufferPointer(uniformBytes, 4);
 		xZoomBufferPointer    = new GLBufferPointer(uniformBytes, 8);

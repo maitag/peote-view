@@ -6,7 +6,7 @@ import peote.view.PeoteGL.GLShader;
 import peote.view.PeoteGL.GLUniformLocation;
 import peote.view.PeoteGL.Precision;
 
-import haxe.io.Bytes;
+import peote.view.utils.BufferBytes;
 
 // for rendering a colored background-GL-quad
 class Background 
@@ -27,7 +27,7 @@ class Background
 	
 	public function createBuffer():Void
 	{
-		var bytes:Bytes = Bytes.alloc(8 * 4);
+		var bytes = BufferBytes.alloc(8 * 4);
 
 		bytes.setFloat(0,  1);bytes.setFloat(4,  1);
 		bytes.setFloat(8,  0);bytes.setFloat(12, 1);

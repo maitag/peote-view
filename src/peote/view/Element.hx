@@ -1,4 +1,5 @@
 package peote.view;
+import peote.view.utils.BufferBytes;
 
 #if !macro
 @:remove @:autoBuild(peote.view.ElementImpl.build())
@@ -1719,7 +1720,7 @@ class ElementImpl
 		fields.push({
 			name:  "instanceBytes", // only for instanceDrawing
 			access:  [Access.APrivate, Access.AStatic],
-			kind: FieldType.FVar(macro:utils.Bytes, macro null), 
+			kind: FieldType.FVar(macro:peote.view.utils.BufferBytes, macro null), 
 			pos: Context.currentPos(),
 		});
 		fields.push({
@@ -1732,7 +1733,7 @@ class ElementImpl
 				expr: macro {
 					if (instanceBytes == null) {
 						//trace("create bytes for instance GLbuffer");
-						instanceBytes = utils.Bytes.alloc(VERTEX_COUNT * 2);
+						instanceBytes = peote.view.utils.BufferBytes.alloc(VERTEX_COUNT * 2);
 						instanceBytes.set(0 , 1); instanceBytes.set(1,  1);
 						instanceBytes.set(2 , 1); instanceBytes.set(3,  1);
 						instanceBytes.set(4 , 0); instanceBytes.set(5,  1);
@@ -1883,7 +1884,7 @@ class ElementImpl
 			access: [Access.APrivate, Access.AInline],
 			pos: Context.currentPos(),
 			kind: FFun({
-				args:[ {name:"bytes", type:macro:utils.Bytes}
+				args:[ {name:"bytes", type:macro:peote.view.utils.BufferBytes}
 				],
 				expr: macro $b{ writeBytesExpr() },
 				ret: null
@@ -1897,7 +1898,7 @@ class ElementImpl
 			access: [Access.APrivate, Access.AInline],
 			pos: Context.currentPos(),
 			kind: FFun({
-				args:[ {name:"bytes", type:macro:utils.Bytes}
+				args:[ {name:"bytes", type:macro:peote.view.utils.BufferBytes}
 				],
 				expr: macro $b{ writeBytesExpr([[1,1],[1,1],[0,1],[1,0],[0,0],[0,0]]) },
 				ret: null

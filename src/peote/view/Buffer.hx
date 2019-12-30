@@ -1,4 +1,5 @@
 package peote.view;
+import peote.view.utils.BufferBytes;
 
 #if !macro
 @:genericBuild(peote.view.Buffer.BufferMacro.build())
@@ -88,7 +89,7 @@ class $className implements BufferInterface
 	var _shrinkAtSize:Int = 0;
 	
 	// local bytes-buffer
-	var _bytes: utils.Bytes;
+	var _bytes: peote.view.utils.BufferBytes;
 	
 	#if peoteview_queueGLbuffering
 	var updateGLBufferElementQueue:Array<$elementType>;
@@ -122,7 +123,7 @@ class $className implements BufferInterface
 		#if peoteview_debug_buffer
 		trace("create bytes for GLbuffer");
 		#end
-		_bytes = utils.Bytes.alloc(_elemBuffSize * _minSize);
+		_bytes = peote.view.utils.BufferBytes.alloc(_elemBuffSize * _minSize);
 		_bytes.fill(0, _elemBuffSize * _minSize, 0);		
 	}
 	
@@ -227,7 +228,7 @@ class $className implements BufferInterface
 	
 	inline function changeBufferSize(newSize:Int):Void
 	{
-		var _newBytes = utils.Bytes.alloc(_elemBuffSize * newSize);
+		var _newBytes = peote.view.utils.BufferBytes.alloc(_elemBuffSize * newSize);
 		_newBytes.blit(0, _bytes, 0, _elemBuffSize * _maxElements);
 		_bytes = _newBytes;
 		
