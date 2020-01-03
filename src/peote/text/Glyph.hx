@@ -408,8 +408,8 @@ class GlyphMacro
 				});
 				
 			}
-			
 			Context.defineModule(classPackage.concat([className]).join('.'),[c]);
+			//trace(new haxe.macro.Printer().printTypeDefinition(c));
 		}
 		return TPath({ pack:classPackage, name:className, params:[] });
 	}

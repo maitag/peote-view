@@ -124,8 +124,8 @@ class FontProgramMacro
 							if (x == null) {
 								if (font.kerning && prev_charcode != -1) { // KERNING
 									penX += fontData.kerning[prev_charcode][charcode] * width;
-									prev_charcode = charcode;
 								}
+								prev_charcode = charcode;
 								glyph.x = penX + metric.left * width;
 								penX += metric.advance * width;
 							}
@@ -140,7 +140,7 @@ class FontProgramMacro
 						{
 							glyph.h = metric.height * height;
 							if (y == null) {
-								glyph.y = penY + (fontData.height - metric.top) * height;
+								glyph.y = penY + (fontData.height + fontData.descender - metric.top) * height;
 							}					
 						}
 						default: macro {}
@@ -250,6 +250,50 @@ class FontProgramMacro
 						default: macro // ------- simple font -------
 						{
 							return glyph.x;
+						}
+					}}
+					
+				}
+				
+				inline function getLineMetric(glyph:$glyphType, charcode:Int): {asc:Float, base:Float, desc:Float}
+				{
+					${switch (glyphStyleHasMeta.packed)
+					{
+						case true: macro // ------- Gl3Font -------
+						{
+							var range = font.getRange(charcode);
+							var metric:peote.text.Gl3FontData.Metric = null;
+							var fontData:Gl3FontData = null;
+							
+							${switch (glyphStyleHasMeta.multiTexture || glyphStyleHasMeta.multiSlot) {
+								case true: macro {
+									if (range != null) {
+										fontData = range.fontData;
+										metric = fontData.getMetric(charcode);
+									}
+								}
+								default: macro {
+									fontData = range;
+									metric = fontData.getMetric(charcode);
+								}
+							}}
+							var height = ${switch (glyphStyleHasField.local_height) {
+								case true: macro glyph.height;
+								default: switch (glyphStyleHasField.height) {
+									case true: macro fontStyle.height;
+									default: macro font.config.height;
+							}}}
+							
+							return {
+								asc: height *(fontData.height + fontData.descender - (1 + fontData.ascender - fontData.height)),
+								base:height *(fontData.height + fontData.descender),
+								desc:height * fontData.height
+							};
+							
+						}
+						default: macro // ------- simple font -------
+						{
+							return null; // TODO: baseline from fontconfig!!!
 						}
 					}}
 					
@@ -484,7 +528,7 @@ class FontProgramMacro
 						var glyph = new Glyph<$styleType>();
 						line.glyphes.push(glyph);
 						line.chars.push(charcode);
-						addGlyph(glyph, charcode, glyphStyle);	//TODO: return	
+						addGlyph(glyph, charcode, glyphStyle);	//TODO: return LineMetrics
 						
 						//trace(String.fromCharCode(line.chars[line.chars.length-1]),line.glyphes[line.chars.length-1].x);
 					});

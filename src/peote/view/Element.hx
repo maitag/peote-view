@@ -1,5 +1,4 @@
 package peote.view;
-import peote.view.utils.BufferBytes;
 
 #if !macro
 @:remove @:autoBuild(peote.view.ElementImpl.build())

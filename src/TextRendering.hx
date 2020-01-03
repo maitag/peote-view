@@ -9,7 +9,10 @@ import lime.ui.MouseButton;
 
 import peote.view.PeoteView;
 import peote.view.Display;
+import peote.view.Buffer;
+import peote.view.Program;
 import peote.view.Color;
+import elements.ElementSimple;
 
 import peote.text.Font;
 
@@ -60,6 +63,8 @@ class TextRendering
 	var peoteView:PeoteView;
 	var display:Display;
 	var timer:Timer;
+	var helperLinesBuffer:Buffer<ElementSimple>;
+	var helperLinesProgram:Program;
 	
 	public function new(window:Window)
 	{
@@ -67,6 +72,9 @@ class TextRendering
 			peoteView = new PeoteView(window.context, window.width, window.height);
 			display   = new Display(10,10, window.width-20, window.height-20, Color.GREY1);
 			peoteView.addDisplay(display);
+			helperLinesBuffer = new Buffer<ElementSimple>(10);
+			helperLinesProgram = new Program(helperLinesBuffer);
+			display.addProgram(helperLinesProgram);    // programm to display
 			
 			//var font = new Font<GlyphStyle>("assets/fonts/tiled/hack_ascii.json");
 			//var font = new Font<GlyphStyle>("assets/fonts/tiled/liberation_ascii.json");
@@ -84,8 +92,8 @@ class TextRendering
 				display.addProgram(fontProgram);
 				
 				var glyphStyle = new GlyphStyle();
-				glyphStyle.width = font.config.width;
-				glyphStyle.height = font.config.height;
+				glyphStyle.width = font.config.width*2;
+				glyphStyle.height = font.config.height*2;
 				
 				var glyphStyle1 = new GlyphStyle();
 				glyphStyle1.color = Color.YELLOW;
@@ -126,6 +134,13 @@ class TextRendering
 				
 				
 				// -------- Lines  ---------
+				var gl3font = font.getRange(65);
+				// ascender line
+				helperLinesBuffer.addElement(new ElementSimple(0, Std.int(glyphStyle.height * ((gl3font.height + gl3font.descender) - (1 + gl3font.ascender - gl3font.height))), 2000, 1, Color.BLUE));
+				// baseline
+				helperLinesBuffer.addElement(new ElementSimple(0, Std.int(glyphStyle.height * (gl3font.height + gl3font.descender)), 2000, 1, Color.RED));
+				// descender line
+				helperLinesBuffer.addElement(new ElementSimple(0, Std.int(glyphStyle.height * (gl3font.height)), 2000, 1, Color.GREEN));
 				
 /*				var tilted = new GlyphStyle();
 				tilted.tilt = 0.4;

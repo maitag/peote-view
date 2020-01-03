@@ -1,5 +1,4 @@
 package peote.view;
-import peote.view.utils.BufferBytes;
 
 #if !macro
 @:genericBuild(peote.view.Buffer.BufferMacro.build())
