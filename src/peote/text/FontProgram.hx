@@ -283,7 +283,6 @@ class FontProgramMacro
 									case true: macro fontStyle.height;
 									default: macro font.config.height;
 							}}}
-							
 							return {
 								asc: height *(fontData.height + fontData.descender - (1 + fontData.ascender - fontData.height)),
 								base:height *(fontData.height + fontData.descender),
@@ -522,6 +521,7 @@ class FontProgramMacro
 					trace("addLine");
 					penX = line.x = x;
 					penY = line.y = y;
+					var first = true;
 					haxe.Utf8.iter(chars, function(charcode)
 					{
 						//trace(penX);
@@ -529,6 +529,13 @@ class FontProgramMacro
 						line.glyphes.push(glyph);
 						line.chars.push(charcode);
 						addGlyph(glyph, charcode, glyphStyle);	//TODO: return LineMetrics
+						
+						if (first) {
+							first = false;
+							var lm = getLineMetric(glyph, charcode);
+							line.height = lm.desc;
+							line.base = lm.base;
+						}
 						
 						//trace(String.fromCharCode(line.chars[line.chars.length-1]),line.glyphes[line.chars.length-1].x);
 					});

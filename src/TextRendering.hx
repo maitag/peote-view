@@ -52,6 +52,9 @@ class GlyphStyle {
 	public var weight:Float = 0.5;
 	
 	
+	// TODO: for adjusting Glyphes inside Line
+	// xOffset, yOffset
+	
 	// TODO: bgColor:Color = Color.ORANGE
 	// TODO: outline/glow for distance field fonts
 	
@@ -92,8 +95,8 @@ class TextRendering
 				display.addProgram(fontProgram);
 				
 				var glyphStyle = new GlyphStyle();
-				glyphStyle.width = font.config.width*2;
-				glyphStyle.height = font.config.height*2;
+				glyphStyle.width = font.config.width;
+				glyphStyle.height = font.config.height;
 				
 				var glyphStyle1 = new GlyphStyle();
 				glyphStyle1.color = Color.YELLOW;
@@ -162,6 +165,7 @@ class TextRendering
 				//line.setStyle(glyphStyle2);
 				line.setStyle(glyphStyle2, 1, 3);
 				line.setStyle(glyphStyle1, 5, 8);
+				//TODO: line.setGlyphOffset(0, 3  , 5, 6);
 				fontProgram.updateLine(line);
 				
 				// TODO:

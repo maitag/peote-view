@@ -81,13 +81,15 @@ class LineMacro
 			{
 				public var x:Float = 0.0;
 				public var y:Float = 0.0;
-				public var width:Float = 0.0;
-				public var height:Float = 0.0; // TODO:height from greatest Glyphstyle
 				
-				// TODO
-				//public var baseline:Float = 0.0;
-
-				public var xDirection:Int = 1;
+				// TODO: get/set
+				public var width:Float = 0.0;
+				public var height:Float = 0.0;
+				
+				public var base:Float = 0.0;  // <- all aligns here
+				
+				
+				public var xDirection:Int = 1;  // <- TODO: better from GlyphStyle !!!
 				public var yDirection:Int = 0;
 				
 				
