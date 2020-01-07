@@ -86,6 +86,7 @@ class LineMacro
 				public var width:Float = 0.0;
 				public var height:Float = 0.0;
 				
+				public var ascender:Float = 0.0;
 				public var base:Float = 0.0;  // <- all aligns here
 				
 				
@@ -95,50 +96,14 @@ class LineMacro
 				
 				// TODO: optimize here for js/neko/cpp
 				public var glyphes = new Array<$glyphType>();
-				public var chars = new Array<Int>();
+				public var chars = new Array<Int>();  // <- TODO: better from Glyph !!!
 				
-				@:allow(peote.text) var updatePosFrom:Int = 0x1000000;
-				@:allow(peote.text) var updateStyleFrom:Int = 0x1000000;
-				@:allow(peote.text) var updateStyleTo:Int = 0;
-				@:allow(peote.text) var posHasChanged:Bool = false;
+				@:allow(peote.text) var updateFrom:Int = 0x1000000;
+				@:allow(peote.text) var updateTo:Int = 0;
 				
 				public function new() 
 				{
 				}
-				
-				public inline function setStyle(glyphStyle:$styleType, from:Int = 0, to:Null<Int> = null)
-				{
-					if (to == null) to = glyphes.length;
-					
-					if (from < updateStyleFrom) updateStyleFrom = from;
-					if (to > updateStyleTo) updateStyleTo = to;
-					
-					for (i in from...to) glyphes[i].setStyle(glyphStyle);
-				}
-						
-				public inline function setPosition(xNew:Float, yNew:Float)
-				{
-					setPositionOffset(xNew - x, yNew - y, 0, glyphes.length); 
-					x = xNew;
-					y = yNew;
-					updatePosFrom = 0;
-					posHasChanged = true;
-				}
-				
-				@:allow(peote.text) inline function setPositionOffset(deltaX:Float, deltaY:Float, from:Int, to:Int)
-				{
-					if (deltaX == 0)
-						for (i in from...to) glyphes[i].y += deltaY;
-					else if (deltaY == 0)
-						for (i in from...to) glyphes[i].x += deltaX;
-					else 
-						for (i in from...to) {
-							glyphes[i].x += deltaX;
-							glyphes[i].y += deltaY;
-						}
-				}
-						
-						
 
 				
 			}

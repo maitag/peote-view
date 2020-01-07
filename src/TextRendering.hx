@@ -139,12 +139,12 @@ class TextRendering
 				// -------- Lines  ---------
 				var gl3font = font.getRange(65);
 				// ascender line
-				helperLinesBuffer.addElement(new ElementSimple(0, Std.int(glyphStyle.height * ((gl3font.height + gl3font.descender) - (1 + gl3font.ascender - gl3font.height))), 2000, 1, Color.BLUE));
+/*				helperLinesBuffer.addElement(new ElementSimple(0, Std.int(glyphStyle.height * ((gl3font.height + gl3font.descender) - (1 + gl3font.ascender - gl3font.height))), 2000, 1, Color.YELLOW));
 				// baseline
 				helperLinesBuffer.addElement(new ElementSimple(0, Std.int(glyphStyle.height * (gl3font.height + gl3font.descender)), 2000, 1, Color.RED));
 				// descender line
 				helperLinesBuffer.addElement(new ElementSimple(0, Std.int(glyphStyle.height * (gl3font.height)), 2000, 1, Color.GREEN));
-				
+*/				
 /*				var tilted = new GlyphStyle();
 				tilted.tilt = 0.4;
 				tilted.color = 0xaabb22ff;
@@ -159,27 +159,39 @@ class TextRendering
 				fontProgram.addLine(new Line<GlyphStyle>(), "bold", 0, 160, thick);
 */				
 				var line = new Line<GlyphStyle>();
-				fontProgram.addLine(line, "Hello World ;)", 100, 0, glyphStyle);
+				fontProgram.addLine(line, "Hello World ;)", 100, 100, glyphStyle);
 				
-				//line.setPosition(100, 130);
-				//line.setStyle(glyphStyle2);
-				line.setStyle(glyphStyle2, 1, 3);
-				line.setStyle(glyphStyle1, 5, 8);
 				//TODO: line.setGlyphOffset(0, 3  , 5, 6);
-				fontProgram.updateLine(line);
+				
+				fontProgram.lineSetStyle(line, glyphStyle2, 1, 3);
+				fontProgram.lineSetStyle(line, glyphStyle1, 5, 8);
+				//fontProgram.updateLine(line, 1);
+				fontProgram.lineSetPosition(line, 0, 130);
+				//fontProgram.updateLine(line);
+				
+				// top line
+				helperLinesBuffer.addElement(new ElementSimple(0, Std.int(line.y), 2000, 1, Color.BLUE));				
+				// ascender line
+				helperLinesBuffer.addElement(new ElementSimple(0, Std.int(line.y + line.ascender), 2000, 1, Color.YELLOW));
+				// baseline
+				helperLinesBuffer.addElement(new ElementSimple(0, Std.int(line.y + line.base), 2000, 1, Color.RED));
+				// descender line
+				helperLinesBuffer.addElement(new ElementSimple(0, Std.int(line.y + line.height), 2000, 1, Color.GREEN));
 				
 				// TODO:
+				fontProgram.lineSetChar(line, 65 , 0);
+				fontProgram.lineSetChars(line, "Planet", 6);
+				fontProgram.lineInsertChar(line, 65 , 1);
+				fontProgram.updateLine(line);
 				/*
-				fontProgram.addGlyphToLine(line, 68 , 0, true); // true -> from end
-				fontProgram.addGlyphesToLine(line,  Glyphes.fromString("brave new "), 6);
+								
+				fontProgram.lineInsertChars(line,  "brave new ", 6);
+								
+				fontProgram.lineDeleteChar(line, 0);
+				fontProgram.lineDeleteChars(line, 4, 6);
+								
+				// line.clear();
 				
-				fontProgram.clearLine(line);
-				fontProgram.removeGlyphFromLine(line, 6);
-				fontProgram.removeGlyphesFromLine(line, 0, 4, true); // true -> from end
-
-				fontProgram.changeLine(line, 77, 0);
-				fontProgram.changeInLine(line, "test", 6);
-
 				fontProgram.removeLine(line);
 				
 				// -------- Pages ??? (namespace!!!) <--------
