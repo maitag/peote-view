@@ -179,13 +179,13 @@ class TextRendering
 				helperLinesBuffer.addElement(new ElementSimple(0, Std.int(line.y + line.height), 2000, 1, Color.GREEN));
 				
 				// TODO:
-				fontProgram.lineSetChar(line, 65 , 0);
-				fontProgram.lineSetChars(line, "Planet", 6);
-				fontProgram.lineInsertChar(line, 65 , 1);
+				fontProgram.lineSetChar(line, 65 , 0); // replace existing char into line
+				fontProgram.lineSetChars(line, "Planet", 6);  // replace existing chars into line
+				fontProgram.lineInsertChar(line, 65 , 13);
+				//TODO: fontProgram.lineInsertChars(line,  "brave new ", 6);
 				fontProgram.updateLine(line);
 				/*
 								
-				fontProgram.lineInsertChars(line,  "brave new ", 6);
 								
 				fontProgram.lineDeleteChar(line, 0);
 				fontProgram.lineDeleteChars(line, 4, 6);

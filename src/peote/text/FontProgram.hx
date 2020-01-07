@@ -573,94 +573,7 @@ class FontProgramMacro
 					}
 				}
 				
-				public function lineSetChar(line:Line<$styleType>, charcode:Int, position:Int=0):Bool
-				{
-					if (position < line.updateFrom) line.updateFrom = position;
-					if (position + 1 > line.updateTo) line.updateTo = position + 1;
-					
-					if (position == 0) {
-						penX = line.x;
-						prev_charcode = -1;
-					}
-					else {
-						penX = rightGlyphPos(line.glyphes[position - 1], line.chars[position - 1]);
-						prev_charcode = line.chars[position - 1];
-					}
-					line.chars[position] = charcode;
-					return _lineSetCharcode(position, line);					
-				}
-				
-				public function lineSetChars(line:Line<$styleType>, chars:String, position:Int=0):Bool
-				{
-					if (position < line.updateFrom) line.updateFrom = position;
-					if (position + chars.length > line.updateTo) line.updateTo = Std.int(Math.min(position + chars.length, line.glyphes.length));
-					
-					if (position == 0) {
-						penX = line.x;
-						prev_charcode = -1;
-					}
-					else {
-						penX = rightGlyphPos(line.glyphes[position - 1], line.chars[position - 1]);
-						prev_charcode = line.chars[position - 1];
-					}
-					var i = position;
-					var ret = true;
-					haxe.Utf8.iter(chars, function(charcode)
-					{
-						if (i < line.glyphes.length) {
-							line.chars[i] = charcode;
-							if (! _lineSetCharcode(i, line, true, (i == chars.length - 1 && i + 1 < line.glyphes.length))) {
-								ret = false;
-							}
-							i++;
-						}
-						else {
-							// TODO: insert the rest of chars
-						}
-					});
-					return ret;
-				}
-				
-				public function lineInsertChar(line:Line<$styleType> , charcode:Int, position:Int = 0, glyphStyle:$styleType = null):Bool
-				{
-
-					var glyph = new Glyph<$styleType>();
-					glyph.setStyle((glyphStyle != null) ? glyphStyle : fontStyle);
-
-					line.glyphes.insert(position, glyph);
-					line.chars.insert(position, charcode);
-					
-					if (position + 1 < line.updateFrom) line.updateFrom = position + 1;
-					line.updateTo = line.glyphes.length;
-					
-					penY = line.y;
-					var lm = getLineMetric(glyph, charcode);
-					if (line.height != lm.desc) { // TODO: return metric from setCharcode() or integrate metric into glyph
-						penY = line.y + (line.base - lm.base);
-						//trace("line metric new style:", penY, line.height, line.base);
-					}
-					
-					if (position == 0) {
-						penX = line.x;
-						prev_charcode = -1;
-					}
-					else {
-						penX = rightGlyphPos(line.glyphes[position - 1], line.chars[position - 1]);
-						prev_charcode = line.chars[position - 1];
-					}
-					var startPenX = penX;
-					
-					if (setCharcode(glyph, charcode)) {
-						_buffer.addElement(glyph);
-						_setLinePositionOffset(line, penX - startPenX, 0, position + 1, line.glyphes.length);
-						return true;
-					} else return false;
-				}
-				
-				public function lineInsertChars(line:Line < $styleType > , chars:String, position:Int = 0, glyphStyle:$styleType = null) 
-				{
-					 // TODO
-				}
+				// ----------- change Line Style and Position ----------------
 				
 				public function lineSetStyle(line:Line<$styleType>, glyphStyle:$styleType, from:Int = 0, to:Null<Int> = null)
 				{
@@ -730,6 +643,136 @@ class FontProgramMacro
 							line.glyphes[i].y += deltaY;
 						}
 				}
+				
+				// ------------ set/insert/delete chars from a line ---------------
+				
+				public function lineSetChar(line:Line<$styleType>, charcode:Int, position:Int=0):Bool
+				{
+					if (position < line.updateFrom) line.updateFrom = position;
+					if (position + 1 > line.updateTo) line.updateTo = position + 1;
+					
+					if (position == 0) {
+						penX = line.x;
+						prev_charcode = -1;
+					}
+					else {
+						penX = rightGlyphPos(line.glyphes[position - 1], line.chars[position - 1]);
+						prev_charcode = line.chars[position - 1];
+					}
+					line.chars[position] = charcode;
+					return _lineSetCharcode(position, line);					
+				}
+				
+				public function lineSetChars(line:Line<$styleType>, chars:String, position:Int=0):Bool
+				{
+					if (position < line.updateFrom) line.updateFrom = position;
+					if (position + chars.length > line.updateTo) line.updateTo = Std.int(Math.min(position + chars.length, line.glyphes.length));
+					
+					if (position == 0) {
+						penX = line.x;
+						prev_charcode = -1;
+					}
+					else {
+						penX = rightGlyphPos(line.glyphes[position - 1], line.chars[position - 1]);
+						prev_charcode = line.chars[position - 1];
+					}
+					var i = position;
+					var ret = true;
+					haxe.Utf8.iter(chars, function(charcode)
+					{
+						if (i < line.glyphes.length) {
+							line.chars[i] = charcode;
+							if (! _lineSetCharcode(i, line, true, (i == chars.length - 1 && i + 1 < line.glyphes.length))) {
+								ret = false;
+							}
+							i++;
+						}
+						else {
+							// TODO: insert the rest of chars
+						}
+					});
+					return ret;
+				}
+				
+				public function lineInsertChar(line:Line<$styleType> , charcode:Int, position:Int = 0, glyphStyle:$styleType = null):Bool
+				{
+
+					var glyph = new Glyph<$styleType>();
+					glyph.setStyle((glyphStyle != null) ? glyphStyle : fontStyle);
+
+					line.glyphes.insert(position, glyph);
+					line.chars.insert(position, charcode);
+					
+					penY = line.y;
+					var lm = getLineMetric(glyph, charcode);
+					if (line.height != lm.desc) { // TODO: return metric from setCharcode() or integrate metric into glyph
+						penY = line.y + (line.base - lm.base);
+						//trace("line metric new style:", penY, line.height, line.base);
+					}
+					
+					if (position == 0) {
+						penX = line.x;
+						prev_charcode = -1;
+					}
+					else {
+						penX = rightGlyphPos(line.glyphes[position - 1], line.chars[position - 1]);
+						prev_charcode = line.chars[position - 1];
+					}
+					var startPenX = penX;
+					
+					if (setCharcode(glyph, charcode)) {
+						_buffer.addElement(glyph);
+						if (position + 1 < line.glyphes.length) {
+							if (position + 1 < line.updateFrom) line.updateFrom = position + 1;
+							line.updateTo = line.glyphes.length;
+							_setLinePositionOffset(line, penX - startPenX, 0, position + 1, line.glyphes.length);
+						}
+						return true;
+					} else return false;
+				}
+				
+				// TODO
+/*				public function lineInsertChars(line:Line<$styleType> , chars:String, position:Int = 0, glyphStyle:$styleType = null):Bool 
+				{
+					var newGlyphes = new Array<Glyph<$styleType>>();
+					haxe.Utf8.iter(chars, function(charcode)
+					{
+						var glyph = new Glyph<$styleType>();
+						glyph.setStyle((glyphStyle != null) ? glyphStyle : fontStyle);
+						newGlyphes.push(glyph);
+					});
+					line.glyphes.insert(position, newGlyphes);
+					line.chars.insert(position, chars);
+					
+					var ret = true;
+					var first = true;
+					penY = line.y;
+					if (position == 0) {
+						penX = line.x;
+						prev_charcode = -1;
+					}
+					else {
+						penX = rightGlyphPos(line.glyphes[position - 1], line.chars[position - 1]);
+						prev_charcode = line.chars[position - 1];
+					}
+					var startPenX = penX;
+					
+					haxe.Utf8.iter(chars, function(charcode)
+					{
+						
+						if (first) {
+							first = false;
+							var lm = getLineMetric(glyph, charcode);
+							if (line.height != lm.desc) { // TODO: return metric from setCharcode() or integrate metric into glyph
+								penY = line.y + (line.base - lm.base);
+								//trace("line metric new style:", penY, line.height, line.base);
+							}
+						}
+					});
+					return ret;
+				}
+*/				
+				// ------------- update line ---------------------
 				
 				public function updateLine(line:Line<$styleType>, from:Null<Int> = null, to:Null<Int> = null)
 				{
