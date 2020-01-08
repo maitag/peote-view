@@ -96,16 +96,11 @@ class LineMacro
 				
 				// TODO: optimize here for js/neko/cpp
 				public var glyphes = new Array<$glyphType>();
-				public var chars = new Array<Int>();  // <- TODO: better from Glyph !!!
 				
 				@:allow(peote.text) var updateFrom:Int = 0x1000000;
 				@:allow(peote.text) var updateTo:Int = 0;
 				
-				public function new() 
-				{
-				}
-
-				
+				public function new() {}
 			}
 			// -------------------------------------------------------------------------------------------
 			// -------------------------------------------------------------------------------------------

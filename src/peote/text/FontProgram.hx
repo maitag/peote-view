@@ -99,7 +99,7 @@ class FontProgramMacro
 				}
 				
 				public inline function addGlyph(glyph:$glyphType, charcode:Int, x:Null<Float>=null, y:Null<Float>=null, glyphStyle:$styleType = null):Bool {
-					glyph.setStyle((glyphStyle != null) ? glyphStyle : fontStyle);
+					glyphSetStyle(glyph, glyphStyle);
 					if (setCharcode(glyph, charcode, x, y)) {
 						_buffer.addElement(glyph);
 						return true;
@@ -114,6 +114,15 @@ class FontProgramMacro
 					_buffer.updateElement(glyph);
 				}
 				
+				public inline function glyphSetStyle(glyph:$glyphType, glyphStyle:$styleType) {
+					glyph.setStyle((glyphStyle != null) ? glyphStyle : fontStyle);
+				}
+
+				public inline function glyphSetChar(glyph:$glyphType, charcode:Int, x:Null<Float>=null, y:Null<Float>=null):Bool
+				{
+					return setCharcode(glyph, charcode, x, y, true);
+				}
+
 				// -------------------------------------------------
 								
 				inline function setXW(glyph:$glyphType, charcode:Int, x:Null<Float>, width:Float, fontData:peote.text.Gl3FontData, metric:peote.text.Gl3FontData.Metric):Void {
@@ -176,13 +185,13 @@ class FontProgramMacro
 
 				// -------------------------------------------------
 				
-				inline function rightGlyphPos(glyph:$glyphType, charcode:Int):Float
+				inline function rightGlyphPos(glyph:$glyphType):Float
 				{
 					${switch (glyphStyleHasMeta.packed)
 					{
 						case true: macro // ------- Gl3Font -------
 						{
-							var range = font.getRange(charcode);
+							var range = font.getRange(glyph.char);
 							var metric:peote.text.Gl3FontData.Metric = null;
 							var fontData:Gl3FontData = null;
 							
@@ -190,12 +199,12 @@ class FontProgramMacro
 								case true: macro {
 									if (range != null) {
 										fontData = range.fontData;
-										metric = fontData.getMetric(charcode);
+										metric = fontData.getMetric(glyph.char);
 									}
 								}
 								default: macro {
 									fontData = range;
-									metric = fontData.getMetric(charcode);
+									metric = fontData.getMetric(glyph.char);
 								}
 							}}
 							var width = ${switch (glyphStyleHasField.local_width) {
@@ -214,13 +223,13 @@ class FontProgramMacro
 					
 				}
 				
-				inline function leftGlyphPos(glyph:$glyphType, charcode:Int, prevCharcode:Int):Float
+				inline function leftGlyphPos(glyph:$glyphType, prevCharcode:Int):Float
 				{
 					${switch (glyphStyleHasMeta.packed)
 					{
 						case true: macro // ------- Gl3Font -------
 						{
-							var range = font.getRange(charcode);
+							var range = font.getRange(glyph.char);
 							var metric:peote.text.Gl3FontData.Metric = null;
 							var fontData:Gl3FontData = null;
 							
@@ -228,12 +237,12 @@ class FontProgramMacro
 								case true: macro {
 									if (range != null) {
 										fontData = range.fontData;
-										metric = fontData.getMetric(charcode);
+										metric = fontData.getMetric(glyph.char);
 									}
 								}
 								default: macro {
 									fontData = range;
-									metric = fontData.getMetric(charcode);
+									metric = fontData.getMetric(glyph.char);
 								}
 							}}
 							var width = ${switch (glyphStyleHasField.local_width) {
@@ -243,7 +252,7 @@ class FontProgramMacro
 									default: macro font.config.width;
 							}}}
 							var left = glyph.x - (metric.left) * width;
-							if (font.kerning && prev_charcode != -1) left -= fontData.kerning[prevCharcode][charcode] * width;
+							if (font.kerning && prev_charcode != -1) left -= fontData.kerning[prevCharcode][glyph.char] * width;
 							return left;
 							
 						}
@@ -255,13 +264,13 @@ class FontProgramMacro
 					
 				}
 				
-				inline function getLineMetric(glyph:$glyphType, charcode:Int): {asc:Float, base:Float, desc:Float}
+				inline function getLineMetric(glyph:$glyphType): {asc:Float, base:Float, desc:Float}
 				{
 					${switch (glyphStyleHasMeta.packed)
 					{
 						case true: macro // ------- Gl3Font -------
 						{
-							var range = font.getRange(charcode);
+							var range = font.getRange(glyph.char);
 							var metric:peote.text.Gl3FontData.Metric = null;
 							var fontData:Gl3FontData = null;
 							
@@ -269,12 +278,12 @@ class FontProgramMacro
 								case true: macro {
 									if (range != null) {
 										fontData = range.fontData;
-										metric = fontData.getMetric(charcode);
+										metric = fontData.getMetric(glyph.char);
 									}
 								}
 								default: macro {
 									fontData = range;
-									metric = fontData.getMetric(charcode);
+									metric = fontData.getMetric(glyph.char);
 								}
 							}}
 							var height = ${switch (glyphStyleHasField.local_height) {
@@ -298,8 +307,11 @@ class FontProgramMacro
 					
 				}
 				
-				public inline function setCharcode(glyph:$glyphType, charcode:Int, x:Null<Float>=null, y:Null<Float>=null, isNewChar = true):Bool
+				// TODO: split into setCharcode and setPosition
+				// TODO: penX should be local into Line
+				inline function setCharcode(glyph:$glyphType, charcode:Int, x:Null<Float>=null, y:Null<Float>=null, isNewChar = true):Bool
 				{
+					if (isNewChar) glyph.char = charcode;
 					if (x != null) glyph.x = x;
 					if (y != null) glyph.y = y;
 					
@@ -551,12 +563,11 @@ class FontProgramMacro
 						//trace(penX);
 						var glyph = new Glyph<$styleType>();
 						line.glyphes.push(glyph);
-						line.chars.push(charcode);
 						addGlyph(glyph, charcode, glyphStyle);	//TODO: return LineMetrics
 						
 						if (first) {
 							first = false;
-							var lm = getLineMetric(glyph, charcode);
+							var lm = getLineMetric(glyph);
 							line.ascender = lm.asc;
 							line.height = lm.desc;
 							line.base = lm.base;
@@ -587,8 +598,8 @@ class FontProgramMacro
 						prev_charcode = -1;
 					}
 					else {
-						penX = rightGlyphPos(line.glyphes[from - 1], line.chars[from - 1]);
-						prev_charcode = line.chars[from - 1];
+						penX = rightGlyphPos(line.glyphes[from - 1]);
+						prev_charcode = line.glyphes[from - 1].char;
 					}
 						
 					for (i in from...to) {
@@ -601,17 +612,17 @@ class FontProgramMacro
 				inline function _lineSetCharcode (i:Int, line:Line<$styleType>, isNewChar:Bool = true, isLast:Bool = true):Bool {
 					// TODO: callback if line height is changing					
 					penY = line.y;
-					var lm = getLineMetric(line.glyphes[i], line.chars[i]);
+					var lm = getLineMetric(line.glyphes[i]);
 					if (line.height != lm.desc) { // TODO: return metric from setCharcode() or integrate metric into glyph
 						penY = line.y + (line.base - lm.base);
 						//trace("line metric new style:", penY, line.height, line.base);
 					}
 					
-					if (setCharcode(line.glyphes[i], line.chars[i], isNewChar))
+					if (setCharcode(line.glyphes[i], line.glyphes[i].char, isNewChar))
 					{
 						if (isLast) // last
 						{
-							var offset = penX - leftGlyphPos(line.glyphes[i+1], line.chars[i+1], (font.kerning) ? line.chars[i] : -1);
+							var offset = penX - leftGlyphPos(line.glyphes[i+1], (font.kerning) ? line.glyphes[i].char : -1);
 							if (offset != 0.0) {
 								//trace("REST:"+String.fromCharCode(line.chars[i + 1]), penX, line.glyphes[i + 1].x);
 								_setLinePositionOffset(line, offset, 0, i + 1, line.glyphes.length);
@@ -656,10 +667,10 @@ class FontProgramMacro
 						prev_charcode = -1;
 					}
 					else {
-						penX = rightGlyphPos(line.glyphes[position - 1], line.chars[position - 1]);
-						prev_charcode = line.chars[position - 1];
+						penX = rightGlyphPos(line.glyphes[position - 1]);
+						prev_charcode = line.glyphes[position - 1].char;
 					}
-					line.chars[position] = charcode;
+					line.glyphes[position].char = charcode;
 					return _lineSetCharcode(position, line);					
 				}
 				
@@ -673,15 +684,15 @@ class FontProgramMacro
 						prev_charcode = -1;
 					}
 					else {
-						penX = rightGlyphPos(line.glyphes[position - 1], line.chars[position - 1]);
-						prev_charcode = line.chars[position - 1];
+						penX = rightGlyphPos(line.glyphes[position - 1]);
+						prev_charcode = line.glyphes[position - 1].char;
 					}
 					var i = position;
 					var ret = true;
 					haxe.Utf8.iter(chars, function(charcode)
 					{
 						if (i < line.glyphes.length) {
-							line.chars[i] = charcode;
+							line.glyphes[i].char = charcode;
 							if (! _lineSetCharcode(i, line, true, (i == chars.length - 1 && i + 1 < line.glyphes.length))) {
 								ret = false;
 							}
@@ -698,13 +709,13 @@ class FontProgramMacro
 				{
 
 					var glyph = new Glyph<$styleType>();
+					glyph.char = charcode;
 					glyph.setStyle((glyphStyle != null) ? glyphStyle : fontStyle);
 
 					line.glyphes.insert(position, glyph);
-					line.chars.insert(position, charcode);
 					
 					penY = line.y;
-					var lm = getLineMetric(glyph, charcode);
+					var lm = getLineMetric(glyph);
 					if (line.height != lm.desc) { // TODO: return metric from setCharcode() or integrate metric into glyph
 						penY = line.y + (line.base - lm.base);
 						//trace("line metric new style:", penY, line.height, line.base);
@@ -715,8 +726,8 @@ class FontProgramMacro
 						prev_charcode = -1;
 					}
 					else {
-						penX = rightGlyphPos(line.glyphes[position - 1], line.chars[position - 1]);
-						prev_charcode = line.chars[position - 1];
+						penX = rightGlyphPos(line.glyphes[position - 1]);
+						prev_charcode = line.glyphes[position - 1].char;
 					}
 					var startPenX = penX;
 					

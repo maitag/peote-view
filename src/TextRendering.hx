@@ -109,10 +109,9 @@ class TextRendering
 				// -----------
 
 				var glyph1 = new Glyph<GlyphStyle>();
-				fontProgram.addGlyph(glyph1, 65, 0, 50, glyphStyle1);
+				fontProgram.addGlyph(glyph1, "A".charCodeAt(0), 0, 50, glyphStyle1);
 				
-
-				//fontProgram.setCharcode(glyph1, 0x1201);
+				//fontProgram.glyphSetChar(glyph1, "x".charCodeAt(0));
 				//glyph1.color = Color.BLUE;
 				//glyph1.height = 30;
 				//fontProgram.updateGlyph(glyph1);
@@ -128,9 +127,8 @@ class TextRendering
 				//fontProgram.setFontStyle(glyphStyle2);
 				
 				var glyph2 = new Glyph<GlyphStyle>();
-				//0x2e25
-				if (fontProgram.addGlyph( glyph2, 66, 30, 50, glyphStyle2)) {
-					//glyph2.setStyle(glyphStyle1);
+				if (fontProgram.addGlyph( glyph2, "B".charCodeAt(0), 30, 50, glyphStyle2)) {
+					//fontProgram.glyphSetStyle(glyph2, glyphStyle1);
 					//fontProgram.updateGlyph(glyph2);
 				}
 				else trace(" ----> Charcode not inside Font");
@@ -179,23 +177,23 @@ class TextRendering
 				helperLinesBuffer.addElement(new ElementSimple(0, Std.int(line.y + line.height), 2000, 1, Color.GREEN));
 				
 				// TODO:
-				fontProgram.lineSetChar(line, 65 , 0); // replace existing char into line
+				fontProgram.lineSetChar(line, "h".charCodeAt(0) , 0); // replace existing char into line
 				fontProgram.lineSetChars(line, "Planet", 6);  // replace existing chars into line
-				fontProgram.lineInsertChar(line, 65 , 13);
+				fontProgram.lineInsertChar(line, "-".charCodeAt(0) , 13);
 				//TODO: fontProgram.lineInsertChars(line,  "brave new ", 6);
 				fontProgram.updateLine(line);
-				/*
+				
 								
 								
-				fontProgram.lineDeleteChar(line, 0);
-				fontProgram.lineDeleteChars(line, 4, 6);
+				//fontProgram.lineDeleteChar(line, 0);
+				//fontProgram.lineDeleteChars(line, 4, 6);
 								
 				// line.clear();
 				
-				fontProgram.removeLine(line);
+				//fontProgram.removeLine(line);
 				
 				// -------- Pages ??? (namespace!!!) <--------
-				
+				/*
 				var page = new Page( 0, 200,
 					  "Um einen Feuerball rast eine Kotkugel, auf der Damenseidenstrümpfe verkauft und Gauguins geschätzt werden."
 					+ "\n"

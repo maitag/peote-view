@@ -164,9 +164,10 @@ class GlyphMacro
 
 			class $className implements peote.view.Element
 			{
+				@:allow(peote.text) public var char(default, null):Int = -1;
 				public function new() {}
 				
-				public inline function setStyle(glyphStyle: $styleType) {
+				@:allow(peote.text) inline function setStyle(glyphStyle: $styleType) {
 					$b{ exprBlock }
 				}
 				
