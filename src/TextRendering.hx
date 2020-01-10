@@ -83,8 +83,8 @@ class TextRendering
 			//var font = new Font<GlyphStyle>("assets/fonts/tiled/liberation_ascii.json");
 			//var font = new Font<GlyphStyle>("assets/fonts/tiled/peote.json");
 			var font = new Font<GlyphStyle>("assets/fonts/packed/hack/config.json");
-			//var font = new Font<GlyphStyle>("assets/fonts/packed/unifont/config.json");
 			//var font = new Font<GlyphStyle>("assets/fonts/packed/unifont/config.json", [new Range(0x0000,0x0fff)]);
+			//var font = new Font<GlyphStyle>("assets/fonts/packed/unifont/config.json");
 			//var font = new Font<GlyphStyle>("assets/fonts/packed/unifont/config.json", [Range.C0ControlsBasicLatin(), Range.C1ControlsLatin1Supplement()]);
 			
 			font.load( function() {
@@ -136,36 +136,39 @@ class TextRendering
 				
 				// -------- Lines  ---------
 				var gl3font = font.getRange(65);
-				// ascender line
-/*				helperLinesBuffer.addElement(new ElementSimple(0, Std.int(glyphStyle.height * ((gl3font.height + gl3font.descender) - (1 + gl3font.ascender - gl3font.height))), 2000, 1, Color.YELLOW));
-				// baseline
-				helperLinesBuffer.addElement(new ElementSimple(0, Std.int(glyphStyle.height * (gl3font.height + gl3font.descender)), 2000, 1, Color.RED));
-				// descender line
-				helperLinesBuffer.addElement(new ElementSimple(0, Std.int(glyphStyle.height * (gl3font.height)), 2000, 1, Color.GREEN));
-*/				
-/*				var tilted = new GlyphStyle();
+				var tilted = new GlyphStyle();
 				tilted.tilt = 0.4;
 				tilted.color = 0xaabb22ff;
 				tilted.width = font.config.width;
 				tilted.height = font.config.height;
-				fontProgram.addLine(new Line<GlyphStyle>(), "tilted", 0, 130, tilted);
+				fontProgram.addLine(new Line<GlyphStyle>(), "tilted", 120, 50, tilted);
 				
 				var thick = new GlyphStyle();
 				thick.weight = 0.48;
 				thick.width = font.config.width;
 				thick.height = font.config.height;
-				fontProgram.addLine(new Line<GlyphStyle>(), "bold", 0, 160, thick);
-*/				
+				fontProgram.addLine(new Line<GlyphStyle>(), "bold", 220, 50, thick);
+				
 				var line = new Line<GlyphStyle>();
-				fontProgram.addLine(line, "Hello World ;)", 100, 100, glyphStyle);
+				fontProgram.addLine(line, "hello World ;)", 0, 100, glyphStyle);
 				
 				//TODO: line.setGlyphOffset(0, 3  , 5, 6);
 				
-				fontProgram.lineSetStyle(line, glyphStyle2, 1, 3);
-				fontProgram.lineSetStyle(line, glyphStyle1, 5, 8);
+				fontProgram.lineSetStyle(line, glyphStyle2, 1, 5);
+				fontProgram.lineSetStyle(line, glyphStyle1, 6, 13);
 				//fontProgram.updateLine(line, 1);
 				fontProgram.lineSetPosition(line, 0, 130);
 				//fontProgram.updateLine(line);
+				
+				fontProgram.lineSetChar(line, "H".charCodeAt(0) , 0, glyphStyle2); // replace existing char into line
+				fontProgram.lineSetChars(line, "Planet", 6);  // replace existing chars into line
+				fontProgram.lineInsertChar(line, "-".charCodeAt(0) , 13);
+				fontProgram.lineInsertChars(line,  " Earth", 12, glyphStyle2);
+								
+				fontProgram.lineDeleteChar(line, 6);
+				fontProgram.lineDeleteChars(line, 6, 12);
+				
+				fontProgram.updateLine(line);
 				
 				// top line
 				helperLinesBuffer.addElement(new ElementSimple(0, Std.int(line.y), 2000, 1, Color.BLUE));				
@@ -177,16 +180,7 @@ class TextRendering
 				helperLinesBuffer.addElement(new ElementSimple(0, Std.int(line.y + line.height), 2000, 1, Color.GREEN));
 				
 				// TODO:
-				fontProgram.lineSetChar(line, "h".charCodeAt(0) , 0); // replace existing char into line
-				fontProgram.lineSetChars(line, "Planet", 6);  // replace existing chars into line
-				fontProgram.lineInsertChar(line, "-".charCodeAt(0) , 13);
-				//TODO: fontProgram.lineInsertChars(line,  "brave new ", 6);
-				fontProgram.updateLine(line);
-				
 								
-								
-				//fontProgram.lineDeleteChar(line, 0);
-				//fontProgram.lineDeleteChars(line, 4, 6);
 								
 				// line.clear();
 				
