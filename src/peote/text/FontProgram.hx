@@ -74,6 +74,20 @@ class FontProgramMacro
 			var glyphStyleHasMeta = Glyph.GlyphMacro.parseGlyphStyleMetas(styleModule+"."+styleName); // trace("FontProgram: glyphStyleHasMeta", glyphStyleHasMeta);
 			var glyphStyleHasField = Glyph.GlyphMacro.parseGlyphStyleFields(styleModule+"."+styleName); // trace("FontProgram: glyphStyleHasField", glyphStyleHasField);
 			
+			var charDataType:ComplexType;
+			if (glyphStyleHasMeta.packed) {
+				if (glyphStyleHasMeta.multiTexture && glyphStyleHasMeta.multiSlot) charDataType = macro: {unit:Int, slot:Int, fontData:peote.text.Gl3FontData, metric:peote.text.Gl3FontData.Metric};
+				else if (glyphStyleHasMeta.multiTexture) charDataType = macro: {unit:Int, fontData:peote.text.Gl3FontData, metric:peote.text.Gl3FontData.Metric};
+				else if (glyphStyleHasMeta.multiSlot) charDataType = macro: {slot:Int, fontData:peote.text.Gl3FontData, metric:peote.text.Gl3FontData.Metric};
+				else charDataType = macro: {fontData:peote.text.Gl3FontData, metric:peote.text.Gl3FontData.Metric};
+			}
+			else  {
+				if (glyphStyleHasMeta.multiTexture && glyphStyleHasMeta.multiSlot) charDataType = macro: {unit:Int, slot:Int, min:Int, max:Int};
+				else if (glyphStyleHasMeta.multiTexture) charDataType = macro: {unit:Int, min:Int, max:Int};
+				else if (glyphStyleHasMeta.multiSlot) charDataType = macro: {slot:Int, min:Int, max:Int};
+				else charDataType = macro: {min:Int, max:Int};
+			}
+
 			// -------------------------------------------------------------------------------------------
 			var c = macro		
 
@@ -271,19 +285,19 @@ class FontProgramMacro
 						case true: macro // ------- Gl3Font -------
 						{
 							var range = font.getRange(glyph.char);
-							var metric:peote.text.Gl3FontData.Metric = null;
+							//var metric:peote.text.Gl3FontData.Metric = null;
 							var fontData:Gl3FontData = null;
 							
 							${switch (glyphStyleHasMeta.multiTexture || glyphStyleHasMeta.multiSlot) {
 								case true: macro {
 									if (range != null) {
 										fontData = range.fontData;
-										metric = fontData.getMetric(glyph.char);
+										//metric = fontData.getMetric(glyph.char);
 									}
 								}
 								default: macro {
 									fontData = range;
-									metric = fontData.getMetric(glyph.char);
+									//metric = fontData.getMetric(glyph.char);
 								}
 							}}
 							var height = ${switch (glyphStyleHasField.local_height) {
@@ -305,6 +319,53 @@ class FontProgramMacro
 						}
 					}}
 					
+				}
+				
+				// returns range, fontdata and metric dependend of font-type
+				inline function getCharData(charcode:Int):$charDataType 
+				{
+					${switch (glyphStyleHasMeta.packed) {
+						// ------- Gl3Font -------
+						case true: 
+							if (glyphStyleHasMeta.multiTexture && glyphStyleHasMeta.multiSlot) {
+								macro {
+									var range = font.getRange(charcode);
+									if (range != null) {
+										var metric = range.fontData.getMetric(charcode);
+										if (metric == null) return null;
+										else return {unit:range.unit, slot:range.slot, fontData:range.fontData, metric:metric};
+									}
+									else return null;
+								}
+							}
+							else if (glyphStyleHasMeta.multiTexture) 
+								macro {
+									var range = font.getRange(charcode);
+									if (range != null) {
+										var metric = range.fontData.getMetric(charcode);
+										if (metric == null) return null;
+										else return {unit:range.unit, fontData:range.fontData, metric:metric};
+									}
+									else return null;
+								}
+							else if (glyphStyleHasMeta.multiSlot)
+								macro {
+									var range = font.getRange(charcode);
+									if (range != null) {
+										var metric = range.fontData.getMetric(charcode);
+										if (metric == null) return null;
+										else return {slot:range.slot, fontData:range.fontData, metric:metric};
+									}
+									else return null;
+								}
+							else macro {
+									var metric = font.getRange(charcode).getMetric(charcode);
+									if (metric == null) return null;
+									else return {fontData:font.getRange(charcode), metric:metric};
+								}
+						// ------- simple font -------
+						default:macro return font.getRange(charcode);
+					}}
 				}
 				
 				// TODO: split into getFontData(charcode:Int), setCharcode and setPosition
@@ -345,7 +406,6 @@ class FontProgramMacro
 							}}
 							
 							if (metric != null) {
-								// TODO: optimize full function like with in simple font
 								if (isNewChar) {
 									// TODO: let glyphes-width also include metrics with tex-offsets on need
 									glyph.tx = metric.u; // TODO: offsets for THICK letters
@@ -563,7 +623,7 @@ class FontProgramMacro
 						//trace(penX);
 						var glyph = new Glyph<$styleType>();
 						line.glyphes.push(glyph);
-						addGlyph(glyph, charcode, glyphStyle);	//TODO: return LineMetrics
+						addGlyph(glyph, charcode, glyphStyle);	// TODO: separate function to get metric first
 						
 						if (first) {
 							first = false;
@@ -610,7 +670,8 @@ class FontProgramMacro
 				}
 				
 				inline function _lineSetCharcode (i:Int, line:Line<$styleType>, isNewChar:Bool = true, isLast:Bool = true):Bool {
-					// TODO: callback if line height is changing					
+					// TODO: callback if line height is changing
+					// this also not need for every char in loops !
 					penY = line.y;
 					var lm = getLineMetric(line.glyphes[i]);
 					if (line.height != lm.desc) { // TODO: return metric from setCharcode() or integrate metric into glyph
@@ -713,9 +774,8 @@ class FontProgramMacro
 					
 					penY = line.y;
 					var lm = getLineMetric(glyph);
-					if (line.height != lm.desc) { // TODO: return metric from setCharcode() or integrate metric into glyph
+					if (line.height != lm.desc) { // TODO: separate function to get metric first
 						penY = line.y + (line.base - lm.base);
-						//trace("line metric new style:", penY, line.height, line.base);
 					}
 					
 					if (position == 0) {
@@ -763,7 +823,7 @@ class FontProgramMacro
 						if (first) {
 							first = false;
 							var lm = getLineMetric(glyph);
-							if (line.height != lm.desc) { // TODO: return metric from setCharcode() or integrate metric into glyph
+							if (line.height != lm.desc) { // TODO: separate function to get metric first
 								penY = line.y + (line.base - lm.base);
 							} else penY = line.y;
 						}
