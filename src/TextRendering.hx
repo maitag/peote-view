@@ -18,7 +18,7 @@ import peote.text.Font;
 
 import peote.text.FontProgram;
 import peote.text.Glyph;
-import peote.text.Range;
+//import peote.text.Range;
 
 //import peote.text.GlyphStyle;
 //import peote.text.Gl3GlyphStyle;
@@ -26,10 +26,12 @@ import peote.text.Range;
 import peote.text.Line;
 //import peote.text.Page;
 
-@packed       // glyphes are packed into textureatlas with ttfcompile (gl3font)
 //@multiSlot    // multiple slots per texture to store multiple unicode-ranges
 //@multiTexture // multiple textures to store multiple unicode-ranges
 //@useInt // TODO
+#if packed
+@packed        // glyphes are packed into textureatlas with ttfcompile (gl3font)
+#end
 class GlyphStyle {
 	//@global public var color:Color = Color.BLUE;
 	public var color:Color = Color.GREEN;
@@ -77,15 +79,18 @@ class TextRendering
 			peoteView.addDisplay(display);
 			helperLinesBuffer = new Buffer<ElementSimple>(10);
 			helperLinesProgram = new Program(helperLinesBuffer);
-			display.addProgram(helperLinesProgram);    // programm to display
+			display.addProgram(helperLinesProgram);
 			
-			//var font = new Font<GlyphStyle>("assets/fonts/tiled/hack_ascii.json");
+			#if packed
+			var font = new Font<GlyphStyle>("assets/fonts/packed/hack/config.json");
+			//var font = new Font<GlyphStyle>("assets/fonts/packed/unifont/config.json", [new peote.text.Range(0x0000,0x0fff)]);
+			//var font = new Font<GlyphStyle>("assets/fonts/packed/unifont/config.json");
+			//var font = new Font<GlyphStyle>("assets/fonts/packed/unifont/config.json", [peote.text.Range.C0ControlsBasicLatin(), peote.text.Range.C1ControlsLatin1Supplement()]);
+			#else
+			var font = new Font<GlyphStyle>("assets/fonts/tiled/hack_ascii.json");
 			//var font = new Font<GlyphStyle>("assets/fonts/tiled/liberation_ascii.json");
 			//var font = new Font<GlyphStyle>("assets/fonts/tiled/peote.json");
-			var font = new Font<GlyphStyle>("assets/fonts/packed/hack/config.json");
-			//var font = new Font<GlyphStyle>("assets/fonts/packed/unifont/config.json", [new Range(0x0000,0x0fff)]);
-			//var font = new Font<GlyphStyle>("assets/fonts/packed/unifont/config.json");
-			//var font = new Font<GlyphStyle>("assets/fonts/packed/unifont/config.json", [Range.C0ControlsBasicLatin(), Range.C1ControlsLatin1Supplement()]);
+			#end
 			
 			font.load( function() {
 			
@@ -113,7 +118,8 @@ class TextRendering
 				
 				//fontProgram.glyphSetChar(glyph1, "x".charCodeAt(0));
 				//glyph1.color = Color.BLUE;
-				//glyph1.height = 30;
+				//glyph1.width = font.config.width * 2;
+				//glyph1.height = font.config.height * 2;
 				//fontProgram.updateGlyph(glyph1);
 				//fontProgram.removeGlyph( glyph1 );
 				
@@ -154,7 +160,7 @@ class TextRendering
 				
 				//TODO: line.setGlyphOffset(0, 3  , 5, 6);
 				
-				fontProgram.lineSetStyle(line, glyphStyle2, 1, 5);
+/*				fontProgram.lineSetStyle(line, glyphStyle2, 1, 5);
 				fontProgram.lineSetStyle(line, glyphStyle1, 6, 13);
 				//fontProgram.updateLine(line, 1);
 				fontProgram.lineSetPosition(line, 0, 130);
@@ -178,7 +184,7 @@ class TextRendering
 				helperLinesBuffer.addElement(new ElementSimple(0, Std.int(line.y + line.base), 2000, 1, Color.RED));
 				// descender line
 				helperLinesBuffer.addElement(new ElementSimple(0, Std.int(line.y + line.height), 2000, 1, Color.GREEN));
-				
+*/				
 				// TODO:
 								
 								

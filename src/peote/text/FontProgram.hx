@@ -112,381 +112,9 @@ class FontProgramMacro
 					setFontStyle(fontStyle);
 				}
 				
-				public inline function addGlyph(glyph:$glyphType, charcode:Int, x:Null<Float>=null, y:Null<Float>=null, glyphStyle:$styleType = null):Bool {
-					glyphSetStyle(glyph, glyphStyle);
-					if (setCharcode(glyph, charcode, x, y)) {
-						_buffer.addElement(glyph);
-						return true;
-					} else return false;
-				}
-								
-				public inline function removeGlyph(glyph:$glyphType):Void {
-					_buffer.removeElement(glyph);
-				}
-								
-				public inline function updateGlyph(glyph:$glyphType):Void {
-					_buffer.updateElement(glyph);
-				}
-				
-				public inline function glyphSetStyle(glyph:$glyphType, glyphStyle:$styleType) {
-					glyph.setStyle((glyphStyle != null) ? glyphStyle : fontStyle);
-				}
-
-				public inline function glyphSetChar(glyph:$glyphType, charcode:Int, x:Null<Float>=null, y:Null<Float>=null):Bool
-				{
-					return setCharcode(glyph, charcode, x, y, true);
-				}
-
-				// -------------------------------------------------
-								
-				inline function setXW(glyph:$glyphType, charcode:Int, x:Null<Float>, width:Float, fontData:peote.text.Gl3FontData, metric:peote.text.Gl3FontData.Metric):Void {
-					${switch (glyphStyleHasMeta.packed)
-					{	case true: macro // ------- Gl3Font -------
-						{
-							glyph.w = metric.width * width;
-							if (x == null) {
-								if (font.kerning && prev_charcode != -1) { // KERNING
-									penX += fontData.kerning[prev_charcode][charcode] * width;
-								}
-								prev_charcode = charcode;
-								glyph.x = penX + metric.left * width;
-								penX += metric.advance * width;
-							}
-						}
-						default: macro {}
-					}}
-				}
-								
-				inline function setYW(glyph:$glyphType, charcode:Int, y:Null<Float>, height:Float, fontData:peote.text.Gl3FontData, metric:peote.text.Gl3FontData.Metric):Void {
-					${switch (glyphStyleHasMeta.packed)
-					{	case true: macro // ------- Gl3Font -------
-						{
-							glyph.h = metric.height * height;
-							if (y == null) {
-								glyph.y = penY + (fontData.height + fontData.descender - metric.top) * height;
-							}					
-						}
-						default: macro {}
-					}}
-				}
-				
-				// -------------------------------------------------
-				
-				inline function setXWsimple(glyph:$glyphType, charcode:Int, x:Null<Float>, width:Float):Void {
-					${switch (glyphStyleHasField.local_width) {
-						case true: macro {
-							glyph.width = width;
-						}
-						default: macro {}
-					}}
-					if (x == null) {
-						glyph.x = penX;
-						penX += width - width/font.config.width*(font.config.paddingRight-font.config.paddingLeft); // TODO: letterSpacing
-					}					
-				}
-								
-				inline function setYWsimple(glyph:$glyphType, charcode:Int, y:Null<Float>, height:Float):Void {
-					${switch (glyphStyleHasField.local_height) {
-						case true: macro {
-							glyph.height = height;
-						}
-						default: macro {}
-					}}
-					if (y == null) {
-						glyph.y = penY;
-					}					
-				}
-
-				// -------------------------------------------------
-				
-				inline function rightGlyphPos(glyph:$glyphType):Float
-				{
-					${switch (glyphStyleHasMeta.packed)
-					{
-						case true: macro // ------- Gl3Font -------
-						{
-							var range = font.getRange(glyph.char);
-							var metric:peote.text.Gl3FontData.Metric = null;
-							var fontData:Gl3FontData = null;
-							
-							${switch (glyphStyleHasMeta.multiTexture || glyphStyleHasMeta.multiSlot) {
-								case true: macro {
-									if (range != null) {
-										fontData = range.fontData;
-										metric = fontData.getMetric(glyph.char);
-									}
-								}
-								default: macro {
-									fontData = range;
-									metric = fontData.getMetric(glyph.char);
-								}
-							}}
-							var width = ${switch (glyphStyleHasField.local_width) {
-								case true: macro glyph.width;
-								default: switch (glyphStyleHasField.width) {
-									case true: macro fontStyle.width;
-									default: macro font.config.width;
-							}}}
-							return glyph.x + (metric.advance - metric.left) * width;
-						}
-						default: macro // ------- simple font -------
-						{
-							return glyph.x + glyph.width;
-						}
-					}}
-					
-				}
-				
-				inline function leftGlyphPos(glyph:$glyphType, prevCharcode:Int):Float
-				{
-					${switch (glyphStyleHasMeta.packed)
-					{
-						case true: macro // ------- Gl3Font -------
-						{
-							var range = font.getRange(glyph.char);
-							var metric:peote.text.Gl3FontData.Metric = null;
-							var fontData:Gl3FontData = null;
-							
-							${switch (glyphStyleHasMeta.multiTexture || glyphStyleHasMeta.multiSlot) {
-								case true: macro {
-									if (range != null) {
-										fontData = range.fontData;
-										metric = fontData.getMetric(glyph.char);
-									}
-								}
-								default: macro {
-									fontData = range;
-									metric = fontData.getMetric(glyph.char);
-								}
-							}}
-							var width = ${switch (glyphStyleHasField.local_width) {
-								case true: macro glyph.width;
-								default: switch (glyphStyleHasField.width) {
-									case true: macro fontStyle.width;
-									default: macro font.config.width;
-							}}}
-							var left = glyph.x - (metric.left) * width;
-							if (font.kerning && prev_charcode != -1) left -= fontData.kerning[prevCharcode][glyph.char] * width;
-							return left;
-							
-						}
-						default: macro // ------- simple font -------
-						{
-							return glyph.x;
-						}
-					}}
-					
-				}
-				
-				inline function getLineMetric(glyph:$glyphType): {asc:Float, base:Float, desc:Float}
-				{
-					${switch (glyphStyleHasMeta.packed)
-					{
-						case true: macro // ------- Gl3Font -------
-						{
-							var range = font.getRange(glyph.char);
-							//var metric:peote.text.Gl3FontData.Metric = null;
-							var fontData:Gl3FontData = null;
-							
-							${switch (glyphStyleHasMeta.multiTexture || glyphStyleHasMeta.multiSlot) {
-								case true: macro {
-									if (range != null) {
-										fontData = range.fontData;
-										//metric = fontData.getMetric(glyph.char);
-									}
-								}
-								default: macro {
-									fontData = range;
-									//metric = fontData.getMetric(glyph.char);
-								}
-							}}
-							var height = ${switch (glyphStyleHasField.local_height) {
-								case true: macro glyph.height;
-								default: switch (glyphStyleHasField.height) {
-									case true: macro fontStyle.height;
-									default: macro font.config.height;
-							}}}
-							return {
-								asc: height *(fontData.height + fontData.descender - (1 + fontData.ascender - fontData.height)),
-								base:height *(fontData.height + fontData.descender),
-								desc:height * fontData.height
-							};
-							
-						}
-						default: macro // ------- simple font -------
-						{
-							return null; // TODO: baseline from fontconfig!!!
-						}
-					}}
-					
-				}
-				
-				// returns range, fontdata and metric dependend of font-type
-				inline function getCharData(charcode:Int):$charDataType 
-				{
-					${switch (glyphStyleHasMeta.packed) {
-						// ------- Gl3Font -------
-						case true: 
-							if (glyphStyleHasMeta.multiTexture && glyphStyleHasMeta.multiSlot) {
-								macro {
-									var range = font.getRange(charcode);
-									if (range != null) {
-										var metric = range.fontData.getMetric(charcode);
-										if (metric == null) return null;
-										else return {unit:range.unit, slot:range.slot, fontData:range.fontData, metric:metric};
-									}
-									else return null;
-								}
-							}
-							else if (glyphStyleHasMeta.multiTexture) 
-								macro {
-									var range = font.getRange(charcode);
-									if (range != null) {
-										var metric = range.fontData.getMetric(charcode);
-										if (metric == null) return null;
-										else return {unit:range.unit, fontData:range.fontData, metric:metric};
-									}
-									else return null;
-								}
-							else if (glyphStyleHasMeta.multiSlot)
-								macro {
-									var range = font.getRange(charcode);
-									if (range != null) {
-										var metric = range.fontData.getMetric(charcode);
-										if (metric == null) return null;
-										else return {slot:range.slot, fontData:range.fontData, metric:metric};
-									}
-									else return null;
-								}
-							else macro {
-									var metric = font.getRange(charcode).getMetric(charcode);
-									if (metric == null) return null;
-									else return {fontData:font.getRange(charcode), metric:metric};
-								}
-						// ------- simple font -------
-						default:macro return font.getRange(charcode);
-					}}
-				}
-				
-				// TODO: split into getFontData(charcode:Int), setCharcode and setPosition
-				// TODO: penX should be local into Line
-				inline function setCharcode(glyph:$glyphType, charcode:Int, x:Null<Float>=null, y:Null<Float>=null, isNewChar = true):Bool
-				{
-					if (isNewChar) glyph.char = charcode;
-					if (x != null) glyph.x = x;
-					if (y != null) glyph.y = y;
-					
-					${switch (glyphStyleHasMeta.packed)
-					{
-						case true: macro // ------- Gl3Font -------
-						{
-							var range = font.getRange(charcode);
-							var metric:peote.text.Gl3FontData.Metric = null;
-							var fontData:Gl3FontData = null;
-							
-							${switch (glyphStyleHasMeta.multiTexture || glyphStyleHasMeta.multiSlot) {
-								case true: macro {
-									if (range != null) {
-										${switch (glyphStyleHasMeta.multiTexture) {
-											case true: macro glyph.unit = range.unit;
-											default: macro {}
-										}}
-										${switch (glyphStyleHasMeta.multiSlot) {
-											case true: macro glyph.slot = range.slot;
-											default: macro {}
-										}}
-										fontData = range.fontData;
-										metric = fontData.getMetric(charcode);
-									}
-								}
-								default: macro {
-									fontData = range;
-									metric = fontData.getMetric(charcode);
-								}
-							}}
-							
-							if (metric != null) {
-								if (isNewChar) {
-									// TODO: let glyphes-width also include metrics with tex-offsets on need
-									glyph.tx = metric.u; // TODO: offsets for THICK letters
-									glyph.ty = metric.v;
-									glyph.tw = metric.w;
-									glyph.th = metric.h;
-								}
-								${switch (glyphStyleHasField.local_width) {
-									case true: macro setXW(glyph, charcode, x, glyph.width, fontData, metric);
-									default: switch (glyphStyleHasField.width) {
-										case true: macro setXW(glyph, charcode, x, fontStyle.width, fontData, metric);
-										default: macro setXW(glyph, charcode, x, font.config.width, fontData, metric);
-								}}}
-								${switch (glyphStyleHasField.local_height) {
-									case true: macro setYW(glyph, charcode, y, glyph.height, fontData, metric);
-									default: switch (glyphStyleHasField.height) {
-										case true: macro setYW(glyph, charcode, y, fontStyle.height, fontData, metric);
-										default: macro setYW(glyph, charcode, y, font.config.height, fontData, metric);
-								}}}
-								return true;
-							}
-							else return false;
-							
-						}
-						default: macro // ------- simple font -------
-						{
-							if (isNewChar)
-							{
-								var range = font.getRange(charcode);
-								if (range != null)
-								{
-									${switch (glyphStyleHasMeta.multiTexture) {
-										case true: macro glyph.unit = range.unit;
-										default: macro {}
-									}}
-									${switch (glyphStyleHasMeta.multiSlot) {
-										case true: macro glyph.slot = range.slot;
-										default: macro {}
-									}}						
-									glyph.tile = charcode-range.min;
-									
-									${switch (glyphStyleHasField.local_width) {
-										case true: macro setXWsimple(glyph, charcode, x, glyph.width);
-										default: switch (glyphStyleHasField.width) {
-											case true: macro setXWsimple(glyph, charcode, x, fontStyle.width);
-											default: macro setXWsimple(glyph, charcode, x, font.config.width);
-									}}}
-									${switch (glyphStyleHasField.local_height) {
-										case true: macro setYWsimple(glyph, charcode, y, glyph.height);
-										default: switch (glyphStyleHasField.height) {
-											case true: macro setYWsimple(glyph, charcode, y, fontStyle.height);
-											default: macro setYWsimple(glyph, charcode, y, font.config.height);
-									}}}
-									
-									return true;
-								} 
-								else return false;
-							}
-							else {
-								${switch (glyphStyleHasField.local_width) {
-									case true: macro setXWsimple(glyph, charcode, x, glyph.width);
-									default: switch (glyphStyleHasField.width) {
-										case true: macro setXWsimple(glyph, charcode, x, fontStyle.width);
-										default: macro setXWsimple(glyph, charcode, x, font.config.width);
-								}}}
-								${switch (glyphStyleHasField.local_height) {
-									case true: macro setYWsimple(glyph, charcode, y, glyph.height);
-									default: switch (glyphStyleHasField.height) {
-										case true: macro setYWsimple(glyph, charcode, y, fontStyle.height);
-										default: macro setYWsimple(glyph, charcode, y, font.config.height);
-								}}}
-								
-								return true;
-							}
-							
-						}
-					}}
-				
-				}
-
-				
+				// -----------------------------------------
+				// ---------------- Font  ------------------
+				// -----------------------------------------
 				public inline function setFont(font:Font<$styleType>):Void
 				{
 					this.font = font;
@@ -567,7 +195,7 @@ class FontProgramMacro
 					
 					${switch (glyphStyleHasMeta.packed)
 					{
-						case true: macro // ------- packed -------
+						case true: macro // ------- packed font -------
 						{
 							// tilting
 							if (tilt != "0.0") setFormula("x", "x + (1.0-aPosition.y)*w*" + tilt);
@@ -607,34 +235,345 @@ class FontProgramMacro
 					updateTextures();
 				}
 				
+				// -------------------------------------------------------------------------------------------------
+				// -------------------------------------------------------------------------------------------------
+				// -------------------------------------------------------------------------------------------------
+				
+				inline function getLineMetric(glyph:$glyphType, fontData:peote.text.Gl3FontData): {asc:Float, base:Float, desc:Float}
+				{
+					${switch (glyphStyleHasMeta.packed)
+					{
+						case true: macro // ------- Gl3Font -------
+						{
+							var height = ${switch (glyphStyleHasField.local_height) {
+								case true: macro glyph.height;
+								default: switch (glyphStyleHasField.height) {
+									case true: macro fontStyle.height;
+									default: macro font.config.height;
+							}}}
+							return {
+								asc: height *(fontData.height + fontData.descender - (1 + fontData.ascender - fontData.height)),
+								base:height *(fontData.height + fontData.descender),
+								desc:height * fontData.height
+							};
+							
+						}
+						default: macro // ------- simple font -------
+						{
+							return null; // TODO: baseline from fontconfig!!!
+						}
+					}}
+					
+				}
+				
+				// returns range, fontdata and metric in dependend of font-type
+				inline function getCharData(charcode:Int):$charDataType 
+				{
+					${switch (glyphStyleHasMeta.packed) {
+						// ------- Gl3Font -------
+						case true: 
+							if (glyphStyleHasMeta.multiTexture && glyphStyleHasMeta.multiSlot) {
+								macro {
+									var range = font.getRange(charcode);
+									if (range != null) {
+										var metric = range.fontData.getMetric(charcode);
+										if (metric == null) return null;
+										else return {unit:range.unit, slot:range.slot, fontData:range.fontData, metric:metric};
+									}
+									else return null;
+								}
+							}
+							else if (glyphStyleHasMeta.multiTexture) 
+								macro {
+									var range = font.getRange(charcode);
+									if (range != null) {
+										var metric = range.fontData.getMetric(charcode);
+										if (metric == null) return null;
+										else return {unit:range.unit, fontData:range.fontData, metric:metric};
+									}
+									else return null;
+								}
+							else if (glyphStyleHasMeta.multiSlot)
+								macro {
+									var range = font.getRange(charcode);
+									if (range != null) {
+										var metric = range.fontData.getMetric(charcode);
+										if (metric == null) return null;
+										else return {slot:range.slot, fontData:range.fontData, metric:metric};
+									}
+									else return null;
+								}
+							else macro {
+									var metric = font.getRange(charcode).getMetric(charcode);
+									if (metric == null) return null;
+									else return {fontData:font.getRange(charcode), metric:metric};
+								}
+						// ------- simple font -------
+						default:macro return font.getRange(charcode);
+					}}
+				}
+				
+				// -------------------------------------------------
+				
+				inline function rightGlyphPos(glyph:$glyphType, charData:$charDataType):Float
+				{
+					${switch (glyphStyleHasMeta.packed)
+					{
+						case true: macro // ------- Gl3Font -------
+						{
+							${switch (glyphStyleHasField.local_width) {
+								case true: macro return glyph.x + (charData.metric.advance - charData.metric.left) * glyph.width;
+								default: switch (glyphStyleHasField.width) {
+									case true: macro return glyph.x + (charData.metric.advance - charData.metric.left) * fontStyle.width;
+									default: macro return glyph.x + (charData.metric.advance - charData.metric.left) * font.config.width;
+							}}}
+						}
+						default: macro // ------- simple font -------
+						{
+							return glyph.x + glyph.width;
+						}
+					}}
+				}
+				
+				inline function leftGlyphPos(glyph:$glyphType, charData:$charDataType):Float
+				{
+					${switch (glyphStyleHasMeta.packed)
+					{
+						case true: macro // ------- Gl3Font -------
+						{
+							${switch (glyphStyleHasField.local_width) {
+								case true: macro return glyph.x - (charData.metric.left) * glyph.width;
+								default: switch (glyphStyleHasField.width) {
+									case true: macro return glyph.x - (charData.metric.left) * fontStyle.width;
+									default: macro return glyph.x - (charData.metric.left) * font.config.width;
+							}}}
+						}
+						default: macro // ------- simple font -------
+						{
+							return glyph.x;
+						}
+					}}
+					
+				}
+				
+				inline function nextGlyphOffset(glyph:$glyphType, charData:$charDataType):Float
+				{
+					${switch (glyphStyleHasMeta.packed)
+					{	case true: macro // ------- Gl3Font -------
+						{
+							${switch (glyphStyleHasField.local_width) {
+								case true: macro return charData.metric.advance * glyph.width;
+								default: switch (glyphStyleHasField.width) {
+									case true: macro return charData.metric.advance * fontStyle.width;
+									default: macro return charData.metric.advance * font.config.width;
+							}}}
+						}
+						default: macro {
+							return glyph.width;//TODO: - width / font.config.width * (font.config.paddingRight - font.config.paddingLeft);
+						}
+					}}					
+				}
+				
+				inline function kerningOffset(prev_glyph:$glyphType, glyph:$glyphType, kerning:Array<Array<Float>>):Float
+				{
+					${switch (glyphStyleHasMeta.packed)
+					{	case true: macro // ------- Gl3Font -------
+						{	
+							if (font.kerning && prev_glyph != null) 
+							{	trace("kerning: ", prev_glyph.char, glyph.char, " -> " + kerning[prev_glyph.char][glyph.char]);
+								${switch (glyphStyleHasField.local_width) {
+									case true: macro return kerning[prev_glyph.char][glyph.char] * (glyph.width + prev_glyph.width)/2;
+									default: switch (glyphStyleHasField.width) {
+										case true: macro return kerning[prev_glyph.char][glyph.char] * fontStyle.width;
+										default: macro return kerning[prev_glyph.char][glyph.char] * font.config.width;
+								}}}
+							} else return 0.0;
+						}
+						default: macro {
+							return 0.0;
+						}
+					}}					
+				}
+				
+				// -------------------------------------------------
+
+				inline function setPosition(glyph:$glyphType, charData:$charDataType, x:Float, y:Float)
+				{					
+					${switch (glyphStyleHasMeta.packed)
+					{
+						case true: macro // ------- Gl3Font -------
+						{
+							${switch (glyphStyleHasField.local_width) {
+								case true: macro glyph.x = x + charData.metric.left * glyph.width;
+								default: switch (glyphStyleHasField.width) {
+									case true: macro glyph.x = x + charData.metric.left * fontStyle.width;
+									default: macro glyph.x = x + charData.metric.left * font.config.width;
+							}}}
+							${switch (glyphStyleHasField.local_height) {
+								case true: macro glyph.y = y + (charData.fontData.height + charData.fontData.descender - charData.metric.top) * glyph.height;
+								default: switch (glyphStyleHasField.height) {
+									case true: macro glyph.y = y + (charData.fontData.height + charData.fontData.descender - charData.metric.top) * fontStyle.height;
+									default: macro glyph.y = y + (charData.fontData.height + charData.fontData.descender - charData.metric.top) * font.config.height;
+							}}}							
+						}
+						default: macro // ------- simple font -------
+						{
+							glyph.x = x;
+							glyph.y = y;
+						}
+					}}
+				}
+				
+				inline function setSize(glyph:$glyphType, charData:$charDataType)
+				{
+					${switch (glyphStyleHasMeta.packed)
+					{
+						case true: macro // ------- Gl3Font -------
+						{
+							${switch (glyphStyleHasField.local_width) {
+								case true: macro glyph.w = charData.metric.width * glyph.width;
+								default: switch (glyphStyleHasField.width) {
+									case true: macro glyph.w = charData.metric.width * fontStyle.width;
+									default: macro glyph.w = charData.metric.width * font.config.width;
+							}}}
+							${switch (glyphStyleHasField.local_height) {
+								case true: macro glyph.h = charData.metric.height * glyph.height;
+								default: switch (glyphStyleHasField.height) {
+									case true: macro glyph.h = charData.metric.height * fontStyle.height;
+									default: macro glyph.h = charData.metric.height * font.config.height;
+							}}}
+						}
+						default: macro {} // ------- simple font have no metric
+					}}
+				}
+				
+				inline function setCharcode(glyph:$glyphType, charcode:Int, charData:$charDataType)
+				{
+					glyph.char = charcode;
+					
+					${switch (glyphStyleHasMeta.multiTexture) {
+						case true: macro glyph.unit = charData.unit;
+						default: macro {}
+					}}
+					${switch (glyphStyleHasMeta.multiSlot) {
+						case true: macro glyph.slot = charData.slot;
+						default: macro {}
+					}}
+					
+					${switch (glyphStyleHasMeta.packed)
+					{
+						case true: macro // ------- Gl3Font -------
+						{
+							// TODO: let glyphes-width also include metrics with tex-offsets on need
+							glyph.tx = charData.metric.u; // TODO: offsets for THICK letters
+							glyph.ty = charData.metric.v;
+							glyph.tw = charData.metric.w;
+							glyph.th = charData.metric.h;							
+						}
+						default: macro // ------- simple font -------
+						{
+							glyph.tile = charcode - charData.min;
+						}
+					}}
+				
+				}
+				
+				// -----------------------------------------
+				// ---------------- Glyphes ----------------
+				// -----------------------------------------
+				
+				public inline function addGlyph(glyph:$glyphType, charcode:Int, x:Float, y:Float, glyphStyle:$styleType = null):Bool {
+					var charData = getCharData(charcode);
+					if (charData != null) {
+						glyphSetStyle(glyph, glyphStyle);
+						setCharcode(glyph, charcode, charData);
+						setSize(glyph, charData);
+						glyph.x = x;
+						glyph.y = y;
+						_buffer.addElement(glyph);
+						return true;
+					} else return false;
+				}
+								
+				public inline function removeGlyph(glyph:$glyphType):Void {
+					_buffer.removeElement(glyph);
+				}
+								
+				public inline function updateGlyph(glyph:$glyphType):Void {
+					_buffer.updateElement(glyph);
+				}
+				
+				public inline function glyphSetStyle(glyph:$glyphType, glyphStyle:$styleType) {
+					glyph.setStyle((glyphStyle != null) ? glyphStyle : fontStyle);
+				}
+
+				// sets position in depend of metrics-data
+				// TODO: put at a baseline and special for simple font
+				public inline function glyphSetPosition(glyph:$glyphType, x:Float, y:Float) {
+					var charData = getCharData(glyph.char);
+					setPosition(glyph, charData, x, y);
+				}
+
+				public inline function glyphSetChar(glyph:$glyphType, charcode:Int):Bool
+				{
+					var charData = getCharData(charcode);
+					if (charData != null) {
+						setCharcode(glyph, charcode, charData);
+						setSize(glyph, charData);
+						return true;
+					} else return false;
+				}
+				
 				// -----------------------------------------
 				// ---------------- Lines ------------------
 				// -----------------------------------------
-				public function addLine(line:Line<$styleType>, chars:String, x:Float=0, y:Float=0, glyphStyle:$styleType = null)
+				public function addLine(line:Line<$styleType>, chars:String, x:Float=0, y:Float=0, glyphStyle:$styleType = null):Bool
 				{
 					// TODO: add/remove withouth loosing the glyphes
 					
 					trace("addLine");
-					penX = line.x = x;
-					penY = line.y = y;
-					var first = true;
+					var ret = true;
+					line.x = x;
+					line.y = y;
+					var glyph:Glyph<$styleType>;
+					var prev_glyph:Glyph<$styleType> = null;
+					var charData:$charDataType;
 					haxe.Utf8.iter(chars, function(charcode)
 					{
-						//trace(penX);
-						var glyph = new Glyph<$styleType>();
-						line.glyphes.push(glyph);
-						addGlyph(glyph, charcode, glyphStyle);	// TODO: separate function to get metric first
-						
-						if (first) {
-							first = false;
-							var lm = getLineMetric(glyph);
-							line.ascender = lm.asc;
-							line.height = lm.desc;
-							line.base = lm.base;
-						}
-						//trace(String.fromCharCode(line.chars[line.chars.length-1]),line.glyphes[line.chars.length-1].x);
+						charData = getCharData(charcode);
+						if (charData != null)
+						{
+							glyph = new Glyph<$styleType>();
+							line.glyphes.push(glyph);
+							glyphSetStyle(glyph, glyphStyle);
+							setCharcode(glyph, charcode, charData);
+							setSize(glyph, charData);
+							${switch (glyphStyleHasMeta.packed) {
+								case true: macro x += kerningOffset(prev_glyph, glyph, charData.fontData.kerning);
+								default: macro {}
+							}}
+							trace(String.fromCharCode(charcode), x);
+							setPosition(glyph, charData, x, y);
+							x += nextGlyphOffset(glyph, charData);
+							_buffer.addElement(glyph);
+							prev_glyph = glyph;
+						} 
+						else ret = false;
 					});
-					//trace("line metric:", line.height, line.base);
+					
+					${switch (glyphStyleHasMeta.packed) {
+						case true: macro {
+							if (prev_glyph != null) {
+								var lm = getLineMetric(prev_glyph, charData.fontData);
+								line.ascender = lm.asc;
+								line.height = lm.desc;
+								line.base = lm.base;
+								trace("line metric:", line.height, line.base);
+							}
+						}
+						default: macro {}
+					}}
+					return ret;
 				}
 				
 				public function removeLine(line:Line<$styleType>)
@@ -646,7 +585,7 @@ class FontProgramMacro
 				
 				// ----------- change Line Style and Position ----------------
 				
-				public function lineSetStyle(line:Line<$styleType>, glyphStyle:$styleType, from:Int = 0, to:Null<Int> = null)
+/*				public function lineSetStyle(line:Line<$styleType>, glyphStyle:$styleType, from:Int = 0, to:Null<Int> = null)
 				{
 					if (to == null) to = line.glyphes.length;
 					
@@ -660,6 +599,7 @@ class FontProgramMacro
 					else {
 						penX = rightGlyphPos(line.glyphes[from - 1]);
 						prev_charcode = line.glyphes[from - 1].char;
+						// TODO: prev_scale
 					}
 						
 					for (i in from...to) {
@@ -887,7 +827,7 @@ class FontProgramMacro
 					line.updateFrom = 0x1000000;
 					line.updateTo = 0;
 				}
-			
+*/			
 			} // end class
 
 			// -------------------------------------------------------------------------------------------
