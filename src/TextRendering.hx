@@ -160,19 +160,19 @@ class TextRendering
 				
 				//TODO: line.setGlyphOffset(0, 3  , 5, 6);
 				
-/*				fontProgram.lineSetStyle(line, glyphStyle2, 1, 5);
+				fontProgram.lineSetStyle(line, glyphStyle2, 1, 5);
 				fontProgram.lineSetStyle(line, glyphStyle1, 6, 13);
-				//fontProgram.updateLine(line, 1);
+				//fontProgram.updateLine(line, 6);
 				fontProgram.lineSetPosition(line, 0, 130);
 				//fontProgram.updateLine(line);
 				
 				fontProgram.lineSetChar(line, "H".charCodeAt(0) , 0, glyphStyle2); // replace existing char into line
 				fontProgram.lineSetChars(line, "Planet", 6);  // replace existing chars into line
-				fontProgram.lineInsertChar(line, "-".charCodeAt(0) , 13);
-				fontProgram.lineInsertChars(line,  " Earth", 12, glyphStyle2);
+				fontProgram.lineInsertChar(line, "-".charCodeAt(0) , 13, glyphStyle1);
+				fontProgram.lineInsertChars(line,  "Earth", 12, glyphStyle2);
 								
-				fontProgram.lineDeleteChar(line, 6);
-				fontProgram.lineDeleteChars(line, 6, 12);
+				fontProgram.lineDeleteChar(line, 5);
+				fontProgram.lineDeleteChars(line, 11);
 				
 				fontProgram.updateLine(line);
 				
@@ -184,7 +184,7 @@ class TextRendering
 				helperLinesBuffer.addElement(new ElementSimple(0, Std.int(line.y + line.base), 2000, 1, Color.RED));
 				// descender line
 				helperLinesBuffer.addElement(new ElementSimple(0, Std.int(line.y + line.height), 2000, 1, Color.GREEN));
-*/				
+				
 				// TODO:
 								
 								
