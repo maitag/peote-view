@@ -47,12 +47,15 @@ class GlyphStyle {
 	//@global public var rotation:Float = -45;
 	//public var rotation:Float = 0;
 	
-	//@global public var tilt = 0.5;
-	public var tilt = 0.0;
+	//@global public var tilt:Float = 0.5;
+	public var tilt:Float = 0.0;
 	
 	//@global public var weight = 0.48;
 	public var weight:Float = 0.5;
 	
+	// TODO: additional spacing after each letter
+	//@global public var letterSpacing:Float = 0.0;
+	//public var letterSpacing:Float = 2.0;
 	
 	// TODO: for adjusting Glyphes inside Line
 	// xOffset, yOffset
@@ -70,6 +73,7 @@ class TextRendering
 	var timer:Timer;
 	var helperLinesBuffer:Buffer<ElementSimple>;
 	var helperLinesProgram:Program;
+	var scrollLine:Line<GlyphStyle>;
 	
 	public function new(window:Window)
 	{
@@ -113,8 +117,7 @@ class TextRendering
 				
 				// -----------
 
-				var glyph1 = new Glyph<GlyphStyle>();
-				fontProgram.addGlyph(glyph1, "A".charCodeAt(0), 0, 50, glyphStyle1);
+				var glyph1 = fontProgram.createGlyph("A".charCodeAt(0), 0, 50, glyphStyle1);
 				
 				//fontProgram.glyphSetChar(glyph1, "x".charCodeAt(0));
 				//glyph1.color = Color.BLUE;
@@ -133,62 +136,106 @@ class TextRendering
 				//fontProgram.setFontStyle(glyphStyle2);
 				
 				var glyph2 = new Glyph<GlyphStyle>();
-				if (fontProgram.addGlyph( glyph2, "B".charCodeAt(0), 30, 50, glyphStyle2)) {
-					//fontProgram.glyphSetStyle(glyph2, glyphStyle1);
-					//fontProgram.updateGlyph(glyph2);
+				if (fontProgram.setGlyph( glyph2, "B".charCodeAt(0), 30, 50, glyphStyle1)) {
+					Timer.delay(function() {
+						fontProgram.glyphSetStyle(glyph2, glyphStyle2);
+						fontProgram.updateGlyph(glyph2);
+						Timer.delay(function() {
+							fontProgram.removeGlyph(glyph2);
+							Timer.delay(function() {
+								fontProgram.addGlyph(glyph2);
+							}, 1000);
+						}, 1000);
+					}, 1000);
 				}
 				else trace(" ----> Charcode not inside Font");
 				
 				
-				// -------- Lines  ---------
+				// ------------------- Lines  -------------------
+				
 				var gl3font = font.getRange(65);
 				var tilted = new GlyphStyle();
 				tilted.tilt = 0.4;
 				tilted.color = 0xaabb22ff;
 				tilted.width = font.config.width;
 				tilted.height = font.config.height;
-				fontProgram.addLine(new Line<GlyphStyle>(), "tilted", 120, 50, tilted);
+				fontProgram.setLine(new Line<GlyphStyle>(), "tilted", 120, 50, tilted);
 				
 				var thick = new GlyphStyle();
 				thick.weight = 0.48;
 				thick.width = font.config.width;
 				thick.height = font.config.height;
-				fontProgram.addLine(new Line<GlyphStyle>(), "bold", 220, 50, thick);
+				fontProgram.setLine(new Line<GlyphStyle>(), "bold", 220, 50, thick);
 				
-				var line = new Line<GlyphStyle>();
-				fontProgram.addLine(line, "hello World ;)", 0, 100, glyphStyle);
+				var line = fontProgram.createLine("hello World :)", 0, 100, glyphStyle);
 				
-				//TODO: line.setGlyphOffset(0, 3  , 5, 6);
+				if (line != null) 
+				{
+					//TODO: line.setGlyphOffset(0, 3  , 5, 6);
+					
+					Timer.delay(function() {
+						fontProgram.setLine(line, "hello World (^_^)", line.x, line.y, glyphStyle);
+						fontProgram.updateLine(line);
+					}, 1000);
+					
+					Timer.delay(function() {
+						fontProgram.lineSetStyle(line, glyphStyle2, 1, 5);
+						fontProgram.lineSetStyle(line, glyphStyle1, 6, 12);
+						//fontProgram.updateLine(line, 6);
+						fontProgram.lineSetPosition(line, 0, 130);
+						fontProgram.updateLine(line);
+					}, 2000);
+					
+					Timer.delay(function() {
+						fontProgram.lineSetChar(line, "H".charCodeAt(0) , 0, glyphStyle2); // replace existing char into line
+						fontProgram.lineSetChars(line, "Planet", 6);  // replace existing chars into line
+						fontProgram.updateLine(line);
+					}, 3000);
+
+					Timer.delay(function() {
+						fontProgram.lineInsertChar(line, "~".charCodeAt(0) , 12, glyphStyle1);
+						fontProgram.lineInsertChars(line,  "Earth", 12, glyphStyle2);
+						fontProgram.updateLine(line);
+					}, 4000);
+									
+					Timer.delay(function() {
+						fontProgram.lineDeleteChar(line, 5);
+						fontProgram.updateLine(line);
+					}, 5000);
+					
+					Timer.delay(function() {
+						fontProgram.lineDeleteChars(line, 16);
+						fontProgram.updateLine(line);
+					}, 6000);
+					
+					
+					// TODO:
+					// line.clear();
+				}
 				
-				fontProgram.lineSetStyle(line, glyphStyle2, 1, 5);
-				fontProgram.lineSetStyle(line, glyphStyle1, 6, 13);
-				//fontProgram.updateLine(line, 6);
-				fontProgram.lineSetPosition(line, 0, 130);
-				//fontProgram.updateLine(line);
+				// ------------------- scroll Line into visible area -------------------
 				
-				fontProgram.lineSetChar(line, "H".charCodeAt(0) , 0, glyphStyle2); // replace existing char into line
-				fontProgram.lineSetChars(line, "Planet", 6);  // replace existing chars into line
-				fontProgram.lineInsertChar(line, "-".charCodeAt(0) , 13, glyphStyle1);
-				fontProgram.lineInsertChars(line,  "Earth", 12, glyphStyle2);
-								
-				fontProgram.lineDeleteChar(line, 5);
-				fontProgram.lineDeleteChars(line, 11);
+				scrollLine = new Line<GlyphStyle>();
+				fontProgram.setLine(scrollLine, "This line is masked for scrolling.", 0, 200, glyphStyle2);
+				Timer.delay(function() {
+					fontProgram.removeLine(scrollLine);
+					Timer.delay(function() {
+						fontProgram.addLine(scrollLine);
+					}, 1000);
+				}, 1000);
 				
-				fontProgram.updateLine(line);
-				
+				// background
+				helperLinesBuffer.addElement(new ElementSimple(Std.int(scrollLine.x), Std.int(scrollLine.y), Std.int(scrollLine.width)+100, Std.int(scrollLine.height), Color.GREY3));
 				// top line
-				helperLinesBuffer.addElement(new ElementSimple(0, Std.int(line.y), 2000, 1, Color.BLUE));				
+				helperLinesBuffer.addElement(new ElementSimple(0, Std.int(scrollLine.y), 2000, 1, Color.BLUE));				
 				// ascender line
-				helperLinesBuffer.addElement(new ElementSimple(0, Std.int(line.y + line.ascender), 2000, 1, Color.YELLOW));
+				helperLinesBuffer.addElement(new ElementSimple(0, Std.int(scrollLine.y + scrollLine.ascender), 2000, 1, Color.YELLOW));
 				// baseline
-				helperLinesBuffer.addElement(new ElementSimple(0, Std.int(line.y + line.base), 2000, 1, Color.RED));
+				helperLinesBuffer.addElement(new ElementSimple(0, Std.int(scrollLine.y + scrollLine.base), 2000, 1, Color.RED));
 				// descender line
-				helperLinesBuffer.addElement(new ElementSimple(0, Std.int(line.y + line.height), 2000, 1, Color.GREEN));
+				helperLinesBuffer.addElement(new ElementSimple(0, Std.int(scrollLine.y + scrollLine.height), 2000, 1, Color.GREEN));
 				
-				// TODO:
-								
-								
-				// line.clear();
+				
 				
 				//fontProgram.removeLine(line);
 				

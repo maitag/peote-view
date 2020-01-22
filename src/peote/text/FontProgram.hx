@@ -105,7 +105,7 @@ class FontProgramMacro
 				
 				public function new(font:peote.text.Font<$styleType>, fontStyle:$styleType)
 				{
-					_buffer = new peote.view.Buffer<$glyphType>(100);
+					_buffer = new peote.view.Buffer<$glyphType>(1024,1024,true);
 					super(_buffer);	
 					
 					setFont(font);
@@ -481,8 +481,22 @@ class FontProgramMacro
 				// -----------------------------------------
 				// ---------------- Glyphes ----------------
 				// -----------------------------------------
+								
+				public inline function createGlyph(charcode:Int, x:Float, y:Float, glyphStyle:$styleType = null):$glyphType {
+					var charData = getCharData(charcode);
+					if (charData != null) {
+						var glyph = new peote.text.Glyph<$styleType>();
+						glyphSetStyle(glyph, glyphStyle);
+						setCharcode(glyph, charcode, charData);
+						setSize(glyph, charData);
+						glyph.x = x;
+						glyph.y = y;
+						_buffer.addElement(glyph);
+						return glyph;
+					} else return null;
+				}
 				
-				public inline function addGlyph(glyph:$glyphType, charcode:Int, x:Float, y:Float, glyphStyle:$styleType = null):Bool {
+				public inline function setGlyph(glyph:$glyphType, charcode:Int, x:Float, y:Float, glyphStyle:$styleType = null):Bool {
 					var charData = getCharData(charcode);
 					if (charData != null) {
 						glyphSetStyle(glyph, glyphStyle);
@@ -493,6 +507,10 @@ class FontProgramMacro
 						_buffer.addElement(glyph);
 						return true;
 					} else return false;
+				}
+								
+				public inline function addGlyph(glyph:$glyphType):Void {
+						_buffer.addElement(glyph);
 				}
 								
 				public inline function removeGlyph(glyph:$glyphType):Void {
@@ -527,61 +545,99 @@ class FontProgramMacro
 				// -----------------------------------------
 				// ---------------- Lines ------------------
 				// -----------------------------------------
-				public function addLine(line:Line<$styleType>, chars:String, x:Float=0, y:Float=0, glyphStyle:$styleType = null):Bool
+				public function createLine(chars:String, x:Float=0, y:Float=0, glyphStyle:$styleType = null):peote.text.Line<$styleType>
 				{
-					// TODO: add/remove withouth loosing the glyphes
-					trace("addLine");
-					
-					var ret = true;
-					line.x = x;
-					line.y = y;
-					
-					var glyph:Glyph<$styleType>;
-					var prev_glyph:Glyph<$styleType> = null;
-					var charData:$charDataType = null;
-					
-					haxe.Utf8.iter(chars, function(charcode)
-					{
-						charData = getCharData(charcode);
-						if (charData != null)
-						{
-							glyph = new Glyph<$styleType>();
-							line.glyphes.push(glyph);
-							glyphSetStyle(glyph, glyphStyle);
-							setCharcode(glyph, charcode, charData);
-							setSize(glyph, charData);
-							${switch (glyphStyleHasMeta.packed) {
-								case true: macro x += kerningOffset(prev_glyph, glyph, charData.fontData.kerning);
-								default: macro {}
-							}}
-							//trace(String.fromCharCode(charcode), x);
-							setPosition(glyph, charData, x, y);
-							x += nextGlyphOffset(glyph, charData);
-							_buffer.addElement(glyph);
-							prev_glyph = glyph;
-						} 
-						else ret = false;
-					});
-					
-					${switch (glyphStyleHasMeta.packed) {
-						case true: macro {
-							if (prev_glyph != null) {
-								var lm = getLineMetric(prev_glyph, charData.fontData);
-								line.ascender = lm.asc;
-								line.height = lm.desc;
-								line.base = lm.base;
-								trace("line metric:", line.height, line.base);
-							}
-						}
-						default: macro {}
-					}}
-					return ret;
+					var line = new peote.text.Line<$styleType>();
+					if (setLine(line, chars, x, y, glyphStyle)) return line else return null;
+				}
+				
+				public function addLine(line:Line<$styleType>)
+				{
+					for (glyph in line.glyphes) {
+						addGlyph(glyph);
+					}
 				}
 				
 				public function removeLine(line:Line<$styleType>)
 				{
 					for (glyph in line.glyphes) {
 						removeGlyph(glyph);
+					}
+				}
+				
+				public inline function setLine(line:Line<$styleType>, chars:String, x:Float=0, y:Float=0, glyphStyle:$styleType = null):Bool
+				{
+					trace("setLine");
+					
+					line.x = x;
+					line.y = y;
+						
+					if (line.glyphes.length == 0)
+					{
+						if (_lineAppend(line, chars, x, y, null, glyphStyle, true) == null) return false else return true;
+					}
+					else
+					{
+						if (line.glyphes.length > chars.length) {
+							lineDeleteChars(line, chars.length);
+						}
+						line.updateFrom = 0;
+						line.updateTo = chars.length;
+						
+						var prev_glyph:peote.text.Glyph<$styleType> = null;
+						var i = 0;
+						var ret = true;
+						var charData:$charDataType = null;
+						
+						haxe.Utf8.iter(chars, function(charcode)
+						{
+							charData = getCharData(charcode);
+							if (charData != null)
+							{
+								if (i == line.glyphes.length) {
+									line.glyphes.push(new peote.text.Glyph<$styleType>());
+									glyphSetStyle(line.glyphes[i], glyphStyle);
+									setCharcode(line.glyphes[i], charcode, charData);
+									setSize(line.glyphes[i], charData);
+									${switch (glyphStyleHasMeta.packed) {
+										case true: macro x += kerningOffset(prev_glyph, line.glyphes[i], charData.fontData.kerning);
+										default: macro {}
+									}}
+									setPosition(line.glyphes[i], charData, x, y);
+									x += nextGlyphOffset(line.glyphes[i], charData);
+									_buffer.addElement(line.glyphes[i]);
+								}
+								else {
+									if (glyphStyle != null) glyphSetStyle(line.glyphes[i], glyphStyle);
+									setCharcode(line.glyphes[i], charcode, charData);
+									setSize(line.glyphes[i], charData);
+									${switch (glyphStyleHasMeta.packed) {
+										case true: macro x += kerningOffset(prev_glyph, line.glyphes[i], charData.fontData.kerning);
+										default: macro {}
+									}}
+									setPosition(line.glyphes[i], charData, x, y);
+									x += nextGlyphOffset(line.glyphes[i], charData);
+								}
+								
+								prev_glyph = line.glyphes[i];
+							}
+							else ret = false;
+							i++;
+						});
+						
+						${switch (glyphStyleHasMeta.packed) {
+							case true: macro {
+								if (prev_glyph != null) {
+									var lm = getLineMetric(prev_glyph, charData.fontData);
+									line.ascender = lm.asc;
+									line.height = lm.desc;
+									line.base = lm.base;
+									trace("line metric:", line.height, line.base);
+								}
+							}
+							default: macro {}
+						}}
+						return ret;
 					}
 				}
 				
@@ -595,7 +651,7 @@ class FontProgramMacro
 					if (from < line.updateFrom) line.updateFrom = from;
 					if (to > line.updateTo) line.updateTo = to;
 					
-					var prev_glyph:Glyph<$styleType> = null;
+					var prev_glyph:peote.text.Glyph<$styleType> = null;
 					
 					var x = line.x;
 					var y = line.y;
@@ -682,7 +738,7 @@ class FontProgramMacro
 						if (position < line.updateFrom) line.updateFrom = position;
 						if (position + 1 > line.updateTo) line.updateTo = position + 1;
 						
-						var prev_glyph:Glyph<$styleType> = null;
+						var prev_glyph:peote.text.Glyph<$styleType> = null;
 						
 						var x = line.x;
 						var y = line.y;
@@ -736,9 +792,7 @@ class FontProgramMacro
 					if (position < line.updateFrom) line.updateFrom = position;
 					if (position + chars.length > line.updateTo) line.updateTo = Std.int(Math.min(position + chars.length, line.glyphes.length));
 					
-					var prev_glyph:Glyph<$styleType> = null;
-					var charData:$charDataType = null;
-					
+					var prev_glyph:peote.text.Glyph<$styleType> = null;
 					var x = line.x;
 					var y = line.y;
 					
@@ -749,10 +803,12 @@ class FontProgramMacro
 
 					var i = position;
 					var ret = true;
+					var charData:$charDataType = null;
+					
 					haxe.Utf8.iter(chars, function(charcode)
 					{
-						if (i < line.glyphes.length) {
-							
+						if (i < line.glyphes.length) 
+						{							
 							charData = getCharData(charcode);
 							if (charData != null)
 							{
@@ -809,7 +865,7 @@ class FontProgramMacro
 					var charData = getCharData(charcode);
 					if (charData != null)
 					{
-						var prev_glyph:Glyph<$styleType> = null;
+						var prev_glyph:peote.text.Glyph<$styleType> = null;
 						
 						var x = line.x;
 						var y = line.y;
@@ -820,7 +876,7 @@ class FontProgramMacro
 						}
 						var x_start = x;
 						
-						var glyph = new Glyph<$styleType>();
+						var glyph = new peote.text.Glyph<$styleType>();
 						line.glyphes.insert(position, glyph);
 						
 						glyphSetStyle(glyph, glyphStyle);
@@ -857,30 +913,55 @@ class FontProgramMacro
 				
 				public function lineInsertChars(line:Line<$styleType>, chars:String, position:Int = 0, glyphStyle:$styleType = null):Bool 
 				{					
-					var ret = true;
-					var first = true;
-					
-					var glyph:Glyph<$styleType> = null;
-					var prev_glyph:Glyph<$styleType> = null;
-					var charData:$charDataType = null;
-
+					var prev_glyph:peote.text.Glyph<$styleType> = null;
 					var x = line.x;
-					var y = line.y;
-					
+					var y = line.y;					
 					if (position > 0) {
 						x = rightGlyphPos(line.glyphes[position - 1], getCharData(line.glyphes[position - 1].char));
 						prev_glyph = line.glyphes[position - 1];
 					}
 					var x_start = x;
-					
 					var rest = line.glyphes.splice(position, line.glyphes.length - position);
+					
+					if (rest.length > 0) {
+						var x = _lineAppend(line, chars, x, y, prev_glyph, glyphStyle);
+						if (x != null) {
+							if (line.glyphes.length < line.updateFrom) line.updateFrom = line.glyphes.length;
+							line.glyphes = line.glyphes.concat(rest);
+							line.updateTo = line.glyphes.length;
+							_setLinePositionOffset(line, x - x_start, 0, line.glyphes.length - rest.length, line.glyphes.length);
+							return true;
+						} 
+						else return false;
+					}
+					else if (_lineAppend(line, chars, x, y, prev_glyph, glyphStyle) == null) return false else return true;
+				}
+				
+				public function lineAppendChars(line:Line<$styleType>, chars:String, glyphStyle:$styleType = null):Bool 
+				{					
+					var prev_glyph:peote.text.Glyph<$styleType> = null;
+					var x = line.x;
+					var y = line.y;					
+					if (line.glyphes.length > 0) {
+						x = rightGlyphPos(line.glyphes[line.glyphes.length - 1], getCharData(line.glyphes[line.glyphes.length - 1].char));
+						prev_glyph = line.glyphes[line.glyphes.length - 1];
+					}
+					if (_lineAppend(line, chars, x, y, prev_glyph, glyphStyle) == null) return false else return true;
+				}
+				
+				public inline function _lineAppend(line:Line<$styleType>, chars:String, x:Float, y:Float, prev_glyph:peote.text.Glyph<$styleType>, glyphStyle:$styleType, setNewLineMetrics:Bool = false):Null<Float>
+				{
+					var ret = true;
+					var first = ! setNewLineMetrics;
+					var glyph:peote.text.Glyph<$styleType> = null;
+					var charData:$charDataType = null;
 					
 					haxe.Utf8.iter(chars, function(charcode)
 					{
 						charData = getCharData(charcode);
 						if (charData != null)
 						{
-							glyph = new Glyph<$styleType>();
+							glyph = new peote.text.Glyph<$styleType>();
 							line.glyphes.push(glyph);
 							glyphSetStyle(glyph, glyphStyle);
 							if (first) {
@@ -906,18 +987,28 @@ class FontProgramMacro
 							_buffer.addElement(glyph);
 							prev_glyph = glyph;
 						}
-						else ret = false;
+						else ret = null;
 					
 					});
-					if (rest.length > 0 && ret) {
-						if (line.glyphes.length < line.updateFrom) line.updateFrom = line.glyphes.length;
-						line.glyphes = line.glyphes.concat(rest);
-						line.updateTo = line.glyphes.length;
-						_setLinePositionOffset(line, x - x_start, 0, line.glyphes.length - rest.length, line.glyphes.length);
-					}
-					return ret;
+					
+					// sets new line-metrics
+					${switch (glyphStyleHasMeta.packed) {
+						case true: macro {
+							if (setNewLineMetrics && prev_glyph != null) {
+								var lm = getLineMetric(prev_glyph, charData.fontData);
+								line.ascender = lm.asc;
+								line.height = lm.desc;
+								line.base = lm.base;
+								trace("line metric:", line.height, line.base);
+							}
+						}
+						default: macro {}
+					}}
+
+					
+					return x;
 				}
-				
+
 				public function lineDeleteChar(line:Line<$styleType>, position:Int = 0)
 				{
 					removeGlyph(line.glyphes.splice(position, 1)[0]);
