@@ -987,8 +987,7 @@ class FontProgramMacro
 							_buffer.addElement(glyph);
 							prev_glyph = glyph;
 						}
-						else ret = null;
-					
+						else ret = false;
 					});
 					
 					// sets new line-metrics
@@ -1004,9 +1003,8 @@ class FontProgramMacro
 						}
 						default: macro {}
 					}}
-
 					
-					return x;
+					return (ret) ? x : null;
 				}
 
 				public function lineDeleteChar(line:Line<$styleType>, position:Int = 0)

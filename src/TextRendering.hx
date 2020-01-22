@@ -216,7 +216,7 @@ class TextRendering
 				// ------------------- scroll Line into visible area -------------------
 				
 				scrollLine = new Line<GlyphStyle>();
-				fontProgram.setLine(scrollLine, "This line is masked for scrolling.", 0, 200, glyphStyle2);
+				fontProgram.setLine(scrollLine, "TODO: This line should masked for scrolling.", 0, 200, glyphStyle2);
 				Timer.delay(function() {
 					fontProgram.removeLine(scrollLine);
 					Timer.delay(function() {
