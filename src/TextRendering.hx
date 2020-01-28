@@ -58,7 +58,7 @@ class GlyphStyle {
 	//public var letterSpacing:Float = 2.0;
 	
 	// TODO: for adjusting Glyphes inside Line
-	// xOffset, yOffset
+	// letterSpace
 	
 	// TODO: bgColor:Color = Color.ORANGE
 	// TODO: outline/glow for distance field fonts
@@ -216,7 +216,15 @@ class TextRendering
 				// ------------------- scroll Line into visible area -------------------
 				
 				scrollLine = new Line<GlyphStyle>();
-				fontProgram.setLine(scrollLine, "TODO: This line should masked for scrolling.", 0, 200, glyphStyle2);
+				scrollLine.maxX = 404;
+				scrollLine.maxY = 240;
+				scrollLine.autoSizeX = false;
+				scrollLine.xOffset = -25.0;
+
+				fontProgram.setLine(scrollLine, "TODO: This line should masked for scrolling.", 50, 200, glyphStyle2);
+				
+				trace(scrollLine.fullWidth);
+				
 				Timer.delay(function() {
 					fontProgram.removeLine(scrollLine);
 					Timer.delay(function() {
@@ -225,15 +233,15 @@ class TextRendering
 				}, 1000);
 				
 				// background
-				helperLinesBuffer.addElement(new ElementSimple(Std.int(scrollLine.x), Std.int(scrollLine.y), Std.int(scrollLine.width)+100, Std.int(scrollLine.height), Color.GREY3));
+				helperLinesBuffer.addElement(new ElementSimple(Std.int(scrollLine.x), Std.int(scrollLine.y), Std.int(scrollLine.maxX-scrollLine.x), Std.int(scrollLine.maxY-scrollLine.y), Color.GREY3));
 				// top line
-				helperLinesBuffer.addElement(new ElementSimple(0, Std.int(scrollLine.y), 2000, 1, Color.BLUE));				
+				helperLinesBuffer.addElement(new ElementSimple(Std.int(scrollLine.x), Std.int(scrollLine.y), Std.int(scrollLine.maxX-scrollLine.x), 1, Color.BLUE));				
 				// ascender line
-				helperLinesBuffer.addElement(new ElementSimple(0, Std.int(scrollLine.y + scrollLine.ascender), 2000, 1, Color.YELLOW));
+				helperLinesBuffer.addElement(new ElementSimple(Std.int(scrollLine.x), Std.int(scrollLine.y + scrollLine.asc), Std.int(scrollLine.maxX-scrollLine.x), 1, Color.YELLOW));
 				// baseline
-				helperLinesBuffer.addElement(new ElementSimple(0, Std.int(scrollLine.y + scrollLine.base), 2000, 1, Color.RED));
+				helperLinesBuffer.addElement(new ElementSimple(Std.int(scrollLine.x), Std.int(scrollLine.y + scrollLine.base), Std.int(scrollLine.maxX-scrollLine.x), 1, Color.RED));
 				// descender line
-				helperLinesBuffer.addElement(new ElementSimple(0, Std.int(scrollLine.y + scrollLine.height), 2000, 1, Color.GREEN));
+				helperLinesBuffer.addElement(new ElementSimple(Std.int(scrollLine.x), Std.int(scrollLine.maxY), Std.int(scrollLine.maxX-scrollLine.x), 1, Color.GREEN));
 				
 				
 				

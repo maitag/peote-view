@@ -553,16 +553,14 @@ class FontProgramMacro
 				
 				public function addLine(line:Line<$styleType>)
 				{
-					for (glyph in line.glyphes) {
-						addGlyph(glyph);
-					}
+					//for (glyph in line.glyphes) addGlyph(glyph);
+					for (i in line.visibleFrom...line.visibleTo) addGlyph(line.glyphes[i]);
 				}
 				
 				public function removeLine(line:Line<$styleType>)
 				{
-					for (glyph in line.glyphes) {
-						removeGlyph(glyph);
-					}
+					//for (glyph in line.glyphes) removeGlyph(glyph);
+					for (i in line.visibleFrom...line.visibleTo) removeGlyph(line.glyphes[i]);
 				}
 				
 				public inline function setLine(line:Line<$styleType>, chars:String, x:Float=0, y:Float=0, glyphStyle:$styleType = null):Bool
@@ -571,6 +569,9 @@ class FontProgramMacro
 					
 					line.x = x;
 					line.y = y;
+//TODO					
+					x += line.xOffset;					
+					y += line.yOffset;					
 						
 					if (line.glyphes.length == 0)
 					{
@@ -582,7 +583,7 @@ class FontProgramMacro
 							lineDeleteChars(line, chars.length);
 						}
 						line.updateFrom = 0;
-						line.updateTo = chars.length;
+						line.updateTo = line.glyphes.length;
 						
 						var prev_glyph:peote.text.Glyph<$styleType> = null;
 						var i = 0;
@@ -604,8 +605,19 @@ class FontProgramMacro
 										default: macro {}
 									}}
 									setPosition(line.glyphes[i], charData, x, y);
+//TODO
+									if (line.glyphes[i].x + line.glyphes[i].w >= line.x) {														
+										if (line.autoSizeX || line.glyphes[i].x < line.maxX) {
+											_buffer.addElement(line.glyphes[i]);
+											line.visibleTo ++;
+										}
+									}
+									else {
+										line.visibleFrom ++;
+										line.visibleTo ++;
+									}
+
 									x += nextGlyphOffset(line.glyphes[i], charData);
-									_buffer.addElement(line.glyphes[i]);
 								}
 								else {
 									if (glyphStyle != null) glyphSetStyle(line.glyphes[i], glyphStyle);
@@ -618,21 +630,23 @@ class FontProgramMacro
 									setPosition(line.glyphes[i], charData, x, y);
 									x += nextGlyphOffset(line.glyphes[i], charData);
 								}
-								
 								prev_glyph = line.glyphes[i];
 							}
 							else ret = false;
 							i++;
 						});
 						
+						if (line.autoSizeX) line.maxX = x;
+						line.fullWidth = x - line.x - line.xOffset;
+
 						${switch (glyphStyleHasMeta.packed) {
 							case true: macro {
 								if (prev_glyph != null) {
 									var lm = getLineMetric(prev_glyph, charData.fontData);
-									line.ascender = lm.asc;
-									line.height = lm.desc;
+									line.asc = lm.asc;
+									line.desc = lm.desc;
 									line.base = lm.base;
-									trace("line metric:", line.height, line.base);
+									trace("line metric:", line.asc, line.desc, line.base);
 								}
 							}
 							default: macro {}
@@ -667,7 +681,7 @@ class FontProgramMacro
 					${switch (glyphStyleHasMeta.packed) {
 						case true: macro {
 							var lm = getLineMetric(line.glyphes[from], charData.fontData);
-							if (line.height != lm.desc) y += (line.base - lm.base);
+							if (line.desc != lm.desc) y += (line.base - lm.base);
 						}
 						default: macro {
 							// TODO: baseline for simplefont
@@ -753,7 +767,7 @@ class FontProgramMacro
 							${switch (glyphStyleHasMeta.packed) {
 								case true: macro {
 									var lm = getLineMetric(line.glyphes[position], charData.fontData);
-									if (line.height != lm.desc) y += (line.base - lm.base);
+									if (line.desc != lm.desc) y += (line.base - lm.base);
 								}
 								default: macro {
 									// TODO: baseline for simplefont
@@ -819,7 +833,7 @@ class FontProgramMacro
 										${switch (glyphStyleHasMeta.packed) {
 											case true: macro {
 												var lm = getLineMetric(line.glyphes[i], charData.fontData);
-												if (line.height != lm.desc) y += (line.base - lm.base);
+												if (line.desc != lm.desc) y += (line.base - lm.base);
 											}
 											default: macro {
 												// TODO: baseline for simplefont
@@ -883,7 +897,7 @@ class FontProgramMacro
 						${switch (glyphStyleHasMeta.packed) {
 							case true: macro {
 								var lm = getLineMetric(glyph, charData.fontData);
-								if (line.height != lm.desc) y += (line.base - lm.base);
+								if (line.desc != lm.desc) y += (line.base - lm.base);
 							}
 							default: macro {
 								// TODO: baseline for simplefont
@@ -897,8 +911,23 @@ class FontProgramMacro
 							default: macro {}
 						}}
 						setPosition(glyph, charData, x, y);
+						
+//TODO
+						if (glyph.x + glyph.w >= line.x)  {														
+							if (line.autoSizeX || glyph.x < line.maxX)	{
+								_buffer.addElement(glyph);
+								line.visibleTo ++;
+							}
+						}
+						else {
+							line.visibleFrom ++;
+							line.visibleTo ++;
+						}
+
 						x += nextGlyphOffset(glyph, charData);
-						_buffer.addElement(glyph);
+
+						if (line.autoSizeX) line.maxX += x - x_start;
+						line.fullWidth += x - x_start;
 						
 						if (position + 1 < line.glyphes.length) {
 							if (position + 1 < line.updateFrom) line.updateFrom = position + 1;
@@ -969,7 +998,7 @@ class FontProgramMacro
 								${switch (glyphStyleHasMeta.packed) {
 									case true: macro {
 										var lm = getLineMetric(glyph, charData.fontData);
-										if (line.height != lm.desc) y += (line.base - lm.base);
+										if (line.desc != lm.desc) y += (line.base - lm.base);
 									}
 									default: macro {
 										// TODO: baseline for simplefont
@@ -983,22 +1012,38 @@ class FontProgramMacro
 								default: macro {}
 							}}
 							setPosition(glyph, charData, x, y);
+							
+//TODO
+							if (glyph.x + glyph.w >= line.x)  {														
+								if (line.autoSizeX || glyph.x < line.maxX)	{
+									_buffer.addElement(glyph);
+									line.visibleTo ++;
+								}
+							}
+							else {
+								line.visibleFrom ++;
+								line.visibleTo ++;
+							}
+
 							x += nextGlyphOffset(glyph, charData);
-							_buffer.addElement(glyph);
+
 							prev_glyph = glyph;
 						}
 						else ret = false;
 					});
+
+					if (line.autoSizeX) line.maxX = x;
+					line.fullWidth = x - line.x - line.xOffset;
 					
 					// sets new line-metrics
 					${switch (glyphStyleHasMeta.packed) {
 						case true: macro {
 							if (setNewLineMetrics && prev_glyph != null) {
 								var lm = getLineMetric(prev_glyph, charData.fontData);
-								line.ascender = lm.asc;
-								line.height = lm.desc;
+								line.asc = lm.asc;
+								line.desc = lm.desc;
 								line.base = lm.base;
-								trace("line metric:", line.height, line.base);
+								trace("line metric:", line.asc, line.desc, line.base);
 							}
 						}
 						default: macro {}
@@ -1054,12 +1099,18 @@ class FontProgramMacro
 					if (from != null) line.updateFrom = from;
 					if (to != null) line.updateTo = to;
 					
-					trace("update from "+ line.updateFrom + " to " +line.updateTo);
-					for (i in line.updateFrom...line.updateTo) 
-						updateGlyph(line.glyphes[i]);
+					if (line.updateTo > 0 )
+					{
+						trace("update from " + line.updateFrom + " to " +line.updateTo);
+						
+						if (line.visibleFrom > line.updateFrom) line.updateFrom = line.visibleFrom;
+						if (line.visibleTo < line.updateTo) line.updateTo = line.visibleTo;
+						
+						for (i in line.updateFrom...line.updateTo) updateGlyph(line.glyphes[i]);
 
-					line.updateFrom = 0x1000000;
-					line.updateTo = 0;
+						line.updateFrom = 0x1000000;
+						line.updateTo = 0;
+					}
 				}
 			
 			} // end class

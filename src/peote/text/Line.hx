@@ -81,22 +81,21 @@ class LineMacro
 			{
 				public var x:Float = 0.0;
 				public var y:Float = 0.0;
-				
-				// TODO: get/set
-				public var width:Float = 0.0;
-				public var height:Float = 0.0;
-				public var fullWidth(default, null):Float = 0.0;
-				public var fullHeight(default, null):Float = 0.0;
-				
 				public var xOffset:Float = 0.0;
 				public var yOffset:Float = 0.0;
+								
+				// TODO: optimize later in putting some properties into outside wrapper of line or textwidget
+				public var maxX:Float = 0.0;
+				public var maxY:Float = 0.0;
 				
-				public var firstVisible:Int = 0;
-				public var lastVisible:Int = 0;
-				// TODO:
-				//public var visibleCacheSize:Int = 0;
+				@:allow(peote.text) public var fullWidth(default, null):Float = 0.0;
+				@:allow(peote.text) public var fullHeight(default, null):Float = 0.0;
 				
-				public var ascender:Float = 0.0;
+				public var autoSizeX:Bool = true;
+				public var autoSizeY:Bool = true;
+				
+				public var asc:Float = 0.0;
+				public var desc:Float = 0.0; // height
 				public var base:Float = 0.0;  // <- all aligns here
 				
 				
@@ -109,6 +108,11 @@ class LineMacro
 				
 				@:allow(peote.text) var updateFrom:Int = 0x1000000;
 				@:allow(peote.text) var updateTo:Int = 0;
+				@:allow(peote.text) var visibleFrom:Int = 0;
+				@:allow(peote.text) var visibleTo:Int = 0;
+				// optimizing:
+				//public var visibleCacheSize:Int = 0;
+				
 				
 				public function new() {}
 			}

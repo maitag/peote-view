@@ -1002,7 +1002,7 @@ class ElementImpl
 			if (fy == null) fy = attrib.get(y.name);
 			
 			if (name == "aRotZ") {
-				if (x.formula != "") fx = '($fx)/180.0*${Math.PI}';
+				//if (x.formula != "") fx = '($fx)/180.0*${Math.PI}';
 				if (y.formula != "") fy = 'clamp( $fy/${Util.toFloatString(MAX_ZINDEX)}, -1.0, 1.0)';
 			}
 			
