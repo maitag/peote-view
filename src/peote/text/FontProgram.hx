@@ -606,7 +606,7 @@ class FontProgramMacro
 									}}
 									setPosition(line.glyphes[i], charData, x, y);
 //TODO
-									if (line.glyphes[i].x + line.glyphes[i].w >= line.x) {														
+									if (line.glyphes[i].x + ${switch(glyphStyleHasMeta.packed) {case true: macro line.glyphes[i].w; default: macro line.glyphes[i].width;}} >= line.x) {														
 										if (line.autoSizeX || line.glyphes[i].x < line.maxX) {
 											_buffer.addElement(line.glyphes[i]);
 											line.visibleTo ++;
@@ -628,6 +628,8 @@ class FontProgramMacro
 										default: macro {}
 									}}
 									setPosition(line.glyphes[i], charData, x, y);
+//TODO									
+									
 									x += nextGlyphOffset(line.glyphes[i], charData);
 								}
 								prev_glyph = line.glyphes[i];
@@ -913,7 +915,7 @@ class FontProgramMacro
 						setPosition(glyph, charData, x, y);
 						
 //TODO
-						if (glyph.x + glyph.w >= line.x)  {														
+						if (glyph.x + ${switch(glyphStyleHasMeta.packed) {case true: macro glyph.w; default: macro glyph.width;}} >= line.x)  {														
 							if (line.autoSizeX || glyph.x < line.maxX)	{
 								_buffer.addElement(glyph);
 								line.visibleTo ++;
@@ -1014,7 +1016,7 @@ class FontProgramMacro
 							setPosition(glyph, charData, x, y);
 							
 //TODO
-							if (glyph.x + glyph.w >= line.x)  {														
+							if (glyph.x + ${switch(glyphStyleHasMeta.packed) {case true: macro glyph.w; default: macro glyph.width;}} >= line.x)  {
 								if (line.autoSizeX || glyph.x < line.maxX)	{
 									_buffer.addElement(glyph);
 									line.visibleTo ++;

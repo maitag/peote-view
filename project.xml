@@ -3,7 +3,7 @@
 	
 	<meta title="PeoteView" package="peote.view" version="0.8.0" company="Sylvio Sell - maitag" />
 	
-	<android target-sdk-version="26" /> <!-- lowest possible is 14 for android 4.0.1-4.0.2 -->
+	<android target-sdk-version="28" />
 	<!-- <meta build-number="714" /> --> <!-- let set the buildnumber manual (android) -->
 	
 	<app main="Main" path="bin" file="Main" />
@@ -39,7 +39,6 @@
 	<source path="src" />
 	
 	<haxelib name="lime" />
-	<!--<haxedef name="webgl" /> mhhmmm ... did i need this ? ;) -->
 
 	<haxelib name="json2object" />
 	<haxelib name="jasper" />

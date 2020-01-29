@@ -225,11 +225,16 @@ class TextRendering
 				
 				trace(scrollLine.fullWidth);
 				
-				Timer.delay(function() {
+/*				Timer.delay(function() {
 					fontProgram.removeLine(scrollLine);
 					Timer.delay(function() {
 						fontProgram.addLine(scrollLine);
 					}, 1000);
+				}, 1000);
+*/
+				Timer.delay(function() {
+					fontProgram.setLine(scrollLine, "TODO: This line should masked for scrolling in a long textline.", scrollLine.x, scrollLine.y);
+					fontProgram.updateLine(scrollLine);
 				}, 1000);
 				
 				// background
