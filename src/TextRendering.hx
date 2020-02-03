@@ -135,7 +135,7 @@ class TextRendering
 				
 				//fontProgram.setFontStyle(glyphStyle2);
 				
-				var glyph2 = new Glyph<GlyphStyle>();
+/*				var glyph2 = new Glyph<GlyphStyle>();
 				if (fontProgram.setGlyph( glyph2, "B".charCodeAt(0), 30, 50, glyphStyle1)) {
 					Timer.delay(function() {
 						fontProgram.glyphSetStyle(glyph2, glyphStyle2);
@@ -212,18 +212,20 @@ class TextRendering
 					// TODO:
 					// line.clear();
 				}
-				
+*/		
 				// ------------------- scroll Line into visible area -------------------
 				
 				scrollLine = new Line<GlyphStyle>();
-				scrollLine.maxX = 404;
+				scrollLine.maxX = 104;
 				scrollLine.maxY = 240;
 				scrollLine.autoSizeX = false;
 				scrollLine.xOffset = -25.0;
 
-				fontProgram.setLine(scrollLine, "TODO: This line should masked for scrolling.", 50, 200, glyphStyle2);
+				fontProgram.setLine(scrollLine, "012345", 50, 200, glyphStyle2);
 				
-				trace(scrollLine.fullWidth);
+				trace("visibleFrom", scrollLine.visibleFrom);
+				trace("visibleTo", scrollLine.visibleTo);
+				trace("fullWidth", scrollLine.fullWidth);
 				
 /*				Timer.delay(function() {
 					fontProgram.removeLine(scrollLine);
@@ -233,7 +235,13 @@ class TextRendering
 				}, 1000);
 */
 				Timer.delay(function() {
-					fontProgram.setLine(scrollLine, "TODO: This line should masked for scrolling in a long textline.", scrollLine.x, scrollLine.y);
+					fontProgram.setLine(scrollLine, "0123456789", scrollLine.x, scrollLine.y, glyphStyle1);
+					//fontProgram.lineDeleteChar(scrollLine, 5);
+					//fontProgram.lineDeleteChars(scrollLine, 4);
+					//fontProgram.lineInsertChar(scrollLine, "4".charCodeAt(0) , 4, glyphStyle1);
+					trace("visibleFrom", scrollLine.visibleFrom);
+					trace("visibleTo", scrollLine.visibleTo);
+					trace("fullWidth", scrollLine.fullWidth);
 					fontProgram.updateLine(scrollLine);
 				}, 1000);
 				

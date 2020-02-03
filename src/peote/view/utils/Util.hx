@@ -8,7 +8,7 @@ class Util
 	static inline public function camelCase(a:String, b:String):String return a + b.substr(0, 1).toUpperCase() + b.substr(1);
 	
 	static inline public function toFloatString(value:Dynamic):String {
-		var s:String = Std.string(value);
+		var s:String = '$value';
 		return (s.indexOf(".") != -1 || s.indexOf("e-") != -1) ? s : s + ".0";
 	}
 	

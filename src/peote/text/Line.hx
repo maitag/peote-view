@@ -108,8 +108,10 @@ class LineMacro
 				
 				@:allow(peote.text) var updateFrom:Int = 0x1000000;
 				@:allow(peote.text) var updateTo:Int = 0;
-				@:allow(peote.text) var visibleFrom:Int = 0;
-				@:allow(peote.text) var visibleTo:Int = 0;
+				//@:allow(peote.text) var visibleFrom:Int = 0;
+				//@:allow(peote.text) var visibleTo:Int = 0;
+				public var visibleFrom:Int = 0;
+				public var visibleTo:Int = 0;
 				// optimizing:
 				//public var visibleCacheSize:Int = 0;
 				
