@@ -85,14 +85,11 @@ class LineMacro
 				public var yOffset:Float = 0.0;
 								
 				// TODO: optimize later in putting some properties into outside wrapper of line or textwidget
-				public var maxX:Float = 0.0;
-				public var maxY:Float = 0.0;
+				public var maxX:Float = 0xffff;
+				public var maxY:Float = 0xffff;
 				
 				@:allow(peote.text) public var fullWidth(default, null):Float = 0.0;
 				@:allow(peote.text) public var fullHeight(default, null):Float = 0.0;
-				
-				public var autoSizeX:Bool = true;
-				public var autoSizeY:Bool = true;
 				
 				public var asc:Float = 0.0;
 				public var desc:Float = 0.0; // height

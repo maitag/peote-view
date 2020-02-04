@@ -135,7 +135,7 @@ class TextRendering
 				
 				//fontProgram.setFontStyle(glyphStyle2);
 				
-/*				var glyph2 = new Glyph<GlyphStyle>();
+				var glyph2 = new Glyph<GlyphStyle>();
 				if (fontProgram.setGlyph( glyph2, "B".charCodeAt(0), 30, 50, glyphStyle1)) {
 					Timer.delay(function() {
 						fontProgram.glyphSetStyle(glyph2, glyphStyle2);
@@ -182,6 +182,7 @@ class TextRendering
 						fontProgram.lineSetStyle(line, glyphStyle2, 1, 5);
 						fontProgram.lineSetStyle(line, glyphStyle1, 6, 12);
 						//fontProgram.updateLine(line, 6);
+						trace('visibleFrom: ${line.visibleFrom} visibleTo:${line.visibleTo} fullWidth:${line.fullWidth}');
 						fontProgram.lineSetPosition(line, 0, 130);
 						fontProgram.updateLine(line);
 					}, 2000);
@@ -192,18 +193,21 @@ class TextRendering
 						fontProgram.updateLine(line);
 					}, 3000);
 
-					Timer.delay(function() {
+					Timer.delay(function() {trace("------------");
 						fontProgram.lineInsertChar(line, "~".charCodeAt(0) , 12, glyphStyle1);
 						fontProgram.lineInsertChars(line,  "Earth", 12, glyphStyle2);
+						trace('visibleFrom: ${line.visibleFrom} visibleTo:${line.visibleTo} fullWidth:${line.fullWidth}');
 						fontProgram.updateLine(line);
 					}, 4000);
 									
 					Timer.delay(function() {
+						trace('visibleFrom: ${line.visibleFrom} visibleTo:${line.visibleTo} fullWidth:${line.fullWidth}');
 						fontProgram.lineDeleteChar(line, 5);
 						fontProgram.updateLine(line);
 					}, 5000);
 					
 					Timer.delay(function() {
+						trace('visibleFrom: ${line.visibleFrom} visibleTo:${line.visibleTo} fullWidth:${line.fullWidth}');
 						fontProgram.lineDeleteChars(line, 16);
 						fontProgram.updateLine(line);
 					}, 6000);
@@ -212,20 +216,17 @@ class TextRendering
 					// TODO:
 					// line.clear();
 				}
-*/		
+		
 				// ------------------- scroll Line into visible area -------------------
 				
 				scrollLine = new Line<GlyphStyle>();
 				scrollLine.maxX = 104;
 				scrollLine.maxY = 240;
-				scrollLine.autoSizeX = false;
 				scrollLine.xOffset = -25.0;
 
 				fontProgram.setLine(scrollLine, "012345", 50, 200, glyphStyle2);
 				
-				trace("visibleFrom", scrollLine.visibleFrom);
-				trace("visibleTo", scrollLine.visibleTo);
-				trace("fullWidth", scrollLine.fullWidth);
+				trace('visibleFrom: ${scrollLine.visibleFrom} visibleTo:${scrollLine.visibleTo} fullWidth:${scrollLine.fullWidth}');
 				
 /*				Timer.delay(function() {
 					fontProgram.removeLine(scrollLine);
@@ -235,16 +236,19 @@ class TextRendering
 				}, 1000);
 */
 				Timer.delay(function() {
-					fontProgram.setLine(scrollLine, "0123456789", scrollLine.x, scrollLine.y, glyphStyle1);
+					fontProgram.setLine(scrollLine, "01234567", scrollLine.x, scrollLine.y, glyphStyle1);
 					//fontProgram.lineDeleteChar(scrollLine, 5);
 					//fontProgram.lineDeleteChars(scrollLine, 4);
-					//fontProgram.lineInsertChar(scrollLine, "4".charCodeAt(0) , 4, glyphStyle1);
-					trace("visibleFrom", scrollLine.visibleFrom);
-					trace("visibleTo", scrollLine.visibleTo);
-					trace("fullWidth", scrollLine.fullWidth);
+					fontProgram.lineInsertChar(scrollLine, "A".charCodeAt(0) , 8, glyphStyle1);
+					trace('visibleFrom: ${scrollLine.visibleFrom} visibleTo:${scrollLine.visibleTo} fullWidth:${scrollLine.fullWidth}');
 					fontProgram.updateLine(scrollLine);
 				}, 1000);
 				
+/*				Timer.delay(function() {
+					fontProgram.lineSetPosition(scrollLine, scrollLine.x+10, scrollLine.y+10);
+					fontProgram.updateLine(scrollLine);
+				}, 2000);
+*/				
 				// background
 				helperLinesBuffer.addElement(new ElementSimple(Std.int(scrollLine.x), Std.int(scrollLine.y), Std.int(scrollLine.maxX-scrollLine.x), Std.int(scrollLine.maxY-scrollLine.y), Color.GREY3));
 				// top line
