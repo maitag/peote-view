@@ -117,7 +117,7 @@ class TextRendering
 				
 				// -----------
 
-				var glyph1 = fontProgram.createGlyph("A".charCodeAt(0), 0, 50, glyphStyle1);
+//				var glyph1 = fontProgram.createGlyph("A".charCodeAt(0), 0, 50, glyphStyle1);
 				
 				//fontProgram.glyphSetChar(glyph1, "x".charCodeAt(0));
 				//glyph1.color = Color.BLUE;
@@ -135,7 +135,7 @@ class TextRendering
 				
 				//fontProgram.setFontStyle(glyphStyle2);
 				
-				var glyph2 = new Glyph<GlyphStyle>();
+/*				var glyph2 = new Glyph<GlyphStyle>();
 				if (fontProgram.setGlyph( glyph2, "B".charCodeAt(0), 30, 50, glyphStyle1)) {
 					Timer.delay(function() {
 						fontProgram.glyphSetStyle(glyph2, glyphStyle2);
@@ -149,11 +149,11 @@ class TextRendering
 					}, 1000);
 				}
 				else trace(" ----> Charcode not inside Font");
-				
+*/				
 				
 				// ------------------- Lines  -------------------
 				
-				var gl3font = font.getRange(65);
+/*				var gl3font = font.getRange(65);
 				var tilted = new GlyphStyle();
 				tilted.tilt = 0.4;
 				tilted.color = 0xaabb22ff;
@@ -216,7 +216,7 @@ class TextRendering
 					// TODO:
 					// line.clear();
 				}
-		
+*/		
 				// ------------------- scroll Line into visible area -------------------
 				
 				scrollLine = new Line<GlyphStyle>();
@@ -228,6 +228,9 @@ class TextRendering
 				
 				trace('visibleFrom: ${scrollLine.visibleFrom} visibleTo:${scrollLine.visibleTo} fullWidth:${scrollLine.fullWidth}');
 				
+				// background
+				addHelperLines(scrollLine);				
+				
 /*				Timer.delay(function() {
 					fontProgram.removeLine(scrollLine);
 					Timer.delay(function() {
@@ -236,31 +239,36 @@ class TextRendering
 				}, 1000);
 */
 				Timer.delay(function() {
-					fontProgram.setLine(scrollLine, "01234567", scrollLine.x, scrollLine.y, glyphStyle1);
-					//fontProgram.lineDeleteChar(scrollLine, 5);
-					//fontProgram.lineDeleteChars(scrollLine, 4);
-					fontProgram.lineInsertChar(scrollLine, "A".charCodeAt(0) , 8, glyphStyle1);
+					fontProgram.setLine(scrollLine, "0123456789abcd", scrollLine.x, scrollLine.y, glyphStyle1);
 					trace('visibleFrom: ${scrollLine.visibleFrom} visibleTo:${scrollLine.visibleTo} fullWidth:${scrollLine.fullWidth}');
 					fontProgram.updateLine(scrollLine);
+					addHelperLines(scrollLine);	
 				}, 1000);
 				
+				Timer.delay(function() {
+					trace('visibleFrom: ${scrollLine.visibleFrom} visibleTo:${scrollLine.visibleTo} fullWidth:${scrollLine.fullWidth}');
+					fontProgram.lineDeleteChars(scrollLine, 4, 7);
+					fontProgram.updateLine(scrollLine);
+				}, 2000);
+				
+				Timer.delay(function() {
+					trace('visibleFrom: ${scrollLine.visibleFrom} visibleTo:${scrollLine.visibleTo} fullWidth:${scrollLine.fullWidth}');
+					fontProgram.lineDeleteChar(scrollLine, 0);
+					//fontProgram.lineInsertChar(scrollLine, "A".charCodeAt(0) , 8, glyphStyle1);
+					fontProgram.updateLine(scrollLine);
+				}, 3000);
+				
+/*				Timer.delay(function() {
+					trace('visibleFrom: ${scrollLine.visibleFrom} visibleTo:${scrollLine.visibleTo} fullWidth:${scrollLine.fullWidth}');
+					fontProgram.lineInsertChar(scrollLine, "A".charCodeAt(0) , 5, glyphStyle1);
+					fontProgram.updateLine(scrollLine);
+				}, 3000);
+*/				
 /*				Timer.delay(function() {
 					fontProgram.lineSetPosition(scrollLine, scrollLine.x+10, scrollLine.y+10);
 					fontProgram.updateLine(scrollLine);
 				}, 2000);
 */				
-				// background
-				helperLinesBuffer.addElement(new ElementSimple(Std.int(scrollLine.x), Std.int(scrollLine.y), Std.int(scrollLine.maxX-scrollLine.x), Std.int(scrollLine.maxY-scrollLine.y), Color.GREY3));
-				// top line
-				helperLinesBuffer.addElement(new ElementSimple(Std.int(scrollLine.x), Std.int(scrollLine.y), Std.int(scrollLine.maxX-scrollLine.x), 1, Color.BLUE));				
-				// ascender line
-				helperLinesBuffer.addElement(new ElementSimple(Std.int(scrollLine.x), Std.int(scrollLine.y + scrollLine.asc), Std.int(scrollLine.maxX-scrollLine.x), 1, Color.YELLOW));
-				// baseline
-				helperLinesBuffer.addElement(new ElementSimple(Std.int(scrollLine.x), Std.int(scrollLine.y + scrollLine.base), Std.int(scrollLine.maxX-scrollLine.x), 1, Color.RED));
-				// descender line
-				helperLinesBuffer.addElement(new ElementSimple(Std.int(scrollLine.x), Std.int(scrollLine.maxY), Std.int(scrollLine.maxX-scrollLine.x), 1, Color.GREEN));
-				
-				
 				
 				//fontProgram.removeLine(line);
 				
@@ -287,6 +295,18 @@ class TextRendering
 		// ---------------------------------------------------------------
 	}
 
+	public function addHelperLines(line:Line<GlyphStyle>) {
+		helperLinesBuffer.addElement(new ElementSimple(Std.int(scrollLine.x), Std.int(scrollLine.y), Std.int(scrollLine.maxX-scrollLine.x), Std.int(scrollLine.maxY-scrollLine.y), Color.GREY3));
+		// top line
+		helperLinesBuffer.addElement(new ElementSimple(Std.int(scrollLine.x), Std.int(scrollLine.y), Std.int(scrollLine.maxX-scrollLine.x), 1, Color.BLUE));				
+		// ascender line
+		helperLinesBuffer.addElement(new ElementSimple(Std.int(scrollLine.x), Std.int(scrollLine.y + scrollLine.asc), Std.int(scrollLine.maxX-scrollLine.x), 1, Color.YELLOW));
+		// baseline
+		helperLinesBuffer.addElement(new ElementSimple(Std.int(scrollLine.x), Std.int(scrollLine.y + scrollLine.base), Std.int(scrollLine.maxX-scrollLine.x), 1, Color.RED));
+		// descender line
+		helperLinesBuffer.addElement(new ElementSimple(Std.int(scrollLine.x), Std.int(scrollLine.maxY), Std.int(scrollLine.maxX-scrollLine.x), 1, Color.GREEN));
+	}
+	
 	var isZooming:Bool = false;
 	public function zoomIn() {
 		var fz:Float = 1.0;		
