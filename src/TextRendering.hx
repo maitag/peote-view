@@ -239,7 +239,7 @@ class TextRendering
 				}, 1000);
 */
 				Timer.delay(function() {
-					fontProgram.setLine(scrollLine, "0123456789abcd", scrollLine.x, scrollLine.y, glyphStyle1);
+					fontProgram.setLine(scrollLine, "0123456789abc", scrollLine.x, scrollLine.y, glyphStyle1);
 					trace('visibleFrom: ${scrollLine.visibleFrom} visibleTo:${scrollLine.visibleTo} fullWidth:${scrollLine.fullWidth}');
 					fontProgram.updateLine(scrollLine);
 					addHelperLines(scrollLine);	
@@ -247,7 +247,7 @@ class TextRendering
 				
 				Timer.delay(function() {
 					trace('visibleFrom: ${scrollLine.visibleFrom} visibleTo:${scrollLine.visibleTo} fullWidth:${scrollLine.fullWidth}');
-					fontProgram.lineDeleteChars(scrollLine, 4, 7);
+					fontProgram.lineDeleteChars(scrollLine, 7, 10);
 					fontProgram.updateLine(scrollLine);
 				}, 2000);
 				
@@ -258,12 +258,12 @@ class TextRendering
 					fontProgram.updateLine(scrollLine);
 				}, 3000);
 				
-/*				Timer.delay(function() {
+				Timer.delay(function() {
 					trace('visibleFrom: ${scrollLine.visibleFrom} visibleTo:${scrollLine.visibleTo} fullWidth:${scrollLine.fullWidth}');
-					fontProgram.lineInsertChar(scrollLine, "A".charCodeAt(0) , 5, glyphStyle1);
+					fontProgram.lineInsertChar(scrollLine, "7".charCodeAt(0) , 6, glyphStyle2);
 					fontProgram.updateLine(scrollLine);
-				}, 3000);
-*/				
+				}, 4000);
+				
 /*				Timer.delay(function() {
 					fontProgram.lineSetPosition(scrollLine, scrollLine.x+10, scrollLine.y+10);
 					fontProgram.updateLine(scrollLine);

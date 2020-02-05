@@ -760,12 +760,12 @@ class FontProgramMacro
 					line.updateTo = line.glyphes.length;
 					var visibleFrom:Int = from;
 					var visibleTo:Int = from;
-
+					//trace("FROM:", from);
 					for (i in from...line.updateTo) {
 						line.glyphes[i].x += deltaX;
 						
 						if (line.glyphes[i].x + ${switch(glyphStyleHasMeta.packed) {case true: macro line.glyphes[i].w; default: macro line.glyphes[i].width; }} >= line.x)
-						{
+						{	//trace("AAAA",i,(line.glyphes[i].x < line.maxX),(i < line.visibleTo));
 							if (line.glyphes[i].x < line.maxX) {
 								if (i < line.visibleFrom || i >= line.visibleTo) _buffer.addElement(line.glyphes[i]);
 								visibleTo ++;
@@ -778,7 +778,7 @@ class FontProgramMacro
 						}
 					}
 					if (visibleFrom > from) line.visibleFrom = visibleFrom;
-					if (visibleTo > from) line.visibleTo = visibleTo;
+					if (visibleTo >= from) line.visibleTo = visibleTo;
 						
 					line.fullWidth += deltaX;
 				}
@@ -920,8 +920,8 @@ class FontProgramMacro
 					{
 						var prev_glyph:peote.text.Glyph<$styleType> = null;
 						
-						var x = line.x;
-						var y = line.y;
+						var x = line.x + line.xOffset;
+						var y = line.y + line.yOffset;
 						
 						if (position > 0) {
 							x = rightGlyphPos(line.glyphes[position - 1], getCharData(line.glyphes[position - 1].char));
@@ -949,33 +949,27 @@ class FontProgramMacro
 							case true: macro x += kerningOffset(prev_glyph, glyph, charData.fontData.kerning);
 							default: macro {}
 						}}
-						setPosition(glyph, charData, x, y);
-						
-//TODO
-						x += nextGlyphOffset(glyph, charData);
-						
-						line.fullWidth += x - x_start;
-						
-						if (glyph.x + ${switch(glyphStyleHasMeta.packed) {case true: macro glyph.w; default: macro glyph.width;}} >= line.x)  {														
-							//if (line.autoSizeX || glyph.x < line.maxX)	{
+						setPosition(glyph, charData, x, y);						
+//TODO						
+						//trace("A",line.visibleFrom,line.visibleTo);
+						if (glyph.x + ${switch(glyphStyleHasMeta.packed) {case true: macro glyph.w; default: macro glyph.width; }} >= line.x)
+						{
 							if (glyph.x < line.maxX)	{
 								_buffer.addElement(glyph);
-								if (position + 1 == line.glyphes.length) { // append a last
-									line.visibleTo ++;
+								if (position < line.visibleTo) {
+									line.visibleTo++;	
 								}
 							}
+						} else {
+							line.visibleFrom++;
+							line.visibleTo++;
 						}
-						//else {
-						//	line.visibleFrom ++;
-						//	line.visibleTo ++;
-						//}
-
-						//x += nextGlyphOffset(glyph, charData);
+						//trace("B",line.visibleFrom,line.visibleTo);
+						
+						x += nextGlyphOffset(glyph, charData);
+						line.fullWidth += x - x_start;
 
 //TODO
-						//if (line.autoSizeX) line.maxX += x - x_start;
-						//line.fullWidth += x - x_start;
-						
 						if (position + 1 < line.glyphes.length) {
 							if (position + 1 < line.updateFrom) line.updateFrom = position + 1;
 							_setLinePositionOffset(line, x - x_start, position + 1);
