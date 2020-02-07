@@ -90,6 +90,9 @@ class Main extends Application
 	public override function render(context:RenderContext):Void
 	{	
 		if (renderTest) test.render();
+		#if (! html5)
+		if (isMouseMove) onMouseMoveFrameSynced();
+		#end
 	}
 	
 	public override function update(deltaTime:Int):Void
@@ -120,15 +123,36 @@ class Main extends Application
 		//trace("onMouseMoveRelative" + x + "," + y ); 	
 	}
 	
+	#if (! html5)
+	var lastMoveX:Float = 0.0;
+	var lastMoveY:Float = 0.0;
+	#end
 	public override function onMouseMove (x:Float, y:Float):Void
 	{
+		#if (html5)
 		//trace("onMouseMove: " + x + "," + y );
 		if (renderTest) test.onMouseMove(x, y);
 
 		mouse_x = Std.int(x);
 		mouse_y = Std.int(y);
 		setOffsets();
+		#else
+		lastMoveX = x;
+		lastMoveY = y;
+		isMouseMove = true;
+		#end
 	}
+	
+	#if (! html5)
+	var isMouseMove = false;
+	function onMouseMoveFrameSynced():Void
+	{
+		isMouseMove = false;
+		//trace("onMouseMove: " + x + "," + y );
+		if (renderTest) test.onMouseMove(lastMoveX, lastMoveY);
+		setOffsets();
+	}
+	#end
 	
 	public override function onTouchStart (touch:Touch):Void
 	{
