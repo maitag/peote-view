@@ -754,31 +754,40 @@ class FontProgramMacro
 					line.y = yNew;
 				}
 				
-				// TODO: refactor (to + line.updateTo = line.glyphes.length)
 				inline function _setLinePositionOffset(line:Line<$styleType>, deltaX:Float, from:Int)
 				{
-					line.updateTo = line.glyphes.length;
-					var visibleFrom:Int = from;
-					var visibleTo:Int = from;
+					trace("------ _setLinePositionOffset: ------",deltaX,from);
+					//line.updateTo = line.glyphes.length;
+					var visibleFrom = line.visibleFrom;
+					var visibleTo = line.visibleTo;
 					//trace("FROM:", from);
-					for (i in from...line.updateTo) {
+					for (i in from...line.glyphes.length) {
 						line.glyphes[i].x += deltaX;
 						
 						if (line.glyphes[i].x + ${switch(glyphStyleHasMeta.packed) {case true: macro line.glyphes[i].w; default: macro line.glyphes[i].width; }} >= line.x)
-						{	//trace("AAAA",i,(line.glyphes[i].x < line.maxX),(i < line.visibleTo));
+						{	trace("AAAA",i,(line.glyphes[i].x < line.maxX),(i < line.visibleTo));
 							if (line.glyphes[i].x < line.maxX) {
-								if (i < line.visibleFrom || i >= line.visibleTo) _buffer.addElement(line.glyphes[i]);
-								visibleTo ++;
-							} else if (i < line.visibleTo) _buffer.removeElement(line.glyphes[i]);
+								if (i < line.visibleFrom || i >= line.visibleTo) {
+									_buffer.addElement(line.glyphes[i]);
+									if (visibleFrom > i) visibleFrom = i;
+									if (visibleTo < i + 1) visibleTo = i + 1;
+								}
+							} else if (i < line.visibleTo) {
+								_buffer.removeElement(line.glyphes[i]); trace("KK", i, visibleTo);
+								if (visibleTo > i) visibleTo = i;
+							}
 						}
 						else {
-							if (i >= line.visibleFrom && i < line.visibleTo) _buffer.removeElement(line.glyphes[i]);
-							visibleFrom ++;
-							visibleTo ++;
+							trace("BBBB",i,(i >= line.visibleFrom && i < line.visibleTo));
+							if (i >= line.visibleFrom && i < line.visibleTo) {
+								_buffer.removeElement(line.glyphes[i]);
+							}
+							visibleFrom = i + 1;
 						}
+						//trace(i, "visibleFrom:"+visibleFrom + " visibleTo:"+visibleTo);
 					}
-					if (visibleFrom > from) line.visibleFrom = visibleFrom;
-					if (visibleTo >= from) line.visibleTo = visibleTo;
+					line.visibleFrom = visibleFrom;
+					line.visibleTo = visibleTo;
 						
 					line.fullWidth += deltaX;
 				}
@@ -982,8 +991,8 @@ class FontProgramMacro
 				public function lineInsertChars(line:Line<$styleType>, chars:String, position:Int = 0, glyphStyle:$styleType = null):Bool 
 				{					
 					var prev_glyph:peote.text.Glyph<$styleType> = null;
-					var x = line.x;
-					var y = line.y;					
+					var x = line.x + line.xOffset;
+					var y = line.y + line.yOffset;
 					if (position > 0) {
 						x = rightGlyphPos(line.glyphes[position - 1], getCharData(line.glyphes[position - 1].char));
 						prev_glyph = line.glyphes[position - 1];
@@ -992,7 +1001,7 @@ class FontProgramMacro
 					var rest = line.glyphes.splice(position, line.glyphes.length - position);
 					
 					if (rest.length > 0) {
-						// TODO: set visibleFrom and visibleTo if them > line.glyphes.length
+						// TODO: set visibleFrom and visibleTo 
 						var x = _lineAppend(line, chars, x, y, prev_glyph, glyphStyle);
 						if (x != null) {
 							if (line.glyphes.length < line.updateFrom) line.updateFrom = line.glyphes.length;
@@ -1095,58 +1104,65 @@ class FontProgramMacro
 					if (position >= line.visibleFrom && position < line.visibleTo) {
 						removeGlyph(line.glyphes[position]);
 					}
+					
+					_lineDeleteCharsOffset(line, position, position + 1);
+					
 					if (position < line.visibleFrom) {
 						line.visibleFrom--; line.visibleTo--;
-					}
+					} 
 					else if (position < line.visibleTo) {
 						line.visibleTo--;
 					}
+					
 					line.glyphes.splice(position, 1);
-					_lineDeleteCharsOffset(line, position);
 				}
 				
 				public function lineDeleteChars(line:Line<$styleType>, from:Int = 0, to:Null<Int> = null)
 				{
 					if (to == null) to = line.glyphes.length;
-					for (i in Std.int(Math.max(from, line.visibleFrom))...Std.int(Math.min(to, line.visibleTo))) {
+					
+					for (i in ((from < line.visibleFrom) ? line.visibleFrom : from)...((to < line.visibleTo) ? to : line.visibleTo)) {
 						removeGlyph(line.glyphes[i]);
 					}
+					
+					_lineDeleteCharsOffset(line, from, to);
+					
 					if (from < line.visibleFrom) {
-						line.visibleFrom -= Std.int(Math.min(line.visibleFrom, to)) - from;
-						line.visibleTo -= Std.int(Math.min(line.visibleTo, to)) - from;
+						line.visibleFrom = (to < line.visibleFrom) ? line.visibleFrom - to + from : from;
+						line.visibleTo = (to < line.visibleTo) ? line.visibleTo - to + from : from;
 					}
 					else if (from < line.visibleTo) {
-						line.visibleTo -= Std.int(Math.min(line.visibleTo, to)) - from;
+						line.visibleTo = (to < line.visibleTo) ? line.visibleTo - to + from : from;
 					}
+					
 					line.glyphes.splice(from, to - from);
-					_lineDeleteCharsOffset(line, from);
 				}
 				
-				inline function _lineDeleteCharsOffset(line:Line<$styleType>, from:Int)
+				inline function _lineDeleteCharsOffset(line:Line<$styleType>, from:Int, to:Int)
 				{
-					if (from < line.glyphes.length) {
-						var charData = getCharData(line.glyphes[from].char);
+					if (to < line.glyphes.length) {
+						var charData = getCharData(line.glyphes[to].char);
 						var offset:Float = 0.0;
-						if (from == 0) offset = line.x + line.xOffset - leftGlyphPos(line.glyphes[from], charData);
+						if (from == 0) offset = line.x + line.xOffset - leftGlyphPos(line.glyphes[to], charData);
 						else {
-							offset = rightGlyphPos(line.glyphes[from - 1], getCharData(line.glyphes[from - 1].char)) - leftGlyphPos(line.glyphes[from], charData);
+							offset = rightGlyphPos(line.glyphes[from-1], getCharData(line.glyphes[from-1].char)) - leftGlyphPos(line.glyphes[to], charData);
 							${switch (glyphStyleHasMeta.packed) {
-								case true: macro offset -= kerningOffset(line.glyphes[from - 1], line.glyphes[from], charData.fontData.kerning);
+								case true: macro offset -= kerningOffset(line.glyphes[from-1], line.glyphes[to], charData.fontData.kerning);
 								default: macro {}
 							}}
 						}
 						if (line.updateFrom > from) line.updateFrom = from;
-						_setLinePositionOffset(line, offset, from);
+						line.updateTo = line.glyphes.length - to + from;
+						_setLinePositionOffset(line, offset, to);
 					}
-					else { // last
-						if ( line.updateFrom >= line.glyphes.length ) {
+					else { // delete from end
+						if ( line.updateFrom >= line.glyphes.length - to + from ) {
 							line.updateFrom = 0x1000000;
 							line.updateTo = 0;
 						}
-						else if ( line.updateTo > line.glyphes.length) line.updateTo = line.glyphes.length;
-						
-						line.visibleFrom = Std.int(Math.min(line.visibleFrom, line.glyphes.length));
-						line.visibleTo = Std.int(Math.min(line.visibleTo, line.glyphes.length));
+						else if ( line.updateTo > line.glyphes.length - to + from) {
+							line.updateTo = line.glyphes.length - to + from;
+						}				
 					}
 				}
 				

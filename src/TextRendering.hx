@@ -81,7 +81,7 @@ class TextRendering
 			peoteView = new PeoteView(window.context, window.width, window.height);
 			display   = new Display(10,10, window.width-20, window.height-20, Color.GREY1);
 			peoteView.addDisplay(display);
-			helperLinesBuffer = new Buffer<ElementSimple>(10);
+			helperLinesBuffer = new Buffer<ElementSimple>(100);
 			helperLinesProgram = new Program(helperLinesBuffer);
 			display.addProgram(helperLinesProgram);
 			
@@ -239,7 +239,7 @@ class TextRendering
 				}, 1000);
 */
 				Timer.delay(function() {
-					fontProgram.setLine(scrollLine, "0123456789abc", scrollLine.x, scrollLine.y, glyphStyle1);
+					fontProgram.setLine(scrollLine, "_0123456789", scrollLine.x, scrollLine.y, glyphStyle1);
 					trace('visibleFrom: ${scrollLine.visibleFrom} visibleTo:${scrollLine.visibleTo} fullWidth:${scrollLine.fullWidth}');
 					fontProgram.updateLine(scrollLine);
 					addHelperLines(scrollLine);	
@@ -247,27 +247,35 @@ class TextRendering
 				
 				Timer.delay(function() {
 					trace('visibleFrom: ${scrollLine.visibleFrom} visibleTo:${scrollLine.visibleTo} fullWidth:${scrollLine.fullWidth}');
-					fontProgram.lineDeleteChars(scrollLine, 7, 10);
+					fontProgram.lineDeleteChar(scrollLine, 0);
 					fontProgram.updateLine(scrollLine);
 				}, 2000);
 				
 				Timer.delay(function() {
 					trace('visibleFrom: ${scrollLine.visibleFrom} visibleTo:${scrollLine.visibleTo} fullWidth:${scrollLine.fullWidth}');
-					fontProgram.lineDeleteChar(scrollLine, 0);
-					//fontProgram.lineInsertChar(scrollLine, "A".charCodeAt(0) , 8, glyphStyle1);
+					fontProgram.lineDeleteChars(scrollLine, 2, 5);
 					fontProgram.updateLine(scrollLine);
-				}, 3000);
+				}, 3000);				
 				
+/*				// TODO: wrong visibleTO !!!				
 				Timer.delay(function() {
+					fontProgram.lineInsertChar(scrollLine, "7".charCodeAt(0) , 0, glyphStyle2);
 					trace('visibleFrom: ${scrollLine.visibleFrom} visibleTo:${scrollLine.visibleTo} fullWidth:${scrollLine.fullWidth}');
-					fontProgram.lineInsertChar(scrollLine, "7".charCodeAt(0) , 6, glyphStyle2);
 					fontProgram.updateLine(scrollLine);
 				}, 4000);
 				
-/*				Timer.delay(function() {
+				Timer.delay(function() {
+					trace('visibleFrom: ${scrollLine.visibleFrom} visibleTo:${scrollLine.visibleTo} fullWidth:${scrollLine.fullWidth}');
+					// TODO: need to fix visibleFrom and visibleTo
+					fontProgram.lineInsertChars(scrollLine, "xyz" , 2, glyphStyle1);
+					fontProgram.updateLine(scrollLine);
+				}, 5000);
+				
+				Timer.delay(function() {
 					fontProgram.lineSetPosition(scrollLine, scrollLine.x+10, scrollLine.y+10);
 					fontProgram.updateLine(scrollLine);
-				}, 2000);
+					addHelperLines(scrollLine);	
+				}, 6000);
 */				
 				
 				//fontProgram.removeLine(line);
