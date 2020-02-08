@@ -153,7 +153,7 @@ class TextRendering
 				
 				// ------------------- Lines  -------------------
 				
-/*				var gl3font = font.getRange(65);
+				var gl3font = font.getRange(65);
 				var tilted = new GlyphStyle();
 				tilted.tilt = 0.4;
 				tilted.color = 0xaabb22ff;
@@ -189,11 +189,11 @@ class TextRendering
 					
 					Timer.delay(function() {
 						fontProgram.lineSetChar(line, "H".charCodeAt(0) , 0, glyphStyle2); // replace existing char into line
-						fontProgram.lineSetChars(line, "Planet", 6);  // replace existing chars into line
+						//fontProgram.lineSetChars(line, "Planet", 6);  // replace existing chars into line
 						fontProgram.updateLine(line);
 					}, 3000);
 
-					Timer.delay(function() {trace("------------");
+/*					Timer.delay(function() {trace("------------");
 						fontProgram.lineInsertChar(line, "~".charCodeAt(0) , 12, glyphStyle1);
 						fontProgram.lineInsertChars(line,  "Earth", 12, glyphStyle2);
 						trace('visibleFrom: ${line.visibleFrom} visibleTo:${line.visibleTo} fullWidth:${line.fullWidth}');
@@ -211,12 +211,12 @@ class TextRendering
 						fontProgram.lineDeleteChars(line, 16);
 						fontProgram.updateLine(line);
 					}, 6000);
-					
+*/					
 					
 					// TODO:
 					// line.clear();
 				}
-*/		
+		
 				// ------------------- scroll Line into visible area -------------------
 				
 				scrollLine = new Line<GlyphStyle>();
@@ -268,20 +268,26 @@ class TextRendering
 					trace('visibleFrom: ${scrollLine.visibleFrom} visibleTo:${scrollLine.visibleTo} fullWidth:${scrollLine.fullWidth}');
 					fontProgram.updateLine(scrollLine);
 				}, 5000);
-				
-				// TODO:			
-/*				Timer.delay(function() {
+					
+				Timer.delay(function() {
 					trace('visibleFrom: ${scrollLine.visibleFrom} visibleTo:${scrollLine.visibleTo} fullWidth:${scrollLine.fullWidth}');
 					// TODO: need to fix visibleFrom and visibleTo
-					fontProgram.lineInsertChars(scrollLine, "xyz" , 2, glyphStyle1);
+					fontProgram.lineInsertChars(scrollLine, "h" , 0, glyphStyle2);
 					fontProgram.updateLine(scrollLine);
 				}, 6000);
 				
 				Timer.delay(function() {
+					trace('visibleFrom: ${scrollLine.visibleFrom} visibleTo:${scrollLine.visibleTo} fullWidth:${scrollLine.fullWidth}');
+					// TODO: need to fix visibleFrom and visibleTo
+					fontProgram.lineInsertChars(scrollLine, "axe" , 1, glyphStyle1);
+					fontProgram.updateLine(scrollLine);
+				}, 7000);
+				
+/*				Timer.delay(function() {
 					fontProgram.lineSetPosition(scrollLine, scrollLine.x+10, scrollLine.y+10);
 					fontProgram.updateLine(scrollLine);
 					addHelperLines(scrollLine);	
-				}, 6000);
+				}, 8000);
 */				
 				
 				//fontProgram.removeLine(line);

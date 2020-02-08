@@ -757,7 +757,6 @@ class FontProgramMacro
 				inline function _setLinePositionOffset(line:Line<$styleType>, deltaX:Float, from:Int)
 				{
 					trace("------ _setLinePositionOffset: ------",deltaX,from);
-					//line.updateTo = line.glyphes.length;
 					var visibleFrom = line.visibleFrom;
 					var visibleTo = line.visibleTo;
 					//trace("FROM:", from);
@@ -765,20 +764,21 @@ class FontProgramMacro
 						line.glyphes[i].x += deltaX;
 						
 						if (line.glyphes[i].x + ${switch(glyphStyleHasMeta.packed) {case true: macro line.glyphes[i].w; default: macro line.glyphes[i].width; }} >= line.x)
-						{	trace("AAAA",i,(line.glyphes[i].x < line.maxX),(i < line.visibleTo));
+						{	//trace("AAAA",i,(line.glyphes[i].x < line.maxX),(i < line.visibleTo));
 							if (line.glyphes[i].x < line.maxX) {
 								if (i < line.visibleFrom || i >= line.visibleTo) {
 									_buffer.addElement(line.glyphes[i]);
 									if (visibleFrom > i) visibleFrom = i;
 									if (visibleTo < i + 1) visibleTo = i + 1;
 								}
-							} else if (i < line.visibleTo) {
-								_buffer.removeElement(line.glyphes[i]); trace("KK", i, visibleTo);
+							} else if (i < line.visibleTo) { // i >= line.visibleFrom &&       <------ CHECK if this is need !!!
+								//trace("KK", i, visibleTo);
+								_buffer.removeElement(line.glyphes[i]);
 								if (visibleTo > i) visibleTo = i;
 							}
 						}
 						else {
-							trace("BBBB",i,(i >= line.visibleFrom && i < line.visibleTo));
+							//trace("BBBB",i,(i >= line.visibleFrom && i < line.visibleTo));
 							if (i >= line.visibleFrom && i < line.visibleTo) {
 								_buffer.removeElement(line.glyphes[i]);
 							}
@@ -968,30 +968,19 @@ class FontProgramMacro
 							_setLinePositionOffset(line, x - x_start, position);
 						}
 						
-						//trace("---A:", line.visibleFrom, line.visibleTo);
-						
 						line.glyphes.insert(position, glyph);
-/*						if (position <= line.visibleFrom) {
-							line.visibleFrom++; line.visibleTo++;
-						} 
-						else if (position < line.visibleTo) line.visibleTo++;
-*/
+						
 						if (glyph.x + ${switch(glyphStyleHasMeta.packed) {case true: macro glyph.w; default: macro glyph.width; }} >= line.x)
 						{
 							if (glyph.x < line.maxX)	{
 								_buffer.addElement(glyph);
 								line.visibleTo++;
-/*								if (position < line.visibleFrom) {
-									line.visibleFrom = position;	trace("=======");
-								}
-								if (position == line.visibleTo) {    trace("==<><>=====");
-									line.visibleTo++;	
-								}
-*/							}
-						} else {line.visibleFrom++; line.visibleTo++; }
-						
-						//trace("---B:",line.visibleFrom,line.visibleTo);
-
+							}
+						} 
+						else {
+							line.visibleFrom++;
+							line.visibleTo++;
+						}
 						return true;
 					}
 					else return false;
@@ -1010,19 +999,56 @@ class FontProgramMacro
 					var rest = line.glyphes.splice(position, line.glyphes.length - position);
 					
 					if (rest.length > 0) {
-						// TODO: set visibleFrom and visibleTo 
+						var oldFrom = line.visibleFrom - line.glyphes.length;
+						var oldTo = line.visibleTo - line.glyphes.length;
+						if (line.visibleFrom > line.glyphes.length) line.visibleFrom = line.glyphes.length;
+						if (line.visibleTo > line.glyphes.length) line.visibleTo = line.glyphes.length;
 						var x = _lineAppend(line, chars, x, y, prev_glyph, glyphStyle);
 						if (x != null) {
 							if (line.glyphes.length < line.updateFrom) line.updateFrom = line.glyphes.length;
+							
+							var deltaX = x - x_start;
+							//trace("after append:", line.visibleFrom, line.visibleTo );
+							//trace("old:",oldFrom, oldTo);
+							//trace("------ insertChars: setLinePositionOffset: ------");
+							for (i in 0...rest.length) {
+								rest[i].x += deltaX;
+								
+								if (rest[i].x + ${switch(glyphStyleHasMeta.packed) {case true: macro rest[i].w; default: macro rest[i].width; }} >= line.x)
+								{	//trace("AAAA",i,(rest[i].x < line.maxX),(i < oldTo));
+									if (rest[i].x < line.maxX) {
+										if (i < oldFrom || i >= oldTo) {
+											_buffer.addElement(rest[i]);
+										}
+										line.visibleTo++;
+									} else if (i >= oldFrom && i < oldTo) {
+										 //trace("KK", i, oldTo);
+										_buffer.removeElement(rest[i]);
+									}
+								}
+								else {
+									//trace("BBBB",i,(i >= oldFrom && i < oldTo));
+									if (i >= oldFrom && i < oldTo) {
+										_buffer.removeElement(rest[i]);
+									}
+									line.visibleFrom++;
+									line.visibleTo++;
+								}
+							}
+							//trace("--B", line.visibleFrom, line.visibleTo);
+								
+							line.fullWidth += deltaX;
+							
 							line.glyphes = line.glyphes.concat(rest);
-							_setLinePositionOffset(line, x - x_start, line.glyphes.length - rest.length);
+							line.updateTo = line.glyphes.length;
+							
 							return true;
 						} 
 						else return false;
 					}
 					else if (_lineAppend(line, chars, x, y, prev_glyph, glyphStyle) == null) return false else return true;
 				}
-				
+
 				public function lineAppendChars(line:Line<$styleType>, chars:String, glyphStyle:$styleType = null):Bool 
 				{					
 					var prev_glyph:peote.text.Glyph<$styleType> = null;
