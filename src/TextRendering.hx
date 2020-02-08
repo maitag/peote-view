@@ -224,7 +224,7 @@ class TextRendering
 				scrollLine.maxY = 240;
 				scrollLine.xOffset = -25.0;
 
-				fontProgram.setLine(scrollLine, "012345", 50, 200, glyphStyle2);
+				fontProgram.setLine(scrollLine, "0123456789", 50, 200, glyphStyle2);
 				
 				trace('visibleFrom: ${scrollLine.visibleFrom} visibleTo:${scrollLine.visibleTo} fullWidth:${scrollLine.fullWidth}');
 				
@@ -239,7 +239,7 @@ class TextRendering
 				}, 1000);
 */
 				Timer.delay(function() {
-					fontProgram.setLine(scrollLine, "_0123456789", scrollLine.x, scrollLine.y, glyphStyle1);
+					fontProgram.setLine(scrollLine, "0123456789", scrollLine.x, scrollLine.y, glyphStyle1);
 					trace('visibleFrom: ${scrollLine.visibleFrom} visibleTo:${scrollLine.visibleTo} fullWidth:${scrollLine.fullWidth}');
 					fontProgram.updateLine(scrollLine);
 					addHelperLines(scrollLine);	
@@ -257,19 +257,25 @@ class TextRendering
 					fontProgram.updateLine(scrollLine);
 				}, 3000);				
 				
-/*				// TODO: wrong visibleTO !!!				
 				Timer.delay(function() {
-					fontProgram.lineInsertChar(scrollLine, "7".charCodeAt(0) , 0, glyphStyle2);
+					fontProgram.lineInsertChar(scrollLine, "A".charCodeAt(0) , 0 , glyphStyle2);
 					trace('visibleFrom: ${scrollLine.visibleFrom} visibleTo:${scrollLine.visibleTo} fullWidth:${scrollLine.fullWidth}');
 					fontProgram.updateLine(scrollLine);
 				}, 4000);
 				
 				Timer.delay(function() {
+					fontProgram.lineInsertChar(scrollLine, ".".charCodeAt(0) , 2 , glyphStyle1);
+					trace('visibleFrom: ${scrollLine.visibleFrom} visibleTo:${scrollLine.visibleTo} fullWidth:${scrollLine.fullWidth}');
+					fontProgram.updateLine(scrollLine);
+				}, 5000);
+				
+				// TODO:			
+/*				Timer.delay(function() {
 					trace('visibleFrom: ${scrollLine.visibleFrom} visibleTo:${scrollLine.visibleTo} fullWidth:${scrollLine.fullWidth}');
 					// TODO: need to fix visibleFrom and visibleTo
 					fontProgram.lineInsertChars(scrollLine, "xyz" , 2, glyphStyle1);
 					fontProgram.updateLine(scrollLine);
-				}, 5000);
+				}, 6000);
 				
 				Timer.delay(function() {
 					fontProgram.lineSetPosition(scrollLine, scrollLine.x+10, scrollLine.y+10);

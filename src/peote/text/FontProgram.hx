@@ -939,7 +939,6 @@ class FontProgramMacro
 						var x_start = x;
 						
 						var glyph = new peote.text.Glyph<$styleType>();
-						line.glyphes.insert(position, glyph);
 						
 						glyphSetStyle(glyph, glyphStyle);
 						${switch (glyphStyleHasMeta.packed) {
@@ -959,30 +958,40 @@ class FontProgramMacro
 							default: macro {}
 						}}
 						setPosition(glyph, charData, x, y);						
-//TODO						
-						//trace("A",line.visibleFrom,line.visibleTo);
-						if (glyph.x + ${switch(glyphStyleHasMeta.packed) {case true: macro glyph.w; default: macro glyph.width; }} >= line.x)
-						{
-							if (glyph.x < line.maxX)	{
-								_buffer.addElement(glyph);
-								if (position < line.visibleTo) {
-									line.visibleTo++;	
-								}
-							}
-						} else {
-							line.visibleFrom++;
-							line.visibleTo++;
-						}
-						//trace("B",line.visibleFrom,line.visibleTo);
 						
 						x += nextGlyphOffset(glyph, charData);
 						line.fullWidth += x - x_start;
 
-//TODO
-						if (position + 1 < line.glyphes.length) {
-							if (position + 1 < line.updateFrom) line.updateFrom = position + 1;
-							_setLinePositionOffset(line, x - x_start, position + 1);
+						if (position < line.glyphes.length) {
+							if (position < line.updateFrom) line.updateFrom = position+1;
+							line.updateTo = line.glyphes.length+1;
+							_setLinePositionOffset(line, x - x_start, position);
 						}
+						
+						//trace("---A:", line.visibleFrom, line.visibleTo);
+						
+						line.glyphes.insert(position, glyph);
+/*						if (position <= line.visibleFrom) {
+							line.visibleFrom++; line.visibleTo++;
+						} 
+						else if (position < line.visibleTo) line.visibleTo++;
+*/
+						if (glyph.x + ${switch(glyphStyleHasMeta.packed) {case true: macro glyph.w; default: macro glyph.width; }} >= line.x)
+						{
+							if (glyph.x < line.maxX)	{
+								_buffer.addElement(glyph);
+								line.visibleTo++;
+/*								if (position < line.visibleFrom) {
+									line.visibleFrom = position;	trace("=======");
+								}
+								if (position == line.visibleTo) {    trace("==<><>=====");
+									line.visibleTo++;	
+								}
+*/							}
+						} else {line.visibleFrom++; line.visibleTo++; }
+						
+						//trace("---B:",line.visibleFrom,line.visibleTo);
+
 						return true;
 					}
 					else return false;
