@@ -42,6 +42,8 @@ typedef Sample = RenderToTexture;
 typedef Sample = Gl3FontRendering;
 #elseif sampleTextRendering
 typedef Sample = TextRendering;
+#elseif sampleTextlineMasking
+typedef Sample = TextlineMasking;
 #elseif sampleShaderInjection
 typedef Sample = ShaderInjection;
 #elseif sampleMouseEvents

@@ -758,7 +758,7 @@ class FontProgramMacro
 					//trace("------ _setLinePositionOffset: ------",deltaX,from);
 					var visibleFrom = line.visibleFrom;
 					var visibleTo = line.visibleTo;
-					//trace("FROM:", from);
+					
 					for (i in from...to) {
 						if (i >= withDelta) line.glyphes[i].x += deltaX;
 						
@@ -841,8 +841,7 @@ class FontProgramMacro
 								default: macro {}
 							}}
 							var offset = x - leftGlyphPos(line.glyphes[position+1], getCharData(line.glyphes[position+1].char));
-							if (offset != 0.0)
-							{
+							if (offset != 0.0) {
 								line.updateTo = line.glyphes.length;
 								_setLinePositionOffset(line, offset, position, position + 1, line.updateTo);
 							} else _setLinePositionOffset(line, offset, position, position + 1, position + 1);
@@ -916,8 +915,7 @@ class FontProgramMacro
 							default: macro {}
 						}}
 						var offset = x - leftGlyphPos(line.glyphes[i], getCharData(line.glyphes[i].char));
-						if (offset != 0.0)
-						{
+						if (offset != 0.0) {
 							line.updateTo = line.glyphes.length;
 							_setLinePositionOffset(line, offset, position, i, line.updateTo);
 						} else _setLinePositionOffset(line, offset, position, i, i);
@@ -969,20 +967,19 @@ class FontProgramMacro
 						setPosition(glyph, charData, x, y);						
 						
 						x += nextGlyphOffset(glyph, charData);
-						line.fullWidth += x - x_start;
 
 						if (position < line.glyphes.length) {
 							if (position < line.updateFrom) line.updateFrom = position+1;
 							line.updateTo = line.glyphes.length+1;
-							//_setLinePositionOffset(line, x - x_start, position);
 							_setLinePositionOffset(line, x - x_start, position, position, line.glyphes.length);
 						}
+						else line.fullWidth += x - x_start;
 						
 						line.glyphes.insert(position, glyph);
 						
 						if (glyph.x + ${switch(glyphStyleHasMeta.packed) {case true: macro glyph.w; default: macro glyph.width; }} >= line.x)
 						{
-							if (glyph.x < line.maxX)	{
+							if (glyph.x < line.maxX) {
 								_buffer.addElement(glyph);
 								line.visibleTo++;
 							}
@@ -1202,7 +1199,6 @@ class FontProgramMacro
 						}
 						if (line.updateFrom > from) line.updateFrom = from;
 						line.updateTo = line.glyphes.length - to + from;
-						//_setLinePositionOffset(line, offset, to);
 						_setLinePositionOffset(line, offset, to, to, line.glyphes.length);
 					}
 					else { // delete from end
@@ -1213,8 +1209,46 @@ class FontProgramMacro
 						else if ( line.updateTo > line.glyphes.length - to + from) {
 							line.updateTo = line.glyphes.length - to + from;
 						}				
+						//TODO: line.fullWidth 
 					}
 				}
+				
+				
+				// TODO:  ------------- get glyph index at x position (for mouse-selecting) ---------------
+				
+				public function lineGetCharAtPosition(line:Line<$styleType>, xPosition:Float):Int // TODO: also need to return offset for start and end
+				{
+					if (xPosition > line.x && xPosition < line.maxX) { // TODO
+						${switch (glyphStyleHasMeta.packed)
+						{
+							case true: macro // ------- Gl3Font -------
+							{
+								// TODO: binary search
+								return 0; // TODO
+							}
+							default: macro // ------- simple font -------
+							{
+								${switch (glyphStyleHasField.local_width) {
+									case true: macro {
+										// TODO: binary search for each glyph.width
+										return 0; // TODO
+									}
+									default: switch (glyphStyleHasField.width) {
+										case true: macro {
+											//fontStyle.width;
+											return 0; // TODO
+										}
+										default: macro {
+											//font.config.width;
+											return 0; // TODO
+										}
+								}}}
+							}
+						}}
+					}
+					else return -1;
+				}
+				
 				
 				// ------------- update line ---------------------
 				

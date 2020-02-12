@@ -73,7 +73,6 @@ class TextRendering
 	var timer:Timer;
 	var helperLinesBuffer:Buffer<ElementSimple>;
 	var helperLinesProgram:Program;
-	var scrollLine:Line<GlyphStyle>;
 	
 	public function new(window:Window)
 	{
@@ -216,7 +215,7 @@ class TextRendering
 		
 				// ------------------- scroll Line into visible area -------------------
 				
-				scrollLine = new Line<GlyphStyle>();
+				var scrollLine = new Line<GlyphStyle>();
 				scrollLine.maxX = 104;
 				scrollLine.maxY = 240;
 				scrollLine.xOffset = -25.0;
@@ -320,15 +319,15 @@ class TextRendering
 	}
 
 	public function addHelperLines(line:Line<GlyphStyle>) {
-		helperLinesBuffer.addElement(new ElementSimple(Std.int(scrollLine.x), Std.int(scrollLine.y), Std.int(scrollLine.maxX-scrollLine.x), Std.int(scrollLine.maxY-scrollLine.y), Color.GREY3));
+		helperLinesBuffer.addElement(new ElementSimple(Std.int(line.x), Std.int(line.y), Std.int(line.maxX-line.x), Std.int(line.maxY-line.y), Color.GREY3));
 		// top line
-		helperLinesBuffer.addElement(new ElementSimple(Std.int(scrollLine.x), Std.int(scrollLine.y), Std.int(scrollLine.maxX-scrollLine.x), 1, Color.BLUE));				
+		helperLinesBuffer.addElement(new ElementSimple(Std.int(line.x), Std.int(line.y), Std.int(line.maxX-line.x), 1, Color.BLUE));				
 		// ascender line
-		helperLinesBuffer.addElement(new ElementSimple(Std.int(scrollLine.x), Std.int(scrollLine.y + scrollLine.asc), Std.int(scrollLine.maxX-scrollLine.x), 1, Color.YELLOW));
+		helperLinesBuffer.addElement(new ElementSimple(Std.int(line.x), Std.int(line.y + line.asc), Std.int(line.maxX-line.x), 1, Color.YELLOW));
 		// baseline
-		helperLinesBuffer.addElement(new ElementSimple(Std.int(scrollLine.x), Std.int(scrollLine.y + scrollLine.base), Std.int(scrollLine.maxX-scrollLine.x), 1, Color.RED));
+		helperLinesBuffer.addElement(new ElementSimple(Std.int(line.x), Std.int(line.y + line.base), Std.int(line.maxX-line.x), 1, Color.RED));
 		// descender line
-		helperLinesBuffer.addElement(new ElementSimple(Std.int(scrollLine.x), Std.int(scrollLine.maxY), Std.int(scrollLine.maxX-scrollLine.x), 1, Color.GREEN));
+		helperLinesBuffer.addElement(new ElementSimple(Std.int(line.x), Std.int(line.maxY), Std.int(line.maxX-line.x), 1, Color.GREEN));
 	}
 	
 	var isZooming:Bool = false;
