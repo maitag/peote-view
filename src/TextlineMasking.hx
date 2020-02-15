@@ -7,6 +7,7 @@ import lime.ui.Window;
 import lime.ui.KeyCode;
 import lime.ui.KeyModifier;
 import lime.ui.MouseButton;
+import lime.ui.ScanCode;
 
 import peote.view.PeoteView;
 import peote.view.Display;
@@ -77,14 +78,17 @@ class TextlineMasking
 	var line_y:Float = 100;
 	
 	var lineMasked:Line<GlyphStyle>;
-	var lineMasked_x:Float = 200;
-	var lineMasked_y:Float = 200;
+	var lineMasked_x:Float = 50;
+	var lineMasked_y:Float = 150;
 	
 	var actual_glyphStyle:GlyphStyle;
 		
+	var cursor = 0;
 	
 	public function new(window:Window)
 	{
+		window.textInputEnabled = true; // this is disabled on default for html5
+		
 		try {	
 			peoteView = new PeoteView(window.context, window.width, window.height);
 			display   = new Display(10,10, window.width-20, window.height-20, Color.GREY1);
@@ -132,23 +136,18 @@ class TextlineMasking
 				
 				
 				line = new Line<GlyphStyle>();
-				line.maxX = 104;
-				line.maxY = 240;
-				line.xOffset = -25.0;
+				lineMasked = new Line<GlyphStyle>();
+				lineMasked.maxX = lineMasked_x + 200;
+				lineMasked.maxY = lineMasked_y + 50;
+				lineMasked.xOffset = -50;
 
-				fontProgram.setLine(line, "0123456789", 50, 200, glyphStyle2);
+				setLine("0123456789abcdefghijklmnopqrstuvwxyz");
 				
 				//trace('visibleFrom: ${line.visibleFrom} visibleTo:${line.visibleTo} fullWidth:${line.fullWidth}');
 				
 				// background
-				addHelperLines(line);				
+				addHelperLines(lineMasked);
 				
-				//fontProgram.removeLine(line);
-				//fontProgram.addLine(line);
-				
-				//fontProgram.setLine(line, "0123456789", line.x, line.y, glyphStyle1);
-				//fontProgram.updateLine(line);
-
 				//fontProgram.lineSetStyle(line, glyphStyle2, 1, 5);
 					
 				//fontProgram.lineSetChar(line, "A".charCodeAt(0) , 0, glyphStyle2);
@@ -175,6 +174,24 @@ class TextlineMasking
 	{
 		fontProgram.setLine(line, s, line_x, line_y, actual_glyphStyle);
 		fontProgram.setLine(lineMasked, s, lineMasked_x, lineMasked_y, actual_glyphStyle);
+	}
+	
+	public function lineInsertChar(charcode:Int):Bool
+	{
+		fontProgram.lineInsertChar(line, charcode, cursor, actual_glyphStyle);
+		return fontProgram.lineInsertChar(lineMasked, charcode, cursor, actual_glyphStyle);
+	}
+	
+	public function lineInsertChars(text:String):Bool
+	{
+		fontProgram.lineInsertChars(line, text, cursor, actual_glyphStyle);
+		return fontProgram.lineInsertChars(lineMasked, text, cursor, actual_glyphStyle);
+	}
+	
+	public function lineUpdate()
+	{
+		fontProgram.updateLine(line);
+		fontProgram.updateLine(lineMasked);
 	}
 	
 	// ---------------------------------------------------------------
@@ -204,18 +221,32 @@ class TextlineMasking
 	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
 	{	
 		switch (keyCode) {
-			case KeyCode.NUMPAD_PLUS:
+/*			case KeyCode.NUMPAD_PLUS:
 					if (modifier.shiftKey) peoteView.zoom+=0.01;
 					else display.zoom+=0.1;
 			case KeyCode.NUMPAD_MINUS:
 					if (modifier.shiftKey) peoteView.zoom-=0.01;
 					else display.zoom -= 0.1;
 			
-			case KeyCode.UP: display.yOffset -= (modifier.shiftKey) ? 8 : 1;
-			case KeyCode.DOWN: display.yOffset += (modifier.shiftKey) ? 8 : 1;
-			case KeyCode.RIGHT: display.xOffset += (modifier.shiftKey) ? 8 : 1;
-			case KeyCode.LEFT: display.xOffset -= (modifier.shiftKey) ? 8 : 1;
+*/			case KeyCode.RIGHT: if (cursor < line.glyphes.length) cursor++;
+			case KeyCode.LEFT: if (cursor > 0) cursor--;
 			default:
+		}
+	}
+	
+	public function onTextInput(text:String):Void 
+	{
+		//trace("onTextInput", text);
+		
+/*		haxe.Utf8.iter(text, function(charcode)
+		{
+			lineInsertChar(charcode);
+		});
+		lineUpdate();
+*/	
+		if (lineInsertChars(text)) {
+			lineUpdate();
+			cursor += text.length;
 		}
 	}
 

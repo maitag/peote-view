@@ -211,7 +211,8 @@ class Main extends Application
 	
 	public override function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
 	{
-		//trace("keydown",keyCode, modifier);
+		trace("keydown",keyCode, modifier);
+		#if (!sampleTextlineMasking)
 		switch (keyCode) {
 			#if html5
 			case KeyCode.TAB: untyped __js__('event.preventDefault();');
@@ -239,12 +240,23 @@ class Main extends Application
 			#end
 			default:
 		}
-		
+		#end
 		if (renderTest) test.onKeyDown(keyCode, modifier);
 	}
 	
 	public override function onKeyUp (keyCode:KeyCode, modifier:KeyModifier):Void {
 		//trace("keyup",keyCode, modifier);
+	}
+
+	public override function onTextEdit(text:String, start:Int, length:Int):Void {
+		trace("onTextEdit",text, start, length);
+	}
+	
+	public override function onTextInput (text:String):Void
+	{	//trace("onTextInput");
+		#if sampleTextlineMasking
+		if (renderTest) test.onTextInput(text);
+		#end
 	}
 
 	public override function onWindowLeave ():Void {
