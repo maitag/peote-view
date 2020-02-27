@@ -660,7 +660,7 @@ class FontProgramMacro
 						line.visibleTo = visibleTo;
 						
 						line.fullWidth = x - line.x - line.xOffset;
-
+						
 						${switch (glyphStyleHasMeta.packed) {
 							case true: macro {
 								if (prev_glyph != null) {
@@ -679,7 +679,7 @@ class FontProgramMacro
 				
 				// ----------- change Line Style and Position ----------------
 				
-				public function lineSetStyle(line:Line<$styleType>, glyphStyle:$styleType, from:Int = 0, to:Null<Int> = null)
+				public function lineSetStyle(line:Line<$styleType>, glyphStyle:$styleType, from:Int = 0, to:Null<Int> = null):Float
 				{
 					if (to == null) to = line.glyphes.length;
 					//else if (to <= from) throw('lineSetStyle parameter "from" has to be greater then "to"');
@@ -696,6 +696,7 @@ class FontProgramMacro
 						x = rightGlyphPos(line.glyphes[from - 1], getCharData(line.glyphes[from - 1].char));
 						prev_glyph = line.glyphes[from - 1];
 					}
+					var x_start = x;
 					
 					// first
 					line.glyphes[from].setStyle(glyphStyle);
@@ -726,6 +727,7 @@ class FontProgramMacro
 						prev_glyph = line.glyphes[i];
 					}
 
+					x_start = x - x_start;
 					if (to < line.glyphes.length) // rest
 					{
 						${switch (glyphStyleHasMeta.packed) {
@@ -738,6 +740,8 @@ class FontProgramMacro
 							_setLinePositionOffset(line, offset, from, to, line.updateTo);
 						} else _setLinePositionOffset(line, offset, from, to, to);
 					} else _setLinePositionOffset(line, 0, from, to, to);
+					
+					return x_start;
 				}
 				
 				// TODO: optimized lineSetXPosition and lineSetYPosition
@@ -795,7 +799,7 @@ class FontProgramMacro
 				
 				// ------------ set chars  ---------------
 				
-				public function lineSetChar(line:Line<$styleType>, charcode:Int, position:Int=0, glyphStyle:$styleType = null):Bool
+				public function lineSetChar(line:Line<$styleType>, charcode:Int, position:Int=0, glyphStyle:$styleType = null):Float
 				{
 					var charData = getCharData(charcode);
 					if (charData != null)
@@ -812,7 +816,8 @@ class FontProgramMacro
 							x = rightGlyphPos(line.glyphes[position - 1], getCharData(line.glyphes[position - 1].char));
 							prev_glyph = line.glyphes[position - 1];
 						}
-					
+						var x_start = x;
+						
 						if (glyphStyle != null) {
 							glyphSetStyle(line.glyphes[position], glyphStyle);
 							${switch (glyphStyleHasMeta.packed) {
@@ -833,9 +838,11 @@ class FontProgramMacro
 						}}
 						setPosition(line.glyphes[position], charData, x, y);
 						
+						x += nextGlyphOffset(line.glyphes[position], charData);
+						
+						x_start = x - x_start;
 						if (position+1 < line.glyphes.length) // rest
 						{	
-							x += nextGlyphOffset(line.glyphes[position], charData);
 							${switch (glyphStyleHasMeta.packed) {
 								case true: macro x += kerningOffset(line.glyphes[position], line.glyphes[position+1], charData.fontData.kerning);
 								default: macro {}
@@ -847,12 +854,12 @@ class FontProgramMacro
 							} else _setLinePositionOffset(line, offset, position, position + 1, position + 1);
 						} else _setLinePositionOffset(line, 0, position, position + 1, position + 1);
 						
-						return true;
+						return x_start;
 					} 
-					else return false;					
+					else return 0;					
 				}
 				
-				public function lineSetChars(line:Line<$styleType>, chars:String, position:Int=0, glyphStyle:$styleType = null):Bool
+				public function lineSetChars(line:Line<$styleType>, chars:String, position:Int=0, glyphStyle:$styleType = null):Float
 				{
 					if (position < line.updateFrom) line.updateFrom = position;
 					if (position + chars.length > line.updateTo) line.updateTo = Std.int(Math.min(position + chars.length, line.glyphes.length));
@@ -865,9 +872,9 @@ class FontProgramMacro
 						x = rightGlyphPos(line.glyphes[position - 1], getCharData(line.glyphes[position - 1].char));
 						prev_glyph = line.glyphes[position - 1];
 					}
+					var x_start = x;
 
 					var i = position;
-					var ret = true;
 					var charData:$charDataType = null;
 					
 					haxe.Utf8.iter(chars, function(charcode)
@@ -902,14 +909,14 @@ class FontProgramMacro
 								x += nextGlyphOffset(line.glyphes[i], charData);
 								prev_glyph = line.glyphes[i];
 							}
-							else ret = false;
 						}
-						else if (! lineInsertChar(line, charcode, i, glyphStyle)) ret = false; // TODO: optimize if much use of
+						else x += lineInsertChar(line, charcode, i, glyphStyle); // TODO: use append
 						i++;
 					});
 					
+					x_start = x - x_start;
 					if (i < line.glyphes.length) // rest
-					{	
+					{
 						${switch (glyphStyleHasMeta.packed) {
 							case true: macro x += kerningOffset(line.glyphes[i-1], line.glyphes[i], charData.fontData.kerning);
 							default: macro {}
@@ -920,8 +927,8 @@ class FontProgramMacro
 							_setLinePositionOffset(line, offset, position, i, line.updateTo);
 						} else _setLinePositionOffset(line, offset, position, i, i);
 					} else _setLinePositionOffset(line, 0, position, i, i);
-					
-					return ret;
+				
+					return x_start;
 				}
 				
 				
@@ -929,7 +936,7 @@ class FontProgramMacro
 				// ------------- inserting chars ---------------------
 
 				
-				public function lineInsertChar(line:Line<$styleType>, charcode:Int, position:Int = 0, glyphStyle:$styleType = null):Bool
+				public function lineInsertChar(line:Line<$styleType>, charcode:Int, position:Int = 0, glyphStyle:$styleType = null):Float
 				{
 					var charData = getCharData(charcode);
 					if (charData != null)
@@ -967,10 +974,13 @@ class FontProgramMacro
 						setPosition(glyph, charData, x, y);						
 						
 						x += nextGlyphOffset(glyph, charData);
-
+						
 						if (position < line.glyphes.length) {
 							if (position < line.updateFrom) line.updateFrom = position+1;
-							line.updateTo = line.glyphes.length+1;
+							line.updateTo = line.glyphes.length + 1;
+							
+//TODO: KERNING 
+							
 							_setLinePositionOffset(line, x - x_start, position, position, line.glyphes.length);
 						}
 						else line.fullWidth += x - x_start;
@@ -988,13 +998,14 @@ class FontProgramMacro
 							line.visibleFrom++;
 							line.visibleTo++;
 						}
-						return true;
+						
+						return x - x_start;
 					}
-					else return false;
+					else return 0;
 				}
 				
 				
-				public function lineInsertChars(line:Line<$styleType>, chars:String, position:Int = 0, glyphStyle:$styleType = null):Bool 
+				public function lineInsertChars(line:Line<$styleType>, chars:String, position:Int = 0, glyphStyle:$styleType = null):Float 
 				{					
 					var prev_glyph:peote.text.Glyph<$styleType> = null;
 					var x = line.x + line.xOffset;
@@ -1003,7 +1014,7 @@ class FontProgramMacro
 						x = rightGlyphPos(line.glyphes[position - 1], getCharData(line.glyphes[position - 1].char));
 						prev_glyph = line.glyphes[position - 1];
 					}
-					var x_start = x;
+					
 					var rest = line.glyphes.splice(position, line.glyphes.length - position);
 					
 					if (rest.length > 0) {
@@ -1011,11 +1022,13 @@ class FontProgramMacro
 						var oldTo = line.visibleTo - line.glyphes.length;
 						if (line.visibleFrom > line.glyphes.length) line.visibleFrom = line.glyphes.length;
 						if (line.visibleTo > line.glyphes.length) line.visibleTo = line.glyphes.length;
-						var x = _lineAppend(line, chars, x, y, prev_glyph, glyphStyle);
-						if (x != null) 
+						var deltaX = _lineAppend(line, chars, x, y, prev_glyph, glyphStyle);
+//TODO: deltaX += KERNING 
+//TODO: line.fullWidth += 
+						if (deltaX != 0.0) // TODO
 						{
 							if (line.glyphes.length < line.updateFrom) line.updateFrom = line.glyphes.length;
-							var deltaX = x - x_start;
+							
 							for (i in 0...rest.length) {
 								rest[i].x += deltaX;
 								
@@ -1039,21 +1052,19 @@ class FontProgramMacro
 								}
 							}
 								
-							line.fullWidth += deltaX;
+							//line.fullWidth += deltaX;
 							
 							line.glyphes = line.glyphes.concat(rest);
 							line.updateTo = line.glyphes.length;
-							
-							return true;
 						} 
 						else {
 							line.visibleFrom = oldFrom + line.glyphes.length;
 							line.visibleTo = oldTo + line.glyphes.length;							
 							line.glyphes = line.glyphes.concat(rest);
-							return false;
 						}
+						return deltaX;
 					}
-					else if (_lineAppend(line, chars, x, y, prev_glyph, glyphStyle) == null) return false else return true;
+					else return _lineAppend(line, chars, x, y, prev_glyph, glyphStyle);
 				}
 				
 				
@@ -1061,7 +1072,7 @@ class FontProgramMacro
 				// ------------- appending chars ---------------------
 				
 				
-				public function lineAppendChars(line:Line<$styleType>, chars:String, glyphStyle:$styleType = null):Bool 
+				public function lineAppendChars(line:Line<$styleType>, chars:String, glyphStyle:$styleType = null):Float
 				{					
 					var prev_glyph:peote.text.Glyph<$styleType> = null;
 					var x = line.x + line.xOffset;
@@ -1070,15 +1081,16 @@ class FontProgramMacro
 						x = rightGlyphPos(line.glyphes[line.glyphes.length - 1], getCharData(line.glyphes[line.glyphes.length - 1].char));
 						prev_glyph = line.glyphes[line.glyphes.length - 1];
 					}
-					if (_lineAppend(line, chars, x, y, prev_glyph, glyphStyle) == null) return false else return true;
+					return _lineAppend(line, chars, x, y, prev_glyph, glyphStyle);
 				}
 				
-				public inline function _lineAppend(line:Line<$styleType>, chars:String, x:Float, y:Float, prev_glyph:peote.text.Glyph<$styleType>, glyphStyle:$styleType, setNewLineMetrics:Bool = false):Null<Float>
+				public inline function _lineAppend(line:Line<$styleType>, chars:String, x:Float, y:Float, prev_glyph:peote.text.Glyph<$styleType>, glyphStyle:$styleType, setNewLineMetrics:Bool = false):Float
 				{
-					var ret = true;
 					var first = ! setNewLineMetrics;
 					var glyph:peote.text.Glyph<$styleType> = null;
 					var charData:$charDataType = null;
+					
+					var x_start = x;
 					
 					haxe.Utf8.iter(chars, function(charcode)
 					{
@@ -1123,10 +1135,10 @@ class FontProgramMacro
 
 							prev_glyph = glyph;
 						}
-						else ret = false;
 					});
 
-					line.fullWidth = x - line.x - line.xOffset;
+					//line.fullWidth = x - line.x - line.xOffset;
+					line.fullWidth += x - x_start;
 					
 					// sets new line-metrics
 					${switch (glyphStyleHasMeta.packed) {
@@ -1142,7 +1154,7 @@ class FontProgramMacro
 						default: macro {}
 					}}
 					
-					return (ret) ? x : null;
+					return x - x_start;
 				}
 				
 				
@@ -1150,13 +1162,13 @@ class FontProgramMacro
 				// ------------- deleting chars ---------------------
 				
 				
-				public function lineDeleteChar(line:Line<$styleType>, position:Int = 0)
+				public function lineDeleteChar(line:Line<$styleType>, position:Int = 0):Float
 				{
 					if (position >= line.visibleFrom && position < line.visibleTo) {
 						removeGlyph(line.glyphes[position]);
 					}
 					
-					_lineDeleteCharsOffset(line, position, position + 1);
+					var offset = _lineDeleteCharsOffset(line, position, position + 1);
 					
 					if (position < line.visibleFrom) {
 						line.visibleFrom--; line.visibleTo--;
@@ -1166,9 +1178,11 @@ class FontProgramMacro
 					}
 					
 					line.glyphes.splice(position, 1);
+					
+					return offset;
 				}
 				
-				public function lineDeleteChars(line:Line<$styleType>, from:Int = 0, to:Null<Int> = null)
+				public function lineDeleteChars(line:Line<$styleType>, from:Int = 0, to:Null<Int> = null):Float
 				{
 					if (to == null) to = line.glyphes.length;
 					
@@ -1176,7 +1190,7 @@ class FontProgramMacro
 						removeGlyph(line.glyphes[i]);
 					}
 					
-					_lineDeleteCharsOffset(line, from, to);
+					var offset = _lineDeleteCharsOffset(line, from, to);
 					
 					if (from < line.visibleFrom) {
 						line.visibleFrom = (to < line.visibleFrom) ? line.visibleFrom - to + from : from;
@@ -1187,13 +1201,16 @@ class FontProgramMacro
 					}
 					
 					line.glyphes.splice(from, to - from);
+					
+					return offset;
 				}
 				
-				inline function _lineDeleteCharsOffset(line:Line<$styleType>, from:Int, to:Int)
+				inline function _lineDeleteCharsOffset(line:Line<$styleType>, from:Int, to:Int):Float
 				{
-					if (to < line.glyphes.length) {
+					var offset:Float = 0.0;
+					if (to < line.glyphes.length) 
+					{
 						var charData = getCharData(line.glyphes[to].char);
-						var offset:Float = 0.0;
 						if (from == 0) offset = line.x + line.xOffset - leftGlyphPos(line.glyphes[to], charData);
 						else {
 							offset = rightGlyphPos(line.glyphes[from-1], getCharData(line.glyphes[from-1].char)) - leftGlyphPos(line.glyphes[to], charData);
@@ -1206,16 +1223,25 @@ class FontProgramMacro
 						line.updateTo = line.glyphes.length - to + from;
 						_setLinePositionOffset(line, offset, to, to, line.glyphes.length);
 					}
-					else { // delete from end
+					else 
+					{ 	// delete from end
 						if ( line.updateFrom >= line.glyphes.length - to + from ) {
 							line.updateFrom = 0x1000000;
 							line.updateTo = 0;
 						}
 						else if ( line.updateTo > line.glyphes.length - to + from) {
 							line.updateTo = line.glyphes.length - to + from;
-						}				
-						//TODO: line.fullWidth 
+						}
+						
+						if (from != 0) 
+							//offset = rightGlyphPos(line.glyphes[from-1], getCharData(line.glyphes[from-1].char)) - rightGlyphPos(line.glyphes[to-1], getCharData(line.glyphes[to-1].char));
+							offset = rightGlyphPos(line.glyphes[from - 1], getCharData(line.glyphes[from - 1].char)) - (line.x + line.xOffset + line.fullWidth);
+						//else offset = line.x + line.xOffset - rightGlyphPos(line.glyphes[to-1], getCharData(line.glyphes[to-1].char));
+						else offset = -line.fullWidth;
+
+						line.fullWidth += offset;
 					}
+					return offset;
 				}
 				
 				

@@ -13,7 +13,7 @@ import peote.view.Display;
 import peote.view.Buffer;
 import peote.view.Program;
 import peote.view.Color;
-import elements.ElementSimple;
+import peote.view.Element;
 
 import peote.text.Font;
 
@@ -26,6 +26,25 @@ import peote.text.Glyph;
 
 import peote.text.Line;
 //import peote.text.Page;
+class ElementSimple implements Element
+{
+	@posX public var x:Float;
+	@posY public var y:Float;
+	
+	@sizeX public var w:Float=100.0;
+	@sizeY public var h:Float=100.0;
+	
+	@color public var c:Color = 0xff0000ff;
+		
+	public function new(x:Float=0, y:Float=0, w:Float=100, h:Int=100, c:Int=0xFF0000FF )
+	{
+		this.x = x;
+		this.y = y;
+		this.w = w;
+		this.h = h;
+		this.c = c;
+	}
+}
 
 //@multiSlot    // multiple slots per texture to store multiple unicode-ranges
 //@multiTexture // multiple textures to store multiple unicode-ranges
@@ -172,19 +191,23 @@ class TextlineMasking
 	
 	public function lineInsertChar(charcode:Int)
 	{
-		if (fontProgram.lineInsertChar(line, charcode, cursor, actual_glyphStyle)) {
-			fontProgram.lineInsertChar(lineMasked, charcode, cursor, actual_glyphStyle);
+		if (fontProgram.lineInsertChar(line, charcode, cursor, actual_glyphStyle) != 0) {
+			//fontProgram.lineInsertChar(lineMasked, charcode, cursor, actual_glyphStyle);
+			moveCursor(fontProgram.lineInsertChar(lineMasked, charcode, cursor, actual_glyphStyle));
 			lineUpdate();
-			cursor ++; moveCursor(20);
+			cursor ++; //moveCursor(20);
 		}
 	}
 	
 	public function lineInsertChars(text:String)
 	{
-		if (fontProgram.lineInsertChars(line, text, cursor, actual_glyphStyle)) {
-			fontProgram.lineInsertChars(lineMasked, text, cursor, actual_glyphStyle);
+		if (fontProgram.lineInsertChars(line, text, cursor, actual_glyphStyle) != 0) {
+			//fontProgram.lineInsertChars(lineMasked, text, cursor, actual_glyphStyle);
+			var old_length = lineMasked.glyphes.length;
+			moveCursor(fontProgram.lineInsertChars(lineMasked, text, cursor, actual_glyphStyle));
 			lineUpdate();
-			cursor += text.length; moveCursor(20*text.length);
+			//cursor += text.length; moveCursor(20*text.length);
+			cursor += lineMasked.glyphes.length - old_length;
 		}
 	}
 	
@@ -197,8 +220,8 @@ class TextlineMasking
 	
 	public function lineDeleteCharBack()
 	{
-		cursor--; moveCursor(-20);
-		fontProgram.lineDeleteChar(line, cursor);
+		cursor--;
+		moveCursor(fontProgram.lineDeleteChar(line, cursor));
 		fontProgram.lineDeleteChar(lineMasked, cursor);
 		lineUpdate();
 	}
@@ -216,7 +239,7 @@ class TextlineMasking
 		fontProgram.updateLine(lineMasked);
 	}
 	
-	public function moveCursor(delta:Int)
+	public function moveCursor(delta:Float)
 	{
 		cursorElem.x += delta;
 		helperLinesBuffer.updateElement(cursorElem);
@@ -263,6 +286,7 @@ class TextlineMasking
 			case KeyCode.LEFT: if (cursor > 0) {cursor--;moveCursor(-20);}
 			default:
 		}
+		//trace("fullWidth:", lineMasked.fullWidth, line.fullWidth);
 	}
 	
 	public function onTextInput(text:String):Void 
