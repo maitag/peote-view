@@ -1046,7 +1046,12 @@ class FontProgramMacro
 							
 							return true;
 						} 
-						else return false;
+						else {
+							line.visibleFrom = oldFrom + line.glyphes.length;
+							line.visibleTo = oldTo + line.glyphes.length;							
+							line.glyphes = line.glyphes.concat(rest);
+							return false;
+						}
 					}
 					else if (_lineAppend(line, chars, x, y, prev_glyph, glyphStyle) == null) return false else return true;
 				}

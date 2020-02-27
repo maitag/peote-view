@@ -1,5 +1,4 @@
 package;
-import jasper.ds.FloatMap;
 #if sampleTextlineMasking
 import haxe.Timer;
 
@@ -78,17 +77,19 @@ class TextlineMasking
 	var line_y:Float = 100;
 	
 	var lineMasked:Line<GlyphStyle>;
-	var lineMasked_x:Float = 50;
+	var lineMasked_x:Float = 61;
+	var lineMasked_xOffset:Float = -61;
 	var lineMasked_y:Float = 150;
 	
 	var actual_glyphStyle:GlyphStyle;
 		
 	var cursor = 0;
+	var cursorElem:ElementSimple;
 	
 	public function new(window:Window)
 	{
 		window.textInputEnabled = true; // this is disabled on default for html5
-		
+
 		try {	
 			peoteView = new PeoteView(window.context, window.width, window.height);
 			display   = new Display(10,10, window.width-20, window.height-20, Color.GREY1);
@@ -137,32 +138,25 @@ class TextlineMasking
 				
 				line = new Line<GlyphStyle>();
 				lineMasked = new Line<GlyphStyle>();
-				lineMasked.maxX = lineMasked_x + 200;
+				lineMasked.maxX = lineMasked_x + 198;
 				lineMasked.maxY = lineMasked_y + 50;
-				lineMasked.xOffset = -50;
+				lineMasked.xOffset = lineMasked_xOffset;
 
-				setLine("0123456789abcdefghijklmnopqrstuvwxyz");
+				setLine("Testing input textline and masking.");
 				
 				//trace('visibleFrom: ${line.visibleFrom} visibleTo:${line.visibleTo} fullWidth:${line.fullWidth}');
 				
 				// background
 				addHelperLines(lineMasked);
 				
+				cursorElem = new ElementSimple(Std.int(line_x), Std.int(line_y), 1, 30, Color.RED);
+				helperLinesBuffer.addElement(cursorElem);
+				
 				//fontProgram.lineSetStyle(line, glyphStyle2, 1, 5);
 					
 				//fontProgram.lineSetChar(line, "A".charCodeAt(0) , 0, glyphStyle2);
-
-				//fontProgram.lineDeleteChar(line, 0);
-				//fontProgram.lineDeleteChars(line, 2, 5);
-
-				//fontProgram.lineInsertChar(line, "A".charCodeAt(0) , 0 , glyphStyle2);
-				//fontProgram.lineInsertChars(line, "hsxe" , 0, glyphStyle2);
 				
 				//fontProgram.lineSetPosition(line, line.x+10, line.y+10);
-
-				//fontProgram.updateLine(line);
-				
-				
 			});
 			
 		} catch (e:Dynamic) trace("ERROR:", e);
@@ -176,22 +170,56 @@ class TextlineMasking
 		fontProgram.setLine(lineMasked, s, lineMasked_x, lineMasked_y, actual_glyphStyle);
 	}
 	
-	public function lineInsertChar(charcode:Int):Bool
+	public function lineInsertChar(charcode:Int)
 	{
-		fontProgram.lineInsertChar(line, charcode, cursor, actual_glyphStyle);
-		return fontProgram.lineInsertChar(lineMasked, charcode, cursor, actual_glyphStyle);
+		if (fontProgram.lineInsertChar(line, charcode, cursor, actual_glyphStyle)) {
+			fontProgram.lineInsertChar(lineMasked, charcode, cursor, actual_glyphStyle);
+			lineUpdate();
+			cursor ++; moveCursor(20);
+		}
 	}
 	
-	public function lineInsertChars(text:String):Bool
+	public function lineInsertChars(text:String)
 	{
-		fontProgram.lineInsertChars(line, text, cursor, actual_glyphStyle);
-		return fontProgram.lineInsertChars(lineMasked, text, cursor, actual_glyphStyle);
+		if (fontProgram.lineInsertChars(line, text, cursor, actual_glyphStyle)) {
+			fontProgram.lineInsertChars(lineMasked, text, cursor, actual_glyphStyle);
+			lineUpdate();
+			cursor += text.length; moveCursor(20*text.length);
+		}
+	}
+	
+	public function lineDeleteChar()
+	{
+		fontProgram.lineDeleteChar(line, cursor);
+		fontProgram.lineDeleteChar(lineMasked, cursor);
+		lineUpdate();
+	}
+	
+	public function lineDeleteCharBack()
+	{
+		cursor--; moveCursor(-20);
+		fontProgram.lineDeleteChar(line, cursor);
+		fontProgram.lineDeleteChar(lineMasked, cursor);
+		lineUpdate();
+	}
+	
+	public function lineDeleteChars(from:Int, to:Int)
+	{
+		fontProgram.lineDeleteChars(line, from, to);
+		fontProgram.lineDeleteChars(lineMasked, from, to);
+		lineUpdate();
 	}
 	
 	public function lineUpdate()
 	{
 		fontProgram.updateLine(line);
 		fontProgram.updateLine(lineMasked);
+	}
+	
+	public function moveCursor(delta:Int)
+	{
+		cursorElem.x += delta;
+		helperLinesBuffer.updateElement(cursorElem);
 	}
 	
 	// ---------------------------------------------------------------
@@ -228,8 +256,11 @@ class TextlineMasking
 					if (modifier.shiftKey) peoteView.zoom-=0.01;
 					else display.zoom -= 0.1;
 			
-*/			case KeyCode.RIGHT: if (cursor < line.glyphes.length) cursor++;
-			case KeyCode.LEFT: if (cursor > 0) cursor--;
+*/
+			case KeyCode.DELETE: if (cursor < line.glyphes.length) lineDeleteChar();
+			case KeyCode.BACKSPACE: if (cursor > 0) lineDeleteCharBack();
+			case KeyCode.RIGHT: if (cursor < line.glyphes.length) {cursor++; moveCursor(20);}
+			case KeyCode.LEFT: if (cursor > 0) {cursor--;moveCursor(-20);}
 			default:
 		}
 	}
@@ -242,12 +273,8 @@ class TextlineMasking
 		{
 			lineInsertChar(charcode);
 		});
-		lineUpdate();
 */	
-		if (lineInsertChars(text)) {
-			lineUpdate();
-			cursor += text.length;
-		}
+		lineInsertChars(text);
 	}
 
 	public function render()
