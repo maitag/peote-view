@@ -1247,6 +1247,14 @@ class FontProgramMacro
 				
 				// TODO:  ------------- get glyph index at x position (for mouse-selecting) ---------------
 				
+				public function lineGetCharPosition(line:Line<$styleType>, position:Int):Float
+				{
+					if (position < line.glyphes.length)
+						return leftGlyphPos(line.glyphes[position], getCharData(line.glyphes[position].char));
+					else
+						return rightGlyphPos(line.glyphes[line.glyphes.length-1], getCharData(line.glyphes[line.glyphes.length-1].char));
+				}
+								
 				public function lineSetXOffset(line:Line<$styleType>, xOffset:Float)
 				{
 					

@@ -88,6 +88,7 @@ class TextlineMasking
 	
 	var helperLinesBuffer:Buffer<ElementSimple>;
 	var helperLinesProgram:Program;
+	var helperElems = new Map<Line<GlyphStyle>, {bg:ElementSimple,top:ElementSimple,asc:ElementSimple,base:ElementSimple,desc:ElementSimple}>();
 	
 	var fontProgram:FontProgram<GlyphStyle>;
 	
@@ -100,13 +101,16 @@ class TextlineMasking
 	var lineMasked_xOffset:Float = -61;
 	var lineMasked_y:Float = 150;
 	
-	var actual_glyphStyle:GlyphStyle;
+	var actual_style:Int = 0;
+	var glyphStyle = new Array<GlyphStyle>();
 		
 	var cursor = 0;
 	var cursorElem:ElementSimple;
 	
+	var window:Window;
+	
 	public function new(window:Window)
-	{
+	{	this.window=window;
 		window.textInputEnabled = true; // this is disabled on default for html5
 
 		try {	
@@ -135,23 +139,25 @@ class TextlineMasking
 				fontProgram = new FontProgram<GlyphStyle>(font, fontStyle); // manage the Programs to render glyphes in different size/colors/fonts
 				display.addProgram(fontProgram);
 				
-				var glyphStyle = new GlyphStyle();
-				glyphStyle.width = font.config.width;
-				glyphStyle.height = font.config.height;
+				var style:GlyphStyle;
 				
-				var glyphStyle1 = new GlyphStyle();
-				glyphStyle1.color = Color.YELLOW;
-				glyphStyle1.width = font.config.width * 1.0;
-				glyphStyle1.height = font.config.height * 1.0;
+				style = new GlyphStyle();
+				style.width = font.config.width;
+				style.height = font.config.height;
+				glyphStyle.push(style);
 				
-				var glyphStyle2 = new GlyphStyle();
-				glyphStyle2.color = Color.RED;
-				glyphStyle2.width = font.config.width * 2.0;
-				glyphStyle2.height = font.config.height * 2.0;
-								
+				style = new GlyphStyle();
+				style.color = Color.YELLOW;
+				style.width = font.config.width * 2.0;
+				style.height = font.config.height * 2.0;
+				glyphStyle.push(style);
 				
-				actual_glyphStyle = glyphStyle;
-
+				style = new GlyphStyle();
+				style.color = Color.RED;
+				style.width = font.config.width * 3.0;
+				style.height = font.config.height * 3.0;
+				glyphStyle.push(style);				
+				
 				// ------------------- line  -------------------
 				
 				
@@ -166,7 +172,8 @@ class TextlineMasking
 				//trace('visibleFrom: ${line.visibleFrom} visibleTo:${line.visibleTo} fullWidth:${line.fullWidth}');
 				
 				// background
-				addHelperLines(lineMasked);
+				addHelperLines(line, line.fullWidth, 20);
+				addHelperLines(lineMasked, lineMasked.maxX-lineMasked.x, lineMasked.maxY-lineMasked.y);
 				
 				cursorElem = new ElementSimple(Std.int(line_x), Std.int(line_y), 1, 30, Color.RED);
 				helperLinesBuffer.addElement(cursorElem);
@@ -185,45 +192,46 @@ class TextlineMasking
 
 	public function setLine(s:String)
 	{
-		fontProgram.setLine(line, s, line_x, line_y, actual_glyphStyle);
-		fontProgram.setLine(lineMasked, s, lineMasked_x, lineMasked_y, actual_glyphStyle);
+		fontProgram.setLine(line, s, line_x, line_y, glyphStyle[actual_style]);
+		fontProgram.setLine(lineMasked, s, lineMasked_x, lineMasked_y, glyphStyle[actual_style]);
 	}
 	
 	public function lineInsertChar(charcode:Int)
 	{
-		if (fontProgram.lineInsertChar(line, charcode, cursor, actual_glyphStyle) != 0) {
-			//fontProgram.lineInsertChar(lineMasked, charcode, cursor, actual_glyphStyle);
-			moveCursor(fontProgram.lineInsertChar(lineMasked, charcode, cursor, actual_glyphStyle));
+		if (fontProgram.lineInsertChar(line, charcode, cursor, glyphStyle[actual_style]) != 0) {
+			moveCursor(fontProgram.lineInsertChar(lineMasked, charcode, cursor, glyphStyle[actual_style]));
 			lineUpdate();
-			cursor ++; //moveCursor(20);
+			cursor ++;
 		}
 	}
 	
 	public function lineInsertChars(text:String)
 	{
-		if (fontProgram.lineInsertChars(line, text, cursor, actual_glyphStyle) != 0) {
-			//fontProgram.lineInsertChars(lineMasked, text, cursor, actual_glyphStyle);
+		if (fontProgram.lineInsertChars(line, text, cursor, glyphStyle[actual_style]) != 0) {
 			var old_length = lineMasked.glyphes.length;
-			moveCursor(fontProgram.lineInsertChars(lineMasked, text, cursor, actual_glyphStyle));
+			moveCursor(fontProgram.lineInsertChars(lineMasked, text, cursor, glyphStyle[actual_style]));
 			lineUpdate();
-			//cursor += text.length; moveCursor(20*text.length);
 			cursor += lineMasked.glyphes.length - old_length;
 		}
 	}
 	
 	public function lineDeleteChar()
 	{
-		fontProgram.lineDeleteChar(line, cursor);
-		fontProgram.lineDeleteChar(lineMasked, cursor);
-		lineUpdate();
+		if (cursor < line.glyphes.length) {
+			fontProgram.lineDeleteChar(line, cursor);
+			fontProgram.lineDeleteChar(lineMasked, cursor);
+			lineUpdate();
+		}
 	}
 	
 	public function lineDeleteCharBack()
 	{
-		cursor--;
-		moveCursor(fontProgram.lineDeleteChar(line, cursor));
-		fontProgram.lineDeleteChar(lineMasked, cursor);
-		lineUpdate();
+		if (cursor > 0) {
+			cursor--;
+			moveCursor(fontProgram.lineDeleteChar(line, cursor));
+			fontProgram.lineDeleteChar(lineMasked, cursor);
+			lineUpdate();
+		}
 	}
 	
 	public function lineDeleteChars(from:Int, to:Int)
@@ -237,26 +245,64 @@ class TextlineMasking
 	{
 		fontProgram.updateLine(line);
 		fontProgram.updateLine(lineMasked);
+		updateHelperLines(line, line.fullWidth, 20);
 	}
 	
-	public function moveCursor(delta:Float)
+	public function moveCursor(offset:Float)
 	{
-		cursorElem.x += delta;
+		cursorElem.x += offset;
 		helperLinesBuffer.updateElement(cursorElem);
+	}
+	
+	public function cursorRight()
+	{
+		if (cursor < line.glyphes.length) {
+			cursor++;
+			cursorElem.x = fontProgram.lineGetCharPosition(line, cursor);
+			helperLinesBuffer.updateElement(cursorElem);
+		}
+	}
+	
+	public function cursorLeft()
+	{
+		if (cursor > 0) {
+			cursor--;
+			cursorElem.x = fontProgram.lineGetCharPosition(line, cursor);
+			helperLinesBuffer.updateElement(cursorElem);
+		}
 	}
 	
 	// ---------------------------------------------------------------
 	
-	public function addHelperLines(line:Line<GlyphStyle>) {
-		helperLinesBuffer.addElement(new ElementSimple(Std.int(line.x), Std.int(line.y), Std.int(line.maxX-line.x), Std.int(line.maxY-line.y), Color.GREY3));
+	public function addHelperLines(line:Line<GlyphStyle>, width:Float, height:Float) {
+		// bg
+		var bg = new ElementSimple(Std.int(line.x), Std.int(line.y), Std.int(width), Std.int(height), Color.GREY2);
+		helperLinesBuffer.addElement(bg);
 		// top line
-		helperLinesBuffer.addElement(new ElementSimple(Std.int(line.x), Std.int(line.y), Std.int(line.maxX-line.x), 1, Color.BLUE));				
+		var top = new ElementSimple(Std.int(line.x), Std.int(line.y), Std.int(width), 1, Color.GREY4);				
+		helperLinesBuffer.addElement(top);				
 		// ascender line
-		helperLinesBuffer.addElement(new ElementSimple(Std.int(line.x), Std.int(line.y + line.asc), Std.int(line.maxX-line.x), 1, Color.YELLOW));
+		var asc = new ElementSimple(Std.int(line.x), Std.int(line.y + line.asc), Std.int(width), 1, Color.GREY3);
+		helperLinesBuffer.addElement(asc);
 		// baseline
-		helperLinesBuffer.addElement(new ElementSimple(Std.int(line.x), Std.int(line.y + line.base), Std.int(line.maxX-line.x), 1, Color.RED));
+		var base = new ElementSimple(Std.int(line.x), Std.int(line.y + line.base), Std.int(width), 1, Color.GREY3);
+		helperLinesBuffer.addElement(base);
 		// descender line
-		helperLinesBuffer.addElement(new ElementSimple(Std.int(line.x), Std.int(line.maxY), Std.int(line.maxX-line.x), 1, Color.GREEN));
+		var desc = new ElementSimple(Std.int(line.x), Std.int(line.y + height), Std.int(width), 1, Color.GREY4);
+		helperLinesBuffer.addElement(desc);
+		
+		helperElems.set(line, {bg:bg, top:top, asc:asc, base:base, desc:desc});
+	}
+	
+	public function updateHelperLines(line:Line<GlyphStyle>, width:Float, height:Float) {
+		var elem = helperElems.get(line);
+		elem.bg.w = elem.top.w = elem.asc.w = elem.base.w = elem.desc.w = width;
+		elem.bg.h = height;
+		helperLinesBuffer.updateElement(elem.bg);
+		helperLinesBuffer.updateElement(elem.top);
+		helperLinesBuffer.updateElement(elem.asc);
+		helperLinesBuffer.updateElement(elem.base);
+		helperLinesBuffer.updateElement(elem.desc);
 	}
 
 	// ---------------------------------------------------------------
@@ -272,20 +318,23 @@ class TextlineMasking
 	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
 	{	
 		switch (keyCode) {
-/*			case KeyCode.NUMPAD_PLUS:
+			case KeyCode.NUMPAD_PLUS:
 					if (modifier.shiftKey) peoteView.zoom+=0.01;
 					else display.zoom+=0.1;
 			case KeyCode.NUMPAD_MINUS:
 					if (modifier.shiftKey) peoteView.zoom-=0.01;
 					else display.zoom -= 0.1;
 			
-*/
-			case KeyCode.DELETE: if (cursor < line.glyphes.length) lineDeleteChar();
-			case KeyCode.BACKSPACE: if (cursor > 0) lineDeleteCharBack();
-			case KeyCode.RIGHT: if (cursor < line.glyphes.length) {cursor++; moveCursor(20);}
-			case KeyCode.LEFT: if (cursor > 0) {cursor--;moveCursor(-20);}
+			case KeyCode.PAGE_UP: actual_style = (actual_style+1) % glyphStyle.length;
+			case KeyCode.PAGE_DOWN: actual_style = (actual_style>0) ? actual_style-1 : glyphStyle.length-1;
+
+			case KeyCode.DELETE: lineDeleteChar();
+			case KeyCode.BACKSPACE: lineDeleteCharBack();
+			case KeyCode.RIGHT: cursorRight();
+			case KeyCode.LEFT: cursorLeft();
 			default:
 		}
+		
 		//trace("fullWidth:", lineMasked.fullWidth, line.fullWidth);
 	}
 	
