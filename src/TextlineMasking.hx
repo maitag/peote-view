@@ -94,6 +94,7 @@ class TextlineMasking
 	
 	var line:Line<GlyphStyle>;
 	var line_x:Float = 0;
+	var line_xOffset:Float = 0;
 	var line_y:Float = 100;
 	
 	var lineMasked:Line<GlyphStyle>;
@@ -106,11 +107,14 @@ class TextlineMasking
 		
 	var cursor = 0;
 	var cursorElem:ElementSimple;
+	var cursor_x:Float = 0;
 	
-	var window:Window;
+	//var window:Window;
 	
 	public function new(window:Window)
-	{	this.window=window;
+	{
+		//this.window=window;
+		
 		window.textInputEnabled = true; // this is disabled on default for html5
 
 		try {	
@@ -162,12 +166,14 @@ class TextlineMasking
 				
 				
 				line = new Line<GlyphStyle>();
+				line.xOffset = line_xOffset;
+
 				lineMasked = new Line<GlyphStyle>();
 				lineMasked.maxX = lineMasked_x + 198;
 				lineMasked.maxY = lineMasked_y + 50;
 				lineMasked.xOffset = lineMasked_xOffset;
 
-				setLine("Testing input textline and masking.");
+				setLine("Testing input textline and masking. (page up/down is toggling glyphstyle)");
 				
 				//trace('visibleFrom: ${line.visibleFrom} visibleTo:${line.visibleTo} fullWidth:${line.fullWidth}');
 				
@@ -175,7 +181,7 @@ class TextlineMasking
 				addHelperLines(line, line.fullWidth, 20);
 				addHelperLines(lineMasked, lineMasked.maxX-lineMasked.x, lineMasked.maxY-lineMasked.y);
 				
-				cursorElem = new ElementSimple(Std.int(line_x), Std.int(line_y), 1, 30, Color.RED);
+				cursorElem = new ElementSimple(Std.int(cursor_x), Std.int(line_y), 1, 30, Color.RED);
 				helperLinesBuffer.addElement(cursorElem);
 				
 				//fontProgram.lineSetStyle(line, glyphStyle2, 1, 5);
@@ -241,11 +247,20 @@ class TextlineMasking
 		lineUpdate();
 	}
 	
+	public function lineSetXOffset(xOffset:Float)
+	{
+		fontProgram.lineSetXOffset(line, line_xOffset + xOffset);
+		fontProgram.lineSetXOffset(lineMasked, lineMasked_xOffset + xOffset);
+		lineUpdate();
+		cursorElem.x = cursor_x + xOffset;
+		helperLinesBuffer.updateElement(cursorElem);
+	}
+	
 	public function lineUpdate()
 	{
 		fontProgram.updateLine(line);
 		fontProgram.updateLine(lineMasked);
-		updateHelperLines(line, line.fullWidth, 20);
+		updateHelperLines(line, line_x + line.xOffset, line.fullWidth, 20);
 	}
 	
 	public function moveCursor(offset:Float)
@@ -267,6 +282,15 @@ class TextlineMasking
 	{
 		if (cursor > 0) {
 			cursor--;
+			cursorElem.x = fontProgram.lineGetCharPosition(line, cursor);
+			helperLinesBuffer.updateElement(cursorElem);
+		}
+	}
+	
+	public function cursorSet(position:Int)
+	{
+		if (position >= 0 && position <= line.glyphes.length) {
+			cursor = position;
 			cursorElem.x = fontProgram.lineGetCharPosition(line, cursor);
 			helperLinesBuffer.updateElement(cursorElem);
 		}
@@ -294,8 +318,9 @@ class TextlineMasking
 		helperElems.set(line, {bg:bg, top:top, asc:asc, base:base, desc:desc});
 	}
 	
-	public function updateHelperLines(line:Line<GlyphStyle>, width:Float, height:Float) {
+	public function updateHelperLines(line:Line<GlyphStyle>, x:Float, width:Float, height:Float) {
 		var elem = helperElems.get(line);
+		elem.bg.x = elem.top.x = elem.asc.x = elem.base.x = elem.desc.x = x;
 		elem.bg.w = elem.top.w = elem.asc.w = elem.base.w = elem.desc.w = width;
 		elem.bg.h = height;
 		helperLinesBuffer.updateElement(elem.bg);
@@ -307,13 +332,27 @@ class TextlineMasking
 
 	// ---------------------------------------------------------------
 	
-	
-	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
-	{
+	var dragging = false;
+	var dragX:Float = 0.0;
+	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void {
+		dragging = true;
+		dragX = x;
+		cursor_x = cursorElem.x;
 	}
-	public function onMouseUp (x:Float, y:Float, button:MouseButton):Void {}
 	
-	public function onMouseMove (x:Float, y:Float):Void {}
+	public function onMouseUp (x:Float, y:Float, button:MouseButton):Void {
+		dragging = false;
+		line_xOffset = line.xOffset;
+		lineMasked_xOffset = lineMasked.xOffset;
+		cursor_x = cursorElem.x;
+	}
+	
+	public function onMouseMove (x:Float, y:Float):Void {
+		if (dragging) {
+			trace(x - dragX);
+			lineSetXOffset(x - dragX);
+		}
+	}
 
 	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
 	{	
@@ -328,14 +367,24 @@ class TextlineMasking
 			case KeyCode.PAGE_UP: actual_style = (actual_style+1) % glyphStyle.length;
 			case KeyCode.PAGE_DOWN: actual_style = (actual_style>0) ? actual_style-1 : glyphStyle.length-1;
 
+			case KeyCode.HOME: cursorSet(0);
+			case KeyCode.END: cursorSet(line.glyphes.length);
+
+			// CUT
+			//case KeyCode.x: if (modifier.ctrlKey) lime.system.Clipboard.text = lineCutSelection();
+			// COPY
+			//case KeyCode.C: if (modifier.ctrlKey) lime.system.Clipboard.text = lineGetSelection();
+			// PASTE
+			#if (neko || cpp)
+			case KeyCode.V: if (modifier.ctrlKey && lime.system.Clipboard.text != null) lineInsertChars(lime.system.Clipboard.text);
+			#end
+			
 			case KeyCode.DELETE: lineDeleteChar();
 			case KeyCode.BACKSPACE: lineDeleteCharBack();
 			case KeyCode.RIGHT: cursorRight();
 			case KeyCode.LEFT: cursorLeft();
 			default:
 		}
-		
-		//trace("fullWidth:", lineMasked.fullWidth, line.fullWidth);
 	}
 	
 	public function onTextInput(text:String):Void 

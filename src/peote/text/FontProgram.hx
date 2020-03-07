@@ -545,7 +545,7 @@ class FontProgramMacro
 				// -----------------------------------------
 				// ---------------- Lines ------------------
 				// -----------------------------------------
-				public function createLine(chars:String, x:Float=0, y:Float=0, glyphStyle:$styleType = null):peote.text.Line<$styleType>
+				public function createLine(chars:String, x:Float=0, y:Float=0, glyphStyle:Null<$styleType> = null):peote.text.Line<$styleType>
 				{
 					var line = new peote.text.Line<$styleType>();
 					if (setLine(line, chars, x, y, glyphStyle)) return line else return null;
@@ -575,7 +575,7 @@ class FontProgramMacro
 						
 					if (line.glyphes.length == 0)
 					{
-						if (_lineAppend(line, chars, x, y, null, glyphStyle, true) == null) return false else return true;
+						if (_lineAppend(line, chars, x, y, null, glyphStyle, true) == 0) return false else return true;
 					}
 					else
 					{
@@ -1234,9 +1234,7 @@ class FontProgramMacro
 						}
 						
 						if (from != 0) 
-							//offset = rightGlyphPos(line.glyphes[from-1], getCharData(line.glyphes[from-1].char)) - rightGlyphPos(line.glyphes[to-1], getCharData(line.glyphes[to-1].char));
 							offset = rightGlyphPos(line.glyphes[from - 1], getCharData(line.glyphes[from - 1].char)) - (line.x + line.xOffset + line.fullWidth);
-						//else offset = line.x + line.xOffset - rightGlyphPos(line.glyphes[to-1], getCharData(line.glyphes[to-1].char));
 						else offset = -line.fullWidth;
 
 						line.fullWidth += offset;
@@ -1257,7 +1255,15 @@ class FontProgramMacro
 								
 				public function lineSetXOffset(line:Line<$styleType>, xOffset:Float)
 				{
+					var offset = xOffset - line.xOffset;
+					line.xOffset = xOffset;
+					var x = line.x + line.xOffset;
 					
+					line.updateFrom = 0;
+					line.updateTo = line.glyphes.length;
+						
+					_setLinePositionOffset(line, offset, 0, 0, line.updateTo);
+					line.fullWidth -= offset;// TODO: remove from _setLinePositionOffset
 				}
 				
 				public function lineGetCharAtPosition(line:Line<$styleType>, xPosition:Float):Int // TODO: also need to return offset for start and end
