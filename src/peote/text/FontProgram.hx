@@ -1269,13 +1269,32 @@ class FontProgramMacro
 				
 				public function lineGetCharAtPosition(line:Line<$styleType>, xPosition:Float):Int // TODO: also need to return offset for start and end
 				{
+					trace("lineGetCharAtPosition at "+xPosition);
 					if (xPosition > line.x && xPosition < line.maxX) { // TODO
 						${switch (glyphStyleHasMeta.packed)
 						{
 							case true: macro // ------- Gl3Font -------
 							{
 								// TODO: binary search
-								return 0; // TODO
+								var i:Int = line.visibleFrom;
+								while (i < line.visibleTo && xPosition > 
+									line.glyphes[i].x
+/*									(leftGlyphPos(line.glyphes[i], getCharData(line.glyphes[i].char))
+									+ rightGlyphPos(line.glyphes[i], getCharData(line.glyphes[i].char)))/2
+									// + nextGlyphOffset(line.glyphes[i], getCharData(line.glyphes[i].char))
+*/									)
+								{
+/*								trace((leftGlyphPos(line.glyphes[i], getCharData(line.glyphes[i].char)) + rightGlyphPos(line.glyphes[i], getCharData(line.glyphes[i].char)))/2);
+								trace("left:", leftGlyphPos(line.glyphes[i], getCharData(line.glyphes[i].char)));
+								trace("right:", rightGlyphPos(line.glyphes[i], getCharData(line.glyphes[i].char)));
+*/									i++;
+								}
+								//return i-1;
+								if (i == 0) return 0;
+								var middle = (leftGlyphPos(line.glyphes[i-1], getCharData(line.glyphes[i-1].char))
+											+ rightGlyphPos(line.glyphes[i-1], getCharData(line.glyphes[i-1].char)))/2;	
+								if ( xPosition < middle) return i-1;
+								else return i;
 							}
 							default: macro // ------- simple font -------
 							{
@@ -1297,7 +1316,7 @@ class FontProgramMacro
 							}
 						}}
 					}
-					else return -1;
+					else return 0;
 				}
 				
 				

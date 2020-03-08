@@ -334,13 +334,17 @@ class TextlineMasking
 	
 	var dragging = false;
 	var dragX:Float = 0.0;
-	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void {
-		dragging = true;
-		dragX = x;
-		cursor_x = cursorElem.x;
-		
-		//TODO:
-		trace("char at position:", fontProgram.lineGetCharAtPosition(line, x));
+	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
+	{	
+		if ((y-display.y)/display.zoom > line.y && (y-display.y)/display.zoom < line.y + 30) {
+			//trace("char at position:", fontProgram.lineGetCharAtPosition(line, x / display.zoom));
+			cursorSet(fontProgram.lineGetCharAtPosition(line, (x - display.x) / display.zoom));
+		}
+		else {
+			dragging = true;
+			dragX = x;
+			cursor_x = cursorElem.x;
+		}
 	}
 	
 	public function onMouseUp (x:Float, y:Float, button:MouseButton):Void {
