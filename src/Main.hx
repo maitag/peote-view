@@ -211,7 +211,7 @@ class Main extends Application
 	
 	public override function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
 	{
-		trace("keydown",keyCode, modifier);
+		//trace("keydown",keyCode, modifier);
 		#if (!sampleTextlineMasking)
 		switch (keyCode) {
 			#if html5

@@ -169,7 +169,7 @@ class TextlineMasking
 				line.xOffset = line_xOffset;
 
 				lineMasked = new Line<GlyphStyle>();
-				lineMasked.maxX = lineMasked_x + 198;
+				lineMasked.maxX = lineMasked_x + 300;
 				lineMasked.maxY = lineMasked_y + 50;
 				lineMasked.xOffset = lineMasked_xOffset;
 
@@ -181,7 +181,7 @@ class TextlineMasking
 				addHelperLines(line, line.fullWidth, 20);
 				addHelperLines(lineMasked, lineMasked.maxX-lineMasked.x, lineMasked.maxY-lineMasked.y);
 				
-				cursorElem = new ElementSimple(Std.int(cursor_x), Std.int(line_y), 1, 30, Color.RED);
+				cursorElem = new ElementSimple(cursor_x, line_y, 1, 30, Color.RED);
 				helperLinesBuffer.addElement(cursorElem);
 				
 				//fontProgram.lineSetStyle(line, glyphStyle2, 1, 5);
@@ -338,6 +338,9 @@ class TextlineMasking
 		dragging = true;
 		dragX = x;
 		cursor_x = cursorElem.x;
+		
+		//TODO:
+		trace("char at position:", fontProgram.lineGetCharAtPosition(line, x));
 	}
 	
 	public function onMouseUp (x:Float, y:Float, button:MouseButton):Void {
@@ -349,8 +352,8 @@ class TextlineMasking
 	
 	public function onMouseMove (x:Float, y:Float):Void {
 		if (dragging) {
-			trace(x - dragX);
-			lineSetXOffset(x - dragX);
+			//trace(x - dragX);
+			lineSetXOffset((x - dragX)/display.zoom);
 		}
 	}
 

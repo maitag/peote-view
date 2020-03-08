@@ -757,42 +757,46 @@ class FontProgramMacro
 					line.y = yNew;
 				}
 				
-				inline function _setLinePositionOffset(line:Line<$styleType>, deltaX:Float, from:Int, withDelta:Int, to:Int)
+				inline function _setLinePositionOffset(line:Line<$styleType>, deltaX:Float, from:Int, withDelta:Int, to:Int, updateFullWidth=true)
 				{
-					//trace("------ _setLinePositionOffset: ------",deltaX,from);
 					var visibleFrom = line.visibleFrom;
 					var visibleTo = line.visibleTo;
-					
+
 					for (i in from...to) {
-						if (i >= withDelta) line.glyphes[i].x += deltaX;
+						
+						if (i >= withDelta) line.glyphes[i].x += deltaX; // OPTIMIZATION: new bool param for DCE
 						
 						if (line.glyphes[i].x + ${switch(glyphStyleHasMeta.packed) {case true: macro line.glyphes[i].w; default: macro line.glyphes[i].width; }} >= line.x)
-						{	//trace("AAAA",i,(line.glyphes[i].x < line.maxX),(i < line.visibleTo));
+						{	
 							if (line.glyphes[i].x < line.maxX) {
 								if (i < line.visibleFrom || i >= line.visibleTo) {
+									//trace("addElement",i);
 									_buffer.addElement(line.glyphes[i]);
 									if (visibleFrom > i) visibleFrom = i;
 									if (visibleTo < i + 1) visibleTo = i + 1;
-								}
-							} else if (i < line.visibleTo) { // i >= line.visibleFrom &&       <------ CHECK if this is need !!!
-								//trace("KK", i, visibleTo);
-								_buffer.removeElement(line.glyphes[i]);
+								} //else trace("-- already added", i);
+							} 
+							else {
+								if (i >= line.visibleFrom && i < line.visibleTo) {
+									//trace("removeElement",i);
+									_buffer.removeElement(line.glyphes[i]);
+								} //else trace("-- already removed", i);
 								if (visibleTo > i) visibleTo = i;
 							}
 						}
 						else {
-							//trace("BBBB",i,(i >= line.visibleFrom && i < line.visibleTo));
 							if (i >= line.visibleFrom && i < line.visibleTo) {
+								//trace("removeElement Front", i);
 								_buffer.removeElement(line.glyphes[i]);
-							}
+							} //else trace("-- already removed Front", i);
 							visibleFrom = i + 1;
 						}
-						//trace(i, "visibleFrom:"+visibleFrom + " visibleTo:"+visibleTo);
+						//trace("from " + visibleFrom, "To " + visibleTo);
 					}
 					line.visibleFrom = visibleFrom;
 					line.visibleTo = visibleTo;
-						
-					line.fullWidth += deltaX;
+					
+					if (updateFullWidth) line.fullWidth += deltaX;
 				}
 				
 
@@ -1257,13 +1261,10 @@ class FontProgramMacro
 				{
 					var offset = xOffset - line.xOffset;
 					line.xOffset = xOffset;
-					var x = line.x + line.xOffset;
 					
 					line.updateFrom = 0;
 					line.updateTo = line.glyphes.length;
-						
-					_setLinePositionOffset(line, offset, 0, 0, line.updateTo);
-					line.fullWidth -= offset;// TODO: remove from _setLinePositionOffset
+					_setLinePositionOffset(line, offset, 0, 0, line.updateTo, false);
 				}
 				
 				public function lineGetCharAtPosition(line:Line<$styleType>, xPosition:Float):Int // TODO: also need to return offset for start and end
@@ -1313,7 +1314,7 @@ class FontProgramMacro
 					{
 						if (line.visibleFrom > line.updateFrom) line.updateFrom = line.visibleFrom;
 						if (line.visibleTo < line.updateTo) line.updateTo = line.visibleTo;
-						trace("update from " + line.updateFrom + " to " +line.updateTo);
+						//trace("update from " + line.updateFrom + " to " +line.updateTo);
 						
 						for (i in line.updateFrom...line.updateTo) updateGlyph(line.glyphes[i]);
 
