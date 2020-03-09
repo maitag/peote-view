@@ -534,17 +534,19 @@ class TextlineMasking
 	
 	public function onWindowActivate():Void 
 	{
+		#if html5
 		reFocus();
+		#end
 	}
 	
+	#if html5
 	public function reFocus():Void 
 	{
-		#if html5
 		Timer.delay(function() {
 			lime._internal.backend.html5.HTML5Window.textInput.focus();
 		}, 20);
-		#end
 	}
+	#end
 	
 	public function onTextInput(text:String):Void 
 	{
