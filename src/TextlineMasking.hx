@@ -200,7 +200,6 @@ class TextlineMasking
 				selectElem = new ElementSimple(cursor_x, line_y, 0, 20, Color.GREY4);
 				helperLinesBuffer.addElement(selectElem);
 				
-				//fontProgram.lineSetStyle(line, glyphStyle2, 1, 5);
 					
 				//fontProgram.lineSetChar(line, "A".charCodeAt(0) , 0, glyphStyle2);
 				
@@ -268,6 +267,7 @@ class TextlineMasking
 		fontProgram.lineDeleteChars(line, from, to);
 		fontProgram.lineDeleteChars(lineMasked, from, to);
 		lineUpdate();
+		selectionSetFrom(select_from);
 		selectionSetTo(select_from);
 		cursorSet(from);
 	}
@@ -300,6 +300,21 @@ class TextlineMasking
 			}
 		}
 		return copy;		
+	}
+	
+	public function lineChangeStyle()
+	{
+		if (hasSelection) {
+			var from = select_from;
+			var to = select_to;
+			if (to < from) {to = select_from; from = select_to; }
+			fontProgram.lineSetStyle(line, glyphStyle[actual_style], from, to);
+			fontProgram.lineSetStyle(lineMasked, glyphStyle[actual_style], from, to);
+			lineUpdate();
+			selectionSetFrom(select_from);
+			selectionSetTo(select_to);
+			cursorSet(cursor);
+		}
 	}
 	
 	public function lineSetXOffset(xOffset:Float)
@@ -370,6 +385,15 @@ class TextlineMasking
 		}
 	}
 
+	public function selectionSetFrom(from:Int)
+	{
+		if (from >= 0) {
+			select_from = from;
+			selectElem.x = fontProgram.lineGetCharPosition(line, from);
+			helperLinesBuffer.updateElement(selectElem);
+		}
+	}
+	
 	public function selectionSetTo(to:Int)
 	{
 		if (to <= line.glyphes.length) {
@@ -462,8 +486,12 @@ class TextlineMasking
 					if (modifier.shiftKey) peoteView.zoom-=0.01;
 					else display.zoom -= 0.1;
 			
-			case KeyCode.PAGE_UP: actual_style = (actual_style+1) % glyphStyle.length;
-			case KeyCode.PAGE_DOWN: actual_style = (actual_style>0) ? actual_style-1 : glyphStyle.length-1;
+			case KeyCode.PAGE_UP:
+				actual_style = (actual_style+1) % glyphStyle.length;
+				lineChangeStyle();
+			case KeyCode.PAGE_DOWN:
+				actual_style = (actual_style>0) ? actual_style-1 : glyphStyle.length-1;
+				lineChangeStyle();
 
 			case KeyCode.HOME: cursorSet(0);
 			case KeyCode.END: cursorSet(line.glyphes.length);
@@ -473,9 +501,7 @@ class TextlineMasking
 				if (modifier.ctrlKey) {
 					lime.system.Clipboard.text = lineCutChars();
 					#if html5
-					Timer.delay(function() {
-						lime._internal.backend.html5.HTML5Window.textInput.focus();
-					}, 20);
+					reFocus();
 					#end
 				}
 
@@ -484,9 +510,7 @@ class TextlineMasking
 				if (modifier.ctrlKey) {
 					lime.system.Clipboard.text = lineCopyChars();
 					#if html5
-					Timer.delay(function() {
-						lime._internal.backend.html5.HTML5Window.textInput.focus();
-					}, 20);
+					reFocus();
 					#end
 				}
 			// PASTE
@@ -494,9 +518,7 @@ class TextlineMasking
 				if (modifier.ctrlKey) {
 					selectionSetTo(select_from);
 					#if html5
-					Timer.delay(function() {
-						lime._internal.backend.html5.HTML5Window.textInput.focus();
-					}, 20);
+					reFocus();
 					#else
 					if (lime.system.Clipboard.text != null) lineInsertChars(lime.system.Clipboard.text);
 					#end
@@ -508,6 +530,20 @@ class TextlineMasking
 			case KeyCode.LEFT: cursorLeft(modifier.shiftKey);
 			default:
 		}
+	}
+	
+	public function onWindowActivate():Void 
+	{
+		reFocus();
+	}
+	
+	public function reFocus():Void 
+	{
+		#if html5
+		Timer.delay(function() {
+			lime._internal.backend.html5.HTML5Window.textInput.focus();
+		}, 20);
+		#end
 	}
 	
 	public function onTextInput(text:String):Void 

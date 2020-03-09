@@ -263,8 +263,13 @@ class Main extends Application
 		//trace("onWindowLeave"); 
 		if (renderTest) test.onWindowLeave();
 	}
+	public override function onWindowActivate ():Void {
+		//trace("onWindowActivate"); 
+		#if sampleTextlineMasking
+		if (renderTest) test.onWindowActivate();
+		#end
+	}
 	/*
-	public override function onWindowActivate ():Void { trace("onWindowActivate"); }
 	public override function onWindowClose ():Void { trace("onWindowClose"); }
 	public override function onWindowDeactivate ():Void { trace("onWindowDeactivate"); }
 	public override function onWindowDropFile (file:String):Void { trace("onWindowDropFile"); }
