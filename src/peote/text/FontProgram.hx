@@ -330,7 +330,12 @@ class FontProgramMacro
 						}
 						default: macro // ------- simple font -------
 						{
-							return glyph.x + glyph.width;
+							${switch (glyphStyleHasField.local_width) {
+								case true: macro return glyph.x + glyph.width;
+								default: switch (glyphStyleHasField.width) {
+									case true: macro return glyph.x + fontStyle.width;
+									default: macro return glyph.x + font.config.width;
+							}}}
 						}
 					}}
 				}
@@ -368,8 +373,14 @@ class FontProgramMacro
 									default: macro return charData.metric.advance * font.config.width;
 							}}}
 						}
-						default: macro {
-							return glyph.width;//TODO: - width / font.config.width * (font.config.paddingRight - font.config.paddingLeft);
+						default: macro // ------- simple font -------
+						{
+							${switch (glyphStyleHasField.local_width) {
+								case true: macro return glyph.width;
+								default: switch (glyphStyleHasField.width) {
+									case true: macro return fontStyle.width;
+									default: macro return font.config.width;
+							}}}
 						}
 					}}					
 				}
@@ -389,7 +400,7 @@ class FontProgramMacro
 								}}}
 							} else return 0.0;
 						}
-						default: macro {
+						default: macro { // ------- simple font -------
 							return 0.0;
 						}
 					}}					
@@ -1186,14 +1197,29 @@ class FontProgramMacro
 					return offset;
 				}
 				
+				public function lineCutChars(line:Line<$styleType>, from:Int = 0, to:Null<Int> = null):String
+				{
+					if (to == null) to = line.glyphes.length;
+					var cut = "";
+					for (i in ((from < line.visibleFrom) ? line.visibleFrom : from)...((to < line.visibleTo) ? to : line.visibleTo)) {
+						cut += String.fromCharCode(line.glyphes[i].char);
+						removeGlyph(line.glyphes[i]);
+					}
+					_lineDeleteChars(line, from, to);
+					return cut;
+				}
+				
 				public function lineDeleteChars(line:Line<$styleType>, from:Int = 0, to:Null<Int> = null):Float
 				{
 					if (to == null) to = line.glyphes.length;
-					
 					for (i in ((from < line.visibleFrom) ? line.visibleFrom : from)...((to < line.visibleTo) ? to : line.visibleTo)) {
 						removeGlyph(line.glyphes[i]);
 					}
-					
+					return _lineDeleteChars(line, from, to);
+				}
+				
+				inline function _lineDeleteChars(line:Line<$styleType>, from:Int, to:Int):Float
+				{
 					var offset = _lineDeleteCharsOffset(line, from, to);
 					
 					if (from < line.visibleFrom) {
@@ -1247,7 +1273,7 @@ class FontProgramMacro
 				}
 				
 				
-				// TODO:  ------------- get glyph index at x position (for mouse-selecting) ---------------
+				// ------------- get glyph index at x position (for mouse-selecting) ---------------
 				
 				public function lineGetCharPosition(line:Line<$styleType>, position:Int):Float
 				{
@@ -1267,56 +1293,49 @@ class FontProgramMacro
 					_setLinePositionOffset(line, offset, 0, 0, line.updateTo, false);
 				}
 				
-				public function lineGetCharAtPosition(line:Line<$styleType>, xPosition:Float):Int // TODO: also need to return offset for start and end
+				public function lineGetCharAtPosition(line:Line<$styleType>, xPosition:Float):Int
 				{
-					trace("lineGetCharAtPosition at "+xPosition);
-					if (xPosition > line.x && xPosition < line.maxX) { // TODO
+					if (xPosition <= line.x) return 0;
+					else if (xPosition >= line.maxX) return line.visibleTo;
+					else 
+					{
 						${switch (glyphStyleHasMeta.packed)
 						{
 							case true: macro // ------- Gl3Font -------
 							{
 								// TODO: binary search
 								var i:Int = line.visibleFrom;
-								while (i < line.visibleTo && xPosition > 
-									line.glyphes[i].x
-/*									(leftGlyphPos(line.glyphes[i], getCharData(line.glyphes[i].char))
-									+ rightGlyphPos(line.glyphes[i], getCharData(line.glyphes[i].char)))/2
-									// + nextGlyphOffset(line.glyphes[i], getCharData(line.glyphes[i].char))
-*/									)
-								{
-/*								trace((leftGlyphPos(line.glyphes[i], getCharData(line.glyphes[i].char)) + rightGlyphPos(line.glyphes[i], getCharData(line.glyphes[i].char)))/2);
-								trace("left:", leftGlyphPos(line.glyphes[i], getCharData(line.glyphes[i].char)));
-								trace("right:", rightGlyphPos(line.glyphes[i], getCharData(line.glyphes[i].char)));
-*/									i++;
-								}
-								//return i-1;
+								while (i < line.visibleTo && xPosition > line.glyphes[i].x) i++;
 								if (i == 0) return 0;
-								var middle = (leftGlyphPos(line.glyphes[i-1], getCharData(line.glyphes[i-1].char))
-											+ rightGlyphPos(line.glyphes[i-1], getCharData(line.glyphes[i-1].char)))/2;	
-								if ( xPosition < middle) return i-1;
+								var chardata =  getCharData(line.glyphes[i - 1].char);
+								if ( xPosition < (leftGlyphPos(line.glyphes[i - 1], chardata) + rightGlyphPos(line.glyphes[i - 1], chardata)) / 2)
+									return i-1;
 								else return i;
 							}
 							default: macro // ------- simple font -------
 							{
 								${switch (glyphStyleHasField.local_width) {
 									case true: macro {
-										// TODO: binary search for each glyph.width
-										return 0; // TODO
+										// TODO: binary search
+										var i:Int = line.visibleFrom;
+										while (i < line.visibleTo && xPosition > line.glyphes[i].x) i++;
+										if (i == 0) return 0;
+										var chardata =  getCharData(line.glyphes[i - 1].char);
+										if ( xPosition < (leftGlyphPos(line.glyphes[i - 1], chardata) + rightGlyphPos(line.glyphes[i - 1], chardata)) / 2)
+											return i-1;
+										else return i;
 									}
 									default: switch (glyphStyleHasField.width) {
 										case true: macro {
-											//fontStyle.width;
-											return 0; // TODO
+											return Math.round((xPosition - line.x - line.xOffset)/fontStyle.width);
 										}
 										default: macro {
-											//font.config.width;
-											return 0; // TODO
+											return Math.round((xPosition - line.x - line.xOffset)/font.config.width);
 										}
 								}}}
 							}
 						}}
 					}
-					else return 0;
 				}
 				
 				

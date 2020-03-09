@@ -80,6 +80,9 @@ class GlyphStyle {
 	public function new() {}
 }
 
+#if html5
+@:access(lime._internal.backend.html5.HTML5Window)
+#end
 class TextlineMasking
 {
 	var peoteView:PeoteView;
@@ -105,15 +108,26 @@ class TextlineMasking
 	var actual_style:Int = 0;
 	var glyphStyle = new Array<GlyphStyle>();
 		
-	var cursor = 0;
+	var cursor:Int = 0;
 	var cursorElem:ElementSimple;
 	var cursor_x:Float = 0;
 	
-	//var window:Window;
+	var selectElem:ElementSimple;
+	var select_x:Float = 0;
+	var select_from:Int = 0;
+	var select_to:Int = 0;
+	var hasSelection(get, set):Bool;
+	inline function get_hasSelection():Bool return (select_from != select_to);
+	inline function set_hasSelection(has:Bool) {
+		if (!has) select_to = select_from;
+		return has;
+	}
+	
+	var window:Window;
 	
 	public function new(window:Window)
 	{
-		//this.window=window;
+		this.window=window;
 		
 		window.textInputEnabled = true; // this is disabled on default for html5
 
@@ -143,6 +157,7 @@ class TextlineMasking
 				fontProgram = new FontProgram<GlyphStyle>(font, fontStyle); // manage the Programs to render glyphes in different size/colors/fonts
 				display.addProgram(fontProgram);
 				
+				// ------------------- Styles  -------------------				
 				var style:GlyphStyle;
 				
 				style = new GlyphStyle();
@@ -162,9 +177,7 @@ class TextlineMasking
 				style.height = font.config.height * 3.0;
 				glyphStyle.push(style);				
 				
-				// ------------------- line  -------------------
-				
-				
+				// ------------------- line  -------------------				
 				line = new Line<GlyphStyle>();
 				line.xOffset = line_xOffset;
 
@@ -175,14 +188,17 @@ class TextlineMasking
 
 				setLine("Testing input textline and masking. (page up/down is toggling glyphstyle)");
 				
-				//trace('visibleFrom: ${line.visibleFrom} visibleTo:${line.visibleTo} fullWidth:${line.fullWidth}');
-				
-				// background
+				// -------- background and helperlines ---------				
 				addHelperLines(line, line.fullWidth, 20);
 				addHelperLines(lineMasked, lineMasked.maxX-lineMasked.x, lineMasked.maxY-lineMasked.y);
 				
+				// ----------------- Cursor  -------------------				
 				cursorElem = new ElementSimple(cursor_x, line_y, 1, 30, Color.RED);
 				helperLinesBuffer.addElement(cursorElem);
+				
+				// --------------- Selection  -------------------				
+				selectElem = new ElementSimple(cursor_x, line_y, 0, 20, Color.GREY4);
+				helperLinesBuffer.addElement(selectElem);
 				
 				//fontProgram.lineSetStyle(line, glyphStyle2, 1, 5);
 					
@@ -223,7 +239,10 @@ class TextlineMasking
 	
 	public function lineDeleteChar()
 	{
-		if (cursor < line.glyphes.length) {
+		if (hasSelection) {
+			lineDeleteChars(select_from, select_to);
+		}
+		else if (cursor < line.glyphes.length) {
 			fontProgram.lineDeleteChar(line, cursor);
 			fontProgram.lineDeleteChar(lineMasked, cursor);
 			lineUpdate();
@@ -232,7 +251,10 @@ class TextlineMasking
 	
 	public function lineDeleteCharBack()
 	{
-		if (cursor > 0) {
+		if (hasSelection) {
+			lineDeleteChars(select_from, select_to);
+		}
+		else if (cursor > 0) {
 			cursor--;
 			moveCursor(fontProgram.lineDeleteChar(line, cursor));
 			fontProgram.lineDeleteChar(lineMasked, cursor);
@@ -240,11 +262,44 @@ class TextlineMasking
 		}
 	}
 	
-	public function lineDeleteChars(from:Int, to:Int)
+	function lineDeleteChars(from:Int, to:Int)
 	{
+		if (to < from) {var tmp = to; to = from; from = tmp; }
 		fontProgram.lineDeleteChars(line, from, to);
 		fontProgram.lineDeleteChars(lineMasked, from, to);
 		lineUpdate();
+		selectionSetTo(select_from);
+		cursorSet(from);
+	}
+	
+	public function lineCutChars():String
+	{
+		var cut = "";
+		if (hasSelection) {
+			var from = select_from;
+			var to = select_to;
+			if (to < from) {to = select_from; from = select_to; }
+			cut = fontProgram.lineCutChars(line, from, to);
+			fontProgram.lineDeleteChars(lineMasked, from, to);
+			lineUpdate();
+			selectionSetTo(select_from);
+			cursorSet(from);
+		}
+		return cut;
+	}
+	
+	public function lineCopyChars():String
+	{
+		var copy = "";
+		if (hasSelection) {
+			var from = select_from;
+			var to = select_to;
+			if (to < from) {to = select_from; from = select_to; }
+			for (i in ((from < line.visibleFrom) ? line.visibleFrom : from)...((to < line.visibleTo) ? to : line.visibleTo)) {
+				copy += String.fromCharCode(line.glyphes[i].char);
+			}
+		}
+		return copy;		
 	}
 	
 	public function lineSetXOffset(xOffset:Float)
@@ -254,6 +309,8 @@ class TextlineMasking
 		lineUpdate();
 		cursorElem.x = cursor_x + xOffset;
 		helperLinesBuffer.updateElement(cursorElem);
+		selectElem.x = select_x + xOffset;
+		helperLinesBuffer.updateElement(selectElem);
 	}
 	
 	public function lineUpdate()
@@ -269,22 +326,28 @@ class TextlineMasking
 		helperLinesBuffer.updateElement(cursorElem);
 	}
 	
-	public function cursorRight()
+	public function cursorRight(isShift:Bool)
 	{
 		if (cursor < line.glyphes.length) {
+			if (!hasSelection && isShift) selectionStart(cursor);
 			cursor++;
 			cursorElem.x = fontProgram.lineGetCharPosition(line, cursor);
 			helperLinesBuffer.updateElement(cursorElem);
+			if (isShift) selectionSetTo(cursor);
 		}
+		if (!isShift) selectionSetTo(select_from);
 	}
 	
-	public function cursorLeft()
+	public function cursorLeft(isShift:Bool)
 	{
 		if (cursor > 0) {
+			if (!hasSelection && isShift) selectionStart(cursor);
 			cursor--;
 			cursorElem.x = fontProgram.lineGetCharPosition(line, cursor);
 			helperLinesBuffer.updateElement(cursorElem);
+			if (isShift) selectionSetTo(cursor);
 		}
+		if (!isShift) selectionSetTo(select_from);
 	}
 	
 	public function cursorSet(position:Int)
@@ -293,6 +356,26 @@ class TextlineMasking
 			cursor = position;
 			cursorElem.x = fontProgram.lineGetCharPosition(line, cursor);
 			helperLinesBuffer.updateElement(cursorElem);
+		}
+	}
+	
+	// TODO:
+	public function selectionStart(from:Int)
+	{
+		if (from >= 0) {
+			select_from = select_to = from;
+			selectElem.x = fontProgram.lineGetCharPosition(line, from);
+			selectElem.w = 0;
+			helperLinesBuffer.updateElement(selectElem);
+		}
+	}
+
+	public function selectionSetTo(to:Int)
+	{
+		if (to <= line.glyphes.length) {
+			select_to = to;
+			selectElem.w = fontProgram.lineGetCharPosition(line, to) - selectElem.x;
+			helperLinesBuffer.updateElement(selectElem);
 		}
 	}
 	
@@ -332,31 +415,39 @@ class TextlineMasking
 
 	// ---------------------------------------------------------------
 	
+	var selecting = false;
 	var dragging = false;
 	var dragX:Float = 0.0;
 	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
 	{	
 		if ((y-display.y)/display.zoom > line.y && (y-display.y)/display.zoom < line.y + 30) {
-			//trace("char at position:", fontProgram.lineGetCharAtPosition(line, x / display.zoom));
 			cursorSet(fontProgram.lineGetCharAtPosition(line, (x - display.x) / display.zoom));
+			selectionStart(cursor);
+			selecting = true;
 		}
 		else {
-			dragging = true;
 			dragX = x;
 			cursor_x = cursorElem.x;
+			select_x = selectElem.x;
+			dragging = true;
 		}
 	}
 	
 	public function onMouseUp (x:Float, y:Float, button:MouseButton):Void {
+		selecting = false;
 		dragging = false;
 		line_xOffset = line.xOffset;
 		lineMasked_xOffset = lineMasked.xOffset;
 		cursor_x = cursorElem.x;
+		select_x = selectElem.x;
 	}
 	
 	public function onMouseMove (x:Float, y:Float):Void {
-		if (dragging) {
-			//trace(x - dragX);
+		if (selecting) {
+			cursorSet(fontProgram.lineGetCharAtPosition(line, (x - display.x) / display.zoom));
+			selectionSetTo(cursor);
+		}
+		else if (dragging) {
 			lineSetXOffset((x - dragX)/display.zoom);
 		}
 	}
@@ -378,18 +469,43 @@ class TextlineMasking
 			case KeyCode.END: cursorSet(line.glyphes.length);
 
 			// CUT
-			//case KeyCode.x: if (modifier.ctrlKey) lime.system.Clipboard.text = lineCutSelection();
+			case KeyCode.X: 
+				if (modifier.ctrlKey) {
+					lime.system.Clipboard.text = lineCutChars();
+					#if html5
+					Timer.delay(function() {
+						lime._internal.backend.html5.HTML5Window.textInput.focus();
+					}, 20);
+					#end
+				}
+
 			// COPY
-			//case KeyCode.C: if (modifier.ctrlKey) lime.system.Clipboard.text = lineGetSelection();
+			case KeyCode.C:
+				if (modifier.ctrlKey) {
+					lime.system.Clipboard.text = lineCopyChars();
+					#if html5
+					Timer.delay(function() {
+						lime._internal.backend.html5.HTML5Window.textInput.focus();
+					}, 20);
+					#end
+				}
 			// PASTE
-			#if (neko || cpp)
-			case KeyCode.V: if (modifier.ctrlKey && lime.system.Clipboard.text != null) lineInsertChars(lime.system.Clipboard.text);
-			#end
+			case KeyCode.V: 
+				if (modifier.ctrlKey) {
+					selectionSetTo(select_from);
+					#if html5
+					Timer.delay(function() {
+						lime._internal.backend.html5.HTML5Window.textInput.focus();
+					}, 20);
+					#else
+					if (lime.system.Clipboard.text != null) lineInsertChars(lime.system.Clipboard.text);
+					#end
+				}
 			
 			case KeyCode.DELETE: lineDeleteChar();
 			case KeyCode.BACKSPACE: lineDeleteCharBack();
-			case KeyCode.RIGHT: cursorRight();
-			case KeyCode.LEFT: cursorLeft();
+			case KeyCode.RIGHT: cursorRight(modifier.shiftKey);
+			case KeyCode.LEFT: cursorLeft(modifier.shiftKey);
 			default:
 		}
 	}

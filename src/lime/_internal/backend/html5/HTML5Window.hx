@@ -689,7 +689,7 @@ class HTML5Window
 
 			if (event.cancelable) event.preventDefault();
 			// FIX:
-			if (textInputEnabled) textInput.focus();
+			//if (textInputEnabled) textInput.focus();
 		}
 	}
 
