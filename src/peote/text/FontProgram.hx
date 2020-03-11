@@ -1277,7 +1277,9 @@ class FontProgramMacro
 				
 				public function lineGetCharPosition(line:Line<$styleType>, position:Int):Float
 				{
-					if (position < line.glyphes.length)
+					if (position == 0)
+						return line.x;
+					else if (position < line.glyphes.length)
 						return leftGlyphPos(line.glyphes[position], getCharData(line.glyphes[position].char));
 					else
 						return rightGlyphPos(line.glyphes[line.glyphes.length-1], getCharData(line.glyphes[line.glyphes.length-1].char));
@@ -1358,7 +1360,7 @@ class FontProgramMacro
 
 						line.updateFrom = 0x1000000;
 						line.updateTo = 0;
-					} else trace("nothing to update");
+					} //else trace("nothing to update");
 				}
 			
 			} // end class

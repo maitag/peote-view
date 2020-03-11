@@ -236,28 +236,44 @@ class TextlineMasking
 		}
 	}
 	
-	public function lineDeleteChar()
+	public function lineDeleteChar(isCtrl:Bool)
 	{
 		if (hasSelection) {
 			lineDeleteChars(select_from, select_to);
 		}
 		else if (cursor < line.glyphes.length) {
-			fontProgram.lineDeleteChar(line, cursor);
-			fontProgram.lineDeleteChar(lineMasked, cursor);
-			lineUpdate();
+			if (isCtrl) {
+				var to = cursor;
+				if (line.glyphes[to].char != 32) do to++ while (to < line.glyphes.length && line.glyphes[to].char != 32);
+				do to++ while (to < line.glyphes.length && line.glyphes[to].char == 32);
+				lineDeleteChars(cursor, to);
+			}
+			else {
+				fontProgram.lineDeleteChar(line, cursor);
+				fontProgram.lineDeleteChar(lineMasked, cursor);
+				lineUpdate();
+			}
 		}
 	}
 	
-	public function lineDeleteCharBack()
+	public function lineDeleteCharBack(isCtrl:Bool)
 	{
 		if (hasSelection) {
 			lineDeleteChars(select_from, select_to);
 		}
 		else if (cursor > 0) {
-			cursor--;
-			moveCursor(fontProgram.lineDeleteChar(line, cursor));
-			fontProgram.lineDeleteChar(lineMasked, cursor);
-			lineUpdate();
+			if (isCtrl) {
+				var from = cursor;
+				do cursor-- while (cursor > 0 && line.glyphes[cursor].char == 32);
+				while (cursor > 0 && line.glyphes[cursor-1].char != 32) cursor--;
+				lineDeleteChars(from, cursor);
+			}
+			else {
+				cursor--;
+				moveCursor(fontProgram.lineDeleteChar(line, cursor));
+				fontProgram.lineDeleteChar(lineMasked, cursor);
+				lineUpdate();
+			}
 		}
 	}
 	
@@ -267,8 +283,8 @@ class TextlineMasking
 		fontProgram.lineDeleteChars(line, from, to);
 		fontProgram.lineDeleteChars(lineMasked, from, to);
 		lineUpdate();
-		selectionSetFrom(select_from);
-		selectionSetTo(select_from);
+		selectionSetFrom(from);
+		selectionSetTo(from);
 		cursorSet(from);
 	}
 	
@@ -341,11 +357,15 @@ class TextlineMasking
 		helperLinesBuffer.updateElement(cursorElem);
 	}
 	
-	public function cursorRight(isShift:Bool)
+	public function cursorRight(isShift:Bool, isCtrl:Bool)
 	{
 		if (cursor < line.glyphes.length) {
 			if (!hasSelection && isShift) selectionStart(cursor);
-			cursor++;
+			if (isCtrl) {
+				do cursor++ while (cursor < line.glyphes.length && line.glyphes[cursor].char != 32);
+				while (cursor < line.glyphes.length && line.glyphes[cursor].char == 32) cursor++;
+			}
+			else cursor++;
 			cursorElem.x = fontProgram.lineGetCharPosition(line, cursor);
 			helperLinesBuffer.updateElement(cursorElem);
 			if (isShift) selectionSetTo(cursor);
@@ -353,11 +373,15 @@ class TextlineMasking
 		if (!isShift) selectionSetTo(select_from);
 	}
 	
-	public function cursorLeft(isShift:Bool)
+	public function cursorLeft(isShift:Bool, isCtrl:Bool)
 	{
 		if (cursor > 0) {
 			if (!hasSelection && isShift) selectionStart(cursor);
-			cursor--;
+			if (isCtrl) {
+				do cursor-- while (cursor > 0 && line.glyphes[cursor].char == 32);
+				while (cursor > 0 && line.glyphes[cursor-1].char != 32) cursor--;
+			}
+			else cursor--;
 			cursorElem.x = fontProgram.lineGetCharPosition(line, cursor);
 			helperLinesBuffer.updateElement(cursorElem);
 			if (isShift) selectionSetTo(cursor);
@@ -496,6 +520,13 @@ class TextlineMasking
 			case KeyCode.HOME: cursorSet(0);
 			case KeyCode.END: cursorSet(line.glyphes.length);
 
+			// SELECT ALL
+			case KeyCode.A: 
+				if (modifier.ctrlKey) {
+					selectionSetFrom(0);
+					selectionSetTo(line.glyphes.length);
+				}
+				
 			// CUT
 			case KeyCode.X: 
 				if (modifier.ctrlKey) {
@@ -524,10 +555,10 @@ class TextlineMasking
 					#end
 				}
 			
-			case KeyCode.DELETE: lineDeleteChar();
-			case KeyCode.BACKSPACE: lineDeleteCharBack();
-			case KeyCode.RIGHT: cursorRight(modifier.shiftKey);
-			case KeyCode.LEFT: cursorLeft(modifier.shiftKey);
+			case KeyCode.DELETE: lineDeleteChar(modifier.ctrlKey);
+			case KeyCode.BACKSPACE: lineDeleteCharBack(modifier.ctrlKey);
+			case KeyCode.RIGHT: cursorRight(modifier.shiftKey, modifier.ctrlKey);
+			case KeyCode.LEFT: cursorLeft(modifier.shiftKey, modifier.ctrlKey);
 			default:
 		}
 	}
