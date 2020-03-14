@@ -1278,7 +1278,7 @@ class FontProgramMacro
 				public function lineGetCharPosition(line:Line<$styleType>, position:Int):Float
 				{
 					if (position == 0)
-						return line.x;
+						return line.x + line.xOffset;
 					else if (position < line.glyphes.length)
 						return leftGlyphPos(line.glyphes[position], getCharData(line.glyphes[position].char));
 					else

@@ -133,7 +133,10 @@ class TextlineMasking
 
 		try {	
 			peoteView = new PeoteView(window.context, window.width, window.height);
-			display   = new Display(10,10, window.width-20, window.height-20, Color.GREY1);
+			display   = new Display(10, 10, window.width - 20, window.height - 20, Color.GREY1);
+			#if mobile
+			display.zoom = 3.0;
+			#end
 			peoteView.addDisplay(display);
 			helperLinesBuffer = new Buffer<ElementSimple>(100);
 			helperLinesProgram = new Program(helperLinesBuffer);
@@ -359,6 +362,7 @@ class TextlineMasking
 	
 	public function cursorRight(isShift:Bool, isCtrl:Bool)
 	{
+		// TODO: if already selected and no shift -> remove selection & cursor at end of selection
 		if (cursor < line.glyphes.length) {
 			if (!hasSelection && isShift) selectionStart(cursor);
 			if (isCtrl) {
@@ -375,6 +379,7 @@ class TextlineMasking
 	
 	public function cursorLeft(isShift:Bool, isCtrl:Bool)
 	{
+		// TODO: if already selected and no shift -> remove selection & cursor at start of selection
 		if (cursor > 0) {
 			if (!hasSelection && isShift) selectionStart(cursor);
 			if (isCtrl) {
@@ -522,14 +527,14 @@ class TextlineMasking
 
 			// SELECT ALL
 			case KeyCode.A: 
-				if (modifier.ctrlKey) {
+				if (modifier.ctrlKey || modifier.metaKey) {
 					selectionSetFrom(0);
 					selectionSetTo(line.glyphes.length);
 				}
 				
 			// CUT
 			case KeyCode.X: 
-				if (modifier.ctrlKey) {
+				if (modifier.ctrlKey || modifier.metaKey) {
 					lime.system.Clipboard.text = lineCutChars();
 					#if html5
 					reFocus();
@@ -538,15 +543,16 @@ class TextlineMasking
 
 			// COPY
 			case KeyCode.C:
-				if (modifier.ctrlKey) {
+				if (modifier.ctrlKey || modifier.metaKey) {
 					lime.system.Clipboard.text = lineCopyChars();
 					#if html5
 					reFocus();
 					#end
 				}
-			// PASTE
+				
+			// PASTE                 // TODO: in native-windowstarget crashes if there is linebreak
 			case KeyCode.V: 
-				if (modifier.ctrlKey) {
+				if (modifier.ctrlKey || modifier.metaKey) {
 					selectionSetTo(select_from);
 					#if html5
 					reFocus();
@@ -555,10 +561,10 @@ class TextlineMasking
 					#end
 				}
 			
-			case KeyCode.DELETE: lineDeleteChar(modifier.ctrlKey);
-			case KeyCode.BACKSPACE: lineDeleteCharBack(modifier.ctrlKey);
-			case KeyCode.RIGHT: cursorRight(modifier.shiftKey, modifier.ctrlKey);
-			case KeyCode.LEFT: cursorLeft(modifier.shiftKey, modifier.ctrlKey);
+			case KeyCode.DELETE: lineDeleteChar(modifier.ctrlKey || modifier.metaKey);
+			case KeyCode.BACKSPACE: lineDeleteCharBack(modifier.ctrlKey || modifier.metaKey);
+			case KeyCode.RIGHT: if (modifier.metaKey) cursorSet(line.glyphes.length) else cursorRight(modifier.shiftKey, modifier.ctrlKey || modifier.altKey);
+			case KeyCode.LEFT: if (modifier.metaKey) cursorSet(0) else cursorLeft(modifier.shiftKey, modifier.ctrlKey || modifier.altKey);
 			default:
 		}
 	}
@@ -575,7 +581,7 @@ class TextlineMasking
 	{
 		Timer.delay(function() {
 			lime._internal.backend.html5.HTML5Window.textInput.focus();
-		}, 20);
+		}, 200);
 	}
 	#end
 	
