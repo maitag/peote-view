@@ -82,6 +82,7 @@ class GlyphStyle {
 
 #if html5
 @:access(lime._internal.backend.html5.HTML5Window)
+@:access(lime.ui.Window)
 #end
 class TextlineMasking
 {
@@ -537,7 +538,8 @@ class TextlineMasking
 				if (modifier.ctrlKey || modifier.metaKey) {
 					lime.system.Clipboard.text = lineCutChars();
 					#if html5
-					reFocus();
+					//window.__backend.setClipboard(value);
+					//reFocus();
 					#end
 				}
 
@@ -546,7 +548,7 @@ class TextlineMasking
 				if (modifier.ctrlKey || modifier.metaKey) {
 					lime.system.Clipboard.text = lineCopyChars();
 					#if html5
-					reFocus();
+					//reFocus();
 					#end
 				}
 				
@@ -555,7 +557,7 @@ class TextlineMasking
 				if (modifier.ctrlKey || modifier.metaKey) {
 					selectionSetTo(select_from);
 					#if html5
-					reFocus();
+					//reFocus();
 					#else
 					if (lime.system.Clipboard.text != null) lineInsertChars(lime.system.Clipboard.text);
 					#end

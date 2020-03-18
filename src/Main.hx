@@ -52,6 +52,8 @@ typedef Sample = MouseEvents;
 typedef Sample = UserInterface;
 #elseif sampleUiLayout
 typedef Sample = UiLayout;
+#elseif sampleUiText
+typedef Sample = UiText;
 #elseif sampleBunnyMark
 typedef Sample = BunnyMark;
 #elseif sampleBunnyMarkGPU
@@ -265,7 +267,7 @@ class Main extends Application
 	}
 	public override function onWindowActivate ():Void {
 		//trace("onWindowActivate"); 
-		#if sampleTextlineMasking
+		#if (sampleTextlineMasking || sampleUiText)
 		if (renderTest) test.onWindowActivate();
 		#end
 	}
