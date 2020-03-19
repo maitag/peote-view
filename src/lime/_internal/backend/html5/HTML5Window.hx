@@ -419,6 +419,7 @@ class HTML5Window
 
 	private function handleCutOrCopyEvent(event:ClipboardEvent):Void
 	{
+		// FIX for peote-view to handle clipboard inside keyboard-handler
 		//event.clipboardData.setData("text/plain", Clipboard.text);
 		if (event.cancelable) event.preventDefault();
 	}
@@ -916,6 +917,7 @@ class HTML5Window
 			Browser.document.body.appendChild(textArea);
 		}
 
+		// FIX for peote-view to handle clipboard inside keyboard-handler
 		var cacheElement = Browser.document.activeElement;
 
 		textArea.value = value;
@@ -927,6 +929,7 @@ class HTML5Window
 			Browser.document.execCommand("copy");
 		}
 
+		// FIX for peote-view to handle clipboard inside keyboard-handler
 		if (cacheElement != null && cacheElement != textArea)
 		{
 			cacheElement.focus();

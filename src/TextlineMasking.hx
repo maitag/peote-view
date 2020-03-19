@@ -82,7 +82,6 @@ class GlyphStyle {
 
 #if html5
 @:access(lime._internal.backend.html5.HTML5Window)
-@:access(lime.ui.Window)
 #end
 class TextlineMasking
 {
@@ -537,28 +536,19 @@ class TextlineMasking
 			case KeyCode.X: 
 				if (modifier.ctrlKey || modifier.metaKey) {
 					lime.system.Clipboard.text = lineCutChars();
-					#if html5
-					//window.__backend.setClipboard(value);
-					//reFocus();
-					#end
 				}
 
 			// COPY
 			case KeyCode.C:
 				if (modifier.ctrlKey || modifier.metaKey) {
 					lime.system.Clipboard.text = lineCopyChars();
-					#if html5
-					//reFocus();
-					#end
 				}
 				
 			// PASTE                 // TODO: in native-windowstarget crashes if there is linebreak
 			case KeyCode.V: 
 				if (modifier.ctrlKey || modifier.metaKey) {
 					selectionSetTo(select_from);
-					#if html5
-					//reFocus();
-					#else
+					#if !html5
 					if (lime.system.Clipboard.text != null) lineInsertChars(lime.system.Clipboard.text);
 					#end
 				}
@@ -574,18 +564,9 @@ class TextlineMasking
 	public function onWindowActivate():Void 
 	{
 		#if html5
-		reFocus();
+		lime._internal.backend.html5.HTML5Window.textInput.focus();
 		#end
 	}
-	
-	#if html5
-	public function reFocus():Void 
-	{
-		Timer.delay(function() {
-			lime._internal.backend.html5.HTML5Window.textInput.focus();
-		}, 200);
-	}
-	#end
 	
 	public function onTextInput(text:String):Void 
 	{
