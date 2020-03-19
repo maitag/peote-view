@@ -459,7 +459,7 @@ class HTML5Window
 			if (event.relatedTarget == null || isDescendent(cast event.relatedTarget))
 			{
 				Timer.delay(function()
-				{
+				{	
 					if (textInputEnabled) textInput.focus();
 				}, 20);
 			}

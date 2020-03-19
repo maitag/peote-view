@@ -251,7 +251,7 @@ class Main extends Application
 	}
 
 	public override function onTextEdit(text:String, start:Int, length:Int):Void {
-		trace("onTextEdit",text, start, length);
+		//trace("onTextEdit",text, start, length);
 	}
 	
 	public override function onTextInput (text:String):Void

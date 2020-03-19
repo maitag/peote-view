@@ -544,7 +544,7 @@ class TextlineMasking
 					lime.system.Clipboard.text = lineCopyChars();
 				}
 				
-			// PASTE                 // TODO: in native-windowstarget crashes if there is linebreak
+			// PASTE
 			case KeyCode.V: 
 				if (modifier.ctrlKey || modifier.metaKey) {
 					selectionSetTo(select_from);
@@ -564,7 +564,9 @@ class TextlineMasking
 	public function onWindowActivate():Void 
 	{
 		#if html5
-		lime._internal.backend.html5.HTML5Window.textInput.focus();
+		//Timer.delay(function() {
+			lime._internal.backend.html5.HTML5Window.textInput.focus();
+		//}, 200);
 		#end
 	}
 	

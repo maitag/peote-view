@@ -160,27 +160,27 @@ class FontMacro
 
 				public inline function getRange(charcode:Int):$rangeType
 				{
-						${switch (glyphStyleHasMeta.packed) {
-							case true:
-								switch (glyphStyleHasMeta.multiTexture || glyphStyleHasMeta.multiSlot) {
-									case true: macro return rangeMapping.get(Std.int(charcode/rangeSize));
-									default: macro return rangeMapping;
-								}
-							default:
-								switch (glyphStyleHasMeta.multiTexture || glyphStyleHasMeta.multiSlot) {
-									case true: macro {
-										var range = rangeMapping.get(Std.int(charcode / rangeSize));
-										if (range != null) {
-											if (charcode >= range.min && charcode <= range.max) return range;
-											else return null;
-										} else return null;
-									}
-									default: macro {
-										if (charcode >= rangeMapping.min && charcode <= rangeMapping.max) return rangeMapping;
+					${switch (glyphStyleHasMeta.packed) {
+						case true:
+							switch (glyphStyleHasMeta.multiTexture || glyphStyleHasMeta.multiSlot) {
+								case true: macro return rangeMapping.get(Std.int(charcode/rangeSize));
+								default: macro return rangeMapping;
+							}
+						default:
+							switch (glyphStyleHasMeta.multiTexture || glyphStyleHasMeta.multiSlot) {
+								case true: macro {
+									var range = rangeMapping.get(Std.int(charcode / rangeSize));
+									if (range != null) {
+										if (charcode >= range.min && charcode <= range.max) return range;
 										else return null;
-									}
-								}						
-						}}
+									} else return null;
+								}
+								default: macro {
+									if (charcode >= rangeMapping.min && charcode <= rangeMapping.max) return rangeMapping;
+									else return null;
+								}
+							}						
+					}}
 				}
 
 				// --------------------------- Loading -------------------------

@@ -267,7 +267,7 @@ class FontProgramMacro
 				}
 				
 				// returns range, fontdata and metric in dependend of font-type
-				inline function getCharData(charcode:Int):$charDataType 
+				inline function getCharData(charcode:Int):$charDataType
 				{
 					${switch (glyphStyleHasMeta.packed) {
 						// ------- Gl3Font -------
@@ -304,9 +304,11 @@ class FontProgramMacro
 									else return null;
 								}
 							else macro {
-									var metric = font.getRange(charcode).getMetric(charcode);
+									//var metric = font.getRange(charcode).getMetric(charcode);
+									var range = font.getRange(charcode);
+									var metric = range.getMetric(charcode);
 									if (metric == null) return null;
-									else return {fontData:font.getRange(charcode), metric:metric};
+									else return {fontData:range, metric:metric};
 								}
 						// ------- simple font -------
 						default:macro return font.getRange(charcode);

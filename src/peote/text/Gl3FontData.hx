@@ -15,8 +15,13 @@ class Gl3FontData
 	public var rangeMin:Int;
 	public var rangeMax:Int;
 	
+	#if (neko || cpp)
     public var metrics:Vector<Metric>;
-    public var kerning:Array<Array<Float>>;
+    #else
+	public var metrics:Array<Metric>; // TODO: optimization with UInt16Array for html5
+    #end
+	
+	public var kerning:Array<Array<Float>>;
 
     public var height:Float;
     public var ascender:Float;
@@ -27,8 +32,14 @@ class Gl3FontData
 		this.rangeMin = rangeMin;
 		this.rangeMax = rangeMax;
 	
-		metrics = new Vector<Metric>(rangeMax-rangeMin+1);
-
+		#if (neko || cpp)
+		metrics = new Vector<Metric>(rangeMax - rangeMin + 1);
+		//for (i in 0...(rangeMax - rangeMin + 1)) metrics.set(i, null);
+		#else
+		metrics = new Array<Metric>();
+		//for (i in 0...(rangeMax - rangeMin + 1)) metrics.push(null);
+		#end
+		
 		var pos:Int = 0;
 		var N:Int = bytes.getInt32(pos); pos += 4; trace('number of glyphes: $N');
 		height    = bytes.getFloat(pos); pos += 4; trace('height: $height');
@@ -50,7 +61,8 @@ class Gl3FontData
 				h       : bytes.getFloat(pos+32)
 			};
 			pos += 36;
-			setMetric(charcode, m); if (charcode > 65000) trace(charcode);
+			setMetric(charcode, m); 
+			// TODO: if (charcode > 65000) trace(charcode);
 		}
 		
 		if (isKerning)
@@ -75,12 +87,20 @@ class Gl3FontData
 	
 	public inline function getMetric(charcode:Int):Metric
 	{
-		return metrics.get(charcode-rangeMin);
+		#if (neko || cpp)
+		return (charcode >= rangeMin && charcode<=rangeMax) ? metrics.get(charcode-rangeMin) : null;
+		#else
+		return (charcode >= rangeMin && charcode<=rangeMax) ? metrics[charcode-rangeMin] : null;
+		#end
 	}
 	
 	public inline function setMetric(charcode:Int, metric:Metric):Void
 	{
-		metrics.set(charcode-rangeMin, metric);
+		#if (neko || cpp)
+		if (charcode >= rangeMin && charcode<=rangeMax) metrics.set(charcode-rangeMin, metric);
+		#else
+		if (charcode >= rangeMin && charcode<=rangeMax) metrics[charcode-rangeMin] = metric;
+		#end
 	}
 	
 }
