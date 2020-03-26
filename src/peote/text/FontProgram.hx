@@ -558,19 +558,19 @@ class FontProgramMacro
 				// -----------------------------------------
 				// ---------------- Lines ------------------
 				// -----------------------------------------
-				public function createLine(chars:String, x:Float=0, y:Float=0, glyphStyle:Null<$styleType> = null):peote.text.Line<$styleType>
+				public inline function createLine(chars:String, x:Float=0, y:Float=0, glyphStyle:Null<$styleType> = null):peote.text.Line<$styleType>
 				{
 					var line = new peote.text.Line<$styleType>();
 					if (setLine(line, chars, x, y, glyphStyle)) return line else return null;
 				}
 				
-				public function addLine(line:Line<$styleType>)
+				public inline function addLine(line:Line<$styleType>)
 				{
 					//for (glyph in line.glyphes) addGlyph(glyph);
 					for (i in line.visibleFrom...line.visibleTo) addGlyph(line.glyphes[i]);
 				}
 				
-				public function removeLine(line:Line<$styleType>)
+				public inline function removeLine(line:Line<$styleType>)
 				{
 					//for (glyph in line.glyphes) removeGlyph(glyph);
 					for (i in line.visibleFrom...line.visibleTo) removeGlyph(line.glyphes[i]);
@@ -715,6 +715,7 @@ class FontProgramMacro
 					line.glyphes[from].setStyle(glyphStyle);
 					var charData = getCharData(line.glyphes[from].char);
 					${switch (glyphStyleHasMeta.packed) {
+						//TODO: fit line.fullHeight
 						case true: macro {
 							var lm = getLineMetric(line.glyphes[from], charData.fontData);
 							if (line.desc != lm.desc) y += (line.base - lm.base);
@@ -838,6 +839,7 @@ class FontProgramMacro
 						if (glyphStyle != null) {
 							glyphSetStyle(line.glyphes[position], glyphStyle);
 							${switch (glyphStyleHasMeta.packed) {
+								//TODO: fit line.fullHeight
 								case true: macro {
 									var lm = getLineMetric(line.glyphes[position], charData.fontData);
 									if (line.desc != lm.desc) y += (line.base - lm.base);
@@ -906,6 +908,7 @@ class FontProgramMacro
 									if (i == position) // first
 									{
 										${switch (glyphStyleHasMeta.packed) {
+											//TODO: fit line.fullHeight
 											case true: macro {
 												var lm = getLineMetric(line.glyphes[i], charData.fontData);
 												if (line.desc != lm.desc) y += (line.base - lm.base);
@@ -973,6 +976,7 @@ class FontProgramMacro
 						
 						glyphSetStyle(glyph, glyphStyle);
 						${switch (glyphStyleHasMeta.packed) {
+							//TODO: fit line.fullHeight
 							case true: macro {
 								var lm = getLineMetric(glyph, charData.fontData);
 								if (line.desc != lm.desc) y += (line.base - lm.base);
@@ -1120,6 +1124,7 @@ class FontProgramMacro
 							if (first) {
 								first = false;
 								${switch (glyphStyleHasMeta.packed) {
+									//TODO: fit line.fullHeight
 									case true: macro {
 										var lm = getLineMetric(glyph, charData.fontData);
 										if (line.desc != lm.desc) y += (line.base - lm.base);
@@ -1364,7 +1369,45 @@ class FontProgramMacro
 						line.updateTo = 0;
 					} //else trace("nothing to update");
 				}
+				
+				
+				// -----------------------------------------
+				// ---------------- Pages ------------------
+				// -----------------------------------------
 			
+				public function createPage(chars:String, x:Float=0, y:Float=0, glyphStyle:Null<$styleType> = null):peote.text.Page<$styleType>
+				{
+					var page = new peote.text.Page<$styleType>();
+					if (setPage(page, chars, x, y, glyphStyle)) return page else return null;
+				}
+				
+				public function addPage(page:Page<$styleType>)
+				{
+					for (i in page.visibleFrom...page.visibleTo) addLine(page.getLine(i));
+				}
+				
+				public function removePage(page:Page<$styleType>)
+				{
+					for (i in page.visibleFrom...page.visibleTo) removeLine(page.getLine(i));
+				}
+				
+				public inline function setPage(page:Page<$styleType>, chars:String, x:Float=0, y:Float=0, glyphStyle:$styleType = null):Bool
+				{
+					// TODO
+					
+					
+					
+					return true;
+				}
+				
+				
+				
+				
+				
+				
+				
+				
+				
 			} // end class
 
 			// -------------------------------------------------------------------------------------------

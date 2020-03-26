@@ -96,22 +96,19 @@ class LineMacro
 				public var base:Float = 0.0;  // <- all aligns here
 				
 				
-				//public var xDirection:Int = 1;  // <- TODO: better from GlyphStyle !!!
+				//public var xDirection:Int = 1;  // <- TODO: better later with LineStyle !!!
 				//public var yDirection:Int = 0;
 				
 				
-				// TODO: optimize here for js/neko/cpp
+				// TODO: optimize here for js/neko/cpp .. replace all line.glyphes[..] inside FontProgram
 				public var glyphes = new Array<$glyphType>();
+				public inline function getGlyph(i:Int):$glyphType return glyphes[i];
+				@:allow(peote.text) inline function setGlyph(i:Int, glyph:$glyphType) glyphes[i] = glyph;
 				
 				@:allow(peote.text) var updateFrom:Int = 0x1000000;
 				@:allow(peote.text) var updateTo:Int = 0;
-				//@:allow(peote.text) var visibleFrom:Int = 0;
-				//@:allow(peote.text) var visibleTo:Int = 0;
-				public var visibleFrom:Int = 0;
-				public var visibleTo:Int = 0;
-				// optimizing:
-				//public var visibleCacheSize:Int = 0;
-				
+				@:allow(peote.text) public var visibleFrom(default, null):Int = 0;
+				@:allow(peote.text) public var visibleTo(default, null):Int = 0;
 				
 				public function new() {}
 			}

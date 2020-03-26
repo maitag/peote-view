@@ -24,7 +24,7 @@ import peote.text.Glyph;
 //import peote.text.Gl3GlyphStyle;
 
 import peote.text.Line;
-//import peote.text.Page;
+import peote.text.Page;
 
 //@multiSlot    // multiple slots per texture to store multiple unicode-ranges
 //@multiTexture // multiple textures to store multiple unicode-ranges
@@ -171,6 +171,7 @@ class TextRendering
 				if (line != null) 
 				{
 					//TODO: line.setGlyphOffset(0, 3  , 5, 6);
+					//TODO: line.getGlyph(2);
 					
 					Timer.delay(function() {
 						fontProgram.setLine(line, "hello World (^_^)", line.x, line.y, glyphStyle);
@@ -208,104 +209,66 @@ class TextRendering
 						fontProgram.updateLine(line);
 					}, 6000);
 					
+					Timer.delay(function() {
+						fontProgram.removeLine(line);
+					}, 7000);
+					
+					Timer.delay(function() {
+						fontProgram.addLine(line);
+					}, 8000);
+					
 					
 					// TODO:
 					// line.clear();
 				}
 		
-				// ------------------- scroll Line into visible area -------------------
 				
-				var scrollLine = new Line<GlyphStyle>();
-				scrollLine.maxX = 104;
-				scrollLine.maxY = 240;
-				scrollLine.xOffset = -25.0;
-
-				fontProgram.setLine(scrollLine, "0123456789", 50, 200, glyphStyle2);
-				
-				//trace('visibleFrom: ${scrollLine.visibleFrom} visibleTo:${scrollLine.visibleTo} fullWidth:${scrollLine.fullWidth}');
-				
-				// background
-				addHelperLines(scrollLine);				
-				
-/*				Timer.delay(function() {
-					fontProgram.removeLine(scrollLine);
-					Timer.delay(function() {
-						fontProgram.addLine(scrollLine);
-					}, 1000);
-				}, 1000);
-*/
-				Timer.delay(function() {
-					fontProgram.setLine(scrollLine, "0123456789", scrollLine.x, scrollLine.y, glyphStyle1);
-					fontProgram.updateLine(scrollLine);
-					addHelperLines(scrollLine);	
-				}, 1000);
-				
-				Timer.delay(function() {
-					//fontProgram.lineSetStyle(scrollLine, glyphStyle2, 1, 5);
-					
-					//fontProgram.lineSetChar(scrollLine, "0".charCodeAt(0) , 0, glyphStyle2);
-					fontProgram.lineSetChar(scrollLine, "1".charCodeAt(0) , 1, glyphStyle2);
-					fontProgram.lineSetChars(scrollLine, "3456", 3, glyphStyle2);
-					fontProgram.lineSetChars(scrollLine, "4", 4, glyphStyle1);
-					fontProgram.updateLine(scrollLine);
-				}, 2000);				
-
-				Timer.delay(function() {
-					fontProgram.lineSetStyle(scrollLine, glyphStyle2, 1, 5);
-					fontProgram.updateLine(scrollLine);
-				}, 3000);				
-
-				Timer.delay(function() {
-					fontProgram.lineDeleteChar(scrollLine, 0);
-					fontProgram.updateLine(scrollLine);
-				}, 4000);
-				
-				Timer.delay(function() {
-					fontProgram.lineDeleteChars(scrollLine, 2, 5);
-					fontProgram.updateLine(scrollLine);
-				}, 5000);				
-				
-				Timer.delay(function() {
-					fontProgram.lineInsertChar(scrollLine, "A".charCodeAt(0) , 0 , glyphStyle2);
-					fontProgram.updateLine(scrollLine);
-				}, 6000);
-				
-				Timer.delay(function() {
-					fontProgram.lineInsertChar(scrollLine, ".".charCodeAt(0) , 2 , glyphStyle1);
-					fontProgram.updateLine(scrollLine);
-				}, 7000);
-					
-				Timer.delay(function() {
-					fontProgram.lineInsertChars(scrollLine, "h" , 0, glyphStyle2);
-					fontProgram.updateLine(scrollLine);
-				}, 8000);
-				
-				Timer.delay(function() {
-					fontProgram.lineInsertChars(scrollLine, "axe" , 1, glyphStyle1);
-					fontProgram.updateLine(scrollLine);
-				}, 9000);
-
-
-/*				Timer.delay(function() {
-					fontProgram.lineSetPosition(scrollLine, scrollLine.x+10, scrollLine.y+10);
-					fontProgram.updateLine(scrollLine);
-					addHelperLines(scrollLine);	
-				}, 10000);
-*/				
 				
 				//fontProgram.removeLine(line);
 				
-				// -------- Pages ??? (namespace!!!) <--------
+				// -------- Pages --------
+				
+				var page = fontProgram.createPage("hello\nworld", 0, 350, glyphStyle);
+				
+				Timer.delay(function() {
+					var text = "Um einen Feuerball rast eine Kotkugel, auf der Damenseidenstrümpfe verkauft und Gauguins geschätzt werden.\n"
+						     + "Ein fürwahr überaus betrüblicher Aspekt, der aber immerhin ein wenig unterschiedlich ist: Seidenstrümpfe können begriffen werden, Gauguins nicht.";
+					fontProgram.setPage(new Page<GlyphStyle>(), text, 0, 350, glyphStyle);
+				}, 1000);
+				
 				/*
-				var page = new Page( 0, 200,
-					  "Um einen Feuerball rast eine Kotkugel, auf der Damenseidenstrümpfe verkauft und Gauguins geschätzt werden."
-					+ "\n"
-					+ "Ein fürwahr überaus betrüblicher Aspekt, der aber immerhin ein wenig unterschiedlich ist: Seidenstrümpfe können begriffen werden, Gauguins nicht."
-				);
-				//page.add( new Line("(Bernheim als prestigieuser Biologe zu imaginieren.)") );
+				Timer.delay(function() {
+					fontProgram.pageInsertLine(page, "(Bernheim als prestigieuser Biologe zu imaginieren.)", 2 , glyphStyle2);
+				}, 2000);
 
-				fontProgram.addPage(page 0, 200);
-				fontProgram.removePage(line);
+				Timer.delay(function() {
+					fontProgram.pageDeleteLine(page, 1);
+				}, 3000);
+
+				Timer.delay(function() {
+					fontProgram.pageSetLine(page, 2, "TEST");
+				}, 4000);
+				
+				Timer.delay(function() {
+					fontProgram.removePage(page);
+				}, 5000);
+				
+				Timer.delay(function() {
+					fontProgram.addPage(page);
+				}, 6000);
+				
+				
+				// -- lines inside --
+
+				Timer.delay(function() {
+					var line = page.getLine(0);
+					fontProgram.lineInsertChars(line, "Walther " 0, 2, glyphStyle2);
+					fontProgram.lineInsertChar(line, ":" , glyphStyle2);
+					fontProgram.updateLine(line);
+				}, 7000);
+				
+				
+				
 				*/
 			});
 
