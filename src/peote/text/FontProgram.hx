@@ -578,7 +578,7 @@ class FontProgramMacro
 				
 				public inline function setLine(line:Line<$styleType>, chars:String, x:Float=0, y:Float=0, glyphStyle:$styleType = null):Bool
 				{
-					trace("setLine");
+					//trace("setLine");
 					
 					line.x = x;
 					line.y = y;
@@ -1170,7 +1170,7 @@ class FontProgramMacro
 								line.asc = lm.asc;
 								line.desc = lm.desc;
 								line.base = lm.base;
-								trace("line metric:", line.asc, line.desc, line.base);
+								//trace("line metric:", line.asc, line.desc, line.base);
 							}
 						}
 						default: macro {}
@@ -1391,11 +1391,41 @@ class FontProgramMacro
 					for (i in page.visibleFrom...page.visibleTo) removeLine(page.getLine(i));
 				}
 				
+				var regLinesplit:EReg = ~/^(.*)\n|\r\n|\r/;
+				//var regLinesplit:EReg = ~/^(.+|\r\n|\r|\n)$/m;
 				public inline function setPage(page:Page<$styleType>, chars:String, x:Float=0, y:Float=0, glyphStyle:$styleType = null):Bool
 				{
-					// TODO
-					
-					
+					trace("setPage", chars);
+					chars += "\n";
+					// TODO: change linecreation to create also if there is empty string or unrecognized char
+					// TODO: change linecreation to have tabs
+					// TODO: vertically masking
+					// TODO: wrap and wordwrap
+					var i:Int = 0;
+					// overwrite old lines
+					while (regLinesplit.match(chars) && i < page.lines.length) {
+						trace("setLine", i, regLinesplit.matched(1));
+						setLine( page.getLine(i), regLinesplit.matched(1), x, y, glyphStyle); // TODO: autoupdate
+						updateLine(page.getLine(i));
+						chars = regLinesplit.matchedRight();
+						y += 20; // TODO
+						i++;
+					}
+					// delete rest of old line
+					while (i < page.lines.length) {
+						trace("removeLine", i);
+						removeLine(page.getLine(i));
+						page.setLine(i, null); // TODO: optimize for different platforms
+						i++;
+					}
+					// create new lines and push them to page
+					while (regLinesplit.match(chars)) {
+						trace("pushLine", regLinesplit.matched(1));
+						page.pushLine( createLine(regLinesplit.matched(1), x, y, glyphStyle) );
+						chars = regLinesplit.matchedRight();
+						y += 20; // TODO
+					}
+					trace("new length:", page.lines.length);
 					
 					return true;
 				}

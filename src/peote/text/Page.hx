@@ -104,6 +104,7 @@ class PageMacro
 				public var lines = new Array<$lineType>();
 				public inline function getLine(i:Int):$lineType return lines[i];
 				@:allow(peote.text) inline function setLine(i:Int, line:$lineType) lines[i] = line;
+				@:allow(peote.text) inline function pushLine(line:$lineType) lines.push(line);
 				
 				@:allow(peote.text) public var visibleFrom(default, null):Int = 0;
 				@:allow(peote.text) public var visibleTo(default, null):Int = 0;
