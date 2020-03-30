@@ -83,14 +83,11 @@ class PageMacro
 				public var y:Float = 0.0;
 				public var xOffset:Float = 0.0;
 				public var yOffset:Float = 0.0;
-								
-				// TODO: optimize later in putting some properties into outside wrapper of line or textwidget
 				public var maxX:Float = 0xffff;
 				public var maxY:Float = 0xffff;
 				
 				@:allow(peote.text) public var fullWidth(default, null):Float = 0.0;
 				@:allow(peote.text) public var fullHeight(default, null):Float = 0.0;
-				
 				
 				//public var xDirection:Int = 1;  // <- TODO
 				//public var yDirection:Int = 0;
@@ -98,15 +95,15 @@ class PageMacro
 				public var length(get, never):Int; // number of lines
 				public inline function get_length():Int return lines.length;
 				
-				// TODO: optimize here for js/neko/cpp
+				// TODO: optimize for neko/hl/cpp
 				var lines = new Array<$lineType>();
 				
 				public inline function getLine(i:Int):$lineType return lines[i];
 				@:allow(peote.text) inline function setLine(i:Int, line:$lineType) lines[i] = line;
 				@:allow(peote.text) inline function pushLine(line:$lineType) lines.push(line);
 				@:allow(peote.text) inline function resize(newLength:Int) {
-					//TODO HAXE 4 lines.resize(length);
-					lines.splice(length, lines.length - newLength);
+					//TODO HAXE 4 lines.resize(newLength);
+					lines.splice(newLength, lines.length - newLength);
 				}
 				
 				@:allow(peote.text) public var visibleFrom(default, null):Int = 0;

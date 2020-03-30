@@ -554,10 +554,12 @@ class FontProgramMacro
 						return true;
 					} else return false;
 				}
+
 				
 				// -----------------------------------------
 				// ---------------- Lines ------------------
 				// -----------------------------------------
+				
 				public inline function createLine(chars:String, x:Float=0, y:Float=0, glyphStyle:Null<$styleType> = null):peote.text.Line<$styleType>
 				{
 					var line = new peote.text.Line<$styleType>();
@@ -591,7 +593,7 @@ class FontProgramMacro
 					}
 					else
 					{
-						if (line.length > chars.length) {
+/*						if (line.length > chars.length) {
 							lineDeleteChars(line, chars.length);
 							for (i in Std.int(Math.max(chars.length, line.visibleFrom))...Std.int(Math.min(line.length, line.visibleTo))) {
 								removeGlyph(line.getGlyph(i));
@@ -600,7 +602,7 @@ class FontProgramMacro
 						}
 						line.updateFrom = 0;
 						line.updateTo = line.length;
-						
+*/						
 						var prev_glyph:peote.text.Glyph<$styleType> = null;
 						var i = 0;
 						var ret = true;
@@ -663,10 +665,23 @@ class FontProgramMacro
 									x += nextGlyphOffset(line.getGlyph(i), charData);
 								}
 								prev_glyph = line.getGlyph(i);
+								i++;
 							}
 							else ret = false;
-							i++;
 						});
+						
+						
+						if (line.length > i) {
+							lineDeleteChars(line, i);
+							for (j in Std.int(Math.max(i, line.visibleFrom))...Std.int(Math.min(line.length, line.visibleTo))) {
+								removeGlyph(line.getGlyph(j));
+							}
+							line.resize(i);							
+						}
+						line.updateFrom = 0;
+						line.updateTo = i;
+
+						
 						
 						line.visibleFrom = visibleFrom;
 						line.visibleTo = visibleTo;
@@ -879,8 +894,8 @@ class FontProgramMacro
 				
 				public function lineSetChars(line:Line<$styleType>, chars:String, position:Int=0, glyphStyle:$styleType = null):Float
 				{
-					if (position < line.updateFrom) line.updateFrom = position;
-					if (position + chars.length > line.updateTo) line.updateTo = Std.int(Math.min(position + chars.length, line.length));
+					//if (position < line.updateFrom) line.updateFrom = position;
+					//if (position + chars.length > line.updateTo) line.updateTo = Std.int(Math.min(position + chars.length, line.length));
 					
 					var prev_glyph:peote.text.Glyph<$styleType> = null;
 					var x = line.x + line.xOffset;
@@ -927,11 +942,20 @@ class FontProgramMacro
 								setPosition(line.getGlyph(i), charData, x, y);
 								x += nextGlyphOffset(line.getGlyph(i), charData);
 								prev_glyph = line.getGlyph(i);
+								i++;
 							}
 						}
-						else x += lineInsertChar(line, charcode, i, glyphStyle); // TODO: use append
-						i++;
+						else {
+							var offset = lineInsertChar(line, charcode, i, glyphStyle); // TODO: use append
+							if (offset > 0) {
+								x += offset;
+								i++;
+							}
+						}
 					});
+					
+					if (position < line.updateFrom) line.updateFrom = position;
+					if (position + i > line.updateTo) line.updateTo = Std.int(Math.min(position + i, line.length));
 					
 					x_start = x - x_start;
 					if (i < line.length) // rest
@@ -1005,7 +1029,7 @@ class FontProgramMacro
 						}
 						else line.fullWidth += x - x_start;
 						
-						line.glyphes.insert(position, glyph);
+						line.insertGlyph(position, glyph);
 						
 						if (glyph.x + ${switch(glyphStyleHasMeta.packed) {case true: macro glyph.w; default: macro glyph.width; }} >= line.x)
 						{
@@ -1035,7 +1059,7 @@ class FontProgramMacro
 						prev_glyph = line.getGlyph(position - 1);
 					}
 					
-					var rest = line.glyphes.splice(position, line.length - position);
+					var rest = line.splice(position, line.length - position);
 					
 					if (rest.length > 0) {
 						var oldFrom = line.visibleFrom - line.length;
@@ -1074,13 +1098,13 @@ class FontProgramMacro
 								
 							//line.fullWidth += deltaX;
 							
-							line.glyphes = line.glyphes.concat(rest);
+							line.append(rest);
 							line.updateTo = line.length;
 						} 
 						else {
 							line.visibleFrom = oldFrom + line.length;
 							line.visibleTo = oldTo + line.length;							
-							line.glyphes = line.glyphes.concat(rest);
+							line.append(rest);
 						}
 						return deltaX;
 					}
@@ -1198,7 +1222,7 @@ class FontProgramMacro
 						line.visibleTo--;
 					}
 					
-					line.glyphes.splice(position, 1);
+					line.splice(position, 1);
 					
 					return offset;
 				}
@@ -1236,7 +1260,7 @@ class FontProgramMacro
 						line.visibleTo = (to < line.visibleTo) ? line.visibleTo - to + from : from;
 					}
 					
-					line.glyphes.splice(from, to - from);
+					line.splice(from, to - from);
 					
 					return offset;
 				}

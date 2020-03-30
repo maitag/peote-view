@@ -82,9 +82,7 @@ class LineMacro
 				public var x:Float = 0.0;
 				public var y:Float = 0.0;
 				public var xOffset:Float = 0.0;
-				public var yOffset:Float = 0.0;
-								
-				// TODO: optimize later in putting some properties into outside wrapper of line or textwidget
+				public var yOffset:Float = 0.0;				
 				public var maxX:Float = 0xffff;
 				public var maxY:Float = 0xffff;
 				
@@ -102,16 +100,21 @@ class LineMacro
 				public inline function get_length():Int return glyphes.length;
 				
 				
-				// TODO: optimize here for js/neko/cpp 
-				// TODO: more refactor inside FontProgram
-				public var glyphes = new Array<$glyphType>();
+				// TODO: optimize for neko/hl/cpp
+				var glyphes = new Array<$glyphType>();
 				
 				public inline function getGlyph(i:Int):$glyphType return glyphes[i];
 				@:allow(peote.text) inline function setGlyph(i:Int, glyph:$glyphType) glyphes[i] = glyph;
 				@:allow(peote.text) inline function pushGlyph(glyph:$glyphType) glyphes.push(glyph);
+				@:allow(peote.text) inline function insertGlyph(pos:Int, glyph:$glyphType) glyphes.insert(pos, glyph);
+				
+				@:allow(peote.text) inline function splice(pos:Int, len:Int):Array<$glyphType> return glyphes.splice(pos, len);
 				@:allow(peote.text) inline function resize(newLength:Int) {
-					//TODO HAXE 4 lines.resize(length);
-					glyphes.splice(length, glyphes.length - newLength);
+					//TODO HAXE 4 lines.resize(newLength);
+					glyphes.splice(newLength, glyphes.length - newLength);
+				}
+				@:allow(peote.text) inline function append(a:Array<$glyphType>) {
+					glyphes = glyphes.concat(a);
 				}
 				
 				@:allow(peote.text) var updateFrom:Int = 0x1000000;

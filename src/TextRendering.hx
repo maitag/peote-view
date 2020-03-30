@@ -221,11 +221,11 @@ class TextRendering
 				
 				// -------- Pages --------
 				
-				var page = fontProgram.createPage("hello\r\nworld\n\ntest", 0, 200, glyphStyle);
+				var page = fontProgram.createPage("hello\nworld\n\ntest", 0, 200, glyphStyle);
 				
 				Timer.delay(function() {
-					var text = "Um einen Feuerball rast eine Kotkugel, auf der Damenseidenstrümpfe verkauft und Gauguins geschätzt werden.\n"
-						     + "Ein fürwahr überaus betrüblicher Aspekt, der aber immerhin ein wenig unterschiedlich ist: Seidenstrümpfe können begriffen werden, Gauguins nicht.";
+					var text = "Um einen Feuerball rast eine Kotkugel,\nauf der Damenseidenstrümpfe verkauft und Gauguins geschätzt werden.\n\n"
+						     + "Ein fürwahr überaus betrüblicher Aspekt,\r\nder aber immerhin ein wenig unterschiedlich ist:\rSeidenstrümpfe können begriffen werden, Gauguins nicht.";
 					fontProgram.setPage(page, text, 0, 200, glyphStyle);
 				}, 1000);
 				
