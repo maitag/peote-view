@@ -477,7 +477,7 @@ class FontProgramMacro
 					{
 						case true: macro // ------- Gl3Font -------
 						{
-							// TODO: let glyphes-width also include metrics with tex-offsets on need
+							// TODO: let glyphe-width also include metrics with tex-offsets on need
 							glyph.tx = charData.metric.u; // TODO: offsets for THICK letters
 							glyph.ty = charData.metric.v;
 							glyph.tw = charData.metric.w;
@@ -561,19 +561,18 @@ class FontProgramMacro
 				public inline function createLine(chars:String, x:Float=0, y:Float=0, glyphStyle:Null<$styleType> = null):peote.text.Line<$styleType>
 				{
 					var line = new peote.text.Line<$styleType>();
-					if (setLine(line, chars, x, y, glyphStyle)) return line else return null;
+					setLine(line, chars, x, y, glyphStyle);
+					return line;
 				}
 				
 				public inline function addLine(line:Line<$styleType>)
 				{
-					//for (glyph in line.glyphes) addGlyph(glyph);
-					for (i in line.visibleFrom...line.visibleTo) addGlyph(line.glyphes[i]);
+					for (i in line.visibleFrom...line.visibleTo) addGlyph(line.getGlyph(i));
 				}
 				
 				public inline function removeLine(line:Line<$styleType>)
 				{
-					//for (glyph in line.glyphes) removeGlyph(glyph);
-					for (i in line.visibleFrom...line.visibleTo) removeGlyph(line.glyphes[i]);
+					for (i in line.visibleFrom...line.visibleTo) removeGlyph(line.getGlyph(i));
 				}
 				
 				public inline function setLine(line:Line<$styleType>, chars:String, x:Float=0, y:Float=0, glyphStyle:$styleType = null):Bool
@@ -586,21 +585,21 @@ class FontProgramMacro
 					x += line.xOffset;					
 					y += line.yOffset;					
 						
-					if (line.glyphes.length == 0)
+					if (line.length == 0)
 					{
 						if (_lineAppend(line, chars, x, y, null, glyphStyle, true) == 0) return false else return true;
 					}
 					else
 					{
-						if (line.glyphes.length > chars.length) {
+						if (line.length > chars.length) {
 							lineDeleteChars(line, chars.length);
-							for (i in Std.int(Math.max(chars.length, line.visibleFrom))...Std.int(Math.min(line.glyphes.length, line.visibleTo))) {
-								removeGlyph(line.glyphes[i]);
+							for (i in Std.int(Math.max(chars.length, line.visibleFrom))...Std.int(Math.min(line.length, line.visibleTo))) {
+								removeGlyph(line.getGlyph(i));
 							}
-							line.glyphes.splice(chars.length, line.glyphes.length - chars.length);							
+							line.resize(chars.length);							
 						}
 						line.updateFrom = 0;
-						line.updateTo = line.glyphes.length;
+						line.updateTo = line.length;
 						
 						var prev_glyph:peote.text.Glyph<$styleType> = null;
 						var i = 0;
@@ -615,20 +614,20 @@ class FontProgramMacro
 							charData = getCharData(charcode);
 							if (charData != null)
 							{
-								if (i == line.glyphes.length) { // append
-									line.glyphes.push(new peote.text.Glyph<$styleType>());
-									glyphSetStyle(line.glyphes[i], glyphStyle);
-									setCharcode(line.glyphes[i], charcode, charData);
-									setSize(line.glyphes[i], charData);
+								if (i == line.length) { // append
+									line.pushGlyph(new peote.text.Glyph<$styleType>());
+									glyphSetStyle(line.getGlyph(i), glyphStyle);
+									setCharcode(line.getGlyph(i), charcode, charData);
+									setSize(line.getGlyph(i), charData);
 									${switch (glyphStyleHasMeta.packed) {
-										case true: macro x += kerningOffset(prev_glyph, line.glyphes[i], charData.fontData.kerning);
+										case true: macro x += kerningOffset(prev_glyph, line.getGlyph(i), charData.fontData.kerning);
 										default: macro {}
 									}}
-									setPosition(line.glyphes[i], charData, x, y);
+									setPosition(line.getGlyph(i), charData, x, y);
 
-									if (line.glyphes[i].x + ${switch(glyphStyleHasMeta.packed) {case true: macro line.glyphes[i].w; default: macro line.glyphes[i].width;}} >= line.x) {														
-										if (line.glyphes[i].x < line.maxX) {
-											_buffer.addElement(line.glyphes[i]);
+									if (line.getGlyph(i).x + ${switch(glyphStyleHasMeta.packed) {case true: macro line.getGlyph(i).w; default: macro line.getGlyph(i).width;}} >= line.x) {														
+										if (line.getGlyph(i).x < line.maxX) {
+											_buffer.addElement(line.getGlyph(i));
 											visibleTo ++;
 										}
 									}
@@ -637,33 +636,33 @@ class FontProgramMacro
 										visibleTo ++;
 									}
 
-									x += nextGlyphOffset(line.glyphes[i], charData);
+									x += nextGlyphOffset(line.getGlyph(i), charData);
 								}
 								else { // set over
-									if (glyphStyle != null) glyphSetStyle(line.glyphes[i], glyphStyle);
-									setCharcode(line.glyphes[i], charcode, charData);
-									setSize(line.glyphes[i], charData);
+									if (glyphStyle != null) glyphSetStyle(line.getGlyph(i), glyphStyle);
+									setCharcode(line.getGlyph(i), charcode, charData);
+									setSize(line.getGlyph(i), charData);
 									${switch (glyphStyleHasMeta.packed) {
-										case true: macro x += kerningOffset(prev_glyph, line.glyphes[i], charData.fontData.kerning);
+										case true: macro x += kerningOffset(prev_glyph, line.getGlyph(i), charData.fontData.kerning);
 										default: macro {}
 									}}
-									setPosition(line.glyphes[i], charData, x, y);
+									setPosition(line.getGlyph(i), charData, x, y);
 							
-									if (line.glyphes[i].x + ${switch(glyphStyleHasMeta.packed) {case true: macro line.glyphes[i].w; default: macro line.glyphes[i].width;}} >= line.x) {														
-										if (line.glyphes[i].x < line.maxX) {
-											if (i < line.visibleFrom || i >= line.visibleTo) _buffer.addElement(line.glyphes[i]);
+									if (line.getGlyph(i).x + ${switch(glyphStyleHasMeta.packed) {case true: macro line.getGlyph(i).w; default: macro line.getGlyph(i).width;}} >= line.x) {														
+										if (line.getGlyph(i).x < line.maxX) {
+											if (i < line.visibleFrom || i >= line.visibleTo) _buffer.addElement(line.getGlyph(i));
 											visibleTo ++;
-										} else if (i < line.visibleTo) _buffer.removeElement(line.glyphes[i]);
+										} else if (i < line.visibleTo) _buffer.removeElement(line.getGlyph(i));
 									}
 									else {
-										if (i >= line.visibleFrom) _buffer.removeElement(line.glyphes[i]);
+										if (i >= line.visibleFrom) _buffer.removeElement(line.getGlyph(i));
 										visibleFrom ++;
 										visibleTo ++;
 									}
 									
-									x += nextGlyphOffset(line.glyphes[i], charData);
+									x += nextGlyphOffset(line.getGlyph(i), charData);
 								}
-								prev_glyph = line.glyphes[i];
+								prev_glyph = line.getGlyph(i);
 							}
 							else ret = false;
 							i++;
@@ -694,7 +693,7 @@ class FontProgramMacro
 				
 				public function lineSetStyle(line:Line<$styleType>, glyphStyle:$styleType, from:Int = 0, to:Null<Int> = null):Float
 				{
-					if (to == null) to = line.glyphes.length;
+					if (to == null) to = line.length;
 					//else if (to <= from) throw('lineSetStyle parameter "from" has to be greater then "to"');
 					
 					if (from < line.updateFrom) line.updateFrom = from;
@@ -706,51 +705,51 @@ class FontProgramMacro
 					var y = line.y + line.yOffset;
 					
 					if (from > 0) {
-						x = rightGlyphPos(line.glyphes[from - 1], getCharData(line.glyphes[from - 1].char));
-						prev_glyph = line.glyphes[from - 1];
+						x = rightGlyphPos(line.getGlyph(from - 1), getCharData(line.getGlyph(from - 1).char));
+						prev_glyph = line.getGlyph(from - 1);
 					}
 					var x_start = x;
 					
 					// first
-					line.glyphes[from].setStyle(glyphStyle);
-					var charData = getCharData(line.glyphes[from].char);
+					line.getGlyph(from).setStyle(glyphStyle);
+					var charData = getCharData(line.getGlyph(from).char);
 					${switch (glyphStyleHasMeta.packed) {
 						//TODO: fit line.fullHeight
 						case true: macro {
-							var lm = getLineMetric(line.glyphes[from], charData.fontData);
+							var lm = getLineMetric(line.getGlyph(from), charData.fontData);
 							if (line.desc != lm.desc) y += (line.base - lm.base);
 						}
 						default: macro {
 							// TODO: baseline for simplefont
 						}
 					}}
-					setPosition(line.glyphes[from], charData, x, y);
-					x += nextGlyphOffset(line.glyphes[from], charData);
-					prev_glyph = line.glyphes[from];
+					setPosition(line.getGlyph(from), charData, x, y);
+					x += nextGlyphOffset(line.getGlyph(from), charData);
+					prev_glyph = line.getGlyph(from);
 					
 					for (i in from+1...to)
 					{
-						line.glyphes[i].setStyle(glyphStyle);
-						charData = getCharData(line.glyphes[i].char);
+						line.getGlyph(i).setStyle(glyphStyle);
+						charData = getCharData(line.getGlyph(i).char);
 						${switch (glyphStyleHasMeta.packed) {
-							case true: macro x += kerningOffset(prev_glyph, line.glyphes[i], charData.fontData.kerning);
+							case true: macro x += kerningOffset(prev_glyph, line.getGlyph(i), charData.fontData.kerning);
 							default: macro {}
 						}}
-						setPosition(line.glyphes[i], charData, x, y);
-						x += nextGlyphOffset(line.glyphes[i], charData);
-						prev_glyph = line.glyphes[i];
+						setPosition(line.getGlyph(i), charData, x, y);
+						x += nextGlyphOffset(line.getGlyph(i), charData);
+						prev_glyph = line.getGlyph(i);
 					}
 
 					x_start = x - x_start;
-					if (to < line.glyphes.length) // rest
+					if (to < line.length) // rest
 					{
 						${switch (glyphStyleHasMeta.packed) {
-							case true: macro x += kerningOffset(prev_glyph, line.glyphes[to], charData.fontData.kerning);
+							case true: macro x += kerningOffset(prev_glyph, line.getGlyph(to), charData.fontData.kerning);
 							default: macro {}
 						}}
-						var offset = x - leftGlyphPos(line.glyphes[to], getCharData(line.glyphes[to].char));
+						var offset = x - leftGlyphPos(line.getGlyph(to), getCharData(line.getGlyph(to).char));
 						if (offset != 0.0) {
-							line.updateTo = line.glyphes.length;
+							line.updateTo = line.length;
 							_setLinePositionOffset(line, offset, from, to, line.updateTo);
 						} else _setLinePositionOffset(line, offset, from, to, to);
 					} else _setLinePositionOffset(line, 0, from, to, to);
@@ -762,10 +761,10 @@ class FontProgramMacro
 				public function lineSetPosition(line:Line<$styleType>, xNew:Float, yNew:Float)
 				{
 					line.updateFrom = 0;
-					line.updateTo = line.glyphes.length;
+					line.updateTo = line.length;
 					for (i in 0...line.updateTo) {
-						line.glyphes[i].x += xNew - line.x;
-						line.glyphes[i].y += yNew - line.y;
+						line.getGlyph(i).x += xNew - line.x;
+						line.getGlyph(i).y += yNew - line.y;
 					}
 					line.x = xNew;
 					line.y = yNew;
@@ -778,14 +777,14 @@ class FontProgramMacro
 
 					for (i in from...to) {
 						
-						if (i >= withDelta) line.glyphes[i].x += deltaX; // OPTIMIZATION: new bool param for DCE
+						if (i >= withDelta) line.getGlyph(i).x += deltaX; // OPTIMIZATION: new bool param for DCE
 						
-						if (line.glyphes[i].x + ${switch(glyphStyleHasMeta.packed) {case true: macro line.glyphes[i].w; default: macro line.glyphes[i].width; }} >= line.x)
+						if (line.getGlyph(i).x + ${switch(glyphStyleHasMeta.packed) {case true: macro line.getGlyph(i).w; default: macro line.getGlyph(i).width; }} >= line.x)
 						{	
-							if (line.glyphes[i].x < line.maxX) {
+							if (line.getGlyph(i).x < line.maxX) {
 								if (i < line.visibleFrom || i >= line.visibleTo) {
 									//trace("addElement",i);
-									_buffer.addElement(line.glyphes[i]);
+									_buffer.addElement(line.getGlyph(i));
 									if (visibleFrom > i) visibleFrom = i;
 									if (visibleTo < i + 1) visibleTo = i + 1;
 								} //else trace("-- already added", i);
@@ -793,7 +792,7 @@ class FontProgramMacro
 							else {
 								if (i >= line.visibleFrom && i < line.visibleTo) {
 									//trace("removeElement",i);
-									_buffer.removeElement(line.glyphes[i]);
+									_buffer.removeElement(line.getGlyph(i));
 								} //else trace("-- already removed", i);
 								if (visibleTo > i) visibleTo = i;
 							}
@@ -801,7 +800,7 @@ class FontProgramMacro
 						else {
 							if (i >= line.visibleFrom && i < line.visibleTo) {
 								//trace("removeElement Front", i);
-								_buffer.removeElement(line.glyphes[i]);
+								_buffer.removeElement(line.getGlyph(i));
 							} //else trace("-- already removed Front", i);
 							visibleFrom = i + 1;
 						}
@@ -831,17 +830,17 @@ class FontProgramMacro
 						var y = line.y + line.yOffset;
 						
 						if (position > 0) {
-							x = rightGlyphPos(line.glyphes[position - 1], getCharData(line.glyphes[position - 1].char));
-							prev_glyph = line.glyphes[position - 1];
+							x = rightGlyphPos(line.getGlyph(position - 1), getCharData(line.getGlyph(position - 1).char));
+							prev_glyph = line.getGlyph(position - 1);
 						}
 						var x_start = x;
 						
 						if (glyphStyle != null) {
-							glyphSetStyle(line.glyphes[position], glyphStyle);
+							glyphSetStyle(line.getGlyph(position), glyphStyle);
 							${switch (glyphStyleHasMeta.packed) {
 								//TODO: fit line.fullHeight
 								case true: macro {
-									var lm = getLineMetric(line.glyphes[position], charData.fontData);
+									var lm = getLineMetric(line.getGlyph(position), charData.fontData);
 									if (line.desc != lm.desc) y += (line.base - lm.base);
 								}
 								default: macro {
@@ -849,26 +848,26 @@ class FontProgramMacro
 								}
 							}}
 						}
-						setCharcode(line.glyphes[position], charcode, charData);
-						setSize(line.glyphes[position], charData);
+						setCharcode(line.getGlyph(position), charcode, charData);
+						setSize(line.getGlyph(position), charData);
 						${switch (glyphStyleHasMeta.packed) {
-							case true: macro x += kerningOffset(prev_glyph, line.glyphes[position], charData.fontData.kerning);
+							case true: macro x += kerningOffset(prev_glyph, line.getGlyph(position), charData.fontData.kerning);
 							default: macro {}
 						}}
-						setPosition(line.glyphes[position], charData, x, y);
+						setPosition(line.getGlyph(position), charData, x, y);
 						
-						x += nextGlyphOffset(line.glyphes[position], charData);
+						x += nextGlyphOffset(line.getGlyph(position), charData);
 						
 						x_start = x - x_start;
-						if (position+1 < line.glyphes.length) // rest
+						if (position+1 < line.length) // rest
 						{	
 							${switch (glyphStyleHasMeta.packed) {
-								case true: macro x += kerningOffset(line.glyphes[position], line.glyphes[position+1], charData.fontData.kerning);
+								case true: macro x += kerningOffset(line.getGlyph(position), line.getGlyph(position+1), charData.fontData.kerning);
 								default: macro {}
 							}}
-							var offset = x - leftGlyphPos(line.glyphes[position+1], getCharData(line.glyphes[position+1].char));
+							var offset = x - leftGlyphPos(line.getGlyph(position+1), getCharData(line.getGlyph(position+1).char));
 							if (offset != 0.0) {
-								line.updateTo = line.glyphes.length;
+								line.updateTo = line.length;
 								_setLinePositionOffset(line, offset, position, position + 1, line.updateTo);
 							} else _setLinePositionOffset(line, offset, position, position + 1, position + 1);
 						} else _setLinePositionOffset(line, 0, position, position + 1, position + 1);
@@ -881,15 +880,15 @@ class FontProgramMacro
 				public function lineSetChars(line:Line<$styleType>, chars:String, position:Int=0, glyphStyle:$styleType = null):Float
 				{
 					if (position < line.updateFrom) line.updateFrom = position;
-					if (position + chars.length > line.updateTo) line.updateTo = Std.int(Math.min(position + chars.length, line.glyphes.length));
+					if (position + chars.length > line.updateTo) line.updateTo = Std.int(Math.min(position + chars.length, line.length));
 					
 					var prev_glyph:peote.text.Glyph<$styleType> = null;
 					var x = line.x + line.xOffset;
 					var y = line.y + line.yOffset;
 					
 					if (position > 0) {
-						x = rightGlyphPos(line.glyphes[position - 1], getCharData(line.glyphes[position - 1].char));
-						prev_glyph = line.glyphes[position - 1];
+						x = rightGlyphPos(line.getGlyph(position - 1), getCharData(line.getGlyph(position - 1).char));
+						prev_glyph = line.getGlyph(position - 1);
 					}
 					var x_start = x;
 
@@ -898,19 +897,19 @@ class FontProgramMacro
 					
 					haxe.Utf8.iter(chars, function(charcode)
 					{
-						if (i < line.glyphes.length) 
+						if (i < line.length) 
 						{							
 							charData = getCharData(charcode);
 							if (charData != null)
 							{
 								if (glyphStyle != null) {
-									glyphSetStyle(line.glyphes[i], glyphStyle);
+									glyphSetStyle(line.getGlyph(i), glyphStyle);
 									if (i == position) // first
 									{
 										${switch (glyphStyleHasMeta.packed) {
 											//TODO: fit line.fullHeight
 											case true: macro {
-												var lm = getLineMetric(line.glyphes[i], charData.fontData);
+												var lm = getLineMetric(line.getGlyph(i), charData.fontData);
 												if (line.desc != lm.desc) y += (line.base - lm.base);
 											}
 											default: macro {
@@ -919,15 +918,15 @@ class FontProgramMacro
 										}}										
 									}
 								}
-								setCharcode(line.glyphes[i], charcode, charData);
-								setSize(line.glyphes[i], charData);
+								setCharcode(line.getGlyph(i), charcode, charData);
+								setSize(line.getGlyph(i), charData);
 								${switch (glyphStyleHasMeta.packed) {
-									case true: macro x += kerningOffset(prev_glyph, line.glyphes[i], charData.fontData.kerning);
+									case true: macro x += kerningOffset(prev_glyph, line.getGlyph(i), charData.fontData.kerning);
 									default: macro {}
 								}}
-								setPosition(line.glyphes[i], charData, x, y);
-								x += nextGlyphOffset(line.glyphes[i], charData);
-								prev_glyph = line.glyphes[i];
+								setPosition(line.getGlyph(i), charData, x, y);
+								x += nextGlyphOffset(line.getGlyph(i), charData);
+								prev_glyph = line.getGlyph(i);
 							}
 						}
 						else x += lineInsertChar(line, charcode, i, glyphStyle); // TODO: use append
@@ -935,15 +934,15 @@ class FontProgramMacro
 					});
 					
 					x_start = x - x_start;
-					if (i < line.glyphes.length) // rest
+					if (i < line.length) // rest
 					{
 						${switch (glyphStyleHasMeta.packed) {
-							case true: macro x += kerningOffset(line.glyphes[i-1], line.glyphes[i], charData.fontData.kerning);
+							case true: macro x += kerningOffset(line.getGlyph(i-1), line.getGlyph(i), charData.fontData.kerning);
 							default: macro {}
 						}}
-						var offset = x - leftGlyphPos(line.glyphes[i], getCharData(line.glyphes[i].char));
+						var offset = x - leftGlyphPos(line.getGlyph(i), getCharData(line.getGlyph(i).char));
 						if (offset != 0.0) {
-							line.updateTo = line.glyphes.length;
+							line.updateTo = line.length;
 							_setLinePositionOffset(line, offset, position, i, line.updateTo);
 						} else _setLinePositionOffset(line, offset, position, i, i);
 					} else _setLinePositionOffset(line, 0, position, i, i);
@@ -967,8 +966,8 @@ class FontProgramMacro
 						var y = line.y + line.yOffset;
 						
 						if (position > 0) {
-							x = rightGlyphPos(line.glyphes[position - 1], getCharData(line.glyphes[position - 1].char));
-							prev_glyph = line.glyphes[position - 1];
+							x = rightGlyphPos(line.getGlyph(position - 1), getCharData(line.getGlyph(position - 1).char));
+							prev_glyph = line.getGlyph(position - 1);
 						}
 						var x_start = x;
 						
@@ -996,13 +995,13 @@ class FontProgramMacro
 						
 						x += nextGlyphOffset(glyph, charData);
 						
-						if (position < line.glyphes.length) {
+						if (position < line.length) {
 							if (position < line.updateFrom) line.updateFrom = position+1;
-							line.updateTo = line.glyphes.length + 1;
+							line.updateTo = line.length + 1;
 							
 //TODO: KERNING 
 							
-							_setLinePositionOffset(line, x - x_start, position, position, line.glyphes.length);
+							_setLinePositionOffset(line, x - x_start, position, position, line.length);
 						}
 						else line.fullWidth += x - x_start;
 						
@@ -1032,23 +1031,23 @@ class FontProgramMacro
 					var x = line.x + line.xOffset;
 					var y = line.y + line.yOffset;
 					if (position > 0) {
-						x = rightGlyphPos(line.glyphes[position - 1], getCharData(line.glyphes[position - 1].char));
-						prev_glyph = line.glyphes[position - 1];
+						x = rightGlyphPos(line.getGlyph(position - 1), getCharData(line.getGlyph(position - 1).char));
+						prev_glyph = line.getGlyph(position - 1);
 					}
 					
-					var rest = line.glyphes.splice(position, line.glyphes.length - position);
+					var rest = line.glyphes.splice(position, line.length - position);
 					
 					if (rest.length > 0) {
-						var oldFrom = line.visibleFrom - line.glyphes.length;
-						var oldTo = line.visibleTo - line.glyphes.length;
-						if (line.visibleFrom > line.glyphes.length) line.visibleFrom = line.glyphes.length;
-						if (line.visibleTo > line.glyphes.length) line.visibleTo = line.glyphes.length;
+						var oldFrom = line.visibleFrom - line.length;
+						var oldTo = line.visibleTo - line.length;
+						if (line.visibleFrom > line.length) line.visibleFrom = line.length;
+						if (line.visibleTo > line.length) line.visibleTo = line.length;
 						var deltaX = _lineAppend(line, chars, x, y, prev_glyph, glyphStyle);
 //TODO: deltaX += KERNING 
 //TODO: line.fullWidth += 
 						if (deltaX != 0.0) // TODO
 						{
-							if (line.glyphes.length < line.updateFrom) line.updateFrom = line.glyphes.length;
+							if (line.length < line.updateFrom) line.updateFrom = line.length;
 							
 							for (i in 0...rest.length) {
 								rest[i].x += deltaX;
@@ -1076,11 +1075,11 @@ class FontProgramMacro
 							//line.fullWidth += deltaX;
 							
 							line.glyphes = line.glyphes.concat(rest);
-							line.updateTo = line.glyphes.length;
+							line.updateTo = line.length;
 						} 
 						else {
-							line.visibleFrom = oldFrom + line.glyphes.length;
-							line.visibleTo = oldTo + line.glyphes.length;							
+							line.visibleFrom = oldFrom + line.length;
+							line.visibleTo = oldTo + line.length;							
 							line.glyphes = line.glyphes.concat(rest);
 						}
 						return deltaX;
@@ -1098,9 +1097,9 @@ class FontProgramMacro
 					var prev_glyph:peote.text.Glyph<$styleType> = null;
 					var x = line.x + line.xOffset;
 					var y = line.y + line.yOffset;
-					if (line.glyphes.length > 0) {
-						x = rightGlyphPos(line.glyphes[line.glyphes.length - 1], getCharData(line.glyphes[line.glyphes.length - 1].char));
-						prev_glyph = line.glyphes[line.glyphes.length - 1];
+					if (line.length > 0) {
+						x = rightGlyphPos(line.getGlyph(line.length - 1), getCharData(line.getGlyph(line.length - 1).char));
+						prev_glyph = line.getGlyph(line.length - 1);
 					}
 					return _lineAppend(line, chars, x, y, prev_glyph, glyphStyle);
 				}
@@ -1119,7 +1118,7 @@ class FontProgramMacro
 						if (charData != null)
 						{
 							glyph = new peote.text.Glyph<$styleType>();
-							line.glyphes.push(glyph);
+							line.pushGlyph(glyph);
 							glyphSetStyle(glyph, glyphStyle);
 							if (first) {
 								first = false;
@@ -1187,7 +1186,7 @@ class FontProgramMacro
 				public function lineDeleteChar(line:Line<$styleType>, position:Int = 0):Float
 				{
 					if (position >= line.visibleFrom && position < line.visibleTo) {
-						removeGlyph(line.glyphes[position]);
+						removeGlyph(line.getGlyph(position));
 					}
 					
 					var offset = _lineDeleteCharsOffset(line, position, position + 1);
@@ -1206,11 +1205,11 @@ class FontProgramMacro
 				
 				public function lineCutChars(line:Line<$styleType>, from:Int = 0, to:Null<Int> = null):String
 				{
-					if (to == null) to = line.glyphes.length;
+					if (to == null) to = line.length;
 					var cut = "";
 					for (i in ((from < line.visibleFrom) ? line.visibleFrom : from)...((to < line.visibleTo) ? to : line.visibleTo)) {
-						cut += String.fromCharCode(line.glyphes[i].char);
-						removeGlyph(line.glyphes[i]);
+						cut += String.fromCharCode(line.getGlyph(i).char);
+						removeGlyph(line.getGlyph(i));
 					}
 					_lineDeleteChars(line, from, to);
 					return cut;
@@ -1218,9 +1217,9 @@ class FontProgramMacro
 				
 				public function lineDeleteChars(line:Line<$styleType>, from:Int = 0, to:Null<Int> = null):Float
 				{
-					if (to == null) to = line.glyphes.length;
+					if (to == null) to = line.length;
 					for (i in ((from < line.visibleFrom) ? line.visibleFrom : from)...((to < line.visibleTo) ? to : line.visibleTo)) {
-						removeGlyph(line.glyphes[i]);
+						removeGlyph(line.getGlyph(i));
 					}
 					return _lineDeleteChars(line, from, to);
 				}
@@ -1245,33 +1244,33 @@ class FontProgramMacro
 				inline function _lineDeleteCharsOffset(line:Line<$styleType>, from:Int, to:Int):Float
 				{
 					var offset:Float = 0.0;
-					if (to < line.glyphes.length) 
+					if (to < line.length) 
 					{
-						var charData = getCharData(line.glyphes[to].char);
-						if (from == 0) offset = line.x + line.xOffset - leftGlyphPos(line.glyphes[to], charData);
+						var charData = getCharData(line.getGlyph(to).char);
+						if (from == 0) offset = line.x + line.xOffset - leftGlyphPos(line.getGlyph(to), charData);
 						else {
-							offset = rightGlyphPos(line.glyphes[from-1], getCharData(line.glyphes[from-1].char)) - leftGlyphPos(line.glyphes[to], charData);
+							offset = rightGlyphPos(line.getGlyph(from-1), getCharData(line.getGlyph(from-1).char)) - leftGlyphPos(line.getGlyph(to), charData);
 							${switch (glyphStyleHasMeta.packed) {
-								case true: macro offset -= kerningOffset(line.glyphes[from-1], line.glyphes[to], charData.fontData.kerning);
+								case true: macro offset -= kerningOffset(line.getGlyph(from-1), line.getGlyph(to), charData.fontData.kerning);
 								default: macro {}
 							}}
 						}
 						if (line.updateFrom > from) line.updateFrom = from;
-						line.updateTo = line.glyphes.length - to + from;
-						_setLinePositionOffset(line, offset, to, to, line.glyphes.length);
+						line.updateTo = line.length - to + from;
+						_setLinePositionOffset(line, offset, to, to, line.length);
 					}
 					else 
 					{ 	// delete from end
-						if ( line.updateFrom >= line.glyphes.length - to + from ) {
+						if ( line.updateFrom >= line.length - to + from ) {
 							line.updateFrom = 0x1000000;
 							line.updateTo = 0;
 						}
-						else if ( line.updateTo > line.glyphes.length - to + from) {
-							line.updateTo = line.glyphes.length - to + from;
+						else if ( line.updateTo > line.length - to + from) {
+							line.updateTo = line.length - to + from;
 						}
 						
 						if (from != 0) 
-							offset = rightGlyphPos(line.glyphes[from - 1], getCharData(line.glyphes[from - 1].char)) - (line.x + line.xOffset + line.fullWidth);
+							offset = rightGlyphPos(line.getGlyph(from - 1), getCharData(line.getGlyph(from - 1).char)) - (line.x + line.xOffset + line.fullWidth);
 						else offset = -line.fullWidth;
 
 						line.fullWidth += offset;
@@ -1286,10 +1285,10 @@ class FontProgramMacro
 				{
 					if (position == 0)
 						return line.x + line.xOffset;
-					else if (position < line.glyphes.length)
-						return leftGlyphPos(line.glyphes[position], getCharData(line.glyphes[position].char));
+					else if (position < line.length)
+						return leftGlyphPos(line.getGlyph(position), getCharData(line.getGlyph(position).char));
 					else
-						return rightGlyphPos(line.glyphes[line.glyphes.length-1], getCharData(line.glyphes[line.glyphes.length-1].char));
+						return rightGlyphPos(line.getGlyph(line.length-1), getCharData(line.getGlyph(line.length-1).char));
 				}
 								
 				public function lineSetXOffset(line:Line<$styleType>, xOffset:Float)
@@ -1298,7 +1297,7 @@ class FontProgramMacro
 					line.xOffset = xOffset;
 					
 					line.updateFrom = 0;
-					line.updateTo = line.glyphes.length;
+					line.updateTo = line.length;
 					_setLinePositionOffset(line, offset, 0, 0, line.updateTo, false);
 				}
 				
@@ -1314,10 +1313,10 @@ class FontProgramMacro
 							{
 								// TODO: binary search
 								var i:Int = line.visibleFrom;
-								while (i < line.visibleTo && xPosition > line.glyphes[i].x) i++;
+								while (i < line.visibleTo && xPosition > line.getGlyph(i).x) i++;
 								if (i == 0) return 0;
-								var chardata =  getCharData(line.glyphes[i - 1].char);
-								if ( xPosition < (leftGlyphPos(line.glyphes[i - 1], chardata) + rightGlyphPos(line.glyphes[i - 1], chardata)) / 2)
+								var chardata =  getCharData(line.getGlyph(i - 1).char);
+								if ( xPosition < (leftGlyphPos(line.getGlyph(i - 1), chardata) + rightGlyphPos(line.getGlyph(i - 1), chardata)) / 2)
 									return i-1;
 								else return i;
 							}
@@ -1327,10 +1326,10 @@ class FontProgramMacro
 									case true: macro {
 										// TODO: binary search
 										var i:Int = line.visibleFrom;
-										while (i < line.visibleTo && xPosition > line.glyphes[i].x) i++;
+										while (i < line.visibleTo && xPosition > line.getGlyph(i).x) i++;
 										if (i == 0) return 0;
-										var chardata =  getCharData(line.glyphes[i - 1].char);
-										if ( xPosition < (leftGlyphPos(line.glyphes[i - 1], chardata) + rightGlyphPos(line.glyphes[i - 1], chardata)) / 2)
+										var chardata =  getCharData(line.getGlyph(i - 1).char);
+										if ( xPosition < (leftGlyphPos(line.getGlyph(i - 1), chardata) + rightGlyphPos(line.getGlyph(i - 1), chardata)) / 2)
 											return i-1;
 										else return i;
 									}
@@ -1363,7 +1362,7 @@ class FontProgramMacro
 						if (line.visibleTo < line.updateTo) line.updateTo = line.visibleTo;
 						//trace("update from " + line.updateFrom + " to " +line.updateTo);
 						
-						for (i in line.updateFrom...line.updateTo) updateGlyph(line.glyphes[i]);
+						for (i in line.updateFrom...line.updateTo) updateGlyph(line.getGlyph(i));
 
 						line.updateFrom = 0x1000000;
 						line.updateTo = 0;
@@ -1391,19 +1390,18 @@ class FontProgramMacro
 					for (i in page.visibleFrom...page.visibleTo) removeLine(page.getLine(i));
 				}
 				
-				var regLinesplit:EReg = ~/^(.*)\n|\r\n|\r/;
+				var regLinesplit:EReg = ~/^(.*?)(\n|\r\n|\r)/;
 				//var regLinesplit:EReg = ~/^(.+|\r\n|\r|\n)$/m;
 				public inline function setPage(page:Page<$styleType>, chars:String, x:Float=0, y:Float=0, glyphStyle:$styleType = null):Bool
 				{
 					trace("setPage", chars);
 					chars += "\n";
-					// TODO: change linecreation to create also if there is empty string or unrecognized char
-					// TODO: change linecreation to have tabs
 					// TODO: vertically masking
+					// TODO: change linecreation to have tabs
 					// TODO: wrap and wordwrap
 					var i:Int = 0;
 					// overwrite old lines
-					while (regLinesplit.match(chars) && i < page.lines.length) {
+					while (regLinesplit.match(chars) && i < page.length) {
 						trace("setLine", i, regLinesplit.matched(1));
 						setLine( page.getLine(i), regLinesplit.matched(1), x, y, glyphStyle); // TODO: autoupdate
 						updateLine(page.getLine(i));
@@ -1411,21 +1409,25 @@ class FontProgramMacro
 						y += 20; // TODO
 						i++;
 					}
-					// delete rest of old line
-					while (i < page.lines.length) {
-						trace("removeLine", i);
-						removeLine(page.getLine(i));
-						page.setLine(i, null); // TODO: optimize for different platforms
-						i++;
+					if (i < page.length) { // delete rest of old line
+						var new_length:Int = i;
+						while (i < page.length) {
+							trace("removeLine", i);
+							removeLine(page.getLine(i));
+							i++;
+						}
+						page.resize(new_length); // TODO: caching and optimize for different platforms
 					}
-					// create new lines and push them to page
-					while (regLinesplit.match(chars)) {
-						trace("pushLine", regLinesplit.matched(1));
-						page.pushLine( createLine(regLinesplit.matched(1), x, y, glyphStyle) );
-						chars = regLinesplit.matchedRight();
-						y += 20; // TODO
+					else { // create new lines and push them to page
+						while (regLinesplit.match(chars)) {
+							trace("pushLine", regLinesplit.matched(1));
+							page.pushLine( createLine(regLinesplit.matched(1), x, y, glyphStyle) );
+							chars = regLinesplit.matchedRight();
+							y += 20; // TODO
+						}
 					}
-					trace("new length:", page.lines.length);
+					
+					trace("new length:", page.length);
 					
 					return true;
 				}

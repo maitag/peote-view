@@ -91,20 +91,23 @@ class PageMacro
 				@:allow(peote.text) public var fullWidth(default, null):Float = 0.0;
 				@:allow(peote.text) public var fullHeight(default, null):Float = 0.0;
 				
-				public var asc:Float = 0.0;
-				public var desc:Float = 0.0; // height
-				public var base:Float = 0.0;  // <- all aligns here
 				
-				
-				//public var xDirection:Int = 1;  // <- TODO: better later with LineStyle !!!
+				//public var xDirection:Int = 1;  // <- TODO
 				//public var yDirection:Int = 0;
 				
+				public var length(get, never):Int; // number of lines
+				public inline function get_length():Int return lines.length;
 				
 				// TODO: optimize here for js/neko/cpp
-				public var lines = new Array<$lineType>();
+				var lines = new Array<$lineType>();
+				
 				public inline function getLine(i:Int):$lineType return lines[i];
 				@:allow(peote.text) inline function setLine(i:Int, line:$lineType) lines[i] = line;
 				@:allow(peote.text) inline function pushLine(line:$lineType) lines.push(line);
+				@:allow(peote.text) inline function resize(newLength:Int) {
+					//TODO HAXE 4 lines.resize(length);
+					lines.splice(length, lines.length - newLength);
+				}
 				
 				@:allow(peote.text) public var visibleFrom(default, null):Int = 0;
 				@:allow(peote.text) public var visibleTo(default, null):Int = 0;

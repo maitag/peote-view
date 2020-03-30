@@ -98,12 +98,21 @@ class LineMacro
 				
 				//public var xDirection:Int = 1;  // <- TODO: better later with LineStyle !!!
 				//public var yDirection:Int = 0;
+				public var length(get, never):Int; // number of lines
+				public inline function get_length():Int return glyphes.length;
 				
 				
-				// TODO: optimize here for js/neko/cpp .. replace all line.glyphes[..] inside FontProgram
+				// TODO: optimize here for js/neko/cpp 
+				// TODO: more refactor inside FontProgram
 				public var glyphes = new Array<$glyphType>();
+				
 				public inline function getGlyph(i:Int):$glyphType return glyphes[i];
 				@:allow(peote.text) inline function setGlyph(i:Int, glyph:$glyphType) glyphes[i] = glyph;
+				@:allow(peote.text) inline function pushGlyph(glyph:$glyphType) glyphes.push(glyph);
+				@:allow(peote.text) inline function resize(newLength:Int) {
+					//TODO HAXE 4 lines.resize(length);
+					glyphes.splice(length, glyphes.length - newLength);
+				}
 				
 				@:allow(peote.text) var updateFrom:Int = 0x1000000;
 				@:allow(peote.text) var updateTo:Int = 0;

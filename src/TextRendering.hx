@@ -168,72 +168,65 @@ class TextRendering
 				
 				var line = fontProgram.createLine("hello World :)", 0, 100, glyphStyle);
 				
-				if (line != null) 
-				{
-					//TODO: line.setGlyphOffset(0, 3  , 5, 6);
-					//TODO: line.getGlyph(2);
-					
-					Timer.delay(function() {
-						fontProgram.setLine(line, "hello World (^_^)", line.x, line.y, glyphStyle);
-						fontProgram.updateLine(line);
-					}, 1000);
-					
-					Timer.delay(function() {
-						fontProgram.lineSetStyle(line, glyphStyle2, 1, 5);
-						fontProgram.lineSetStyle(line, glyphStyle1, 6, 12);
-						//fontProgram.updateLine(line, 6);
-						//trace('visibleFrom: ${line.visibleFrom} visibleTo:${line.visibleTo} fullWidth:${line.fullWidth}');
-						fontProgram.lineSetPosition(line, 0, 130);
-						fontProgram.updateLine(line);
-					}, 2000);
-					
-					Timer.delay(function() {
-						fontProgram.lineSetChar(line, "H".charCodeAt(0) , 0, glyphStyle2); // replace existing char into line
-						fontProgram.lineSetChars(line, "Planet", 6);  // replace existing chars into line
-						fontProgram.updateLine(line);
-					}, 3000);
+				//TODO: line.setGlyphOffset(0, 3  , 5, 6);
+				//TODO: line.getGlyph(2);
+				
+				Timer.delay(function() {
+					fontProgram.setLine(line, "hello World (^_^)", line.x, line.y, glyphStyle);
+					fontProgram.updateLine(line);
+				}, 1000);
+				
+				Timer.delay(function() {
+					fontProgram.lineSetStyle(line, glyphStyle2, 1, 5);
+					fontProgram.lineSetStyle(line, glyphStyle1, 6, 12);
+					//fontProgram.updateLine(line, 6);
+					//trace('visibleFrom: ${line.visibleFrom} visibleTo:${line.visibleTo} fullWidth:${line.fullWidth}');
+					fontProgram.lineSetPosition(line, 0, 130);
+					fontProgram.updateLine(line);
+				}, 2000);
+				
+				Timer.delay(function() {
+					fontProgram.lineSetChar(line, "H".charCodeAt(0) , 0, glyphStyle2); // replace existing char into line
+					fontProgram.lineSetChars(line, "Planet", 6);  // replace existing chars into line
+					fontProgram.updateLine(line);
+				}, 3000);
 
-					Timer.delay(function() {
-						fontProgram.lineInsertChar(line, "~".charCodeAt(0) , 12, glyphStyle1);
-						fontProgram.lineInsertChars(line,  "Earth", 12, glyphStyle2);
-						fontProgram.updateLine(line);
-					}, 4000);
-									
-					Timer.delay(function() {
-						fontProgram.lineDeleteChar(line, 5);
-						fontProgram.updateLine(line);
-					}, 5000);
-					
-					Timer.delay(function() {
-						fontProgram.lineDeleteChars(line, 16);
-						fontProgram.updateLine(line);
-					}, 6000);
-					
-					Timer.delay(function() {
-						fontProgram.removeLine(line);
-					}, 7000);
-					
-					Timer.delay(function() {
-						fontProgram.addLine(line);
-					}, 8000);
-					
-					
-					// TODO:
-					// line.clear();
-				}
-		
+				Timer.delay(function() {
+					fontProgram.lineInsertChar(line, "~".charCodeAt(0) , 12, glyphStyle1);
+					fontProgram.lineInsertChars(line,  "Earth", 12, glyphStyle2);
+					fontProgram.updateLine(line);
+				}, 4000);
+								
+				Timer.delay(function() {
+					fontProgram.lineDeleteChar(line, 5);
+					fontProgram.updateLine(line);
+				}, 5000);
 				
+				Timer.delay(function() {
+					fontProgram.lineDeleteChars(line, 16);
+					fontProgram.updateLine(line);
+				}, 6000);
 				
-				//fontProgram.removeLine(line);
+				Timer.delay(function() {
+					fontProgram.removeLine(line);
+				}, 7000);
+				
+				Timer.delay(function() {
+					fontProgram.addLine(line);
+				}, 8000);
+				
+				// TODO:
+				// line.clear();
+				
 				
 				// -------- Pages --------
 				
-				var page = fontProgram.createPage("hello\nworld\ntest", 0, 350, glyphStyle);
+				var page = fontProgram.createPage("hello\r\nworld\n\ntest", 0, 200, glyphStyle);
 				
 				Timer.delay(function() {
 					var text = "Um einen Feuerball rast eine Kotkugel, auf der Damenseidenstrümpfe verkauft und Gauguins geschätzt werden.\n"
 						     + "Ein fürwahr überaus betrüblicher Aspekt, der aber immerhin ein wenig unterschiedlich ist: Seidenstrümpfe können begriffen werden, Gauguins nicht.";
-					fontProgram.setPage(page, text, 0, 350, glyphStyle);
+					fontProgram.setPage(page, text, 0, 200, glyphStyle);
 				}, 1000);
 				
 				/*
