@@ -7,7 +7,7 @@
 	<!-- <meta build-number="714" /> --> <!-- let set the buildnumber manual (android) -->
 	
 	<app main="Main" path="bin" file="Main" />
-	<haxedef name="sampleTextlineMasking" />
+	<haxedef name="sampleBunnyMarkGPU" />
 	<!--
 		sampleSimpleQuad, sampleMultidisplay, sampleMultibuffer, sampleElementInherit, sampleDepthBlend,
 		sampleCheckTextureMemory,
