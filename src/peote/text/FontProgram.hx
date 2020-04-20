@@ -593,16 +593,6 @@ class FontProgramMacro
 					}
 					else
 					{
-/*						if (line.length > chars.length) {
-							lineDeleteChars(line, chars.length);
-							for (i in Std.int(Math.max(chars.length, line.visibleFrom))...Std.int(Math.min(line.length, line.visibleTo))) {
-								removeGlyph(line.getGlyph(i));
-							}
-							line.resize(chars.length);							
-						}
-						line.updateFrom = 0;
-						line.updateTo = line.length;
-*/						
 						var prev_glyph:peote.text.Glyph<$styleType> = null;
 						var i = 0;
 						var ret = true;
@@ -1339,7 +1329,7 @@ class FontProgramMacro
 								var i:Int = line.visibleFrom;
 								while (i < line.visibleTo && xPosition > line.getGlyph(i).x) i++;
 								if (i == 0) return 0;
-								var chardata =  getCharData(line.getGlyph(i - 1).char);
+								var chardata = getCharData(line.getGlyph(i - 1).char);
 								if ( xPosition < (leftGlyphPos(line.getGlyph(i - 1), chardata) + rightGlyphPos(line.getGlyph(i - 1), chardata)) / 2)
 									return i-1;
 								else return i;
@@ -1414,8 +1404,8 @@ class FontProgramMacro
 					for (i in page.visibleFrom...page.visibleTo) removeLine(page.getLine(i));
 				}
 				
-				var regLinesplit:EReg = ~/^(.*?)(\n|\r\n|\r)/;
-				//var regLinesplit:EReg = ~/^(.+|\r\n|\r|\n)$/m;
+				var regLinesplit:EReg = ~/^(.*?)(\n|\r\n|\r)/; // TODO: optimize without regexp
+
 				public inline function setPage(page:Page<$styleType>, chars:String, x:Float=0, y:Float=0, glyphStyle:$styleType = null):Bool
 				{
 					trace("setPage", chars);
@@ -1424,13 +1414,14 @@ class FontProgramMacro
 					// TODO: change linecreation to have tabs
 					// TODO: wrap and wordwrap
 					var i:Int = 0;
-					// overwrite old lines
-					while (regLinesplit.match(chars) && i < page.length) {
+					
+					while (regLinesplit.match(chars) && i < page.length) { // overwrite old lines
 						trace("setLine", i, regLinesplit.matched(1));
-						setLine( page.getLine(i), regLinesplit.matched(1), x, y, glyphStyle); // TODO: autoupdate
-						updateLine(page.getLine(i));
+						var line = page.getLine(i);
+						setLine( line, regLinesplit.matched(1), x, y, glyphStyle); // TODO: autoupdate
+						updateLine(line);
 						chars = regLinesplit.matchedRight();
-						y += 20; // TODO
+						y += line.desc; // TODO
 						i++;
 					}
 					if (i < page.length) { // delete rest of old line
@@ -1440,14 +1431,15 @@ class FontProgramMacro
 							removeLine(page.getLine(i));
 							i++;
 						}
-						page.resize(new_length); // TODO: caching and optimize for different platforms
+						page.resize(new_length); // TODO: caching
 					}
 					else { // create new lines and push them to page
 						while (regLinesplit.match(chars)) {
 							trace("pushLine", regLinesplit.matched(1));
-							page.pushLine( createLine(regLinesplit.matched(1), x, y, glyphStyle) );
+							var line = createLine(regLinesplit.matched(1), x, y, glyphStyle);
+							page.pushLine( line );
 							chars = regLinesplit.matchedRight();
-							y += 20; // TODO
+							y += line.desc; // TODO
 						}
 					}
 					
