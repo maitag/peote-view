@@ -1,4 +1,4 @@
-# Peote View - 2D OpenGL Render Library
+# Peote View - 2D Render Library (haxe/lime/opengl)
 
 This library is to simplify opengl-usage for 2D rendering and to  
 easy handle procedural shadercode and imagedata from texture-atlases.
