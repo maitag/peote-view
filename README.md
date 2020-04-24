@@ -1,10 +1,9 @@
 # Peote View - 2D Render Library (haxe/lime/opengl)
 
-This library is to simplify opengl-usage for 2D rendering and to  
-easy handle procedural shadercode and imagedata from texture-atlases.
+This library is to simplify opengl-usage for 2D rendering and to easy  
+handle procedural shadercode and imagedata from texture-atlases.
   
-It's written in [Haxe](http://haxe.org) and runs multiplatform with  
-[Limes](https://github.com/openfl/lime) GL-context and environment.  
+It's written in [Haxe](http://haxe.org) and runs multiplatform with [Lime](https://github.com/haxelime/lime)s [GL-context](https://github.com/haxelime/lime/tree/develop/src/lime/graphics/opengl) and environment.  
 
 ## Installation:
 ```
