@@ -13,8 +13,9 @@ haxelib git peote-view https://github.com/maitag/peote-view
 
 ## Features
 
-- multiplatform: nativ on linux, windows, macOS, android and iOS, js inside webbrowser, neko/hashlink vm
-- can be compiled to use OpenGL ES 2 or 3 version (or with detection at runtime)
+- runs native on linux/bsd/windows/android, neko/hashlink-vm, javascript-webbrowser
+  (macOS and iOS should run but not much tested yet)  
+- can be compiled for a special OpenGL version (ES 2/3 - webgl 1/2) or with version-detection at runtime
   
 - optimized to draw many elements thats sharing the same shader and textures
 - simple usage of textureatlases (parted into slots and tiles)
