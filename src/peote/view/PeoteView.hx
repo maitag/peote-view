@@ -23,7 +23,7 @@ class PeoteView
 	public var height(default, null):Int;
 	
 	// cassowary constraints (jasper lib)
-	#if jasper
+	#if (peote_ui && jasper)
 	public var layout(default, null) = new peote.ui.Layout.Layout();
 	#end
 	

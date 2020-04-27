@@ -9,7 +9,7 @@ class Display
 	public var width:Int = 0;
 	public var height:Int = 0;
 	
-	#if jasper // cassowary constraints (jasper lib)
+	#if (peote_ui && jasper) // cassowary constraints (jasper lib)
 	public var layout(default, null) = new peote.ui.Layout.Layout();
 	public function updateLayout() {
 		//trace("update display");
