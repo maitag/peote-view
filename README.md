@@ -71,7 +71,7 @@ haxelib git peote-view https://github.com/maitag/peote-view
 
 
 ## Scenegraph
-[scenegraph](https://raw.githubusercontent.com/maitag/peote-view/master/doc/PeoteVIew.png)
+![scenegraph](doc/PeoteVIew.png?raw=true)
 
 
 
