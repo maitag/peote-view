@@ -23,7 +23,7 @@ haxelib git peote-view https://github.com/maitag/peote-view
 - supports shadertemplates and opengl-extensions
 - simple formula- and glslcode-injection
 - animation by gpu transition-rendering of vertexatrributes
-- opengl-picking
+- opengl-picking for fast detection of elements that hits a point at screen
 - renderToTextures (framebuffer)
 - ...
 
@@ -33,7 +33,7 @@ haxelib git peote-view https://github.com/maitag/peote-view
 ![scenegraph](doc/PeoteVIew.png?raw=true)
 
 `PeoteView`
-- main screen area that contains all Displays
+- main screenarea that contains all Displays
 - zoom- and scrollable
 
 
@@ -41,6 +41,7 @@ haxelib git peote-view https://github.com/maitag/peote-view
 - rectangle area inside the View (using gl-scissoring for masking)
 - contains Programs to render
 - zoom- and scrollable
+- content can be rendered into a texture
 
 	  
 `Element`
@@ -50,20 +51,21 @@ haxelib git peote-view https://github.com/maitag/peote-view
 - only properties/shaderattribures that is need will be generated (to have optimized types of Elements for any purpose)
 
 
-
 `Buffer`
-- holds all Elements of same Type (all using the same shadercode)
+- depends on type of generated Element
+- stores many Element-instances to build up an equivalent gl-vertexbuffer
+- can be dynamically grow/shrink
 - using fast opengl instance-drawing for all contained Elements
-- is bind to a Program 
+- can be bind to one or many Programs 
 
 
 `Program`
-- combines Textures and shader code for one Buffer
+- combines Textures and shadercode for one Buffer
 - can use formulas for fragmentshader to compose Texturedata 
 - can use formulas to change other attributes inside shader
 - can inject GLSL-code directly into shader
 
-   
+
 `Texture`
 - to store imagedata or textureatlases
 - can be splitted into Slots to store many images, calculates best size for gl-texture
