@@ -439,7 +439,13 @@ class PeoteView
 		//trace("===peoteView.render===");
 		initGLViewport(width, height);
 		
-		
+		renderPart();
+	}
+
+	public inline function renderPart():Void
+	{	
+		//trace("===peoteView.renderPart===");
+
 		displayListItem = displayList.first;
 		while (displayListItem != null)
 		{
@@ -449,5 +455,6 @@ class PeoteView
 		
 	}
 	
+
 
 }
