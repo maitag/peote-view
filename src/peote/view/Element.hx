@@ -1032,14 +1032,28 @@ class ElementImpl
 		}		
 		if (conf.rotation.name != "") {
 			var rotationmatrix = "mat2( vec2(cos(rotZ.x), -sin(rotZ.x)), vec2(sin(rotZ.x), cos(rotZ.x)) )";
-			if (conf.pivotX.name != "" || conf.pivotY.name != "") {
+/*			if (conf.pivotX.name != "" || conf.pivotY.name != "") {
 				// pivot
 				glConf.CALC_PIVOT = "vec2 pivot = " + packForFormula("aPivot", conf.pivotX,  conf.pivotY ) + ";";
 				glConf.CALC_POS += 'pos = pos + (aPosition * size - pivot) * $rotationmatrix + pivot;';
 			}
 			else glConf.CALC_POS += 'pos = pos + aPosition * size * $rotationmatrix;';
+*/
+			if (conf.pivotX.name != "" || conf.pivotY.name != "") {
+				glConf.CALC_PIVOT = "vec2 pivot = " + packForFormula("aPivot", conf.pivotX,  conf.pivotY ) + ";";
+				glConf.CALC_POS += 'pos = pos + (aPosition * size - pivot) * $rotationmatrix;';
+			}
+			else glConf.CALC_POS += 'pos = pos + aPosition * size * $rotationmatrix;';
+			
 		}
-		else glConf.CALC_POS += "pos = pos + aPosition * size;";
+		else {
+			//glConf.CALC_POS += "pos = pos + aPosition * size;";
+			if (conf.pivotX.name != "" || conf.pivotY.name != "") {
+				glConf.CALC_PIVOT = "vec2 pivot = " + packForFormula("aPivot", conf.pivotX,  conf.pivotY ) + ";";
+				glConf.CALC_POS += 'pos = pos + (aPosition * size - pivot);';
+			}
+			else glConf.CALC_POS += "pos = pos + aPosition * size;";
+		}
 		
 		//z-index
 		if (conf.zIndex.name != "") glConf.ZINDEX = "rotZ.y" else glConf.ZINDEX = Util.toFloatString(conf.zIndex.vStart);

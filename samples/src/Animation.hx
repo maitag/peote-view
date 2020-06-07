@@ -25,10 +25,10 @@ class Elem implements Element
 	public var y:Int;
 	
 	// Size in pixel
-	@sizeX @set("PosSize") @time("Size") @anim("Size") //@constStart(300) //@constEnd(400) 
+	@sizeX @set("PosSize") @time("SizePivot") @anim("Size") //@constStart(300) //@constEnd(400) 
 	public var w=100;
 	
-	@sizeY @set("PosSize") @time("Size") @anim("Size") //@constEnd(200)
+	@sizeY @set("PosSize") @time("SizePivot") @anim("Size") //@constEnd(200)
 	public var h:Int=100;
 	
 	// Color (RGBA)
@@ -40,11 +40,11 @@ class Elem implements Element
 	public var r:Float;
 	
 	// pivot x (rotation offset)
-	@pivotX @set("Pivot") @anim("Pivot") @time("Size") 
+	@pivotX @set("Pivot") @anim("Pivot") @time("SizePivot") 
 	public var px:Int = 0;
 
 	// pivot y (rotation offset)
-	@pivotY @set("Pivot") @anim("Pivot") @time("Size") 
+	@pivotY @set("Pivot") @anim("Pivot") @time("SizePivot") 
 	public var py:Int = 0;
 	
 	// z-index
@@ -76,9 +76,9 @@ class Animation
 		// --------------------------
 		peoteView.start();
 		
-		element.setPosSize(20, 0, 50, 50);
+		element.setPosSize(50, 0, 50, 50);
 		
-		element.animPosition(10, 400);
+		element.animPosition(50, 400);
 		element.animColor(Color.RED, 0x0000FF00);
 		element.timePosition(0.0, 6.0);
 		
@@ -90,11 +90,13 @@ class Animation
 		buffer.updateElement(element);
 			
 		Timer.delay(function() {
-			element.animSize(50,50,100,100);
-			element.animPivot(25, 25, 50, 0);
+			element.animSize(50, 50, 100, 100);
+			element.animPivot(25, 25, 50, 50);
+			element.timeSizePivot(peoteView.time , 1);
+			
 			element.animRotation(45, -90);
 			element.timeRotation(peoteView.time, 1.0);
-			element.timeSize(peoteView.time , 1);
+
 			buffer.updateElement(element);
 		}, 3000);
 		
