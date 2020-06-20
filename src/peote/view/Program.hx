@@ -115,11 +115,13 @@ class Program
 		defaultColorFormula = buffer.getDefaultColorFormula();
 		defaultFormulaVars = buffer.getDefaultFormulaVars();
 		
-		trace("formula Names:"); for (f in buffer.getFormulaNames().keys()) trace('  $f => ${buffer.getFormulaNames().get(f)}');
+		//trace("formula Names:"); for (f in buffer.getFormulaNames().keys()) trace('  $f => ${buffer.getFormulaNames().get(f)}');
+		
 		// copy default formulas into new formula
 		for (k in buffer.getFormulas().keys()) formula.set(k, buffer.getFormulas().get(k) );
-		trace("formulas:"); for (f in formula.keys()) trace('  $f => ${formula.get(f)}');
-		trace("attributes:"); for (f in buffer.getAttributes().keys()) trace('  $f => ${buffer.getAttributes().get(f)}');
+		
+		//trace("formulas:"); for (f in formula.keys()) trace('  $f => ${formula.get(f)}');
+		//trace("attributes:"); for (f in buffer.getAttributes().keys()) trace('  $f => ${buffer.getAttributes().get(f)}');
 
 		try Util.resolveFormulaCyclic(buffer.getFormulas()) catch(e:Dynamic) throw ('Error: cyclic reference of "${e.errVar}" inside @formula "${e.formula}" for "${e.errKey}"');
 		//trace("formula cyclic resolved:"); for (f in buffer.getFormulas().keys()) trace('  $f => ${buffer.getFormulas().get(f)}');
@@ -441,9 +443,9 @@ class Program
 		{
 			var formulaResolved:StringMap<String> = [for (k in formula.keys()) k => formula.get(k) ];
 			try Util.resolveFormulaCyclic(formulaResolved) catch(e:Dynamic) throw ('Error: cyclic reference of "${e.errVar}" inside formula "${e.formula}" for "${e.errKey}"');
-			trace("formula cyclic resolved:"); for (f in formulaResolved.keys()) trace('  $f => ${formulaResolved.get(f)}');
+			//trace("formula cyclic resolved:"); for (f in formulaResolved.keys()) trace('  $f => ${formulaResolved.get(f)}');
 			Util.resolveFormulaVars(formulaResolved, buffer.getAttributes());
-			trace("formula resolved new:"); for (f in formulaResolved.keys()) trace('  $f => ${formulaResolved.get(f)}');
+			//trace("formula resolved new:"); for (f in formulaResolved.keys()) trace('  $f => ${formulaResolved.get(f)}');
 			
 			function formulaTemplateValue(x:String, y:String, dx:String, dy:String):String
 			{
@@ -468,7 +470,7 @@ class Program
 					if (x == "rotation" && fx != "0.0") fx = '($fx)/180.0*${Math.PI}';
 					if (y == "zIndex" && fy != "0.0") fy = 'clamp( $fy/${Util.toFloatString(${buffer.getMaxZindex()})}, -1.0, 1.0)'; // TODO: MAX_ZINDEX from buffer
 					
-					trace(' -- replacing Formula $nx, $ny => vec2($fx, $fy)');
+					//trace(' -- replacing Formula $nx, $ny => vec2($fx, $fy)');
 					return('vec2($fx, $fy)');
 				}
 				else return null;

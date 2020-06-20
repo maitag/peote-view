@@ -169,12 +169,18 @@ class Texture
 		glTexture = TexUtils.createEmptyTexture(gl, width, height, colorChannels, createMipmaps, magFilter, minFilter);			
 	}
 
-	public function setImage(image:Image, imageSlot:Int = 0) {
+	public function setImage(image:Image, imageSlot:Int=0, tilesX:Null<Int>=null, tilesY:Null<Int>=null) {
 		#if peoteview_debug_texture
 		trace("Set Image into Texture Slot" + imageSlot);
 		#end
 		if (images.exists(image))
 			throw("Error, image is already inside texture inside slot "+images.get(image).imageSlot);
+		
+		if (tilesX != null) this.tilesX = tilesX;
+		if (tilesY != null) this.tilesY = tilesY;
+		
+		trace( "#############", this.tilesX,  this.tilesY );
+		
 		images.set(image, {imageSlot:imageSlot});
 		freeSlots--;
 		if (gl != null) {

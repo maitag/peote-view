@@ -52,7 +52,7 @@ class TextureCache
 	// if there is not already a textureslot with that image
 	// it puts the image into next free texture and slot where it best fits
 	// returns the texture-unit (index of textures-array) and slot
-	public function addImage(image:Image):{unit:Int, slot:Int}
+	public function addImage(image:Image, tilesX:Null<Int>=null, tilesY:Null<Int>=null):{unit:Int, slot:Int}
 	{
 		var prop = imageMap.get(image);
 		if (prop == null) {
@@ -65,7 +65,7 @@ class TextureCache
 							s.freeSlots--;
 							var p = {texSize:i, unit:t.unit, slot:t.freeSlots.pop()};
 							imageMap.set(image, p);
-							textures[p.unit].setImage(image, p.slot);
+							textures[p.unit].setImage(image, p.slot, tilesX, tilesY);
 							return {unit:p.unit, slot:p.slot};
 						}
 					}
