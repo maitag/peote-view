@@ -1,6 +1,6 @@
 package peote.view;
 
-import peote.ui.layout.Layout;
+import peote.ui.layout.LayoutElement;
 import peote.view.utils.RenderList;
 import peote.view.utils.RenderListItem;
 
@@ -11,7 +11,7 @@ class Display
 	public var height:Int = 0;
 	
 	#if (peote_ui && jasper) // cassowary constraints (jasper lib)
-	public var layout(default, null) = new peote.ui.layout.Layout();
+	public var layout(default, null) = new peote.ui.layout.LayoutElement();
 	public function updateLayout() {
 		//trace("update display");
 		if (x != Math.round(layout.x.m_value)) x = Math.round(layout.x.m_value);
