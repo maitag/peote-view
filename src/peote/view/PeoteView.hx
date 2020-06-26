@@ -3,6 +3,7 @@ package peote.view;
 import haxe.Timer;
 import haxe.ds.Vector;
 import lime.graphics.opengl.GLRenderbuffer;
+import peote.ui.layout.Layout;
 
 import peote.view.utils.Background;
 import peote.view.utils.GLTool;
@@ -24,7 +25,7 @@ class PeoteView
 	
 	// cassowary constraints (jasper lib)
 	#if (peote_ui && jasper)
-	public var layout(default, null) = new peote.ui.Layout.Layout();
+	public var layout(default, null) = new peote.ui.layout.Layout();
 	#end
 	
 	public var color(default,set):Color = 0x000000FF;

@@ -202,7 +202,7 @@ class Shader
 			if (col.a <= ::DISCARD::) discard;
 		::end::
 		
-		::if isPICKING:: 
+		::if isPICKING::
 			::if !isES3::gl_Frag::end::Color = vElement;
 		::else::
 			::if !isES3::gl_Frag::end::Color = col;

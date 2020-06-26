@@ -179,8 +179,6 @@ class Texture
 		if (tilesX != null) this.tilesX = tilesX;
 		if (tilesY != null) this.tilesY = tilesY;
 		
-		trace( "#############", this.tilesX,  this.tilesY );
-		
 		images.set(image, {imageSlot:imageSlot});
 		freeSlots--;
 		if (gl != null) {
