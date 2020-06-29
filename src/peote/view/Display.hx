@@ -1,6 +1,5 @@
 package peote.view;
 
-import peote.ui.layout.LayoutElement;
 import peote.view.utils.RenderList;
 import peote.view.utils.RenderListItem;
 

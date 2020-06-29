@@ -3,7 +3,6 @@ package peote.view;
 import haxe.Timer;
 import haxe.ds.Vector;
 import lime.graphics.opengl.GLRenderbuffer;
-import peote.ui.layout.LayoutElement;
 
 import peote.view.utils.Background;
 import peote.view.utils.GLTool;

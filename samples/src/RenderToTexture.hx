@@ -77,11 +77,11 @@ class RenderToTexture
 			displayFrom1.addProgram(programFrom);
 			
 			// rotation Elements
-			var elementFrom = new Elem(120-8, 16, 32, 80, Color.RED);
+			var elementFrom = new Elem(128, 128, 32, 80, Color.RED);
 			elementFrom.setPivot(16, 96 + 16);
 			elementFrom.animRotation(0, 360);
 			elementFrom.timeRotation(0, 1);
-			elementFrom.z = 80;
+			elementFrom.z = 1; // TODO: problem with z-index on neko after renderToTexture
 			bufferFrom.addElement(elementFrom);
 			
 			var elemBG = new Elem(64-45, 64-45, 128+90, 128+90, Color.YELLOW);
@@ -101,11 +101,11 @@ class RenderToTexture
 			displayFrom2.addProgram(programFrom);
 			
 			// rotation Elements
-			var elementFrom = new Elem(120-8, 16, 32, 80, Color.BLUE);
+			var elementFrom = new Elem(128, 128, 32, 80, Color.BLUE);
 			elementFrom.setPivot(16, 96 + 16);
 			elementFrom.animRotation(0, 360);
 			elementFrom.timeRotation(0, 2);
-			elementFrom.z = 80;
+			elementFrom.z = 1;  // TODO: problem with z-index on neko after renderToTexture
 			bufferFrom.addElement(elementFrom);
 			
 			var elemBG = new Elem(64-45, 64-45, 128+90, 128+90, Color.CYAN);
@@ -148,7 +148,8 @@ class RenderToTexture
 			
 			// rotating elements is using texture-slot 1
 			for (i in 0...8) {
-				var elementToRot = new Elem(256 - 32, 16, 64, 64, Color.CYAN);
+				var elementToRot = new Elem(256, 256, 64, 64, Color.CYAN);
+				//var elementToRot = new Elem(256 - 32, 16, 64, 64, Color.CYAN);
 				elementToRot.slot = 1;
 				elementToRot.setPivot(32, 256 - 16);
 				elementToRot.animRotation(0, 360);
