@@ -160,7 +160,12 @@ class RenderToTexture
 			// ----------------------------------------------
 			// ------------  RenderToTexture  ---------------
 			// ----------------------------------------------
+			
+// TODO: problem with z-index on neko after renderToTexture
+// DISSAPPEARS if render after some delay ... check out while uncommenting the Timer-lines !!!!!
+			//Timer.delay(function(){
 			peoteView.renderToTexture(displayFrom1, 0);    // <- render only one shot into slot 0
+			//}, 1000);
 			
 			var timer = new Timer(100);
 			timer.run = function() {
@@ -185,8 +190,8 @@ class RenderToTexture
 		// ------------  RenderToTexture  ---------------
 		// ----------------------------------------------
 		if (autoRenderToTexture) peoteView.renderToTexture(displayFrom1, 0); // <- render permanently into slot 1
-
 		peoteView.render();
+
 	}
 	
 	
