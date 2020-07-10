@@ -277,7 +277,7 @@ class PeoteView
 	public function getElementAt(posX:Float, posY:Float, display:Display, program:Program):Int
 	{
 		gl.bindFramebuffer(gl.FRAMEBUFFER, pickFB);
-		var element = pick(posX, posY, display, program);
+		var element = pick(posX, posY, display, program, -1);
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		return element;
 	}
@@ -293,7 +293,7 @@ class PeoteView
 	public function getAllElementsAt(posX:Float, posY:Float, display:Display, program:Program):Array<Int>
 	{
 		var elements = new Array<Int>();
-		var toElement = -2;
+		var toElement = -2; // disable z-buffer
 		gl.bindFramebuffer(gl.FRAMEBUFFER, pickFB);
 		do {
 			toElement = pick(posX, posY, display, program, toElement);
@@ -303,7 +303,7 @@ class PeoteView
 		return elements;
 	}
 	
-	private function pick(posX:Float, posY:Float, display:Display, program:Program, toElement:Int = -1):Int
+	private function pick(posX:Float, posY:Float, display:Display, program:Program, toElement:Int):Int
 	{
 		if (! program.hasPicking()) throw("Error: opengl-Picking - type of buffer/element is not pickable !");
 		

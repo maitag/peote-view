@@ -270,6 +270,7 @@ class $className implements BufferInterface
 				_elements.get(i).writeBytes(_bytes);
 		}
 		//trace("updateElement Bytes time:"+(haxe.Timer.stamp()-t));
+		// TODO: peoteview_queueGLbuffering
 		updateGLBuffer();
 	}
 	

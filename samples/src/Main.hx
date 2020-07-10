@@ -40,6 +40,8 @@ typedef Sample = GLPicking;
 typedef Sample = RenderToTexture;
 #elseif ShaderInjection
 typedef Sample = ShaderInjection;
+#elseif MouseEvents
+typedef Sample = MouseEvents;
 #elseif BunnyMark
 typedef Sample = BunnyMark;
 #elseif BunnyMarkGPU
