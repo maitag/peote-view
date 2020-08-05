@@ -1,5 +1,6 @@
 package peote.view;
 
+import peote.view.PeoteView;
 import peote.view.utils.RenderList;
 import peote.view.utils.RenderListItem;
 
@@ -10,7 +11,7 @@ class Display
 	public var height:Int = 0;
 	
 	#if (peote_ui && jasper) // cassowary constraints (jasper lib)
-	public var layout(default, null) = new peote.ui.layout.LayoutElement();
+	public var layout(default, null):peote.ui.layout.LayoutElement;
 	public function updateLayout() {
 		//trace("update display");
 		if (x != Math.round(layout.x.m_value)) x = Math.round(layout.x.m_value);
@@ -104,7 +105,7 @@ class Display
 	var alpha:Float = 1.0;
 
 	
-	var peoteViews = new Array<PeoteView>();
+	var peoteView:PeoteView = null;
 	var gl:PeoteGL = null;
 
 	var programList:RenderList<Program>;
@@ -118,7 +119,7 @@ class Display
 	public function new(x:Int, y:Int, width:Int, height:Int, color:Color = 0x00000000) 
 	{
 		#if jasper // cassowary constraints (jasper lib)
-		layout.update = updateLayout;
+		layout = new peote.ui.layout.LayoutElement(updateLayout);
 		#end
 		this.x = x;
 		this.y = y;
@@ -135,7 +136,7 @@ class Display
 		}
 	}
 
- 	public inline function isIn(peoteView:PeoteView):Bool return (peoteViews.indexOf(peoteView) >= 0);			
+ 	public inline function isIn(peoteView:PeoteView):Bool return (this.peoteView == peoteView);			
 
 	public function addToPeoteView(peoteView:PeoteView, ?atDisplay:Display, addBefore:Bool=false)
 	{
@@ -143,7 +144,7 @@ class Display
 		trace("Add Display to PeoteView");
 		#end
 		if ( isIn(peoteView) ) throw("Error, display is already added to this peoteView");
-		peoteViews.push(peoteView);
+		this.peoteView = peoteView;
 		setNewGLContext(peoteView.gl);
 		peoteView.displayList.add(this, atDisplay, addBefore);
 	}
@@ -153,7 +154,8 @@ class Display
 		#if peoteview_debug_display
 		trace("Removed Display from PeoteView");
 		#end
-		if (!peoteViews.remove(peoteView)) throw("Error, display is not inside peoteView");
+		if ( !isIn(peoteView) ) throw("Error, display is not inside peoteView");
+		this.peoteView = null;
 		peoteView.displayList.remove(this);
 	}
 	
@@ -161,10 +163,6 @@ class Display
 	{
 		if (newGl != null && newGl != gl) // only if different GL - Context	
 		{
-			// check gl-context of all parents
-			for (peoteView in peoteViews)
-				if (peoteView.gl != null && peoteView.gl != newGl)  throw("Error, display can not used inside different gl-contexts");
-			
 			// clear old gl-context if there is one
 			if (gl != null) clearOldGLContext();
 			#if peoteview_debug_display
