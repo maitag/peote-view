@@ -38,10 +38,10 @@ class Loader
 	public static inline function imageArray( names:Array<String>, debug=false, ?onProgress:Int->Int->Int->Void, ?onProgressOverall:Int->Int->Void, ?onError:Int->String->Void, ?onLoad:Int->Image->Void, ?onLoadAll:Array<Image>->Void):Void {
 		var images = new Array<Image>();
 		var loaded:Int = names.length;		
-		var progressSumA:Array<Int>;
-		var progressSumB:Array<Int>;
+		var progressSumA = new Array<Int>(); // does not need to be initialized (only to avoid compiler-warning)
+		var progressSumB = new Array<Int>();
 		if (onProgressOverall != null) {
-			progressSumA = [for(i in 0...names.length) 0];
+			progressSumA = [for (i in 0...names.length) 0];
 			progressSumB = [for (i in 0...names.length) 0];
 		}
 		for (i in 0...names.length) {
@@ -102,10 +102,10 @@ class Loader
 	public static inline function bytesArray( names:Array<String>, debug=false, ?onProgress:Int->Int->Int->Void, ?onProgressOverall:Int->Int->Void, ?onError:Int->String->Void, ?onLoad:Int->Bytes->Void, ?onLoadAll:Array<Bytes>->Void):Void {
 		var allBytes = new Array<Bytes>();
 		var loaded:Int = names.length;
-		var progressSumA:Array<Int>;
-		var progressSumB:Array<Int>;
+		var progressSumA = new Array<Int>(); // does not need to be initialized (only to avoid compiler-warning)
+		var progressSumB = new Array<Int>();
 		if (onProgressOverall != null) {
-			progressSumA = [for(i in 0...names.length) 0];
+			progressSumA = [for (i in 0...names.length) 0];
 			progressSumB = [for (i in 0...names.length) 0];
 		}
 		for (i in 0...names.length) {

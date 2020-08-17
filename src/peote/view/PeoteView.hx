@@ -208,7 +208,7 @@ class PeoteView
 
     /**
         Changes the gl-context of the View and all contained Displays
-		
+
         @param  newGl new opengl context
     **/
 	public function setNewGLContext(newGl:PeoteGL)

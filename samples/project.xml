@@ -16,7 +16,7 @@
 	
 	<!-- main samples -->
 	<app main="Main" path="bin" file="Main" />
-	<haxedef name="ShaderInjection" />
+	<haxedef name="BunnyMarkGPU" />
 	<!--
 		SimpleQuad, Multidisplay, Multibuffer, ElementInherit, DepthBlend,
 		CheckTextureMemory,
