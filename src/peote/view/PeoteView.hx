@@ -22,11 +22,6 @@ class PeoteView
 	public var width(default, null):Int;
 	public var height(default, null):Int;
 	
-	// cassowary constraints (jasper lib)
-	#if (peote_ui && jasper)
-	public var layout(default, null) = new peote.ui.layout.LayoutElement();
-	#end
-	
 	public var color(default,set):Color = 0x000000FF;
 	inline function set_color(c:Color):Color {
 		red   = c.red   / 255.0;			

@@ -9,22 +9,7 @@ class Display
 {
 	public var width:Int = 0;
 	public var height:Int = 0;
-	
-	#if (peote_ui && jasper) // cassowary constraints (jasper lib)
-	public var layout(default, null):peote.ui.layout.LayoutElement;
-	public function updateLayout() {
-		//trace("update display");
-		if (x != Math.round(layout.x.m_value)) x = Math.round(layout.x.m_value);
-		if (y != Math.round(layout.y.m_value)) y = Math.round(layout.y.m_value);
-		width  = Math.round(layout.width.m_value);
-		height = Math.round(layout.height.m_value);
-/*		if (x != Std.int(layout.x.m_value)) x = Std.int(layout.x.m_value);
-		if (y != Std.int(layout.y.m_value)) y = Std.int(layout.y.m_value);
-		width  = Std.int(layout.width.m_value);
-		height = Std.int(layout.height.m_value);
-*/	}
-	#end
-	
+		
 	public var x(default, set):Int = 0;
 	public inline function set_x(_x:Int):Int {
 		if (PeoteGL.Version.isUBO) uniformBuffer.updateXOffset(gl, _x + xOffset);
@@ -118,9 +103,6 @@ class Display
 	
 	public function new(x:Int, y:Int, width:Int, height:Int, color:Color = 0x00000000) 
 	{
-		#if jasper // cassowary constraints (jasper lib)
-		layout = new peote.ui.layout.LayoutElement(updateLayout);
-		#end
 		this.x = x;
 		this.y = y;
 		this.width = width;
