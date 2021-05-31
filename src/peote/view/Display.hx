@@ -211,7 +211,16 @@ class Display
 		fbTexture = null;
 	}
 	
+	// ----------------------------- Helpers ----------------------------------------
+    /**
+        Gives true if a point at px and py is inside the Display-area.
 
+        @param  px global x-position
+        @param  py global y-position
+    **/
+	public inline function isPointInside(px, py) return (px >= x && px < x + width && py >= y && py < y + height);
+
+	
 	// ------------------------------------------------------------------------------
 	// ----------------------------- Render -----------------------------------------
 	// ------------------------------------------------------------------------------
