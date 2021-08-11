@@ -1,7 +1,8 @@
 package;
-#if CheckTextureMemory
-import haxe.Timer;
 
+import haxe.CallStack;
+
+import lime.app.Application;
 import lime.ui.Window;
 import lime.ui.KeyCode;
 import lime.ui.KeyModifier;
@@ -13,11 +14,10 @@ import peote.view.Display;
 import peote.view.Buffer;
 import peote.view.Program;
 import peote.view.Color;
-//import peote.view.Texture;
 
 import elements.ElementSimple;
 
-class CheckTextureMemory 
+class CheckTextureMemory extends Application
 {
 	var peoteView:PeoteView;
 	var element = new Array<ElementSimple>();
@@ -25,27 +25,34 @@ class CheckTextureMemory
 	
 	var elemNumber:Int = 0;
 	
-	public function new(window:Window)
+	override function onWindowCreate():Void
 	{
-		try {
-			
-			peoteView = new PeoteView(window.context, window.width, window.height);
-			
-			buffer = new Buffer<ElementSimple>(4, 4, true);
-
-			var display   = new Display(10,10, window.width-20, window.height-20, Color.GREEN);
-			var program   = new Program(buffer);
-			
-			peoteView.addDisplay(display);
-			display.addProgram(program);
-			
-			testTextureMemory();
-		
+		switch (window.context.type)
+		{
+			case WEBGL, OPENGL, OPENGLES:
+				try startSample(window)
+				catch (_) trace(CallStack.toString(CallStack.exceptionStack()), _);
+			default: throw("Sorry, only works with OpenGL.");
 		}
-		catch (e:Dynamic) trace("ERROR:", e);
+	}
+
+	public function startSample(window:Window)
+	{
+		peoteView = new PeoteView(window);
+		
+		buffer = new Buffer<ElementSimple>(4, 4, true);
+
+		var display   = new Display(10,10, window.width-20, window.height-20, Color.GREEN);
+		var program   = new Program(buffer);
+		
+		peoteView.addDisplay(display);
+		display.addProgram(program);
+		
+		testTextureMemory();
 	}
 	
-	public function testTextureMemory() {
+	public function testTextureMemory()
+	{
 		var gl = peoteView.gl;
 		var size = Std.int(gl.getParameter(gl.MAX_TEXTURE_SIZE)/4);
 		trace("max-texture-size:", size);
@@ -80,6 +87,7 @@ class CheckTextureMemory
 			trace(i);
 		}		
 	}
+	
 	// create image with random pixels
 	public function createRandomImage(width:Int, height:Int):Image {
 		
@@ -98,23 +106,19 @@ class CheckTextureMemory
 			}
 		}
 		
-		return image;
-		
+		return image;		
 	}
 	
-	public function onPreloadComplete ():Void { trace("preload complete"); }
-	
-	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
+	// ----------- Lime events ------------------
+
+	override function onMouseDown (x:Float, y:Float, button:MouseButton):Void
 	{
 		element[elemNumber]  = new ElementSimple(10+elemNumber*50, 10, 40, 40);
 		buffer.addElement(element[elemNumber]);
 		elemNumber++; trace("elements " + elemNumber);
 	}
 
-	public function onMouseMove (x:Float, y:Float):Void {}
-	public function onWindowLeave ():Void {}
-
-	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
+	override function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
 	{
 		switch (keyCode) {
 			case KeyCode.NUMPAD_PLUS:
@@ -129,18 +133,4 @@ class CheckTextureMemory
 		}
 	}
 	
-	public function update(deltaTime:Int):Void {}
-	public function onMouseUp (x:Float, y:Float, button:MouseButton):Void {}
-
-	public function render()
-	{
-		peoteView.render();
-	}
-
-	public function resize(width:Int, height:Int)
-	{
-		peoteView.resize(width, height);
-	}
-
 }
-#end

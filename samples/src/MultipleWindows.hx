@@ -67,7 +67,7 @@ class MultipleWindows extends Application
 		
 		window.context.attributes.background = 1;
 		
-		peoteView_1 = new PeoteView(window.context, window.width, window.height);
+		peoteView_1 = new PeoteView(window);
 		display_1   = new Display(10, 10, window.width - 20, window.height - 20, Color.GREEN);
 		buffer_1    = new Buffer<Elem>(100);
 		program_1   = new Program(buffer_1);
@@ -78,20 +78,18 @@ class MultipleWindows extends Application
 		display_1.addProgram(program_1);
 		peoteView_1.addDisplay(display_1);
 		
-		window.onRender.add    (onRender_1.bind (window));
 		window.onMouseDown.add (onMouseDown_1.bind (window));
-		window.onResize.add    (onResize_1.bind (window));
 		window.onKeyDown.add   (onKeyDown_.bind (window));
 		
 		
 		Timer.delay( function() {
 			createWindow_2();
 		}, 1000);
-		/*
+		
 		Timer.delay( function() {
 			createwindow_3();
 		}, 2000);
-		*/
+		
 	}
 	
 	private function createWindow_2():Void
@@ -102,7 +100,7 @@ class MultipleWindows extends Application
 		var window = createWindow(attributes);
 		#end
 		
-		peoteView_2 = new PeoteView(window.context, window.width, window.height);
+		peoteView_2 = new PeoteView(window);
 		display_2   = new Display(10, 10, window.width - 20, window.height - 20, Color.BLUE);
 		buffer_2    = new Buffer<Elem>(100);
 		program_2   = new Program(buffer_2);
@@ -114,9 +112,7 @@ class MultipleWindows extends Application
 		peoteView_2.addDisplay(display_2);
 		
 		#if desktop
-		window.onRender.add    (onRender_2.bind   (window));
 		window.onMouseDown.add (onMouseDown_2.bind(window));
-		window.onResize.add    (onResize_2.bind   (window));
 		window.onKeyDown.add   (onKeyDown_.bind   (window));
 		#end
 	}
@@ -129,7 +125,7 @@ class MultipleWindows extends Application
 		var window = createWindow(attributes);
 		#end
 		
-		peoteView_3 = new PeoteView(window.context, window.width, window.height);
+		peoteView_3 = new PeoteView(window);
 		display_3   = new Display(10, 10, window.width - 20, window.height - 20, Color.YELLOW);
 		buffer_3    = new Buffer<Elem>(100);
 		program_3   = new Program(buffer_3);
@@ -137,15 +133,14 @@ class MultipleWindows extends Application
 		peoteView_3.addDisplay(display_3);
 		
 		#if desktop
-		window.onRender.add    (onRender_3.bind   (window));
 		window.onMouseDown.add (onMouseDown_3.bind(window));
-		window.onResize.add    (onResize_3.bind   (window));
 		window.onKeyDown.add   (onKeyDown_.bind   (window));
 		#end
 	}
 	
 	// load image into texture
-	public function loadImage(texture:Texture, filename:String):Void {
+	public function loadImage(texture:Texture, filename:String):Void
+	{
 		trace('load image $filename');
 		var future = Image.loadFromFile(filename);
 		future.onProgress (function (a:Int,b:Int) trace ('...loading image $a/$b'));
@@ -156,43 +151,6 @@ class MultipleWindows extends Application
 		});		
 	}
 	
-	// ------------------------------------------------------------	
-	// ----------- Render Loops -----------------------------------
-	// ------------------------------------------------------------	
-	private function onRender_1 (window:Window, context:RenderContext):Void
-	{
-		peoteView_1.render();
-	}
-	
-	private function onRender_2 (window:Window, context:RenderContext):Void
-	{	
-		peoteView_2.render();
-	}
-
-	private function onRender_3 (window:Window, context:RenderContext):Void
-	{	
-		peoteView_3.render();
-	}
-
-	// ------------------------------------------------------------	
-	// ----------- resize events ----------------------------------
-	// ------------------------------------------------------------	
-	private function onResize_1 (window:Window, width:Int, height:Int):Void
-	{
-		peoteView_1.resize(width, height);
-	}
-	
-	
-	private function onResize_2 (window:Window, width:Int, height:Int):Void
-	{
-		peoteView_2.resize(width, height);
-	}
-
-	private function onResize_3 (window:Window, width:Int, height:Int):Void
-	{
-		peoteView_3.resize(width, height);
-	}
-
 	
 	// ------------------------------------------------------------	
 	// ----------- spawn new element on mouse down ----------------

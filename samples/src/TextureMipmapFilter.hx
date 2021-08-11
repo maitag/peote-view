@@ -1,14 +1,14 @@
 package;
-#if TextureMipmapFilter
-import haxe.Timer;
 
+import haxe.Timer;
+import haxe.CallStack;
+
+import lime.app.Application;
 import lime.ui.Window;
 import lime.ui.KeyCode;
 import lime.ui.KeyModifier;
 import lime.ui.MouseButton;
 import lime.graphics.Image;
-
-import utils.Loader;
 
 import peote.view.PeoteView;
 import peote.view.Display;
@@ -17,6 +17,8 @@ import peote.view.Program;
 import peote.view.Color;
 import peote.view.Texture;
 import peote.view.Element;
+
+import utils.Loader;
 
 class Elem implements Element
 {
@@ -36,7 +38,7 @@ class Elem implements Element
 	}
 }
 
-class TextureMipmapFilter
+class TextureMipmapFilter extends Application
 {
 	var peoteView:PeoteView;
 	var element:Elem;
@@ -46,9 +48,21 @@ class TextureMipmapFilter
 	var texture = new Array<Texture>();
 	var timer:Timer;
 	
-	public function new(window:Window)
+	override function onWindowCreate():Void
 	{
-		peoteView = new PeoteView(window.context, window.width, window.height);
+		switch (window.context.type)
+		{
+			case WEBGL, OPENGL, OPENGLES:
+				try startSample(window)
+				catch (_) trace(CallStack.toString(CallStack.exceptionStack()), _);
+			default: throw("Sorry, only works with OpenGL.");
+		}
+	}
+
+	public function startSample(window:Window)
+	{
+		peoteView = new PeoteView(window);
+		
 		display[0] = new Display(0, 0, 300, 300);
 		display[1] = new Display(300, 0, 300, 300);
 		display[2] = new Display(0, 300, 300, 300);
@@ -101,13 +115,8 @@ class TextureMipmapFilter
 			timer = new Timer(40);
 			zoomIn();
 		});
-				
-		// ---------------------------------------------------------------
 	}
 	
-	public function onPreloadComplete ():Void {
-		//trace("preload complete");
-	}
 
 	public function zoomIn() {
 		var fz:Float = 0.1;		
@@ -125,17 +134,16 @@ class TextureMipmapFilter
 		}
 	}
 	
+	// ----------- Lime events ------------------
+	
 	var isStop = false;
-	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
+	override function onMouseDown (x:Float, y:Float, button:MouseButton):Void
 	{
 		if (!isStop) { timer.stop(); isStop = true; }
 		else { timer = new Timer(40); zoomIn(); isStop = false; }
 	}
 
-	public function onMouseMove (x:Float, y:Float):Void {}
-	public function onMouseUp (x:Float, y:Float, button:MouseButton):Void {}
-
-	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
+	override function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
 	{
 		timer.stop();
 		switch (keyCode) {
@@ -153,9 +161,4 @@ class TextureMipmapFilter
 		}
 	}
 
-	public function update(deltaTime:Int):Void {}
-	public function render() peoteView.render();
-	public function resize(width:Int, height:Int) peoteView.resize(width, height);
-
 }
-#end

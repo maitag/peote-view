@@ -1,14 +1,13 @@
 package;
-#if GLPicking
-import haxe.Timer;
 
+import haxe.CallStack;
+
+import lime.app.Application;
 import lime.ui.Window;
 import lime.ui.KeyCode;
 import lime.ui.KeyModifier;
 import lime.ui.MouseButton;
 import lime.graphics.Image;
-
-import utils.Loader;
 
 import peote.view.PeoteView;
 import peote.view.Display;
@@ -17,6 +16,8 @@ import peote.view.Program;
 import peote.view.Color;
 import peote.view.Element;
 import peote.view.Texture;
+
+import utils.Loader;
 
 class Elem implements Element
 {
@@ -40,10 +41,11 @@ class Elem implements Element
 	}
 	
 	var OPTIONS = { picking:true, texRepeatX:true };
-
 }
 
-class GLPicking 
+
+
+class GLPicking extends Application
 {
 	var peoteView:PeoteView;
 
@@ -53,63 +55,69 @@ class GLPicking
 	var display:Display;
 	var program:Program;
 	
-	public function new(window:Window)
-	{	
-		try {
-			peoteView = new PeoteView(window.context, window.width, window.height);
-			
-			display = new Display(0, 0,  window.width, window.height);
-			
-			peoteView.zoom = 1.0;
-			peoteView.xOffset = 0;
-			peoteView.yOffset = 0;
-			
-			peoteView.addDisplay(display);
-			
-			buffer = new Buffer<Elem>(1000);
-			
-			/*for (i in 0...1000) {
-				var size = random(100);
-				element[i] = new Elem(random(window.width), random(window.height), size, size, Color.random());
-				element[i].z = random(Elem.MAX_ZINDEX);
-				buffer.addElement(element[i]);
-			}*/
-			element[0] = new Elem(-100,   0, 512, 512, Color.RED);
-			element[1] = new Elem( 100, 200, 512, 512, Color.YELLOW);
-			element[2] = new Elem( 280, 100, 512, 512, Color.GREEN);
-			element[3] = new Elem( 480, 300, 512, 512, Color.MAGENTA);
-
-			element[0].z =  Elem.MAX_ZINDEX;
-			element[1].z =  Elem.MAX_ZINDEX - 1;
-			element[2].z = -Elem.MAX_ZINDEX + 1;
-			element[3].z = -Elem.MAX_ZINDEX;
-			
-			buffer.addElement(element[0]);
-			buffer.addElement(element[1]);
-			buffer.addElement(element[2]);
-			buffer.addElement(element[3]);
-			
-			
-			program = new Program(buffer);
-			
-			display.addProgram(program);
-			
-			Loader.image("assets/images/wabbit_alpha.png", true, function (image:Image) {
-				trace("loading complete");
-				var texture = new Texture(26, 37);
-				texture.setImage(image);
-				program.setTexture(texture, "custom");
-			});
-			
+	override function onWindowCreate():Void
+	{
+		switch (window.context.type)
+		{
+			case WEBGL, OPENGL, OPENGLES:
+				try startSample(window)
+				catch (_) trace(CallStack.toString(CallStack.exceptionStack()), _);
+			default: throw("Sorry, only works with OpenGL.");
 		}
-		catch (msg:String) {trace("ERROR", msg); }
+	}
+
+	public function startSample(window:Window)
+	{	
+		peoteView = new PeoteView(window);
+		
+		display = new Display(0, 0,  window.width, window.height);
+		
+		peoteView.zoom = 1.0;
+		peoteView.xOffset = 0;
+		peoteView.yOffset = 0;
+		
+		peoteView.addDisplay(display);
+		
+		buffer = new Buffer<Elem>(1000);
+		
+		/*for (i in 0...1000) {
+			var size = random(100);
+			element[i] = new Elem(random(window.width), random(window.height), size, size, Color.random());
+			element[i].z = random(Elem.MAX_ZINDEX);
+			buffer.addElement(element[i]);
+		}*/
+		element[0] = new Elem(-100,   0, 512, 512, Color.RED);
+		element[1] = new Elem( 100, 200, 512, 512, Color.YELLOW);
+		element[2] = new Elem( 280, 100, 512, 512, Color.GREEN);
+		element[3] = new Elem( 480, 300, 512, 512, Color.MAGENTA);
+
+		element[0].z =  Elem.MAX_ZINDEX;
+		element[1].z =  Elem.MAX_ZINDEX - 1;
+		element[2].z = -Elem.MAX_ZINDEX + 1;
+		element[3].z = -Elem.MAX_ZINDEX;
+		
+		buffer.addElement(element[0]);
+		buffer.addElement(element[1]);
+		buffer.addElement(element[2]);
+		buffer.addElement(element[3]);
+		
+		
+		program = new Program(buffer);
+		
+		display.addProgram(program);
+		
+		Loader.image("assets/images/wabbit_alpha.png", true, function (image:Image)
+		{
+			trace("loading complete");
+			var texture = new Texture(26, 37);
+			texture.setImage(image);
+			program.setTexture(texture, "custom");
+		});
 	}
 	
-	public function onPreloadComplete():Void {
-		//trace("preload complete");
-	}
-
-	public function onMouseDown(x:Float, y:Float, button:MouseButton):Void
+	// ----------- Lime events ------------------
+	
+	override function onMouseDown(x:Float, y:Float, button:MouseButton):Void
 	{
 		var pickedElement = peoteView.getElementAt(x, y, display, program);
 		trace(pickedElement);
@@ -125,7 +133,7 @@ class GLPicking
 		//if (pickedElement != null) pickedElement.y += 100;
 	}
 	
-	public function onKeyDown(keyCode:KeyCode, modifier:KeyModifier):Void
+	override function onKeyDown(keyCode:KeyCode, modifier:KeyModifier):Void
 	{
 		var steps = 10;
 		var esteps = 10;
@@ -156,25 +164,5 @@ class GLPicking
 		}
 		
 	}
-	public function onMouseUp (x:Float, y:Float, button:MouseButton):Void {}
-	public function onMouseMove (x:Float, y:Float):Void {}
 	
-	public function update(deltaTime:Int):Void {}
-	
-	public function render()
-	{
-		peoteView.render();
-	}
-
-	public function resize(width:Int, height:Int)
-	{
-		peoteView.resize(width, height);
-	}
-	
-	private inline function random(n:Int):Int
-	{
-		return Math.floor(Math.random() * n);
-	}
-
 }
-#end

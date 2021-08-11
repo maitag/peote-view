@@ -1,15 +1,15 @@
 package;
-import lime.math.Rectangle;
-import lime.math.Vector2;
 
-#if DepthBlend
-import haxe.Timer;
+import haxe.CallStack;
 
+import lime.app.Application;
 import lime.ui.Window;
 import lime.ui.KeyCode;
 import lime.ui.KeyModifier;
 import lime.ui.MouseButton;
 import lime.graphics.Image;
+import lime.math.Rectangle;
+import lime.math.Vector2;
 
 import utils.Loader;
 
@@ -21,12 +21,9 @@ import peote.view.Color;
 import peote.view.Texture;
 
 import elements.ElementSimple;
-import lime.utils.Assets;
 
-class DepthBlend 
+class DepthBlend extends Application
 {
-	var peoteView:PeoteView;
-
 	var activeElement:ElementSimple;
 	
 	var element1:ElementSimple;
@@ -42,15 +39,25 @@ class DepthBlend
 	var displayR:Display;
 	var programR:Program;
 	
-	public function new(window:Window)
-	{	
+	override function onWindowCreate():Void
+	{
+		switch (window.context.type)
+		{
+			case WEBGL, OPENGL, OPENGLES:
+				try startSample(window)
+				catch (_) trace(CallStack.toString(CallStack.exceptionStack()), _);
+			default: throw("Sorry, only works with OpenGL.");
+		}
+	}
 
-		peoteView = new PeoteView(window.context, window.width, window.height);
+	public function startSample(window:Window)
+	{	
+		var peoteView = new PeoteView(window);
 		
-		displayL  = new Display(0, 0, 400, 400);
-		displayL.color = Color.GREY3;
+		displayL  = new Display(0, 0, 400, 400, Color.GREY3);
 		bufferL  = new Buffer<ElementSimple>(100);
 		programL = new Program(bufferL);
+		
 		Loader.image("assets/images/peote_tiles.png", true, function(image:Image) {
 			var texture = new Texture(32, 32);
 			var flower = new Image(null, 0, 0, 32, 32);
@@ -62,8 +69,7 @@ class DepthBlend
 		displayL.addProgram(programL);
 		peoteView.addDisplay(displayL);
 		
-		displayR = new Display(300, 100, 400, 400);
-		displayR.color = 0x00FFFF99;
+		displayR = new Display(300, 100, 400, 400, 0x00FFFF99);
 		bufferR  = new Buffer<ElementSimple>(100);
 		programR = new Program(bufferR);
 		displayR.addProgram(programR);
@@ -82,23 +88,17 @@ class DepthBlend
 		activeElement = element1;
 	}
 	
-	public function onPreloadComplete ():Void {
-		//trace("preload complete");
-	}
+	// ----------- Lime events ------------------
 
-	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
+	override function onMouseDown (x:Float, y:Float, button:MouseButton):Void
 	{
 		element2.z -= 1;
 		element4.z -= 1;
 		bufferL.update(); bufferR.update();
 	}
-	
-	public function onMouseUp (x:Float, y:Float, button:MouseButton):Void {}
-	public function onMouseMove (x:Float, y:Float):Void {}
-
-	
+		
 	var discardValue = 0.0;
-	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
+	override function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
 	{
 		switch (keyCode) {
 			case KeyCode.D: 
@@ -126,11 +126,5 @@ class DepthBlend
 		}
 		bufferL.update(); bufferR.update();
 	}
-	
-	public function render() peoteView.render();
-	public function update(deltaTime:Int):Void {}
-
-	public function resize(width:Int, height:Int) peoteView.resize(width, height);
-	
+		
 }
-#end

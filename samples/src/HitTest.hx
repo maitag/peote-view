@@ -1,23 +1,18 @@
 package;
-import haxe.macro.Expr;
-#if HitTest
 
+import haxe.CallStack;
+
+import lime.app.Application;
 import lime.ui.Window;
-import lime.ui.KeyCode;
-import lime.ui.KeyModifier;
-import lime.ui.MouseButton;
-import lime.graphics.Image;
-
-import utils.Loader;
-//import lime.utils.Assets;
 
 import peote.view.PeoteView;
 import peote.view.Display;
 import peote.view.Buffer;
 import peote.view.Program;
 import peote.view.Color;
-import peote.view.Texture;
 import peote.view.Element;
+
+import utils.Loader;
 
 class Elem implements Element
 {
@@ -153,7 +148,7 @@ class Elem implements Element
 }
 
 
-class HitTest
+class HitTest extends Application
 {
 	var peoteView:PeoteView;
 	var buffer:Buffer<Elem>;
@@ -161,57 +156,40 @@ class HitTest
 	var program:Program;
 	
 	
-	
-	public function new(window:Window)
-	{	
-		try {			
-			
-			peoteView = new PeoteView(window.context, window.width, window.height);
-			display   = new Display(10,10, window.width-20, window.height-20, Color.GREEN);
-			peoteView.addDisplay(display);
-			
-			buffer  = new Buffer<Elem>(100);
-			program = new Program(buffer);
-			display.addProgram(program);
-			
-			var e0  = new Elem(0, 0);
-			buffer.addElement(e0);
-			
-			var e1  = new Elem(100, 0, 100, 100, Color.BLUE);	e1.insertAt(e0);
-			buffer.addElement(e1);
-			
-			var e2  = new Elem(200, 0, 100, 100, Color.YELLOW);	e2.insertAt(e0);
-			buffer.addElement(e2);
-			
-			// Hit-Testing (only at X-Direction now!)
-			trace( "at x+50  e2 hits " + e2.getIntersectionAt(  50, 0).length  + " elements");
-			trace( "at x-50  e2 hits " + e2.getIntersectionAt( -50, 0).length  + " elements");
-			trace( "at x-150 e2 hits " + e2.getIntersectionAt( -150, 0).length + " elements");
-
-			
-			
-		}
-		catch (msg:String) {trace("ERROR", msg); }				
-		// ---------------------------------------------------------------
-	}
-	
-	
-	
-	public function onPreloadComplete ():Void {}
-	
-	public function onMouseUp (x:Float, y:Float, button:MouseButton):Void {}
-	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void {}
-	public function onMouseMove (x:Float, y:Float):Void {}
-	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void {}
-
-	public function render() { peoteView.render(); }
-	
-	public function update(deltaTime:Int):Void {}
-
-	public function resize(width:Int, height:Int)
+	override function onWindowCreate():Void
 	{
-		peoteView.resize(width, height);
+		switch (window.context.type)
+		{
+			case WEBGL, OPENGL, OPENGLES:
+				try startSample(window)
+				catch (_) trace(CallStack.toString(CallStack.exceptionStack()), _);
+			default: throw("Sorry, only works with OpenGL.");
+		}
 	}
 
+	public function startSample(window:Window)
+	{	
+		peoteView = new PeoteView(window);
+		display   = new Display(10,10, window.width-20, window.height-20, Color.GREEN);
+		peoteView.addDisplay(display);
+		
+		buffer  = new Buffer<Elem>(100);
+		program = new Program(buffer);
+		display.addProgram(program);
+		
+		var e0  = new Elem(0, 0);
+		buffer.addElement(e0);
+		
+		var e1  = new Elem(100, 0, 100, 100, Color.BLUE);	e1.insertAt(e0);
+		buffer.addElement(e1);
+		
+		var e2  = new Elem(200, 0, 100, 100, Color.YELLOW);	e2.insertAt(e0);
+		buffer.addElement(e2);
+		
+		// Hit-Testing (only at X-Direction now!)
+		trace( "at x+50  e2 hits " + e2.getIntersectionAt(  50, 0).length  + " elements");
+		trace( "at x-50  e2 hits " + e2.getIntersectionAt( -50, 0).length  + " elements");
+		trace( "at x-150 e2 hits " + e2.getIntersectionAt( -150, 0).length + " elements");
+	}
+	
 }
-#end

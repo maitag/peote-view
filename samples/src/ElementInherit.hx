@@ -1,10 +1,10 @@
 package;
-#if ElementInherit
+
+import haxe.CallStack;
 import haxe.Timer;
 
+import lime.app.Application;
 import lime.ui.Window;
-import lime.ui.KeyCode;
-import lime.ui.KeyModifier;
 import lime.ui.MouseButton;
 
 import peote.view.PeoteView;
@@ -12,7 +12,6 @@ import peote.view.Display;
 import peote.view.Buffer;
 import peote.view.Program;
 import peote.view.Color;
-//import peote.view.Texture;
 
 import peote.view.Element;
 
@@ -26,6 +25,7 @@ class ElementParent implements Element
 
 class ElementOldChild extends ElementParent
 {
+	var name = "child";
 }
 
 class ElementChild extends ElementOldChild
@@ -33,7 +33,7 @@ class ElementChild extends ElementOldChild
 	public function new(positionX:Int=0, positionY:Int=0, width:Int=100, height:Int=100 )
 	{
 		super();
-		trace("NEW ElementChild");
+		trace("NEW ElementChild", name);
 		this.x = positionX;
 		this.y = positionY;
 		this.w = width;
@@ -43,15 +43,25 @@ class ElementChild extends ElementOldChild
 }
 
 
-class ElementInherit 
+class ElementInherit extends Application
 {
-	var peoteView:PeoteView;
 	var element:ElementChild;
 	var buffer:Buffer<ElementChild>;
 	
-	public function new(window:Window)
+	override function onWindowCreate():Void
+	{
+		switch (window.context.type)
+		{
+			case WEBGL, OPENGL, OPENGLES:
+				try startSample(window)
+				catch (_) trace(CallStack.toString(CallStack.exceptionStack()), _);
+			default: throw("Sorry, only works with OpenGL.");
+		}
+	}
+
+	public function startSample(window:Window)
 	{	
-		peoteView = new PeoteView(window.context, window.width, window.height);
+		var peoteView = new PeoteView(window);
 		
 		buffer = new Buffer<ElementChild>(100);
 
@@ -75,39 +85,15 @@ class ElementInherit
 			element1.x += 100;
 			buffer.updateElement(element1);
 		} , 1000);
-		
-		
-		
+				
 	}
 	
-	public function onPreloadComplete ():Void { trace("preload complete"); }
-	
-	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
-	{
-			element.x += 100;
-			buffer.updateElement(element);
-	}
+	// ----------- Lime events ------------------
 
-	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
+	override function onMouseDown (x:Float, y:Float, button:MouseButton):Void
 	{
-		switch (keyCode) {
-			//case KeyCode.:
-			default:
-		}
-	}
-	public function update(deltaTime:Int):Void {}
-	public function onMouseUp (x:Float, y:Float, button:MouseButton):Void {}
-	public function onMouseMove (x:Float, y:Float):Void {}
-
-	public function render()
-	{
-		peoteView.render();
-	}
-
-	public function resize(width:Int, height:Int)
-	{
-		peoteView.resize(width, height);
+		element.x += 100;
+		buffer.updateElement(element);
 	}
 
 }
-#end

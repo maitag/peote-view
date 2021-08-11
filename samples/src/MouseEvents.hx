@@ -1,10 +1,10 @@
 package;
-#if MouseEvents
-import haxe.Timer;
 
+import haxe.CallStack;
+
+import lime.app.Application;
 import lime.ui.Window;
-import lime.ui.KeyCode;
-import lime.ui.KeyModifier;
+import lime.graphics.RenderContext;
 import lime.ui.MouseButton;
 
 import peote.view.PeoteGL;
@@ -53,7 +53,7 @@ class OverElem extends Elem
 	public var onMouseOut:Int->Int->Display->Program->Void = null;
 }
 
-class MouseEvents 
+class MouseEvents extends Application
 {
 	var peoteView:PeoteView;
 	var display:Display;
@@ -67,53 +67,60 @@ class MouseEvents
 	var lastOverIndex:Int = -1;
 	var lastDownIndex:Int = -1;
 	
-	public function new(window:Window)
+	override function onWindowCreate():Void
 	{
-		try {
-			
-			peoteView = new PeoteView(window.context, window.width, window.height);
-			display = new Display(0, 0, window.width, window.height, Color.GREEN);
-			peoteView.addDisplay(display);
-			
-			
-			// elements for mouseDown/Up ----------------------
-
-			clickBuffer = new Buffer<ClickElem>(16,8);
-			clickProgram = new Program(clickBuffer);
-			display.addProgram(clickProgram);
-		
-			for (y in 0...3) for (x in 0...16)
-			{
-				var clickButton = new ClickElem(x*50, y*43, 45, 40);
-				clickButton.onMouseDown = buttonDown.bind(clickButton);
-				clickButton.onMouseUp = buttonUp.bind(clickButton);
-				clickButton.onMouseClick = buttonClick.bind(clickButton);
-				clickBuffer.addElement(clickButton);
-			}
-			
-			// elements for mouseOver/Out ----------------------
-			overBuffer = new Buffer<OverElem>(1, 8);
-			overProgram = new Program(overBuffer);
-			display.addProgram(overProgram);
-				
-			//var overButton = new Array<OverElem>();
-			//var i:Int = 0;
-			for (y in 0...19) for (x in 0...32)
-			{
-				/*overButton[i] = new OverElem(x*50, 150+y*50, 50, 50);
-				overButton[i].onMouseOver = buttonOver.bind(overButton[i]);
-				overButton[i].onMouseOut = buttonOut.bind(overButton[i]);
-				overBuffer.addElement(overButton[i]);
-				i++;
-				*/
-				var overButt = new OverElem(x*25, 130+y*25, 25, 25);
-				overButt.onMouseOver = buttonOver.bind(overButt);
-				overButt.onMouseOut = buttonOut.bind(overButt);
-				overBuffer.addElement(overButt);
-			}
-			
+		switch (window.context.type)
+		{
+			case WEBGL, OPENGL, OPENGLES:
+				try startSample(window)
+				catch (_) trace(CallStack.toString(CallStack.exceptionStack()), _);
+			default: throw("Sorry, only works with OpenGL.");
 		}
-		catch (e:Dynamic) trace("ERROR:", e);
+	}
+
+	public function startSample(window:Window)
+	{
+		peoteView = new PeoteView(window);
+		display = new Display(0, 0, window.width, window.height, Color.GREEN);
+		peoteView.addDisplay(display);
+		
+		
+		// elements for mouseDown/Up ----------------------
+
+		clickBuffer = new Buffer<ClickElem>(16,8);
+		clickProgram = new Program(clickBuffer);
+		display.addProgram(clickProgram);
+	
+		for (y in 0...3) for (x in 0...16)
+		{
+			var clickButton = new ClickElem(x*50, y*43, 45, 40);
+			clickButton.onMouseDown = buttonDown.bind(clickButton);
+			clickButton.onMouseUp = buttonUp.bind(clickButton);
+			clickButton.onMouseClick = buttonClick.bind(clickButton);
+			clickBuffer.addElement(clickButton);
+		}
+		
+		// elements for mouseOver/Out ----------------------
+		overBuffer = new Buffer<OverElem>(1, 8);
+		overProgram = new Program(overBuffer);
+		display.addProgram(overProgram);
+			
+		//var overButton = new Array<OverElem>();
+		//var i:Int = 0;
+		for (y in 0...19) for (x in 0...32)
+		{
+			/*overButton[i] = new OverElem(x*50, 150+y*50, 50, 50);
+			overButton[i].onMouseOver = buttonOver.bind(overButton[i]);
+			overButton[i].onMouseOut = buttonOut.bind(overButton[i]);
+			overBuffer.addElement(overButton[i]);
+			i++;
+			*/
+			var overButt = new OverElem(x*25, 130+y*25, 25, 25);
+			overButt.onMouseOver = buttonOver.bind(overButt);
+			overButt.onMouseOut = buttonOut.bind(overButt);
+			overBuffer.addElement(overButt);
+		}
+			
 	}
 	
 	public function buttonDown(button:ClickElem, x:Int, y:Int, display:Display, program:Program)
@@ -155,11 +162,34 @@ class MouseEvents
 		overBuffer.updateElement(button);
 	}
 	
-	// --------------------------------------------------
+	// ----------- Lime events ------------------
 
-	public function onPreloadComplete ():Void { trace("preload complete"); }
-		
-	public function onMouseMove (x:Float, y:Float):Void
+	#if (! html5)
+		var lastMoveX:Float = 0.0;
+		var lastMoveY:Float = 0.0;
+		var isMouseMove = false;
+
+		override function render(context:RenderContext):Void
+		{	
+			if (isMouseMove) {
+				isMouseMove = false;
+				onMouseMoveFrameSynced(lastMoveX, lastMoveY);
+			}
+		}
+	#end
+	
+	override function onMouseMove (x:Float, y:Float):Void
+	{
+		#if (! html5)
+			lastMoveX = x;
+			lastMoveY = y;
+			isMouseMove = true;
+		#else
+			onMouseMoveFrameSynced(x, y);
+		#end
+	}
+	
+	inline function onMouseMoveFrameSynced (x:Float, y:Float):Void
 	{
 		try {
 			var pickedElement = peoteView.getElementAt(x, y, display, overProgram);
@@ -171,10 +201,10 @@ class MouseEvents
 				lastOverIndex = pickedElement;
 			}
 		}
-		catch (e:Dynamic) trace("ERROR:", e);
+		catch (_) trace(CallStack.toString(CallStack.exceptionStack()), _);
 	}
 
-	public function onWindowLeave ():Void {
+	override function onWindowLeave ():Void {
 		if (lastOverIndex >= 0) {
 			overBuffer.getElement(lastOverIndex).onMouseOut( -1, -1, display, overProgram);
 			lastOverIndex = -1;
@@ -186,7 +216,7 @@ class MouseEvents
 	}
 	
 	var lockDown = false;
-	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
+	override function onMouseDown (x:Float, y:Float, button:MouseButton):Void
 	{
 		try {
 			if (!lockDown) 
@@ -201,10 +231,10 @@ class MouseEvents
 			//trace(pickedElements);
 			
 		}
-		catch (e:Dynamic) trace("ERROR:", e);
+		catch (_) trace(CallStack.toString(CallStack.exceptionStack()), _);
 	}
 	
-	public function onMouseUp (x:Float, y:Float, button:MouseButton):Void
+	override function onMouseUp (x:Float, y:Float, button:MouseButton):Void
 	{
 		try {
 			if (lastDownIndex >= 0) {
@@ -221,31 +251,11 @@ class MouseEvents
 			//trace(pickedElements);
 			
 		}
-		catch (e:Dynamic) trace("ERROR:", e);
+		catch (_) trace(CallStack.toString(CallStack.exceptionStack()), _);
 	}
 
-	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
-	{
-		switch (keyCode) {
-			//case KeyCode.NUMPAD_PLUS:
-			default:
-		}
-	}
-	
-	public function onWindowActivate():Void {};
-	public function onTextInput (text:String):Void {}
-
-	public function update(deltaTime:Int):Void {}
-
-	public function render()
-	{
-		peoteView.render();
-	}
-
-	public function resize(width:Int, height:Int)
-	{
-		peoteView.resize(width, height);
-	}
+	//public override function onTouchStart (touch:Touch):Void {}
+	//public override function onTouchMove (touch:Touch):Void {}
+	//public override function onTouchEnd (touch:Touch):Void {}
 
 }
-#end

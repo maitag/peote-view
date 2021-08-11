@@ -22,7 +22,7 @@ haxelib git peote-view https://github.com/maitag/peote-view
 - multitexture usage per shader
 - supports shadertemplates and opengl-extensions
 - simple formula- and glslcode-injection
-- animation by gpu transition-rendering of vertexatrributes
+- animation by gpu transition-rendering of vertexattributes
 - opengl-picking for fast detection of elements that hits a point at screen
 - renderToTextures (framebuffer)
 - ...

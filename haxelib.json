@@ -4,9 +4,9 @@
 	"license": "MIT",
 	"tags": ["peote", "opengl", "2d", "shader", "glsl"],
 	"description": "2D Render Library (lime/opengl)",
-	"version": "0.8.1",
+	"version": "0.8.2",
 	"classPath": "src/",
-	"releasenote": "changing pivotpoint behavior to affect position also",
+	"releasenote": "auto register lime-events, refactoring samples",
 	"contributors": ["Sylvio Sell - maitag"],
 	"dependencies": {
 		"lime": ""

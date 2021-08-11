@@ -1,6 +1,8 @@
 package;
-#if TextureSimple
 
+import haxe.CallStack;
+
+import lime.app.Application;
 import lime.ui.Window;
 import lime.ui.KeyCode;
 import lime.ui.KeyModifier;
@@ -56,11 +58,9 @@ class Elem implements Element
 		//this.animTex(255);
 		//this.timeTex(0, 5);
 	}
-
-
 }
 
-class TextureSimple
+class TextureSimple extends Application
 {
 	var peoteView:PeoteView;
 	var element:Elem;
@@ -69,50 +69,60 @@ class TextureSimple
 	var program:Program;
 	var texture:Texture;
 	
-	public function new(window:Window)
-	{	
-		try {
-			peoteView = new PeoteView(window.context, window.width, window.height);
-			display   = new Display(10,10, window.width-20, window.height-20, Color.GREEN);
-			peoteView.addDisplay(display);  // display to peoteView
-			
-			buffer  = new Buffer<Elem>(100);
-			program = new Program(buffer);
-			
-			texture = new Texture(512, 512, 2);
-			
-			element  = new Elem(0, 0);
-			buffer.addElement(element);     // element to buffer
-			
-			Loader.image ("assets/images/peote_tiles.png", true, function (image:Image) {
-				//texture = new Texture(image.width, image.height);
-				texture.setImage(image,0);
-				texture.setImage(image.clone(),1); // TODO: throw Error if same image inside multi slot
-				
-				//program.autoUpdateTextures = false;
-				program.setTexture(texture, "custom");
-				//program.updateTextures();
-				program.discardAtAlpha(0.1);
-				//program.alphaEnabled = true;
-				//program.setActiveTextureGlIndex(texture, 2);// only after update
-
-				//program.setFormula("ty", "10.0");
-				//program.setFormula("th", "512.0");
-				
-				display.addProgram(program);    // programm to display
-
-				
-				element.w = 512;// image.width;
-				element.h = 512;// image.height;
-				buffer.updateElement(element);
-				
-				peoteView.start();
-			});
+	override function onWindowCreate():Void
+	{
+		switch (window.context.type)
+		{
+			case WEBGL, OPENGL, OPENGLES:
+				try startSample(window)
+				catch (_) trace(CallStack.toString(CallStack.exceptionStack()), _);
+			default: throw("Sorry, only works with OpenGL.");
 		}
-		catch (msg:String) {trace("ERROR", msg); }				
-		// ---------------------------------------------------------------
 	}
-	public function onPreloadComplete ():Void {
+
+	public function startSample(window:Window)
+	{	
+		peoteView = new PeoteView(window);
+		display   = new Display(10,10, window.width-20, window.height-20, Color.GREEN);
+		peoteView.addDisplay(display);  // display to peoteView
+		
+		buffer  = new Buffer<Elem>(100);
+		program = new Program(buffer);
+		
+		texture = new Texture(512, 512, 2);
+		
+		element  = new Elem(0, 0);
+		buffer.addElement(element);     // element to buffer
+		
+		Loader.image ("assets/images/peote_tiles.png", true, function (image:Image) {
+			//texture = new Texture(image.width, image.height);
+			texture.setImage(image,0);
+			texture.setImage(image.clone(),1); // TODO: throw Error if same image inside multi slot
+			
+			//program.autoUpdateTextures = false;
+			program.setTexture(texture, "custom");
+			//program.updateTextures();
+			program.discardAtAlpha(0.1);
+			//program.alphaEnabled = true;
+			//program.setActiveTextureGlIndex(texture, 2);// only after update
+
+			//program.setFormula("ty", "10.0");
+			//program.setFormula("th", "512.0");
+			
+			display.addProgram(program);    // programm to display
+
+			
+			element.w = 512;// image.width;
+			element.h = 512;// image.height;
+			buffer.updateElement(element);
+			
+			peoteView.start();
+		});
+	}
+	
+	// ----------- Lime events ------------------
+
+	override function onPreloadComplete ():Void {
 		/*
 		trace("preload complete");
 		// sync loading for HTML5 only works with embed=true for assets inside project.xml !
@@ -122,15 +132,15 @@ class TextureSimple
 		*/
 	}
 	
-	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
+	override function onMouseDown (x:Float, y:Float, button:MouseButton):Void
 	{
 		display.zoom *= 2;	
 	}
 
-	public function onMouseMove (x:Float, y:Float):Void {}
-	public function onMouseUp (x:Float, y:Float, button:MouseButton):Void {}
+	override function onMouseMove (x:Float, y:Float):Void {}
+	override function onMouseUp (x:Float, y:Float, button:MouseButton):Void {}
 
-	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
+	override function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
 	{
 		switch (keyCode) {
 			case KeyCode.L:
@@ -146,9 +156,5 @@ class TextureSimple
 		}
 	}
 
-	public function update(deltaTime:Int):Void {}
-	public function render() peoteView.render();
-	public function resize(width:Int, height:Int) peoteView.resize(width, height);
 
 }
-#end

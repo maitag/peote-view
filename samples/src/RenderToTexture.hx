@@ -1,8 +1,11 @@
 package;
-#if RenderToTexture
-import haxe.Timer;
 
+import haxe.Timer;
+import haxe.CallStack;
+
+import lime.app.Application;
 import lime.ui.Window;
+import lime.graphics.RenderContext;
 import lime.ui.KeyCode;
 import lime.ui.KeyModifier;
 import lime.ui.MouseButton;
@@ -44,11 +47,9 @@ class Elem implements Element
 		this.h = height;
 		this.c = c;
 	}
-
-
 }
 
-class RenderToTexture
+class RenderToTexture extends Application
 {
 	var peoteView:PeoteView;
 	
@@ -61,146 +62,142 @@ class RenderToTexture
 	
 	var autoRenderToTexture = false;
 
-	public function new(window:Window)
+	override function onWindowCreate():Void
 	{
-		try {
-			peoteView = new PeoteView(window.context, window.width, window.height);
+		switch (window.context.type)
+		{
+			case WEBGL, OPENGL, OPENGLES:
+				try startSample(window)
+				catch (_) trace(CallStack.toString(CallStack.exceptionStack()), _);
+			default: throw("Sorry, only works with OpenGL.");
+		}
+	}
 
-			// ------------------- upper left display to renderToTexture -------------------
-			
-			displayFrom1 = new Display(0, 0, 256, 256, Color.GREEN);
-			peoteView.addDisplay(displayFrom1);
-			
-			var bufferFrom  = new Buffer<Elem>(100);
-			var programFrom = new Program(bufferFrom);
-			
-			displayFrom1.addProgram(programFrom);
-			
-			// rotation Elements
-			var elementFrom = new Elem(128, 128, 32, 80, Color.RED);
-			elementFrom.setPivot(16, 96 + 16);
-			elementFrom.animRotation(0, 360);
-			elementFrom.timeRotation(0, 1);
-			elementFrom.z = 1; // TODO: problem with z-index on neko after renderToTexture
-			bufferFrom.addElement(elementFrom);
-			
-			var elemBG = new Elem(64-45, 64-45, 128+90, 128+90, Color.YELLOW);
-			elemBG.z = 0;
-			bufferFrom.addElement(elemBG);
-			
-			
-			// ------------ bottom left display to renderToTexture -------------
-			
-			displayFrom2 = new Display(0, 260, 256, 256, 0xdd3344aa);
-			displayFrom2.backgroundAlpha = true;
-			peoteView.addDisplay(displayFrom2);
-			
-			var bufferFrom  = new Buffer<Elem>(100);
-			var programFrom = new Program(bufferFrom);
-			
-			displayFrom2.addProgram(programFrom);
-			
-			// rotation Elements
-			var elementFrom = new Elem(128, 128, 32, 80, Color.BLUE);
-			elementFrom.setPivot(16, 96 + 16);
-			elementFrom.animRotation(0, 360);
-			elementFrom.timeRotation(0, 2);
-			elementFrom.z = 1;  // TODO: problem with z-index on neko after renderToTexture
-			bufferFrom.addElement(elementFrom);
-			
-			var elemBG = new Elem(64-45, 64-45, 128+90, 128+90, Color.CYAN);
-			elemBG.z = 0;
-			bufferFrom.addElement(elemBG);
-			
-			// --------------- texture with 2 slots to render into --------------
-			
-			texture = new Texture(256, 256 , 2, 4, true, 1, 1); // 2 Slots
-			
-			// bind texture to the Displays that should render into
-			displayFrom1.setFramebuffer(texture);
-			displayFrom2.setFramebuffer(texture);
-			
-			// to unbind (i need before using this texture with different gl-context!)
-			// displayFrom1.removeFramebuffer();
-			// displayFrom2.removeFramebuffer();
-			
-			
-			// ------- display with program that is using this texture -----------
-			
-			displayTo = new Display(260, 0, 512, 512, Color.BLUE);
-			peoteView.addDisplay(displayTo);
-			
-			var bufferTo  = new Buffer<Elem>(100);
-			var programTo = new Program(bufferTo);
-			
-			programTo.setTexture(texture, "renderFrom");
-			programTo.setColorFormula('renderFrom');
-			programTo.alphaEnabled = true;
-			programTo.discardAtAlpha(null);
-			displayTo.addProgram(programTo);
-			
-			// element in middle is using texture-slot 0
-			var elementTo = new Elem(64, 64, 384, 384);
-			elementTo.slot = 0;
-			elementTo.animPosSize(256-8, 256-8, 16, 16, 0, 0, 512, 512);
-			elementTo.timePosSize(0, 16);
-			bufferTo.addElement(elementTo);
-			
-			// rotating elements is using texture-slot 1
-			for (i in 0...8) {
-				var elementToRot = new Elem(256, 256, 64, 64, Color.CYAN);
-				//var elementToRot = new Elem(256 - 32, 16, 64, 64, Color.CYAN);
-				elementToRot.slot = 1;
-				elementToRot.setPivot(32, 256 - 16);
-				elementToRot.animRotation(0, 360);
-				elementToRot.timeRotation(i, 8);
-				bufferTo.addElement(elementToRot);
-			}
-			
-			// ----------------------------------------------
-			// ------------  RenderToTexture  ---------------
-			// ----------------------------------------------
-			
-// TODO: problem with z-index on neko after renderToTexture
-// DISSAPPEARS if render after some delay ... check out while uncommenting the Timer-lines !!!!!
-			//Timer.delay(function(){
-			peoteView.renderToTexture(displayFrom1, 0);    // <- render only one shot into slot 0
-			//}, 1000);
-			
-			var timer = new Timer(100);
-			timer.run = function() {
-				peoteView.renderToTexture(displayFrom2, 1); // <- render every 1/10 second into slot 1
-			}
-				
-			peoteView.start();
+	public function startSample(window:Window)
+	{
+		peoteView = new PeoteView(window);
+
+		// ------------------- upper left display to renderToTexture -------------------
 		
-		} 
-		catch (msg:Dynamic) trace("Error:", msg);
-		// ---------------------------------------------------------------
+		displayFrom1 = new Display(0, 0, 256, 256, Color.GREEN);
+		peoteView.addDisplay(displayFrom1);
+		
+		var bufferFrom  = new Buffer<Elem>(100);
+		var programFrom = new Program(bufferFrom);
+		
+		displayFrom1.addProgram(programFrom);
+		
+		// rotation Elements
+		var elementFrom = new Elem(128, 128, 32, 80, Color.RED);
+		elementFrom.setPivot(16, 96 + 16);
+		elementFrom.animRotation(0, 360);
+		elementFrom.timeRotation(0, 1);
+		elementFrom.z = 1; // TODO: problem with z-index on neko after renderToTexture
+		bufferFrom.addElement(elementFrom);
+		
+		var elemBG = new Elem(64-45, 64-45, 128+90, 128+90, Color.YELLOW);
+		elemBG.z = 0;
+		bufferFrom.addElement(elemBG);
+		
+		
+		// ------------ bottom left display to renderToTexture -------------
+		
+		displayFrom2 = new Display(0, 260, 256, 256, 0xdd3344aa);
+		displayFrom2.backgroundAlpha = true;
+		peoteView.addDisplay(displayFrom2);
+		
+		var bufferFrom  = new Buffer<Elem>(100);
+		var programFrom = new Program(bufferFrom);
+		
+		displayFrom2.addProgram(programFrom);
+		
+		// rotation Elements
+		var elementFrom = new Elem(128, 128, 32, 80, Color.BLUE);
+		elementFrom.setPivot(16, 96 + 16);
+		elementFrom.animRotation(0, 360);
+		elementFrom.timeRotation(0, 2);
+		elementFrom.z = 1;  // TODO: problem with z-index on neko after renderToTexture
+		bufferFrom.addElement(elementFrom);
+		
+		var elemBG = new Elem(64-45, 64-45, 128+90, 128+90, Color.CYAN);
+		elemBG.z = 0;
+		bufferFrom.addElement(elemBG);
+		
+		// --------------- texture with 2 slots to render into --------------
+		
+		texture = new Texture(256, 256 , 2, 4, true, 1, 1); // 2 Slots
+		
+		// bind texture to the Displays that should render into
+		displayFrom1.setFramebuffer(texture);
+		displayFrom2.setFramebuffer(texture);
+		
+		// to unbind (i need before using this texture with different gl-context!)
+		// displayFrom1.removeFramebuffer();
+		// displayFrom2.removeFramebuffer();
+		
+		
+		// ------- display with program that is using this texture -----------
+		
+		displayTo = new Display(260, 0, 512, 512, Color.BLUE);
+		peoteView.addDisplay(displayTo);
+		
+		var bufferTo  = new Buffer<Elem>(100);
+		var programTo = new Program(bufferTo);
+		
+		programTo.setTexture(texture, "renderFrom");
+		programTo.setColorFormula('renderFrom');
+		programTo.alphaEnabled = true;
+		programTo.discardAtAlpha(null);
+		displayTo.addProgram(programTo);
+		
+		// element in middle is using texture-slot 0
+		var elementTo = new Elem(64, 64, 384, 384);
+		elementTo.slot = 0;
+		elementTo.animPosSize(256-8, 256-8, 16, 16, 0, 0, 512, 512);
+		elementTo.timePosSize(0, 16);
+		bufferTo.addElement(elementTo);
+		
+		// rotating elements is using texture-slot 1
+		for (i in 0...8) {
+			var elementToRot = new Elem(256, 256, 64, 64, Color.CYAN);
+			elementToRot.slot = 1;
+			elementToRot.setPivot(32, 256 - 16);
+			elementToRot.animRotation(0, 360);
+			elementToRot.timeRotation(i, 8);
+			bufferTo.addElement(elementToRot);
+		}
+		
+		// ------------  RenderToTexture  ---------------
+		
+		// TODO: only on NEKO is a problem with z-index after renderToTexture
+		#if neko
+			Timer.delay( function() peoteView.renderToTexture(displayFrom1, 0), 1000 );
+		#else
+			peoteView.renderToTexture(displayFrom1, 0);    // <- render only one shot into slot 0
+		#end
+		
+		var timer = new Timer(500);
+		timer.run = function() {
+			peoteView.renderToTexture(displayFrom2, 1); // <- render every 1/10 second into slot 1
+		}
+			
+		peoteView.start();
 	}
 	
-	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
+	// ----------- Lime events ------------------
+
+	override function onMouseDown (x:Float, y:Float, button:MouseButton):Void
 	{
 		autoRenderToTexture = !autoRenderToTexture; // start/stop RenderToTexture inside Renderloop
 	}
 	
-	public function render()
+	override function render(context:RenderContext)
 	{
-		// ----------------------------------------------
-		// ------------  RenderToTexture  ---------------
-		// ----------------------------------------------
 		if (autoRenderToTexture) peoteView.renderToTexture(displayFrom1, 0); // <- render permanently into slot 1
-		peoteView.render();
-
 	}
 	
 	
-	// ---------------------------------------------------------------
-	
-	public function onMouseMove (x:Float, y:Float):Void {}
-	public function onMouseUp (x:Float, y:Float, button:MouseButton):Void {}
-
-	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
+	override function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
 	{
 		switch (keyCode) {
 			case KeyCode.NUMPAD_PLUS:
@@ -217,11 +214,4 @@ class RenderToTexture
 		}
 	}
 
-	public function update(deltaTime:Int):Void {}
-
-	public function resize(width:Int, height:Int) peoteView.resize(width, height);
-	
-	public function onPreloadComplete ():Void {}
-
 }
-#end

@@ -2,6 +2,9 @@ package peote.view;
 
 import haxe.Timer;
 import haxe.ds.Vector;
+
+import lime.ui.Window;
+import lime.graphics.RenderContext;
 import lime.graphics.opengl.GLRenderbuffer;
 
 import peote.view.utils.Background;
@@ -122,11 +125,15 @@ class PeoteView
 		}
 	}
 
-	public function new(gl:PeoteGL, width:Int, height:Int, color:Color = 0x000000FF)
+	public function new(window:Window, color:Color = 0x000000FF, registerEvents = true)
 	{
-		this.gl = gl;
-		this.width = width;
-		this.height = height;
+		#if peoteview_debug_view
+		trace (window.context.type + " " + window.context.version);
+		#end
+		
+		gl = window.context;
+		width = window.width;
+		height = window.height;
 		set_color(color);
 		
 		if (PeoteGL.Version.isUBO) {
@@ -175,6 +182,11 @@ class PeoteView
 		background = new Background(gl);
 		
 		displayList = new RenderList<Display>(new Map<Display,RenderListItem<Display>>());
+		
+		if (registerEvents) {
+			window.onRender.add(render);
+			window.onResize.add(resize);
+		}
 	}
 	
 
@@ -429,7 +441,7 @@ class PeoteView
 	// ------------------------------------------------------------------------------
 	var displayListItem:RenderListItem<Display>;
 
-	public function render():Void
+	public function render(context:RenderContext = null):Void
 	{	
 		//trace("===peoteView.render===");
 		initGLViewport(width, height);

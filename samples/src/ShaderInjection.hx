@@ -1,7 +1,8 @@
 package;
-#if ShaderInjection
-import haxe.Timer;
 
+import haxe.CallStack;
+
+import lime.app.Application;
 import lime.ui.Window;
 import lime.ui.KeyCode;
 import lime.ui.KeyModifier;
@@ -198,50 +199,40 @@ class Elem3 implements Element
 // -------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------
 
-class ShaderInjection
+class ShaderInjection extends Application
 {
 	var peoteView:PeoteView;
-	var display:Display;
 	
-	public function new(window:Window)
+	override function onWindowCreate():Void
 	{
-		try {
-			peoteView = new PeoteView(window.context, window.width, window.height);
-			display   = new Display(10,10, window.width-20, window.height-20, Color.GREEN);
-			peoteView.addDisplay(display);
-			
-			Elem0.init(display); new Elem0(  0, 0);
-			Elem1.init(display); new Elem1(110, 0);
-			Elem2.init(display); new Elem2(220, 0);	
-			Elem3.init(display); new Elem3(330, 0);		
-		} 
-		catch (e:Dynamic) trace("ERROR:", e);
+		switch (window.context.type)
+		{
+			case WEBGL, OPENGL, OPENGLES:
+				try startSample(window)
+				catch (_) trace(CallStack.toString(CallStack.exceptionStack()), _);
+			default: throw("Sorry, only works with OpenGL.");
+		}
+	}
+
+	public function startSample(window:Window)
+	{
+		peoteView = new PeoteView(window);
+		
+		var display   = new Display(10,10, window.width-20, window.height-20, Color.GREEN);
+		peoteView.addDisplay(display);
+		
+		Elem0.init(display); new Elem0(  0, 0);
+		Elem1.init(display); new Elem1(110, 0);
+		Elem2.init(display); new Elem2(220, 0);	
+		Elem3.init(display); new Elem3(330, 0);		
 	}
 	
-	public function onPreloadComplete ():Void {}
-	
-	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
+	// ----------- Lime events ------------------
+
+	override function onMouseDown (x:Float, y:Float, button:MouseButton):Void
 	{
 		if (!peoteView.isRun) peoteView.start();
 		else peoteView.stop();
 	}
 
-	public function onMouseMove (x:Float, y:Float):Void {}
-	public function onMouseUp (x:Float, y:Float, button:MouseButton):Void {}
-
-	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
-	{
-		/*switch (keyCode) {
-			case KeyCode.NUMBER_1:
-			case KeyCode.NUMBER_2:
-			default:
-		}*/
-	}
-
-	public function render() peoteView.render();
-	public function update(deltaTime:Int):Void {}
-
-	public function resize(width:Int, height:Int) peoteView.resize(width, height);
-
 }
-#end

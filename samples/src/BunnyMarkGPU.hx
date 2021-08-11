@@ -1,13 +1,13 @@
 package;
-#if BunnyMarkGPU
 
+import haxe.CallStack;
+
+import lime.app.Application;
 import lime.ui.Window;
 import lime.ui.KeyCode;
 import lime.ui.KeyModifier;
 import lime.ui.MouseButton;
 import lime.graphics.Image;
-
-import utils.Loader;
 
 import peote.view.PeoteView;
 import peote.view.Display;
@@ -17,6 +17,8 @@ import peote.view.Color;
 import peote.view.Texture;
 
 import peote.view.Element;
+
+import utils.Loader;
 
 class Bunny implements Element
 {
@@ -42,7 +44,7 @@ class Bunny implements Element
 
 
 
-class BunnyMarkGPU
+class BunnyMarkGPU extends Application
 {
 	var peoteView:PeoteView;
 	var buffer:Buffer<Bunny>;
@@ -55,17 +57,26 @@ class BunnyMarkGPU
 	
 	var isStart:Bool = false;
 	
-	public function new(window:Window)
+	override function onWindowCreate():Void
+	{
+		switch (window.context.type)
+		{
+			case WEBGL, OPENGL, OPENGLES:
+				try startSample(window)
+				catch (_) trace(CallStack.toString(CallStack.exceptionStack()), _);
+			default: throw("Sorry, only works with OpenGL.");
+		}
+	}
+
+	public function startSample(window:Window)
 	{	
 		fps = new FPS ();
 		
-		peoteView = new PeoteView(window.context, window.width, window.height);
+		peoteView = new PeoteView(window);
 		
 		#if bunnies 
 		bunnyCount = Std.parseInt (haxe.macro.Compiler.getDefine ("bunnies"));
-		//bunnyCount *= 5;
 		#end
-		//trace("Bunnies:", bunnyCount);
 		
 		buffer = new Buffer<Bunny>(bunnyCount+65536, 65536); // automatic grow buffersize about 4096
 		
@@ -74,7 +85,8 @@ class BunnyMarkGPU
 		
 		var program = new Program(buffer);
 		
-		Loader.image ("assets/images/wabbit_alpha.png", true, function (image:Image) {			
+		Loader.image ("assets/images/wabbit_alpha.png", true, function (image:Image)
+		{			
 			var texture = new Texture(image.width, image.height);
 			
 			texture.setImage(image);
@@ -101,7 +113,10 @@ class BunnyMarkGPU
 		bunnies++;
 	}
 	
-	public function update(deltaTime:Int):Void {
+	// ----------- Lime events ------------------
+
+	override function update(deltaTime:Int):Void 
+	{
 		if (!isStart) return;
 		if (addingBunnies)
 		{			
@@ -110,20 +125,18 @@ class BunnyMarkGPU
 		fps.update (deltaTime);
 	}
 
-	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
+	override function onMouseDown (x:Float, y:Float, button:MouseButton):Void
 	{
 		addingBunnies = true;
 	}
 
-	public function onMouseUp (x:Float, y:Float, button:MouseButton):Void
+	override function onMouseUp (x:Float, y:Float, button:MouseButton):Void
 	{
 		addingBunnies = false;
 		trace ('$bunnies bunnies @ ${fps.current} FPS');
 	}
 	
-	public function onMouseMove (x:Float, y:Float):Void {}
-
-	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
+	override function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
 	{
 		switch (keyCode) {
 			case KeyCode.SPACE:isStart = !isStart;
@@ -131,68 +144,35 @@ class BunnyMarkGPU
 		}
 	}
 
-	public function render()
-	{
-		peoteView.render();
-	}
-
-	public function resize(width:Int, height:Int)
-	{
-		peoteView.resize(width, height);
-	}
-	
-	public function onPreloadComplete ():Void { trace("preload complete"); }
-
 }
 
+// --------------------------------------------
 
-
-
-class FPS {
-	
-	
+class FPS
+{
 	public var current (get, null):Int;
 	
 	private var totalTime:Int;
 	private var times:Array<Float>;
-	
-	
-	public function new () {
 		
+	public function new () 
+	{
 		totalTime = 0;
 		times = new Array ();
-		
 	}
-	
-	
-	public function update (deltaTime:Int):Void {
 		
+	public function update (deltaTime:Int):Void
+	{
 		totalTime += deltaTime;
-		times.push (totalTime);
-		
+		times.push (totalTime);		
 	}
 	
-	
-	
-	
-	// Get & Set Methods
-	
-	
-	
-	
-	private function get_current ():Int {
-		
-		while (times[0] < totalTime - 1000) {
-			
-			times.shift ();
-			
-		}
-		
+	private function get_current ():Int
+	{
+		while (times[0] < totalTime - 1000)
+		{			
+			times.shift ();		
+		}		
 		return times.length;
-		
 	}
-	
-	
 }
-
-#end

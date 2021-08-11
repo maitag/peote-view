@@ -1,14 +1,13 @@
 package;
-#if MultiTextures
-import haxe.Timer;
 
+import haxe.CallStack;
+
+import lime.app.Application;
 import lime.ui.Window;
 import lime.ui.KeyCode;
 import lime.ui.KeyModifier;
 import lime.ui.MouseButton;
 import lime.graphics.Image;
-
-import utils.Loader;
 
 import peote.view.PeoteView;
 import peote.view.Display;
@@ -17,6 +16,8 @@ import peote.view.Program;
 import peote.view.Color;
 import peote.view.Texture;
 import peote.view.Element;
+
+import utils.Loader;
 
 class Elem implements Element
 {
@@ -56,8 +57,7 @@ class Elem implements Element
 	];
 	
 	var OPTIONS = { alpha:true };
-	
-	
+		
 	public function new(positionX:Int=0, positionY:Int=0, width:Int=100, height:Int=100)
 	{
 		this.x = positionX;
@@ -65,11 +65,9 @@ class Elem implements Element
 		this.w = width;
 		this.h = height;
 	}
-
-
 }
 
-class MultiTextures
+class MultiTextures extends Application
 {
 	var peoteView:PeoteView;
 	var element:Elem;
@@ -81,49 +79,56 @@ class MultiTextures
 	var texture1:Texture;
 	var texture2:Texture;
 	
-	public function new(window:Window)
+	override function onWindowCreate():Void
 	{
-		try {
-			peoteView = new PeoteView(window.context, window.width, window.height);
-			display   = new Display(10, 10, window.width - 20, window.height - 20, Color.YELLOW);
-			peoteView.addDisplay(display);  // display to peoteView
-			
-			buffer  = new Buffer<Elem>(100);
-			program = new Program(buffer);
-			element  = new Elem(0,0, 512, 512);
-			buffer.addElement(element);     // element to buffer
-			display.addProgram(program);    // programm to display
-			
-			texture0 = new Texture(512, 512);
-			texture1 = new Texture(512, 512);
-			texture2 = new Texture(512, 512);
-			
-			program.setMultiTexture([texture0, texture1, texture2], Elem.TEXTURE_base, false);
-			//program.setMultiTexture([texture0, texture1],           Elem.TEXTURE_alpha, false);
-			program.setTexture(texture1, Elem.TEXTURE_mask, false);
-			program.setTexture(texture2, "custom", false);
-			/*
-			// compositing multiple textures per fragment-shader
-			program.setColorFormula(
-				'custom + custom.a * color * mask * (shift+base) * ${Elem.TEXTURE_alpha}',
-				[
-					"custom"   => 0x44444444,
-					"base"   => 0x11111111,
-					Elem.TEXTURE_alpha => 0x22222222,
-					Elem.TEXTURE_mask => 0x33333333,
-				]
-			);
-			*/
-			
-			program.updateTextures(); // updates gl-textures and rebuilding shadercode
-					
-			loadImage(texture0, "assets/images/peote_tiles.png");
-			loadImage(texture1, "assets/images/peote_tiles_bunnys.png");
-			//loadImage(texture2, "assets/images/peote_font.png");
-			
+		switch (window.context.type)
+		{
+			case WEBGL, OPENGL, OPENGLES:
+				try startSample(window)
+				catch (_) trace(CallStack.toString(CallStack.exceptionStack()), _);
+			default: throw("Sorry, only works with OpenGL.");
 		}
-		catch (msg:String) {trace("ERROR", msg); }
-		// ---------------------------------------------------------------		
+	}
+
+	public function startSample(window:Window)
+	{
+		peoteView = new PeoteView(window);
+		display   = new Display(10, 10, window.width - 20, window.height - 20, Color.YELLOW);
+		peoteView.addDisplay(display);  // display to peoteView
+		
+		buffer  = new Buffer<Elem>(100);
+		program = new Program(buffer);
+		element  = new Elem(0,0, 512, 512);
+		buffer.addElement(element);     // element to buffer
+		display.addProgram(program);    // programm to display
+		
+		texture0 = new Texture(512, 512);
+		texture1 = new Texture(512, 512);
+		texture2 = new Texture(512, 512);
+		
+		program.setMultiTexture([texture0, texture1, texture2], Elem.TEXTURE_base, false);
+		//program.setMultiTexture([texture0, texture1],           Elem.TEXTURE_alpha, false);
+		program.setTexture(texture1, Elem.TEXTURE_mask, false);
+		program.setTexture(texture2, "custom", false);
+		/*
+		// compositing multiple textures per fragment-shader
+		program.setColorFormula(
+			'custom + custom.a * color * mask * (shift+base) * ${Elem.TEXTURE_alpha}',
+			[
+				"custom"   => 0x44444444,
+				"base"   => 0x11111111,
+				Elem.TEXTURE_alpha => 0x22222222,
+				Elem.TEXTURE_mask => 0x33333333,
+			]
+		);
+		*/
+		
+		program.updateTextures(); // updates gl-textures and rebuilding shadercode
+				
+		loadImage(texture0, "assets/images/peote_tiles.png");
+		loadImage(texture1, "assets/images/peote_tiles_bunnys.png");
+		//loadImage(texture2, "assets/images/peote_font.png");
+		
 	}
 	
 	public function loadImage(texture:Texture, filename:String, slot:Int=0):Void {
@@ -132,17 +137,15 @@ class MultiTextures
 		});		
 	}
 	
-	public function onPreloadComplete ():Void { trace("preload complete"); }
+	// ----------- Lime events ------------------
 
-	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
+	override function onMouseDown (x:Float, y:Float, button:MouseButton):Void
 	{
 		element.x += 100;
 		buffer.updateElement(element);		
 	}
-	public function onMouseMove (x:Float, y:Float):Void {}
-	public function onMouseUp (x:Float, y:Float, button:MouseButton):Void {}
 
-	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
+	override function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
 	{
 		switch (keyCode) {
 			case KeyCode.U:
@@ -163,10 +166,4 @@ class MultiTextures
 		}
 	}
 
-	public function render() peoteView.render();
-	public function update(deltaTime:Int):Void {}
-	
-	public function resize(width:Int, height:Int) peoteView.resize(width, height);
-
 }
-#end

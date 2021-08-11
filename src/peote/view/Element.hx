@@ -76,16 +76,15 @@ class ElementImpl
 	
 	static var VEC4_ENDINGS = ['.x', '.y', '.z', '.w'];
 	
-	//static inline function debug(s:String, ?pos:haxe.PosInfos):Void	{
 	static inline function debug(s:String, ?pos:haxe.PosInfos):Void	{
 		#if peoteview_debug_macro
-		//trace(s);
-		Log.trace(s,pos);
+		Log.trace(s, pos);
 		#end
 	}
-	static inline function debugLastField(fields:Array<Field>):Void	{
+	
+	static inline function debugLastField(fields:Array<Field>, ?pos:haxe.PosInfos):Void	{
 		#if peoteview_debug_macro
-		trace(new Printer().printField(fields[fields.length - 1]));
+		Log.trace( new Printer().printField(fields[fields.length - 1]), pos);
 		#end
 	}
 	

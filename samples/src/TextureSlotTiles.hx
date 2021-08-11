@@ -1,14 +1,14 @@
 package;
-#if TextureSlotTiles
+
+import haxe.CallStack;
 import haxe.Timer;
 
+import lime.app.Application;
 import lime.ui.Window;
 import lime.ui.KeyCode;
 import lime.ui.KeyModifier;
 import lime.ui.MouseButton;
 import lime.graphics.Image;
-
-import utils.Loader;
 
 import peote.view.PeoteView;
 import peote.view.Display;
@@ -17,6 +17,8 @@ import peote.view.Program;
 import peote.view.Color;
 import peote.view.Texture;
 import peote.view.Element;
+
+import utils.Loader;
 
 class Elem implements Element
 {
@@ -49,7 +51,7 @@ class Elem implements Element
 
 
 }
-class TextureSlotTiles
+class TextureSlotTiles extends Application
 {
 	var peoteView:PeoteView;
 	var element0:Elem;
@@ -61,72 +63,77 @@ class TextureSlotTiles
 	var texture0:Texture;
 	var texture1:Texture;
 	
-	public function new(window:Window)
-	{	
-		try {
-			peoteView = new PeoteView(window.context, window.width, window.height);
-			display   = new Display(10,10, window.width-20, window.height-20, Color.BLUE);
-			peoteView.addDisplay(display);  // display to peoteView
-			
-			buffer  = new Buffer<Elem>(100);
-			program = new Program(buffer);
-			
-			display.addProgram(program);    // programm to display
-
-			texture0 = new Texture(400, 300, 4);
-
-			loadImage(texture0, "assets/images/test0.png", 0);
-			loadImage(texture0, "assets/images/test1.png", 1);
-			loadImage(texture0, "assets/images/test2.png", 2);
-			loadImage(texture0, "assets/images/test3.png", 3);
-			
-			program.discardAtAlpha(0.3, false);
-			program.addTexture(texture0, "custom", false);
-			//program.updateTextures();
-			
-			element0  = new Elem(0, 0, 200, 150);
-			element0.slot = 0;
-			buffer.addElement(element0);     // element to buffer
-			
-			texture1 = new Texture(512, 512, 3);
-			texture1.tilesX = texture1.tilesY = 16;
-			
-			loadImage(texture1, "assets/images/peote_font.png", 0);
-			loadImage(texture1, "assets/images/peote_tiles.png", 1);
-			loadImage(texture1, "assets/images/peote_tiles_bunnys.png", 2);
-			
-			program.addTexture(texture1, "custom");
-			program.updateTextures();
-			
-			element1  = new Elem(0, 150, 200, 200);
-			element1.unit = 1;
-			element1.slot = 0;
-			element1.tile = 1;
-			buffer.addElement(element1);     // element to buffer
-			
-			// Animated Slot and Tile
-			element2  = new Elem(0, 350, 200, 200);
-			element2.unit = 1;
-			
-			var timePerSlot = 10;
-			for (i in 0...3)
-				Timer.delay(function() {
-					trace("Slot " + i);
-					element2.animTile(0, (i == 3-1) ? 31 : 32);
-					element2.timeTile(i*timePerSlot, timePerSlot);
-					buffer.updateElement(element2);
-				}, i*timePerSlot*1000);
-			
-			element2.animSlot(0, 2);
-			element2.timeSlot(0, timePerSlot*2);
-			
-			buffer.addElement(element2);     // element to buffer
-			peoteView.start();
+	override function onWindowCreate():Void
+	{
+		switch (window.context.type)
+		{
+			case WEBGL, OPENGL, OPENGLES:
+				try startSample(window)
+				catch (_) trace(CallStack.toString(CallStack.exceptionStack()), _);
+			default: throw("Sorry, only works with OpenGL.");
 		}
-		catch (msg:String) {trace("ERROR", msg); }
-	
-				
-		// ---------------------------------------------------------------
+	}
+
+	public function startSample(window:Window)
+	{	
+		peoteView = new PeoteView(window);
+		display   = new Display(10,10, window.width-20, window.height-20, Color.BLUE);
+		peoteView.addDisplay(display);  // display to peoteView
+		
+		buffer  = new Buffer<Elem>(100);
+		program = new Program(buffer);
+		
+		display.addProgram(program);    // programm to display
+
+		texture0 = new Texture(400, 300, 4);
+
+		loadImage(texture0, "assets/images/test0.png", 0);
+		loadImage(texture0, "assets/images/test1.png", 1);
+		loadImage(texture0, "assets/images/test2.png", 2);
+		loadImage(texture0, "assets/images/test3.png", 3);
+		
+		program.discardAtAlpha(0.3, false);
+		program.addTexture(texture0, "custom", false);
+		//program.updateTextures();
+		
+		element0  = new Elem(0, 0, 200, 150);
+		element0.slot = 0;
+		buffer.addElement(element0);     // element to buffer
+		
+		texture1 = new Texture(512, 512, 3);
+		texture1.tilesX = texture1.tilesY = 16;
+		
+		loadImage(texture1, "assets/images/peote_font.png", 0);
+		loadImage(texture1, "assets/images/peote_tiles.png", 1);
+		loadImage(texture1, "assets/images/peote_tiles_bunnys.png", 2);
+		
+		program.addTexture(texture1, "custom");
+		program.updateTextures();
+		
+		element1  = new Elem(0, 150, 200, 200);
+		element1.unit = 1;
+		element1.slot = 0;
+		element1.tile = 1;
+		buffer.addElement(element1);     // element to buffer
+		
+		// Animated Slot and Tile
+		element2  = new Elem(0, 350, 200, 200);
+		element2.unit = 1;
+		
+		var timePerSlot = 10;
+		for (i in 0...3)
+			Timer.delay(function() {
+				trace("Slot " + i);
+				element2.animTile(0, (i == 3-1) ? 31 : 32);
+				element2.timeTile(i*timePerSlot, timePerSlot);
+				buffer.updateElement(element2);
+			}, i*timePerSlot*1000);
+		
+		element2.animSlot(0, 2);
+		element2.timeSlot(0, timePerSlot*2);
+		
+		buffer.addElement(element2);     // element to buffer
+		peoteView.start();
 	}
 	
 	public function loadImage(texture:Texture, filename:String, slot:Int=0):Void {
@@ -135,18 +142,15 @@ class TextureSlotTiles
 		});		
 	}
 	
-	public function onPreloadComplete ():Void { trace("preload complete"); }
+	// ----------- Lime events ------------------
 
-	public function onMouseDown (x:Float, y:Float, button:MouseButton):Void
+	override function onMouseDown (x:Float, y:Float, button:MouseButton):Void
 	{
 		element0.x += 100;
 		buffer.updateElement(element0);		
 	}
 
-	public function onMouseMove (x:Float, y:Float):Void {}
-	public function onMouseUp (x:Float, y:Float, button:MouseButton):Void {}
-
-	public function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
+	override function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
 	{
 		//trace(Type.typeof(keyCode), Type.typeof(KeyCode.NUMBER_1));
 		// This did not work on NEKO if there are more then 5 switch-cases!!!
@@ -163,10 +167,4 @@ class TextureSlotTiles
 		}
 	}
 
-	public function update(deltaTime:Int):Void {}
-
-	public function render() peoteView.render();
-	public function resize(width:Int, height:Int) peoteView.resize(width, height);
-
 }
-#end
