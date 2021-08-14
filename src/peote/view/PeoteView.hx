@@ -7,6 +7,7 @@ import lime.ui.Window;
 import lime.graphics.RenderContext;
 import lime.graphics.opengl.GLRenderbuffer;
 
+import peote.view.Mask;
 import peote.view.utils.Background;
 import peote.view.utils.GLTool;
 import peote.view.utils.RenderList;
@@ -38,8 +39,10 @@ class PeoteView
 	var blue:Float = 0.0;
 	var alpha:Float = 1.0;
 	
+	var colorState:Bool = true;
 	var glStateAlpha:Bool = false;
 	var glStateDepth:Bool = false;
+	var maskState:Mask = Mask.OFF;
 	
 	var maxTextureImageUnits:Int;
 	var glStateTexture:Vector<GLTexture>;
@@ -407,7 +410,11 @@ class PeoteView
 		//gl.clearDepthf(1.0);
 		
 		// Optimize: only clear depth if is in use somewhere (depthON state!)
-		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);//
+
+		// Optimize: only clear stencil if is in use somewhere (stencilON state!)
+		gl.clearStencil(0);
+		gl.stencilMask(0xFF);
 		
 		// TODO: set only if program added or background need it
 		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -417,6 +424,14 @@ class PeoteView
 		gl.depthFunc(gl.LEQUAL);
 	}
 	
+	private inline function setColor(enabled:Bool):Void
+	{	
+		if (enabled != colorState) {
+			colorState = enabled;
+			gl.colorMask(enabled, enabled, enabled, enabled);
+		}
+	}
+
 	private inline function setGLDepth(enabled:Bool):Void
 	{	
 		if (enabled && !glStateDepth) {
@@ -427,6 +442,7 @@ class PeoteView
 			gl.disable(gl.DEPTH_TEST);
 		}
 	}
+	
 	private inline function setGLAlpha(enabled:Bool):Void
 	{	
 		if (enabled && !glStateAlpha) {
@@ -435,6 +451,32 @@ class PeoteView
 		} else if (!enabled && glStateAlpha) {
 			glStateAlpha = false;
 			gl.disable(gl.BLEND);
+		}
+	}
+	
+	private inline function setMask(mask:Mask):Void
+	{
+		if (mask != maskState) 
+		{
+			if (mask == Mask.OFF) {
+				gl.disable(gl.STENCIL_TEST);
+				maskState = mask;
+			}
+			else if (mask == Mask.DRAW)
+			{
+				if (maskState == Mask.OFF) gl.enable(gl.STENCIL_TEST);
+				gl.stencilFunc(gl.ALWAYS, 1, 0xFF);
+				gl.stencilOp(gl.REPLACE, gl.REPLACE, gl.REPLACE);
+				maskState = mask;
+				
+			}
+			else
+			{
+				if (maskState == Mask.OFF) gl.enable(gl.STENCIL_TEST);
+				gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
+				gl.stencilFunc(gl.EQUAL, 1, 0xFF);
+			}
+			maskState = mask;
 		}
 	}
 	

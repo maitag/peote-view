@@ -250,8 +250,10 @@ class Display
 		glScissor(peoteView.gl, peoteView.width, peoteView.height, peoteView.xOffset, peoteView.yOffset, peoteView.xz, peoteView.yz);
 		
 		if (backgroundEnabled) {
+			peoteView.setColor(true);
 			peoteView.setGLDepth(backgroundDepth);
 			peoteView.setGLAlpha(backgroundAlpha);
+			peoteView.setMask(Mask.OFF);
 			peoteView.background.render(red, green, blue, alpha);
 		}
 		
@@ -271,7 +273,9 @@ class Display
 	private inline function renderFramebuffer(peoteView:PeoteView):Void
 	{
 		if (backgroundEnabled) {
+			peoteView.setColor(true);
 			peoteView.setGLAlpha(backgroundAlpha);
+			peoteView.setMask(Mask.OFF);
 			peoteView.background.render(red, green, blue, alpha);
 		}
 		

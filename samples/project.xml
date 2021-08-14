@@ -19,6 +19,7 @@
 		Animation,
 		GLPicking,
 		MouseEvents,
+		StencilMask
 		BunnyMark, BunnyMarkGPU,
 		...
 		TestMultipassTemplate

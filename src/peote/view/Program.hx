@@ -2,6 +2,8 @@ package peote.view;
 
 import haxe.ds.IntMap;
 import haxe.ds.StringMap;
+
+import peote.view.Mask;
 import peote.view.PeoteGL.GLProgram;
 import peote.view.PeoteGL.GLShader;
 import peote.view.PeoteGL.GLUniformLocation;
@@ -25,8 +27,11 @@ class ActiveTexture {
 @:allow(peote.view,peote.ui)
 class Program 
 {
+	public var colorEnabled:Bool = true;
 	public var alphaEnabled:Bool;
 	public var zIndexEnabled:Bool;
+	public var mask:Mask = Mask.OFF;
+	
 	public var autoUpdateTextures:Bool = true;
 	
 	var displays = new Array<Display>();
@@ -856,8 +861,10 @@ class Program
 		
 		gl.uniform1f (uTIME, peoteView.time);
 		
+		peoteView.setColor(colorEnabled);
 		peoteView.setGLDepth(zIndexEnabled);
 		peoteView.setGLAlpha(alphaEnabled);
+		peoteView.setMask(mask);
 		
 		buffer.render(peoteView, display, this);
 		gl.useProgram (null);
@@ -888,8 +895,10 @@ class Program
 		
 		gl.uniform1f (uTIME, peoteView.time);
 		
+		peoteView.setColor(colorEnabled);
 		peoteView.setGLDepth(zIndexEnabled);
 		peoteView.setGLAlpha(alphaEnabled);
+		peoteView.setMask(mask);
 		
 		buffer.render(peoteView, display, this);
 		gl.useProgram (null);
