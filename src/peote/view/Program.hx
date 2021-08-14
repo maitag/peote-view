@@ -31,6 +31,7 @@ class Program
 	public var alphaEnabled:Bool;
 	public var zIndexEnabled:Bool;
 	public var mask:Mask = Mask.OFF;
+	public var clearMask:Bool = false;
 	
 	public var autoUpdateTextures:Bool = true;
 	
@@ -864,7 +865,7 @@ class Program
 		peoteView.setColor(colorEnabled);
 		peoteView.setGLDepth(zIndexEnabled);
 		peoteView.setGLAlpha(alphaEnabled);
-		peoteView.setMask(mask);
+		peoteView.setMask(mask, clearMask);
 		
 		buffer.render(peoteView, display, this);
 		gl.useProgram (null);
@@ -898,7 +899,7 @@ class Program
 		peoteView.setColor(colorEnabled);
 		peoteView.setGLDepth(zIndexEnabled);
 		peoteView.setGLAlpha(alphaEnabled);
-		peoteView.setMask(mask);
+		peoteView.setMask(mask, clearMask);
 		
 		buffer.render(peoteView, display, this);
 		gl.useProgram (null);

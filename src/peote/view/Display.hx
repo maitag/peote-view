@@ -253,7 +253,7 @@ class Display
 			peoteView.setColor(true);
 			peoteView.setGLDepth(backgroundDepth);
 			peoteView.setGLAlpha(backgroundAlpha);
-			peoteView.setMask(Mask.OFF);
+			peoteView.setMask(Mask.OFF, false);
 			peoteView.background.render(red, green, blue, alpha);
 		}
 		
@@ -275,7 +275,7 @@ class Display
 		if (backgroundEnabled) {
 			peoteView.setColor(true);
 			peoteView.setGLAlpha(backgroundAlpha);
-			peoteView.setMask(Mask.OFF);
+			peoteView.setMask(Mask.OFF, false);
 			peoteView.background.render(red, green, blue, alpha);
 		}
 		

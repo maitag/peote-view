@@ -407,13 +407,18 @@ class PeoteView
 		gl.enable(gl.SCISSOR_TEST);	
 		
 		gl.clearColor(red, green, blue, alpha);
-		//gl.clearDepthf(1.0);
 		
-		// Optimize: only clear depth if is in use somewhere (depthON state!)
+		// Optimize: only set depth and stencil bits here if used somewhere (hasDepth state und hasStencil)
+		// CHECK: this may not need on HTML5 (look at preserveDrawingBuffer -> https://stackoverflow.com/questions/27746091/preservedrawingbuffer-false-is-it-worth-the-effort)
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);//
 
-		// Optimize: only clear stencil if is in use somewhere (stencilON state!)
-		gl.clearStencil(0);
+		
+		// Optimize: only clear depth and stencil bits if is used somewhere (hasDepth und hasStencil)
+		// TODO: let a program clear at start
+		//gl.clearStencil(0);
+		//gl.clearDepthf(1.0);
+		
+		// Optimize: only set if is in use somewhere (stencilON state!)
 		gl.stencilMask(0xFF);
 		
 		// TODO: set only if program added or background need it
@@ -454,7 +459,7 @@ class PeoteView
 		}
 	}
 	
-	private inline function setMask(mask:Mask):Void
+	private inline function setMask(mask:Mask, clearMask:Bool):Void
 	{
 		if (mask != maskState) 
 		{
@@ -464,7 +469,9 @@ class PeoteView
 			}
 			else if (mask == Mask.DRAW)
 			{
+				if (clearMask) gl.clear(gl.STENCIL_BUFFER_BIT);
 				if (maskState == Mask.OFF) gl.enable(gl.STENCIL_TEST);
+				
 				gl.stencilFunc(gl.ALWAYS, 1, 0xFF);
 				gl.stencilOp(gl.REPLACE, gl.REPLACE, gl.REPLACE);
 				maskState = mask;
