@@ -548,7 +548,8 @@ class ElementImpl
 			pivotX:         { formula:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
 			pivotY:         { formula:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
 			rotation:       { formula:"", isVarying:false, isAltType:false, vStart:0.0, vEnd:0.0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
-			zIndex:         { formula:"", isVarying:false, isAltType:false, vStart:0.0, vEnd:0.0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
+			//zIndex:         { formula:"", isVarying:false, isAltType:false, vStart:0.0, vEnd:0.0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
+			zIndex:         { formula:"", isVarying:false, isAltType:false, vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
 
 			colorDefault:   { formula:"", isVarying:false, isAltType:false, vStart:0xFF0000FF, vEnd:0xFF0000FF, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, color:[],
 			
