@@ -19,8 +19,30 @@ import peote.view.Buffer;
 import peote.view.Program;
 import peote.view.Color;
 import peote.view.Texture;
+import peote.view.Element;
 
-import elements.ElementSimple;
+class ElementSimple implements Element
+{
+	@posX public var x:Int; // signed 2 bytes integer
+	@posY public var y:Int; // signed 2 bytes integer
+	
+	@sizeX public var w:Int; // signed 2 bytes integer
+	@sizeY public var h:Int; // signed 2 bytes integer
+	
+	@color public var c:Color;
+		
+	@zIndex public var z:Int;	
+	
+	public function new(positionX:Int=0, positionY:Int=0, width:Int=100, height:Int=100, c:Int=0xFF0000FF )
+	{
+		this.x = positionX;
+		this.y = positionY;
+		this.w = width;
+		this.h = height;
+		this.c = c;
+	}
+}
+
 
 class DepthBlend extends Application
 {
