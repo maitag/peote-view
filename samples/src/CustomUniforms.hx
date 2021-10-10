@@ -34,11 +34,18 @@ class SinWave implements Element
 	static public function init(display:Display) {
 		buffer = new Buffer<SinWave>(100);
 		program = new Program(SinWave.buffer);
+		
+		// test whats up if was also used insid vertex shader (like if using @anim)
+		program.injectIntoVertexShader(
+		"
+			uniform float uTime;
+		");
+		
 		program.injectIntoFragmentShader(
 		"
 			uniform float uTime;
 
-			#define PI 3.14159265359
+			//#define PI 3.14159265359
 			#define TWO_PI 6.28318530718
 
 			vec4 sinwave( vec2 texcoord )
@@ -64,7 +71,10 @@ class SinWave implements Element
 		");
 		
 		program.setColorFormula('sinwave(vTexCoord)');
+		
+		program.setFragmentFloatPrecision("high");// <- this is only need on html5 because of automatic "medium" fragmentFloatPrecision there
 		program.alphaEnabled = true;
+		
 		display.addProgram(program);
 	}
 	
