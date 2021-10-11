@@ -7,7 +7,6 @@ import lime.ui.Window;
 import lime.ui.KeyCode;
 import lime.ui.KeyModifier;
 import lime.ui.MouseButton;
-import lime.graphics.Image;
 
 import peote.view.PeoteGL;
 import peote.view.PeoteView;
@@ -15,8 +14,8 @@ import peote.view.Display;
 import peote.view.Buffer;
 import peote.view.Program;
 import peote.view.Color;
-import peote.view.Texture;
 import peote.view.Element;
+import peote.view.UniformFloat;
 
 
 // -------- simple procedural sinus wave --------
@@ -31,7 +30,7 @@ class SinWave implements Element
 	static public var buffer:Buffer<SinWave>;
 	static public var program:Program;
 
-	static public function init(display:Display) {
+	static public function init(display:Display, uniforms:Array<UniformFloat>) {
 		buffer = new Buffer<SinWave>(100);
 		program = new Program(SinWave.buffer);
 		
@@ -42,37 +41,37 @@ class SinWave implements Element
 		");
 		
 		program.injectIntoFragmentShader(
-		"
-			uniform float uTime;
+			"
+				//#define PI 3.14159265359
+				#define TWO_PI 6.28318530718
 
-			//#define PI 3.14159265359
-			#define TWO_PI 6.28318530718
-
-			vec4 sinwave( vec2 texcoord )
-			{
-				float linesize = 0.2;
-				
-				texcoord.x += uTime;
-				texcoord.x *= TWO_PI;
-				texcoord.y *= (1.0 + linesize);
-				texcoord.y = 1.0 + linesize - 2.0 * texcoord.y;
-								
-				float intensity = 0.0;
-				
-				float y = sin(texcoord.x);
-				
-				if (y > texcoord.y - linesize && y < texcoord.y + linesize)
+				vec4 sinwave( vec2 texcoord )
 				{
-					intensity = 1.0;
+					texcoord.x += uTime;
+					texcoord.x *= TWO_PI;
+					texcoord.y *= (1.0 + linesize);
+					texcoord.y = 1.0 + linesize - 2.0 * texcoord.y;
+									
+					float intensity = 0.0;
+					
+					float y = sin(texcoord.x);
+					
+					if (y > texcoord.y - linesize && y < texcoord.y + linesize)
+					{
+						intensity = 1.0;
+					}
+					
+					return vec4( intensity, intensity, intensity, intensity );
 				}
-				
-				return vec4( intensity, intensity, intensity, intensity );
-			}
-		");
+			",
+			true, // to enable uTime uniform
+			uniforms // set custom uniforms to use in shader or into Elements @formulas
+		);
 		
 		program.setColorFormula('sinwave(vTexCoord)');
 		
 		program.setFragmentFloatPrecision("high");// <- this is only need on html5 because of automatic "medium" fragmentFloatPrecision there
+		
 		program.alphaEnabled = true;
 		
 		display.addProgram(program);
@@ -92,6 +91,9 @@ class CustomUniforms extends Application
 {
 	var peoteView:PeoteView;
 	
+	var linesize:UniformFloat;
+	
+	
 	override function onWindowCreate():Void
 	{
 		switch (window.context.type)
@@ -110,7 +112,10 @@ class CustomUniforms extends Application
 		var display   = new Display(10,10, window.width-20, window.height-20, Color.GREEN);
 		peoteView.addDisplay(display);
 		
-		SinWave.init(display); new SinWave(0, 0, 314, 100);
+		// init custom uniforms
+		linesize = new UniformFloat("linesize", 0.1);
+		
+		SinWave.init(display, [linesize]); new SinWave(0, 0, 314, 100);
 		
 		peoteView.start();
 	}
@@ -121,6 +126,20 @@ class CustomUniforms extends Application
 	{
 		if (!peoteView.isRun) peoteView.start();
 		else peoteView.stop();
+	}
+	
+	override function onKeyDown(keyCode:KeyCode, modifier:KeyModifier):Void
+	{
+		switch (keyCode) {
+			case KeyCode.NUMBER_1:
+			default:
+		}
+		
+	}
+	
+	override function onMouseMove (x:Float, y:Float):Void
+	{
+		linesize.value = x / window.width;
 	}
 
 }

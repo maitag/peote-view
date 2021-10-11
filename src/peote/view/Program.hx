@@ -284,9 +284,15 @@ class Program
 				uOFFSET_PICK = gl.getUniformLocation(glProg, "uOffset");
 			}
 		}
-		if ( !isPicking )
+		
+		if ( !isPicking ) {
 			uTIME = gl.getUniformLocation(glProg, "uTime");
-		else uTIME_PICK = gl.getUniformLocation(glProg, "uTime");
+			for (u in uniformFloats) u.location = gl.getUniformLocation(glProg, u.name);
+		}
+		else {
+			uTIME_PICK = gl.getUniformLocation(glProg, "uTime");
+			for (u in uniformFloats) u.pick_location = gl.getUniformLocation(glProg, u.name);
+		}
 		
 		if (!isPicking) {
 			// create new textureList with new unitormlocations
@@ -319,6 +325,11 @@ class Program
 	var uZOOM_PICK:GLUniformLocation;
 	var uOFFSET_PICK:GLUniformLocation;
 	var uTIME_PICK:GLUniformLocation;
+	
+	var uniformFloatsVertex:Array<UniformFloat> = null;
+	var uniformFloatsFragment:Array<UniformFloat> = null;
+	// TODO: target-optimization for faster access
+	var uniformFloats:Array<UniformFloat> = new Array<UniformFloat>();
 	
 	private function parseColorFormula():Void {
 		var formula:String = "";
@@ -398,16 +409,47 @@ class Program
 	}
 	
 	// inject custom defines or functions into vertexshader
-	public function injectIntoVertexShader(glslCode:String, ?autoUpdateTextures:Null<Bool>):Void {
-		glShaderConfig.VERTEX_INJECTION = glslCode;
+	public function injectIntoVertexShader(glslCode:String = "", uTimeUniformEnabled = false, uniformFloats:Array<UniformFloat> = null, ?autoUpdateTextures:Null<Bool>):Void {
+		uniformFloatsVertex = uniformFloats;
+		var hasUTime = true; // TODO: fetch by buffer to check if not already used
+		glShaderConfig.VERTEX_INJECTION = ((uTimeUniformEnabled && !hasUTime) ? "uniform float uTime;" : "") + generateUniformFloatsGLSL(uniformFloats) + glslCode;
+		accumulateUniformsFloat();
 		checkAutoUpdate(autoUpdateTextures);
 	}
 	
 	// inject custom defines or functions into fragmentshader
-	public function injectIntoFragmentShader(glslCode:String, ?autoUpdateTextures:Null<Bool>):Void {
-		glShaderConfig.FRAGMENT_INJECTION = glslCode;
+	public function injectIntoFragmentShader(glslCode:String = "", uTimeUniformEnabled = false, uniformFloats:Array<UniformFloat> = null, ?autoUpdateTextures:Null<Bool>):Void {
 		useTextCoordVaryings = (glslCode == "") ? false : true;
+		uniformFloatsFragment = uniformFloats;
+		// TODO: set precision of fragmet to same as into vertexshader
+		// if (fragmentShaderHasUTime)
+		glShaderConfig.FRAGMENT_INJECTION = ((uTimeUniformEnabled) ? "uniform float uTime;" : "") + generateUniformFloatsGLSL(uniformFloats) + glslCode;
+		accumulateUniformsFloat();
 		checkAutoUpdate(autoUpdateTextures);
+	}
+	
+	private function generateUniformFloatsGLSL(uniformFloats:Array<UniformFloat>):String {
+		var out:String = ""; trace(uniformFloats);
+		if (uniformFloats != null)
+			for (u in uniformFloats) out += "uniform float " + u.name + ";";
+		return out;
+	}
+	
+	private function accumulateUniformsFloat() {
+		if (uniformFloatsVertex == null) {
+			if (uniformFloatsFragment != null) uniformFloats = uniformFloatsFragment;
+		}
+		else if (uniformFloatsFragment == null) {
+			uniformFloats = uniformFloatsVertex;
+		}
+		else {
+			uniformFloats = uniformFloatsVertex;
+			for (u in uniformFloatsFragment) {
+				if (uniformFloats.indexOf(u) < 0) {
+					uniformFloats.push(u);
+				}
+			}
+		}
 	}
 	
 	// set formulas for attributes manual at runtime
@@ -861,6 +903,7 @@ class Program
 		}
 		
 		gl.uniform1f (uTIME, peoteView.time);
+		for (u in uniformFloats) gl.uniform1f (u.location, u.value);
 		
 		peoteView.setColor(colorEnabled);
 		peoteView.setGLDepth(zIndexEnabled);
@@ -895,6 +938,7 @@ class Program
 		}
 		
 		gl.uniform1f (uTIME, peoteView.time);
+		for (u in uniformFloats) gl.uniform1f (u.location, u.value);
 		
 		peoteView.setColor(colorEnabled);
 		peoteView.setGLDepth(zIndexEnabled);
@@ -921,6 +965,7 @@ class Program
 		                            (display.y + display.yOffset + yOff) / display.yz);
 		
 		gl.uniform1f (uTIME_PICK, peoteView.time);
+		for (u in uniformFloats) gl.uniform1f (u.pick_location, u.value);
 		
 		peoteView.setGLDepth((toElement == -1) ? zIndexEnabled : false); // disable for getAllElementsAt() in peoteView
 		peoteView.setGLAlpha(false);
