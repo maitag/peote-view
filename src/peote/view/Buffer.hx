@@ -423,6 +423,7 @@ class $className implements BufferInterface
 	private inline function hasAlpha():Bool return $p{elemField}.ALPHA_ENABLED;
 	private inline function hasZindex():Bool return $p{elemField}.ZINDEX_ENABLED;
 	private inline function hasPicking():Bool return $p{elemField}.PICKING_ENABLED;
+	private inline function hasTime():Bool return $p{elemField}.TIME_ENABLED;
 	private inline function needFragmentPrecision():Bool return $p{elemField}.NEED_FRAGMENT_PRECISION;
 
 	private inline function bindAttribLocations(gl: peote.view.PeoteGL, glProgram: peote.view.PeoteGL.GLProgram):Void

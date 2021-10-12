@@ -411,8 +411,7 @@ class Program
 	// inject custom defines or functions into vertexshader
 	public function injectIntoVertexShader(glslCode:String = "", uTimeUniformEnabled = false, uniformFloats:Array<UniformFloat> = null, ?autoUpdateTextures:Null<Bool>):Void {
 		uniformFloatsVertex = uniformFloats;
-		var hasUTime = true; // TODO: fetch by buffer to check if not already used
-		glShaderConfig.VERTEX_INJECTION = ((uTimeUniformEnabled && !hasUTime) ? "uniform float uTime;" : "") + generateUniformFloatsGLSL(uniformFloats) + glslCode;
+		glShaderConfig.VERTEX_INJECTION = ((uTimeUniformEnabled && !buffer.hasTime()) ? "uniform float uTime;" : "") + generateUniformFloatsGLSL(uniformFloats) + glslCode;
 		accumulateUniformsFloat();
 		checkAutoUpdate(autoUpdateTextures);
 	}
@@ -421,8 +420,6 @@ class Program
 	public function injectIntoFragmentShader(glslCode:String = "", uTimeUniformEnabled = false, uniformFloats:Array<UniformFloat> = null, ?autoUpdateTextures:Null<Bool>):Void {
 		useTextCoordVaryings = (glslCode == "") ? false : true;
 		uniformFloatsFragment = uniformFloats;
-		// TODO: set precision of fragmet to same as into vertexshader
-		// if (fragmentShaderHasUTime)
 		glShaderConfig.FRAGMENT_INJECTION = ((uTimeUniformEnabled) ? "uniform float uTime;" : "") + generateUniformFloatsGLSL(uniformFloats) + glslCode;
 		accumulateUniformsFloat();
 		checkAutoUpdate(autoUpdateTextures);

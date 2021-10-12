@@ -21,6 +21,7 @@ import peote.view.UniformFloat;
 // -------- simple procedural sinus wave --------
 class SinWave implements Element
 {
+	//@posX @formula("x+uTime*100.0") public var x:Int;
 	@posX public var x:Int;
 	@posY public var y:Int;
 	
@@ -34,11 +35,8 @@ class SinWave implements Element
 		buffer = new Buffer<SinWave>(100);
 		program = new Program(SinWave.buffer);
 		
-		// test whats up if was also used insid vertex shader (like if using @anim)
-		program.injectIntoVertexShader(
-		"
-			uniform float uTime;
-		");
+		// test whats up if uTime is also used insid vertex shader (same as if using @anim)
+		// program.injectIntoVertexShader(true);
 		
 		program.injectIntoFragmentShader(
 			"
@@ -70,7 +68,11 @@ class SinWave implements Element
 		
 		program.setColorFormula('sinwave(vTexCoord)');
 		
-		program.setFragmentFloatPrecision("high");// <- this is only need on html5 because of automatic "medium" fragmentFloatPrecision there
+		#if (html5)
+		// On webgl the default fragmentFloatPrecision is "medium" and shared uniforms
+		// between vertex- and fragmentshader have to be the same precision!
+		// program.setFragmentFloatPrecision("high");
+		#end
 		
 		program.alphaEnabled = true;
 		

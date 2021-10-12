@@ -82,7 +82,6 @@ haxelib git peote-view https://github.com/maitag/peote-view
 
 ## Todo
 - better Readme, more documentation and api-generation
-- custom uniforms per program
 - better texture/imagehandling and more texture-colortypes
 - better blendmode handling
 - z-depth via texture-channel

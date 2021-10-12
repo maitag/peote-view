@@ -1570,6 +1570,13 @@ class ElementImpl
 			pos: Context.currentPos(),
 		});
 		fields.push({
+			name:  "TIME_ENABLED",
+			meta:  allowForBuffer,
+			access:  [Access.APrivate, Access.AStatic, Access.AInline],
+			kind: FieldType.FVar(macro:Bool, macro $v{(timers.length > 0)}),
+			pos: Context.currentPos(),
+		});
+		fields.push({
 			name: "getZINDEX",
 			meta:  allowForBuffer,
 			access: [Access.APrivate, Access.AInline],
