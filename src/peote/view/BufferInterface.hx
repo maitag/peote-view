@@ -30,6 +30,7 @@ interface BufferInterface
 	private function hasAlpha():Bool;
 	private function hasZindex():Bool;
 	private function hasPicking():Bool;
+	private function hasTime():Bool;
 	private function needFragmentPrecision():Bool;
 	
 	@:allow(peote.view.PeoteView) private function getElementWithHighestZindex(elementIndices:Array<Int>): Int;
