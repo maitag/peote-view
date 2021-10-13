@@ -112,21 +112,17 @@ class Shader
 		vec2 zoom = uZoom;
 		::end::
 		
-		gl_Position = mat4 (
-			vec4(2.0/width*zoom.x,                 0.0,  0.0, 0.0),
-			vec4(             0.0,  -2.0/height*zoom.y,  0.0, 0.0),
-			vec4(0.0             ,                 0.0, -1.0, 0.0),
-			vec4(2.0 * deltaX * zoom.x / width - 1.0, 1.0 - 2.0 * deltaY * zoom.y / height, 0.0, 1.0)
-		)
-		* vec4 (
-			::if isPIXELSNAPPING::
-			floor( pos * ::PIXELDIVISOR:: * zoom ) / ::PIXELDIVISOR:: / zoom
-			::else::
-				pos
-			::end::
-			, ::ZINDEX::
-			, 1.0
-		);
+		::if isPIXELSNAPPING::
+		pos = floor( pos * ::PIXELDIVISOR:: * zoom ) / ::PIXELDIVISOR:: / zoom;
+		::end::
+		
+		gl_Position = vec4 (
+			 2.0 * zoom.x/width  * (pos.x + deltaX) - 1.0,
+			-2.0 * zoom.y/height * (pos.y + deltaY) + 1.0,
+			- ::ZINDEX::,
+			1.0
+		);		
+		
 	}
 	";
 	
