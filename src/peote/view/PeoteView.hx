@@ -138,7 +138,7 @@ class PeoteView
 		width = window.width;
 		height = window.height;
 		set_color(color);
-		
+				
 		if (PeoteGL.Version.isUBO) {
             #if peoteview_debug_view
 			trace("OpenGL Uniform Buffer Objects enabled.");
@@ -195,14 +195,13 @@ class PeoteView
 
  	public inline function hasDisplay(display:Display):Bool return display.isIn(this);
 			
-    /**
-        Adds an Display instance to the RenderList. If it's already added it can be used to 
+	/**
+		Adds an Display instance to the RenderList. If it's already added it can be used to 
 		change the order of rendering relative to another display in the List.
-
-        @param  display Display instance to add into the RenderList or to change it's order
-        @param  atDisplay (optional) to add or move the display before or after another display in the Renderlist (at default it adds at start or end)
-        @param  addBefore (optional) set to `true` to add the display before another display or at start of the Renderlist (at default it adds after atDisplay or at end of the list)
-    **/
+		@param  display Display instance to add into the RenderList or to change it's order
+		@param  atDisplay (optional) to add or move the display before or after another display in the Renderlist (at default it adds at start or end)
+		@param  addBefore (optional) set to `true` to add the display before another display or at start of the Renderlist (at default it adds after atDisplay or at end of the list)
+	**/
 	public function addDisplay(display:Display, ?atDisplay:Display, addBefore:Bool=false)
 	{
 		display.addToPeoteView(this, atDisplay, addBefore);
@@ -216,11 +215,10 @@ class PeoteView
 		display.removeFromPeoteView(this);
 	}
 
-    /**
-        Changes the gl-context of the View and all contained Displays
-
-        @param  newGl new opengl context
-    **/
+	/**
+		Changes the gl-context of the View and all contained Displays
+		@param  newGl new opengl context
+	**/
 	public function setNewGLContext(newGl:PeoteGL)
 	{
 		if (newGl != null && newGl != gl) // only if different GL - Context	
@@ -243,9 +241,9 @@ class PeoteView
 		if (PeoteGL.Version.isUBO) uniformBuffer.deleteGLBuffer(gl);
 	}
 
-    /**
-        This function need to call if window-size is changed
-    **/
+	/**
+		This function need to call if window-size is changed
+	**/
 	public function resize(width:Int, height:Int):Void
 	{
 		this.width = width;
@@ -276,14 +274,13 @@ class PeoteView
 		pickFB = GLTool.createFramebuffer(gl, pickTexture, pickDepthBuffer, 1, 1); 
 	}
 	
-    /**
-        Gets the Element-Index at a defined position on screen
-		
-        @param  posX x position in pixel
-        @param  posY y position in pixel
-        @param  display Display that contains the Program
-        @param  program Program that contains the Buffer with Elements
-    **/
+	/**
+		Gets the Element-Index at a defined position on screen
+		@param  posX x position in pixel
+		@param  posY y position in pixel
+		@param  display Display that contains the Program
+		@param  program Program that contains the Buffer with Elements
+	**/
 	public function getElementAt(posX:Float, posY:Float, display:Display, program:Program):Int
 	{
 		gl.bindFramebuffer(gl.FRAMEBUFFER, pickFB);
@@ -292,14 +289,13 @@ class PeoteView
 		return element;
 	}
 
-    /**
-        Gets an array of Element-Indices at a defined position on screen.
-		
-        @param  posX x position in pixel
-        @param  posY y position in pixel
-        @param  display Display that contains the Program
-        @param  program Program that contains the Buffer with Elements
-    **/
+	/**
+		Gets an array of Element-Indices at a defined position on screen.
+		@param  posX x position in pixel
+		@param  posY y position in pixel
+		@param  display Display that contains the Program
+		@param  program Program that contains the Buffer with Elements
+	**/
 	public function getAllElementsAt(posX:Float, posY:Float, display:Display, program:Program):Array<Int>
 	{
 		var elements = new Array<Int>();
@@ -358,6 +354,11 @@ class PeoteView
 	// ------------------------------------------------------------------------------
 	// -------------------------- Render to Texture ---------------------------------
 	// ------------------------------------------------------------------------------
+    /**
+		Renders the content of a Display into a texture.
+		@param display Display instance
+		@param slot (0 by default) the image-slot inside of the texture (if the framebuffer texture can contain more then one)
+    **/
 	public function renderToTexture(display:Display, slot:Int = 0)
 	{
 		gl.bindFramebuffer(gl.FRAMEBUFFER, display.fbTexture.framebuffer);

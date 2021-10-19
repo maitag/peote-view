@@ -101,6 +101,15 @@ class Display
 	
 	var fbTexture:Texture = null;
 	
+   /**
+		A Display is an rectangular area inside of PeoteView where display objects can be zoomed and shifted inside of.
+		It can contain one or more Programs to render.
+		@param x x-position of the upper left corner
+		@param y y-position of the upper left corner
+		@param width horizontal size of the display
+		@param height vertical size of the display
+		@param color background color (no background by default or if it's transparency is 0)
+    **/
 	public function new(x:Int, y:Int, width:Int, height:Int, color:Color = 0x00000000) 
 	{
 		this.x = x;
@@ -118,8 +127,19 @@ class Display
 		}
 	}
 
- 	public inline function isIn(peoteView:PeoteView):Bool return (this.peoteView == peoteView);			
+    /**
+		Returns true is this display is inside the renderlist of a peoteView.
+		@param peoteView PeoteView instance
+    **/
+	public inline function isIn(peoteView:PeoteView):Bool return (this.peoteView == peoteView);			
 
+   /**
+		Adds this display to the RenderList of a PeoteView.
+		Can be also used to change the order relative to another display if it's already added.
+		@param peoteView PeoteView instance
+		@param atDisplay (optional) to add or move before or after another display in the RenderList (by default at start or at end)
+		@param addBefore (optional) if 'true' it's added before another display or at start of the Renderlist (by default it's added after atDisplay or at end)
+    **/
 	public function addToPeoteView(peoteView:PeoteView, ?atDisplay:Display, addBefore:Bool=false)
 	{
 		#if peoteview_debug_display
@@ -131,6 +151,10 @@ class Display
 		peoteView.displayList.add(this, atDisplay, addBefore);
 	}
 	
+    /**
+		Removes this display from the renderlist of a peoteView.
+		@param peoteView PeoteView instance
+    **/
 	public function removeFromPeoteView(peoteView:PeoteView)
 	{
 		#if peoteview_debug_display
@@ -176,15 +200,18 @@ class Display
 	}
 
 	
- 	public inline function hasProgram(program:Program):Bool return program.isIn(this);
+    /**
+		Checks if a Program is added to the RenderList of this Display.
+		@param program Program instance to check for
+    **/
+	public inline function hasProgram(program:Program):Bool return program.isIn(this);
 			
    /**
-        Adds an Program instance to the RenderList. If it's already added it can be used to 
-		change the order of rendering relative to another program in the List.
-
-        @param  program Program instance to add into the RenderList or to change it's order
-        @param  atProgram (optional) to add or move the program before or after another program in the Renderlist (at default it adds at start or end)
-        @param  addBefore (optional) set to `true` to add the program before another program or at start of the Renderlist (at default it adds after atProgram or at end of the list)
+		Adds a Program to the RenderList of this Display.
+		Can be also used to change the order relative to another program if it's already added.
+		@param program Program instance to add into the RenderList or to change it's order
+		@param atProgram (optional) to add or move the program before or after another program in the Renderlist (by default it's added at start or end)
+		@param addBefore (optional) if 'true' it's added before another program or at start of the Renderlist (by default it's added after atProgram or at end of the list)
     **/
 	public function addProgram(program:Program, ?atProgram:Program, addBefore:Bool=false)
 	{
@@ -192,13 +219,18 @@ class Display
 	}
 	
     /**
-        This function removes an Program instance from the RenderList.
+		Removes a Program instance from the RenderList.
+		@param program Program instance to remove
     **/
 	public function removeProgram(program:Program):Void
 	{
 		program.removeFromDisplay(this);
 	}
 	
+    /**
+		Set a Texture to use as a framebuffer for renderToTexture()
+		@param texture Texture instance to render to
+    **/
 	public function setFramebuffer(texture:Texture) {
 		if (fbTexture == texture) throw("Error, texture is already in use as Framebuffer for Display");
 		if (fbTexture != null) fbTexture.removeFromDisplay(this);
@@ -206,19 +238,30 @@ class Display
 		fbTexture.addToDisplay(this);
 	}
 
+    /**
+		Clears the framebuffer for renderToTexture()
+    **/
 	public function removeFramebuffer() {
 		fbTexture.removeFromDisplay(this);
 		fbTexture = null;
 	}
 	
 	// ----------------------------- Helpers ----------------------------------------
+	
     /**
-        Gives true if a point at px and py is inside the Display-area.
-
-        @param  px global x-position
-        @param  py global y-position
+		Gives true if a point at px and py is inside the Display-area.
+		@param px global x-position
+		@param py global y-position
+		@param peoteView (optional) if not already added to a peoteView you can set one here to include it's zoom and offset into calculation
     **/
-	public inline function isPointInside(px, py) return (px >= x && px < x + width && py >= y && py < y + height);
+	public inline function isPointInside(px:Int, py:Int, peoteView:PeoteView = null) {
+		if (peoteView == null) peoteView = this.peoteView;
+		if (peoteView != null) {
+			px = Std.int(px/peoteView.xz - peoteView.xOffset);
+			py = Std.int(py/peoteView.yz - peoteView.yOffset);			
+		}
+		return (px >= x && px < x + width && py >= y && py < y + height);
+	}
 
 	
 	// ------------------------------------------------------------------------------
@@ -268,7 +311,12 @@ class Display
 	// ------------------------------------------------------------------------------
 	// ------------------------ RENDER TO TEXTURE ----------------------------------- 
 	// ------------------------------------------------------------------------------
-	public inline function renderToTexture(peoteView:PeoteView) peoteView.renderToTexture(this);
+    /**
+		Renders the content of this Display into a texture.
+		@param peoteView PeoteView instance
+		@param slot (0 by default) the image-slot inside of the texture (if the framebuffer texture can contain more then one)
+    **/
+	public inline function renderToTexture(peoteView:PeoteView, slot:Int = 0) peoteView.renderToTexture(this, slot);
 	
 	private inline function renderFramebuffer(peoteView:PeoteView):Void
 	{
