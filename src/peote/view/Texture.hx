@@ -93,7 +93,7 @@ class Texture
 		if ( usedByDisplay(display) ) throw("Error, texture is already used by display");
 		setNewGLContext(display.gl);
 		displays.push(display);
-		createFramebuffer();
+		if (gl != null) createFramebuffer();
 	}
 	
 	private inline function removeFromDisplay(display:Display):Void {

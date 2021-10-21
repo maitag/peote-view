@@ -71,6 +71,8 @@ class RenderList<T>
 		else throw('Error on remove: $value is not in list.');
 	}
 	
+	public function has(value:T):Bool return itemMap.exists(value);
+	
 	private inline function removeItem(item:RenderListItem<T>):Void {
 		if (item == first) first = item.next;
 		if (item == last ) last  = item.prev;

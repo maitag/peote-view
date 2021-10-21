@@ -76,7 +76,7 @@ class Multidisplay extends Application
 		displayRight.addProgram(programBG);
 		
 		// Changing order of the Programs into the RenderList:
-		// displayLeft.addProgram(program);
+		displayLeft.addProgram(program);
 	}
 
 	// ----------- Lime events ------------------

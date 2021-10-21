@@ -94,6 +94,7 @@ class PeoteView
 	}
 	
 	var displayList:RenderList<Display>;
+	var framebufferDisplayList:RenderList<Display>;
 	
 	var background:Background;
 	
@@ -185,6 +186,7 @@ class PeoteView
 		background = new Background(gl);
 		
 		displayList = new RenderList<Display>(new Map<Display,RenderListItem<Display>>());
+		framebufferDisplayList = new RenderList<Display>(new Map<Display,RenderListItem<Display>>());
 		
 		if (registerEvents) {
 			window.onRender.add(render);
@@ -196,8 +198,8 @@ class PeoteView
  	public inline function hasDisplay(display:Display):Bool return display.isIn(this);
 			
 	/**
-		Adds an Display instance to the RenderList. If it's already added it can be used to 
-		change the order of rendering relative to another display in the List.
+		Adds an Display instance to the RenderList.
+		Can be also used to change the order (relative to another display) if it's already added.
 		@param  display Display instance to add into the RenderList or to change it's order
 		@param  atDisplay (optional) to add or move the display before or after another display in the Renderlist (at default it adds at start or end)
 		@param  addBefore (optional) set to `true` to add the display before another display or at start of the Renderlist (at default it adds after atDisplay or at end of the list)
@@ -216,6 +218,26 @@ class PeoteView
 	}
 
 	/**
+		Adds an Display instance to the hidden framebuffer RenderList (what only render to textures).
+		Can be also used to change the order (relative to another display) if it's already added.
+		@param  display Display instance to add into the RenderList or to change it's order
+		@param  atDisplay (optional) to add or move the display before or after another display in the Renderlist (at default it adds at start or end)
+		@param  addBefore (optional) set to `true` to add the display before another display or at start of the Renderlist (at default it adds after atDisplay or at end of the list)
+	**/
+	public function addFramebufferDisplay(display:Display, ?atDisplay:Display, addBefore:Bool=false)
+	{
+		display.addToPeoteViewFramebuffer(this, atDisplay, addBefore);
+	}
+	
+    /**
+        This function removes an Display instance from the hidden framebuffer RenderList (what only render to textures).
+    **/
+	public function removeFramebufferDisplay(display:Display):Void
+	{
+		display.removeFromPeoteViewFramebuffer(this);
+	}
+
+	/**
 		Changes the gl-context of the View and all contained Displays
 		@param  newGl new opengl context
 	**/
@@ -231,7 +253,8 @@ class PeoteView
 			if (PeoteGL.Version.isUBO) uniformBuffer.createGLBuffer(gl, width, height, xOffset, yOffset, xz, yz);
 			
 			// setNewGLContext for all displays
-			for (display in displayList) display.setNewGLContext(newGl);
+			for (display in framebufferDisplayList) display.setNewGLContext(newGl);
+			for (display in displayList) if (! framebufferDisplayList.has(display)) display.setNewGLContext(newGl);
 		}
 	}
 
@@ -356,22 +379,34 @@ class PeoteView
 	// -------------------------- Render to Texture ---------------------------------
 	// ------------------------------------------------------------------------------
     /**
+		Bind a Texture to a Display to use as a framebuffer for renderToTexture()
+		@param display Display
+		@param texture Texture instance to render into
+		@param textureSlot number of texture-slot to render into (can be changed by set the 'framebufferTextureSlot' property)
+    **/
+	public function setFramebuffer(display:Display, texture:Texture, ?textureSlot:Null<Int>) {
+		display.setFramebuffer(texture, textureSlot, this);
+	}
+	
+    /**
 		Renders the content of a Display into a texture.
 		@param display Display instance
-		@param slot (0 by default) the image-slot inside of the texture (if the framebuffer texture can contain more then one)
+		@param textureSlot number of texture-slot to render into (can be changed by set the 'framebufferTextureSlot' display property)
     **/
-	public function renderToTexture(display:Display, slot:Int = 0)
+	public function renderToTexture(display:Display, ?textureSlot:Null<Int>)
 	{
+		if (textureSlot == null) textureSlot = display.framebufferTextureSlot;
+		
 		gl.bindFramebuffer(gl.FRAMEBUFFER, display.fbTexture.framebuffer);
 		
 		gl.viewport(
-			display.fbTexture.slotWidth * (slot % display.fbTexture.slotsX),
-			display.fbTexture.slotHeight * Math.floor(slot / display.fbTexture.slotsX),
+			display.fbTexture.slotWidth * (textureSlot % display.fbTexture.slotsX),
+			display.fbTexture.slotHeight * Math.floor(textureSlot / display.fbTexture.slotsX),
 			display.fbTexture.slotWidth, display.fbTexture.slotHeight
 		);
 		gl.scissor(
-			display.fbTexture.slotWidth * (slot % display.fbTexture.slotsX),
-			display.fbTexture.slotHeight * Math.floor(slot / display.fbTexture.slotsX),
+			display.fbTexture.slotWidth * (textureSlot % display.fbTexture.slotsX),
+			display.fbTexture.slotHeight * Math.floor(textureSlot / display.fbTexture.slotsX),
 			display.fbTexture.slotWidth, display.fbTexture.slotHeight
 		);
 		
@@ -504,11 +539,28 @@ class PeoteView
 	// ------------------------------------------------------------------------------
 	var displayListItem:RenderListItem<Display>;
 
+	private inline function renderFramebuffer(context:RenderContext = null):Void
+	{	
+		displayListItem = framebufferDisplayList.first;
+		while (displayListItem != null)
+		{
+			if (displayListItem.value.renderFramebufferEnabled) 
+			{
+				if (displayListItem.value.renderFramebufferFrame == displayListItem.value.renderFramebufferSkipFrames) {
+					renderToTexture(displayListItem.value);
+					displayListItem.value.renderFramebufferFrame = 0;
+				} else displayListItem.value.renderFramebufferFrame++;
+			}
+			
+			displayListItem = displayListItem.next;
+		}
+	}
+
 	public function render(context:RenderContext = null):Void
 	{	
 		//trace("===peoteView.render===");
-		initGLViewport(width, height);
-		
+		renderFramebuffer(context);
+		initGLViewport(width, height);		
 		renderPart();
 	}
 

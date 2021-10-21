@@ -157,12 +157,7 @@ class Program
 			setNewGLContext(display.gl);
 		}
 		#if peoteview_debug_display
-		else {
-			trace("Change order of Program");
-		}
-		if (atProgram == null)
-			if (addBefore) trace(" to start of ProgramList") else trace(" to end of ProgramList");
-		else if (addBefore) trace(" before another Program") else trace(" after another Program");
+		else trace("Change order of Program");
 		#end
 		
 		display.programList.add(this, atProgram, addBefore);
@@ -871,7 +866,7 @@ class Program
 			{
 				gl.activeTexture (gl.TEXTURE0 + textureListItem.value.unit);
 				#if peoteview_debug_program
-				trace("activate Texture", textureListItem.value.unit);
+				if (textureListItem.value.texture.framebuffer == null) trace("activate Texture", textureListItem.value.unit);
 				#end
 				gl.bindTexture (gl.TEXTURE_2D, textureListItem.value.texture.glTexture);
 				

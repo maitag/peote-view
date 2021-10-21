@@ -60,8 +60,6 @@ class RenderToTexture extends Application
 	
 	var displayTo:Display;
 	
-	var autoRenderToTexture = false;
-
 	override function onWindowCreate():Void
 	{
 		switch (window.context.type)
@@ -91,7 +89,7 @@ class RenderToTexture extends Application
 		var elementFrom = new Elem(128, 128, 32, 80, Color.RED);
 		elementFrom.setPivot(16, 106 + 16);
 		elementFrom.animRotation(0, 360);
-		elementFrom.timeRotation(0, 1);
+		elementFrom.timeRotation(0, 2);
 		elementFrom.z = 1;
 		bufferFrom.addElement(elementFrom);
 		
@@ -127,11 +125,19 @@ class RenderToTexture extends Application
 		
 		texture = new Texture(256, 256 , 2, 4, true, 1, 1); // 2 Slots
 		
-		// bind texture to the Displays that should render into
+		// ----- bind texture to the Displays that should render into -------
+		
+		// Attention, peoteView is need here if display is not added already (to renderlist or to framebuffer-renderlist)
+		// displayFrom1.setFramebuffer(texture, peoteView);
+		// or alternatively it can be set by:
+		// peoteView.setFramebuffer(displayFrom1, texture);
+		
 		displayFrom1.setFramebuffer(texture);
 		displayFrom2.setFramebuffer(texture);
+
 		
 		// to unbind (is need before using this texture with different gl-context!)
+		
 		// displayFrom1.removeFramebuffer();
 		// displayFrom2.removeFramebuffer();
 		
@@ -172,10 +178,19 @@ class RenderToTexture extends Application
 		peoteView.renderToTexture(displayFrom1, 0);
 		peoteView.renderToTexture(displayFrom2, 1);
 		
+		// the blue one is updating the framebuffer-texture by a Timer (so into sync with animation)
 		var timer = new Timer(500);
 		timer.run = function() {
-			peoteView.renderToTexture(displayFrom2, 1); // <- render every 1/10 second into slot 1
+			peoteView.renderToTexture(displayFrom2, 1); // <- render every 500 millisecond into slot 1
 		}
+		
+		// the yellow one is updating the framebuffer-texture automatically
+		displayFrom1.renderFramebufferEnabled = false;
+		
+		displayFrom1.renderFramebufferSkipFrames = 2; // at 1/3 framerate (after render a frame skip 2)
+		
+		// add the display also to the hidden RenderList for updating the Framebuffer Textures
+		peoteView.addFramebufferDisplay(displayFrom1);
 		
 		peoteView.start();
 	}
@@ -184,14 +199,8 @@ class RenderToTexture extends Application
 
 	override function onMouseDown (x:Float, y:Float, button:MouseButton):Void
 	{
-		autoRenderToTexture = !autoRenderToTexture; // start/stop RenderToTexture inside Renderloop
+		displayFrom1.renderFramebufferEnabled = !displayFrom1.renderFramebufferEnabled;
 	}
-
-	override function render(context:RenderContext)
-	{
-		if (autoRenderToTexture) peoteView.renderToTexture(displayFrom1, 0); // <- render permanently into slot 1
-	}
-	
 	
 	override function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
 	{
