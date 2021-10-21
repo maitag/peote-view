@@ -27,12 +27,12 @@ class Elem implements Element
 	
 	@sizeX public var w:Int=100;
 	@sizeY public var h:Int=100;
-	
+
 	// unit (index of texture-array while set a TextureLayer)
 	@texUnit() public var unit:Int;
 
 	// what texture-slot to use
-	@texSlot  @anim("Slot")
+	@texSlot @anim("Slot")
 	public var slot:Int;  // unsigned 2 bytes integer
 	
 	// tiles the slot or manual texture-coordinate into sub-slots

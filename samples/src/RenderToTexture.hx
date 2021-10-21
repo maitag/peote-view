@@ -89,10 +89,10 @@ class RenderToTexture extends Application
 		
 		// rotation Elements
 		var elementFrom = new Elem(128, 128, 32, 80, Color.RED);
-		elementFrom.setPivot(16, 96 + 16);
+		elementFrom.setPivot(16, 106 + 16);
 		elementFrom.animRotation(0, 360);
 		elementFrom.timeRotation(0, 1);
-		elementFrom.z = 1; // TODO: problem with z-index on neko after renderToTexture
+		elementFrom.z = 1;
 		bufferFrom.addElement(elementFrom);
 		
 		var elemBG = new Elem(64-45, 64-45, 128+90, 128+90, Color.YELLOW);
@@ -113,10 +113,10 @@ class RenderToTexture extends Application
 		
 		// rotation Elements
 		var elementFrom = new Elem(128, 128, 32, 80, Color.BLUE);
-		elementFrom.setPivot(16, 96 + 16);
+		elementFrom.setPivot(16, 106 + 16);
 		elementFrom.animRotation(0, 360);
 		elementFrom.timeRotation(0, 2);
-		elementFrom.z = 1;  // TODO: problem with z-index on neko after renderToTexture
+		elementFrom.z = 1;
 		bufferFrom.addElement(elementFrom);
 		
 		var elemBG = new Elem(64-45, 64-45, 128+90, 128+90, Color.CYAN);
@@ -131,7 +131,7 @@ class RenderToTexture extends Application
 		displayFrom1.setFramebuffer(texture);
 		displayFrom2.setFramebuffer(texture);
 		
-		// to unbind (i need before using this texture with different gl-context!)
+		// to unbind (is need before using this texture with different gl-context!)
 		// displayFrom1.removeFramebuffer();
 		// displayFrom2.removeFramebuffer();
 		
@@ -169,18 +169,14 @@ class RenderToTexture extends Application
 		
 		// ------------  RenderToTexture  ---------------
 		
-		// TODO: only on NEKO is a problem with z-index after renderToTexture
-		#if neko
-			Timer.delay( function() peoteView.renderToTexture(displayFrom1, 0), 1000 );
-		#else
-			peoteView.renderToTexture(displayFrom1, 0);    // <- render only one shot into slot 0
-		#end
+		peoteView.renderToTexture(displayFrom1, 0);
+		peoteView.renderToTexture(displayFrom2, 1);
 		
 		var timer = new Timer(500);
 		timer.run = function() {
 			peoteView.renderToTexture(displayFrom2, 1); // <- render every 1/10 second into slot 1
 		}
-			
+		
 		peoteView.start();
 	}
 	
@@ -190,7 +186,7 @@ class RenderToTexture extends Application
 	{
 		autoRenderToTexture = !autoRenderToTexture; // start/stop RenderToTexture inside Renderloop
 	}
-	
+
 	override function render(context:RenderContext)
 	{
 		if (autoRenderToTexture) peoteView.renderToTexture(displayFrom1, 0); // <- render permanently into slot 1

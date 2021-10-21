@@ -36,8 +36,17 @@ class ElementAnim implements Element
 	public var py:Int = 0;
 	
 	// z-index
-	@zIndex @const(1) // max 0x3FFFFFFF , min -0xC0000000
+	@zIndex 
+	//@const(1) // max 0x3FFFFFFF , min -0xC0000000
 	public var z:Int = 0;
 	
+	public function new(positionX:Int=0, positionY:Int=0, width:Int=100, height:Int=100, c:Int=0xFF0000FF )
+	{
+		this.x = positionX;
+		this.y = positionY;
+		this.w = width;
+		this.h = height;
+		this.c = c;
+	}
 
 }

@@ -9,7 +9,7 @@
 
 
 	<!-- samples -->
-	<app main="SimpleQuad" path="bin" file="Main" />
+	<app main="BunnyMarkGPU" path="bin" file="Main" />
 	<!--
 		SimpleQuad, Multidisplay, Multibuffer, ElementInherit, DepthBlend,
 		TextureSimple, TextureSlotTiles, MultiTextures, TextureMipmapFilter,
@@ -31,7 +31,7 @@
 	<!-- use this on MultipleWindow to prevent writing into wrong glBuffer -->
 	<!-- <haxedef name="peoteview_queueGLbuffering" /> -->
 	
-	<define name="bunnies" value="100000" />
+	<define name="bunnies" value="500000" />
 	<define name="bunnies" value= "60000" if="android" />
 	<define name="bunnies" value=  "6000" if="neko" />
 	<define name="stats" if="html5" />

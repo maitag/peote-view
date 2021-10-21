@@ -35,6 +35,10 @@ class Program
 	
 	public var autoUpdateTextures:Bool = true;
 	
+	public var isVisible:Bool = true;
+	public inline function show() isVisible = true;	
+	public inline function hide() isVisible = false;
+
 	var displays = new Array<Display>();
 	var gl:PeoteGL = null;
 
@@ -145,12 +149,22 @@ class Program
 
 	public function addToDisplay(display:Display, ?atProgram:Program, addBefore:Bool=false)
 	{
-		#if peoteview_debug_program
-		trace("Add Program to Display");
+		if ( ! isIn(display) ) {
+			#if peoteview_debug_program
+			trace("Add Program to Display");
+			#end
+			displays.push(display);
+			setNewGLContext(display.gl);
+		}
+		#if peoteview_debug_display
+		else {
+			trace("Change order of Program");
+		}
+		if (atProgram == null)
+			if (addBefore) trace(" to start of ProgramList") else trace(" to end of ProgramList");
+		else if (addBefore) trace(" before another Program") else trace(" after another Program");
 		#end
-		if ( isIn(display) ) throw("Error, program is already added to this display");
-		displays.push(display);
-		setNewGLContext(display.gl);
+		
 		display.programList.add(this, atProgram, addBefore);
 	}
 
@@ -426,7 +440,7 @@ class Program
 	}
 	
 	private function generateUniformFloatsGLSL(uniformFloats:Array<UniformFloat>):String {
-		var out:String = ""; trace(uniformFloats);
+		var out:String = "";
 		if (uniformFloats != null)
 			for (u in uniformFloats) out += "uniform float " + u.name + ";";
 		return out;
@@ -871,44 +885,47 @@ class Program
 	
 	private inline function render(peoteView:PeoteView, display:Display)
 	{
-		#if peoteview_debug_program
-		//trace("    ---program.render---");		
-		if (!ready) trace("=======PROBLEM=====> not READY !!!!!!!!"); // TODO !!!
-		#end
-		gl.useProgram(glProgram);
-		
-		render_activeTextureUnits(peoteView, textureList);
-		
-		// TODO: custom uniforms per Program
-		
-		if (PeoteGL.Version.isUBO)
-		{	
-			// ------------- uniform block -------------
-			// for multiple ranges
-			//gl.bindBufferRange(gl.UNIFORM_BUFFER, peoteView.uniformBuffer.block, peoteView.uniformBuffer.uniformBuffer, 256, 3 * 4*4);
-			//gl.bindBufferRange(gl.UNIFORM_BUFFER, display.uniformBuffer.block  , display.uniformBuffer.uniformBuffer  , 256, 2 * 4*4);
-			gl.bindBufferBase(gl.UNIFORM_BUFFER, UniformBufferView.block, peoteView.uniformBuffer.uniformBuffer);
-			gl.bindBufferBase(gl.UNIFORM_BUFFER, UniformBufferDisplay.block, display.uniformBuffer.uniformBuffer);
-		}
-		else
+		if (isVisible)
 		{
-			// ------------- simple uniform -------------
-			gl.uniform2f (uRESOLUTION, peoteView.width, peoteView.height);
-			gl.uniform2f (uZOOM, peoteView.xz * display.xz, peoteView.yz * display.yz);
-			gl.uniform2f (uOFFSET, (display.x + display.xOffset + peoteView.xOffset) / display.xz, 
-			                       (display.y + display.yOffset + peoteView.yOffset) / display.yz);
+			#if peoteview_debug_program
+			//trace("    ---program.render---");		
+			if (!ready) trace("=======PROBLEM=====> not READY !!!!!!!!"); // TODO !!!
+			#end
+			gl.useProgram(glProgram);
+			
+			render_activeTextureUnits(peoteView, textureList);
+			
+			// TODO: custom uniforms per Program
+			
+			if (PeoteGL.Version.isUBO)
+			{	
+				// ------------- uniform block -------------
+				// for multiple ranges
+				//gl.bindBufferRange(gl.UNIFORM_BUFFER, peoteView.uniformBuffer.block, peoteView.uniformBuffer.uniformBuffer, 256, 3 * 4*4);
+				//gl.bindBufferRange(gl.UNIFORM_BUFFER, display.uniformBuffer.block  , display.uniformBuffer.uniformBuffer  , 256, 2 * 4*4);
+				gl.bindBufferBase(gl.UNIFORM_BUFFER, UniformBufferView.block, peoteView.uniformBuffer.uniformBuffer);
+				gl.bindBufferBase(gl.UNIFORM_BUFFER, UniformBufferDisplay.block, display.uniformBuffer.uniformBuffer);
+			}
+			else
+			{
+				// ------------- simple uniform -------------
+				gl.uniform2f (uRESOLUTION, peoteView.width, peoteView.height);
+				gl.uniform2f (uZOOM, peoteView.xz * display.xz, peoteView.yz * display.yz);
+				gl.uniform2f (uOFFSET, (display.x + display.xOffset + peoteView.xOffset) / display.xz, 
+									   (display.y + display.yOffset + peoteView.yOffset) / display.yz);
+			}
+			
+			gl.uniform1f (uTIME, peoteView.time);
+			for (u in uniformFloats) gl.uniform1f (u.location, u.value);
+			
+			peoteView.setColor(colorEnabled);
+			peoteView.setGLDepth(zIndexEnabled);
+			peoteView.setGLAlpha(alphaEnabled);
+			peoteView.setMask(mask, clearMask);
+			
+			buffer.render(peoteView, display, this);
+			gl.useProgram (null);
 		}
-		
-		gl.uniform1f (uTIME, peoteView.time);
-		for (u in uniformFloats) gl.uniform1f (u.location, u.value);
-		
-		peoteView.setColor(colorEnabled);
-		peoteView.setGLDepth(zIndexEnabled);
-		peoteView.setGLAlpha(alphaEnabled);
-		peoteView.setMask(mask, clearMask);
-		
-		buffer.render(peoteView, display, this);
-		gl.useProgram (null);
 	}
 	
 	// ------------------------------------------------------------------------------

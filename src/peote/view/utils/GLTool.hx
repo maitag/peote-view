@@ -32,7 +32,6 @@ class GLTool
 	{
 		var framebuffer = gl.createFramebuffer();
 		
-		depthBuffer = gl.createRenderbuffer();
 		gl.bindRenderbuffer(gl.RENDERBUFFER, depthBuffer);
 
 		// cpp:DEPTH_COMPONENT // FF/Chrome:DEPTH_COMPONENT24 // IE: DEPTH_COMPONENT16

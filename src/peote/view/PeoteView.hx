@@ -102,7 +102,7 @@ class PeoteView
 	public var isRun(default, null):Bool = false;
 	var startTime:Float = 0;
 	var stopTime:Float = 0;
-	var speed:Float = 1.0;
+	var speed:Float = 1.0; // TODO
 	public var time(get,set):Float;
 	public inline function get_time():Float
 	{
@@ -271,6 +271,7 @@ class PeoteView
 			pickUInt8  = new lime.utils.UInt8Array(4);
 			pickTexture = TexUtils.createPickingTexture(gl); // RGBA
 		}
+		pickDepthBuffer = gl.createRenderbuffer();
 		pickFB = GLTool.createFramebuffer(gl, pickTexture, pickDepthBuffer, 1, 1); 
 	}
 	
@@ -377,12 +378,24 @@ class PeoteView
 		gl.enable(gl.SCISSOR_TEST);	
 		
 		gl.clearColor(0.0, 0.0, 0.0, 0.0);
-		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+		//gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+
+		// Optimize: only clear depth and stencil bits if is used somewhere (hasDepth und hasStencil)
+		// TODO: let a program clear at start
+		//gl.clearStencil(0);
+		//gl.clearDepthf(1.0);
+		
+		// Optimize: only set if is in use somewhere (stencilON state!)
+		gl.stencilMask(0xFF);
 
 		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+		//gl.blendFunc(gl.ONE_MINUS_SRC_ALPHA, gl.SRC_ALPHA); // reverse
+		//glBlendFuncSeparate(gl.ONE_MINUS_SRC_ALPHA, gl.SRC_ALPHA, gl.ONE, gl.ZERO); // colors separate
+
 		gl.depthFunc(gl.LEQUAL);
 		
-		display.renderFramebuffer(this);
+		display.renderFramebuffer(this); // <-- render display
 		
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		
@@ -411,7 +424,7 @@ class PeoteView
 		
 		// Optimize: only set depth and stencil bits here if used somewhere (hasDepth state und hasStencil)
 		// CHECK: this may not need on HTML5 (look at preserveDrawingBuffer -> https://stackoverflow.com/questions/27746091/preservedrawingbuffer-false-is-it-worth-the-effort)
-		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);//
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
 
 		
 		// Optimize: only clear depth and stencil bits if is used somewhere (hasDepth und hasStencil)

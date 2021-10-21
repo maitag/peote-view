@@ -49,8 +49,17 @@ class Multidisplay extends Application
 		peoteView.addDisplay(displayLeft);
 		peoteView.addDisplay(displayRight);
 		
+		// Changing order of the Displays into the RenderList:
+		// displayRight.x = 150;
+		
+		// move the right display before the left display
+		//peoteView.addDisplay(displayRight, displayLeft, true);
+		
+		// move the left display to the end of the list
+		//peoteView.addDisplay(displayLeft);
+		
 		buffer  = new Buffer<ElementSimple>(100);
-		element = new ElementSimple(100, 100);
+		element = new ElementSimple(100, 100, 100, 100, Color.YELLOW);
 		buffer.addElement(element);
 		program = new Program(buffer);
 		
@@ -64,7 +73,10 @@ class Multidisplay extends Application
 		programBG = new Program(bufferBG);
 		
 		displayLeft.addProgram(programBG);
-		displayRight.addProgram(programBG);		
+		displayRight.addProgram(programBG);
+		
+		// Changing order of the Programs into the RenderList:
+		// displayLeft.addProgram(program);
 	}
 
 	// ----------- Lime events ------------------
@@ -105,14 +117,27 @@ class Multidisplay extends Application
 					else peoteView.yOffset+=steps;
 			case KeyCode.NUMPAD_PLUS:
 					if (modifier.ctrlKey) {element.w*=2; element.h*=2; buffer.updateElement(element);}
-					else if (modifier.shiftKey) displayLeft.zoom+=0.25;
-					else if (modifier.altKey) displayRight.zoom+=0.25;
-					else peoteView.zoom+=0.25;
+					else if (modifier.shiftKey) displayLeft.zoom += 0.25;					
+					else if (modifier.altKey) displayRight.zoom += 0.25;					
+					else peoteView.zoom += 0.25;
 			case KeyCode.NUMPAD_MINUS:
 					if (modifier.ctrlKey) {element.w = Std.int(element.w/2); element.h = Std.int(element.h/2); buffer.updateElement(element);}
-					else if (modifier.shiftKey) displayLeft.zoom-=0.25;
-					else if (modifier.altKey) displayRight.zoom-=0.25;
-					else peoteView.zoom-=0.25;
+					else if (modifier.shiftKey) displayLeft.zoom -= 0.25;
+					else if (modifier.altKey) displayRight.zoom -= 0.25;
+					else peoteView.zoom -= 0.25;
+			
+			// hide or show displays		
+			case KeyCode.NUMBER_1:
+					displayLeft.isVisible = !displayLeft.isVisible;
+			case KeyCode.NUMBER_2:
+					if (displayRight.isVisible) displayRight.hide() else displayRight.show();
+					
+			// hide or show programs		
+			case KeyCode.NUMBER_3:
+					program.isVisible = !program.isVisible;
+			case KeyCode.NUMBER_4:
+					if (programBG.isVisible) programBG.hide() else programBG.show();
+					
 			default:
 		}
 	}

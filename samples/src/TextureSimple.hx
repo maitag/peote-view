@@ -30,7 +30,7 @@ class Elem implements Element
 	
 	//@color public var c:Color = 0xff0000ff;
 	
-	//@texSlot public var slot:Int = 0;
+	@texSlot public var slot:Int = 0;
 	
 	// manual texture coordinates inside a slot (or inside all slots if no slot available)
 	//@texX @anim("Tex","pingpong") @constStart(0) public var tx:Int;

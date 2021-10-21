@@ -4,9 +4,9 @@
 	"license": "MIT",
 	"tags": ["peote", "opengl", "2d", "shader", "glsl"],
 	"description": "2D Render Library (lime/opengl)",
-	"version": "0.8.3",
+	"version": "0.8.4",
 	"classPath": "src/",
-	"releasenote": "implementing custom uniforms for shaderinjection",
+	"releasenote": "implementing show/hide for programs and displays, fixing framebuffering and add-functions",
 	"contributors": ["Sylvio Sell - maitag"],
 	"dependencies": {
 		"lime": ""

@@ -80,6 +80,10 @@ class Display
 		return c;
 	}
 	
+	public var isVisible:Bool = true;
+	public inline function show() isVisible = true;	
+	public inline function hide() isVisible = false;
+
 	public var backgroundAlpha:Bool = false;
 	public var backgroundDepth:Bool = false;
 	public var backgroundEnabled:Bool = false;
@@ -142,12 +146,21 @@ class Display
     **/
 	public function addToPeoteView(peoteView:PeoteView, ?atDisplay:Display, addBefore:Bool=false)
 	{
+		if ( ! isIn(peoteView) ) {
+			#if peoteview_debug_display
+			trace("Add Display to PeoteView");
+			#end
+			this.peoteView = peoteView;
+			setNewGLContext(peoteView.gl);
+		}
 		#if peoteview_debug_display
-		trace("Add Display to PeoteView");
+		else {
+			trace("Change order of Display");
+		}
+		if (atDisplay == null)
+			if (addBefore) trace(" to start of DisplayList") else trace(" to end of DisplayList");
+		else if (addBefore) trace(" before another Display") else trace(" after another Display");
 		#end
-		if ( isIn(peoteView) ) throw("Error, display is already added to this peoteView");
-		this.peoteView = peoteView;
-		setNewGLContext(peoteView.gl);
 		peoteView.displayList.add(this, atDisplay, addBefore);
 	}
 	
@@ -288,29 +301,40 @@ class Display
 	var programListItem:RenderListItem<Program>;
 	
 	private inline function render(peoteView:PeoteView):Void
-	{	
-		//trace("  ---display.render---");
-		glScissor(peoteView.gl, peoteView.width, peoteView.height, peoteView.xOffset, peoteView.yOffset, peoteView.xz, peoteView.yz);
-		
-		if (backgroundEnabled) {
-			peoteView.setColor(true);
-			peoteView.setGLDepth(backgroundDepth);
-			peoteView.setGLAlpha(backgroundAlpha);
-			peoteView.setMask(Mask.OFF, false);
-			peoteView.background.render(red, green, blue, alpha);
-		}
-		
-		programListItem = programList.first;
-		while (programListItem != null)
+	{
+		if (isVisible)
 		{
-			programListItem.value.render(peoteView, this);			
-			programListItem = programListItem.next;
-		}
+			//trace("  ---display.render---");
+			glScissor(peoteView.gl, peoteView.width, peoteView.height, peoteView.xOffset, peoteView.yOffset, peoteView.xz, peoteView.yz);
+			
+			if (backgroundEnabled) {
+				peoteView.setColor(true);
+				peoteView.setGLDepth(backgroundDepth);
+				peoteView.setGLAlpha(backgroundAlpha);
+				peoteView.setMask(Mask.OFF, false);
+				peoteView.background.render(red, green, blue, alpha);
+			}
+			
+			programListItem = programList.first;
+			while (programListItem != null)
+			{
+				programListItem.value.render(peoteView, this);			
+				programListItem = programListItem.next;
+			}
+		}		
 	}
 	
 	// ------------------------------------------------------------------------------
 	// ------------------------ RENDER TO TEXTURE ----------------------------------- 
 	// ------------------------------------------------------------------------------
+	public var autoRenderToTexture(default, set):Bool = false;
+	inline function set_autoRenderToTexture(b:Bool) {
+		if (b && fbTexture == null) throw("Error, need to set a texture first to use as Framebuffer");
+		return autoRenderToTexture = b;
+	}
+	
+	public var autoRenderToTextureSlot:Int = 0;
+	
     /**
 		Renders the content of this Display into a texture.
 		@param peoteView PeoteView instance

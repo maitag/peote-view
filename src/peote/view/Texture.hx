@@ -109,7 +109,8 @@ class Texture
 			#if peoteview_debug_texture 
 			trace("Create Framebuffer");
 			#end
-			framebuffer = GLTool.createFramebuffer(gl, glTexture, glDepthBuffer, width, height); 
+			glDepthBuffer = gl.createRenderbuffer();
+			framebuffer = GLTool.createFramebuffer(gl, glTexture, glDepthBuffer, width, height);
 		}
 	}
 
