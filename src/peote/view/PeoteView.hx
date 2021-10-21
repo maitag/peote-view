@@ -395,6 +395,11 @@ class PeoteView
     **/
 	public function renderToTexture(display:Display, ?textureSlot:Null<Int>)
 	{
+		if (display.fbTexture != null) _renderToTexture(display, (textureSlot != null) ? textureSlot : display.framebufferTextureSlot);
+	}
+	
+	private inline function _renderToTexture(display:Display, ?textureSlot:Null<Int>)
+	{
 		if (textureSlot == null) textureSlot = display.framebufferTextureSlot;
 		
 		gl.bindFramebuffer(gl.FRAMEBUFFER, display.fbTexture.framebuffer);
@@ -544,10 +549,10 @@ class PeoteView
 		displayListItem = framebufferDisplayList.first;
 		while (displayListItem != null)
 		{
-			if (displayListItem.value.renderFramebufferEnabled) 
+			if (displayListItem.value._renderFramebufferEnabled) 
 			{
 				if (displayListItem.value.renderFramebufferFrame == displayListItem.value.renderFramebufferSkipFrames) {
-					renderToTexture(displayListItem.value);
+					_renderToTexture(displayListItem.value);
 					displayListItem.value.renderFramebufferFrame = 0;
 				} else displayListItem.value.renderFramebufferFrame++;
 			}

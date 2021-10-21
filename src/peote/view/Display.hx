@@ -271,10 +271,14 @@ class Display
 		program.removeFromDisplay(this);
 	}
 	
+	
+	// -------------------- set Framebuffer Texture ------------------------------
+
     /**
 		Set a Texture to use as a framebuffer for renderToTexture()
 		@param texture Texture instance to render into
 		@param textureSlot number of texture-slot to render into (can be changed by set the 'framebufferTextureSlot' property)
+		@param peoteView optional parameter that is need if the display not already added to a RenderList
     **/
 	public function setFramebuffer(texture:Texture, ?textureSlot:Null<Int>, ?peoteView:PeoteView) {
 		if (fbTexture == texture) throw("Error, texture is already in use as Framebuffer for Display");
@@ -293,19 +297,28 @@ class Display
 		if (fbTexture != null) fbTexture.removeFromDisplay(this);
 		fbTexture = texture;
 		fbTexture.addToDisplay(this);
+		if (renderFramebufferEnabled) _renderFramebufferEnabled = true;
 	}
 
     /**
 		Clears the framebuffer for renderToTexture()
     **/
 	public function removeFramebuffer() {
+		_renderFramebufferEnabled = false;
 		fbTexture.removeFromDisplay(this);
 		fbTexture = null;
 		framebufferTextureSlot = 0;
 	}
 	
 	public var framebufferTextureSlot:Int = 0;
-	public var renderFramebufferEnabled:Bool = true;
+
+	public var renderFramebufferEnabled(default, set):Bool = true;
+	inline function set_renderFramebufferEnabled(b:Bool):Bool {
+		if (b && fbTexture != null) _renderFramebufferEnabled = true;
+		else _renderFramebufferEnabled = false;
+		return renderFramebufferEnabled = b;
+	}
+	var _renderFramebufferEnabled:Bool = false;
 	
 	public var renderFramebufferSkipFrames:Int = 0;
 	var renderFramebufferFrame:Int = 0;
@@ -379,11 +392,6 @@ class Display
 	// ------------------------------------------------------------------------------
 	// ------------------------ RENDER TO TEXTURE ----------------------------------- 
 	// ------------------------------------------------------------------------------
-	public var autoRenderToTexture(default, set):Bool = false;
-	inline function set_autoRenderToTexture(b:Bool) {
-		if (b && fbTexture == null) throw("Error, need to set a texture first to use as Framebuffer");
-		return autoRenderToTexture = b;
-	}
 	
     /**
 		Renders the content of this Display into a texture.

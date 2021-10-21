@@ -128,9 +128,9 @@ class RenderToTexture extends Application
 		// ----- bind texture to the Displays that should render into -------
 		
 		// Attention, peoteView is need here if display is not added already (to renderlist or to framebuffer-renderlist)
-		// displayFrom1.setFramebuffer(texture, peoteView);
-		// or alternatively it can be set by:
-		// peoteView.setFramebuffer(displayFrom1, texture);
+		
+		//displayFrom1.setFramebuffer(texture, peoteView);
+		//peoteView.setFramebuffer(displayFrom1, texture); // <- alternatively
 		
 		displayFrom1.setFramebuffer(texture);
 		displayFrom2.setFramebuffer(texture);
@@ -175,13 +175,14 @@ class RenderToTexture extends Application
 		
 		// ------------  RenderToTexture  ---------------
 		
-		peoteView.renderToTexture(displayFrom1, 0);
-		peoteView.renderToTexture(displayFrom2, 1);
+		peoteView.renderToTexture(displayFrom1, 0); // render one frame into slot 0
+		peoteView.renderToTexture(displayFrom2, 1); // render one frame into slot 1
 		
 		// the blue one is updating the framebuffer-texture by a Timer (so into sync with animation)
+		displayFrom2.framebufferTextureSlot = 1; // render into slot 1 by default
 		var timer = new Timer(500);
 		timer.run = function() {
-			peoteView.renderToTexture(displayFrom2, 1); // <- render every 500 millisecond into slot 1
+			peoteView.renderToTexture(displayFrom2); // <- renders new frame every 500 millisecond 
 		}
 		
 		// the yellow one is updating the framebuffer-texture automatically
@@ -215,6 +216,17 @@ class RenderToTexture extends Application
 			case KeyCode.DOWN: displayFrom1.yOffset += (modifier.shiftKey) ? 8 : 1;
 			case KeyCode.RIGHT: displayFrom1.xOffset += (modifier.shiftKey) ? 8 : 1;
 			case KeyCode.LEFT: displayFrom1.xOffset -= (modifier.shiftKey) ? 8 : 1;
+			case KeyCode.SPACE:
+				if (displayFrom1.framebufferTextureSlot == 0) {					
+					displayFrom1.framebufferTextureSlot = 1;
+					displayFrom2.framebufferTextureSlot = 0;
+				} 
+				else {
+					displayFrom1.framebufferTextureSlot = 0;
+					displayFrom2.framebufferTextureSlot = 1;
+				}
+				if (!displayFrom1.renderFramebufferEnabled) peoteView.renderToTexture(displayFrom1); // render one frame into the new slot
+				
 			default:
 		}
 	}
