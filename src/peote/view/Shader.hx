@@ -186,6 +186,24 @@ class Shader
 		}
 	::end::
 
+	// function to get full texture size
+	::if hasTEXTURES::
+		vec2 getTextureResolution(int TXTNUM) {
+		::foreach TEXTURES::
+			::foreach ELEMENT_LAYERS::
+			::if_ELEMENT_LAYER::
+			if (TXTNUM == ::LAYER::) {
+				::foreach UNITS::
+				::if !FIRST ::else ::end::::if !LAST ::if (::UNIT:: < ::UNIT_VALUE::)::end::
+					return( vec2(::TEXTURE_WIDTH::, ::TEXTURE_HEIGHT::) );
+				::end::
+			}
+			::end_ELEMENT_LAYER::
+			::end::
+		::end::
+		}
+	::end::
+
 	// custom functions -------------------
 	::FRAGMENT_INJECTION::
 	

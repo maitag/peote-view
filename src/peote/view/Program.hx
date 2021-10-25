@@ -390,17 +390,20 @@ class Program
 			if (regexp.match(formula) && textureLayers.exists(i))
 				formula = regexp.replace( formula, '$1' + "t" + i );
 			
-			// TODO
 			regexp = Util.regexpIdentifier(textureIdentifiers[i]+"Texture");
 			if (regexp.match(formula) && textureLayers.exists(i))
 				formula = regexp.replace( formula, '$1' + i );
-				
 		}
 		for (i in 0...customTextureIdentifiers.length) {
 			var regexp = Util.regexpIdentifier(customTextureIdentifiers[i]);
 			if (regexp.match(formula) && textureLayers.exists(textureIdentifiers.length+i))
-				formula = regexp.replace( formula, '$1' + "t"+(textureIdentifiers.length+i) );
+				formula = regexp.replace( formula, '$1' + "t" + (textureIdentifiers.length + i) );
+				
+			regexp = Util.regexpIdentifier(customTextureIdentifiers[i]+"Texture");
+			if (regexp.match(formula) && textureLayers.exists(textureIdentifiers.length+i))
+				formula = regexp.replace( formula, '$1' + (textureIdentifiers.length+i) );
 		}
+		
 		// fill the REST with default values:
 		for (name in defaultFormulaVars.keys()) {
 			//var regexp = new EReg('(.*?\\b)${name}(.[rgbaxyz]+)?(\\b.*?)', "g");
@@ -424,18 +427,6 @@ class Program
 		else if (this.autoUpdateTextures) updateTextures();
 	}
 	
-	// TODO!
-/*	public function setTextureFormula(identifier:String, formula:String, ?autoUpdateTextures:Null<Bool>):Void {
-		textureFormula = formula;
-		if (varDefaults != null)
-			for (name in varDefaults.keys()) {
-				if (Util.isWrongIdentifier(name)) throw('Error: "$name" is not an identifier, please use only letters/numbers or "_" (starting with a letter)');
-				defaultFormulaVars.set(name, varDefaults.get(name));
-			}
-		if (autoUpdateTextures != null) { if (autoUpdateTextures) updateTextures(); }
-		else if (this.autoUpdateTextures) updateTextures();
-	}
-*/	
 	// inject custom defines or functions into vertexshader
 	public function injectIntoVertexShader(glslCode:String = "", uTimeUniformEnabled = false, uniformFloats:Array<UniformFloat> = null, ?autoUpdateTextures:Null<Bool>):Void {
 		uniformFloatsVertex = uniformFloats;
