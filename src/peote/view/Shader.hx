@@ -67,10 +67,10 @@ class Shader
 	::OUT_COLOR::
 	::OUT_VARYING::
 	
-	::if hasTEXTURES::
+	::if (hasTEXTURES || hasTEXVARYING)::
 		::OUT_TEXCOORD::
 		::OUT_TEXVARYING::
-	::end::
+	::end::	
 
 	// custom functions -------------------
 	::VERTEX_INJECTION::
@@ -87,7 +87,7 @@ class Shader
 
 		::CALC_VARYING::
 
-		::if hasTEXTURES::
+		::if (hasTEXTURES || hasTEXVARYING)::
 			::CALC_TEXCOORD::			
 			::CALC_TEXVARYING::
 		::end::
@@ -154,10 +154,10 @@ class Shader
 	::IN_COLOR::
 	::IN_VARYING::
 			
-	::if hasTEXTURES::
+	::if (hasTEXTURES || hasTEXVARYING)::
 		::IN_TEXCOORD::
 		::IN_TEXVARYING::
-	::end::
+	::end::	
 	
 	
 	::if isES3::
@@ -166,6 +166,24 @@ class Shader
 		::else::
 			out vec4 Color;
 		::end::
+	::end::
+
+	// function to get texture color
+	::if hasTEXTURES::
+		vec4 getTextureColor(int TXTNUM, vec2 vTexCoord) {
+		::foreach TEXTURES::
+			::foreach ELEMENT_LAYERS::
+			::if_ELEMENT_LAYER::
+			if (TXTNUM == ::LAYER::) {
+				::foreach UNITS::
+				::if !FIRST ::else ::end::::if !LAST ::if (::UNIT:: < ::UNIT_VALUE::)::end::
+					return(texture::if !isES3::2D::end::(::TEXTURE::, ::TEXCOORD::));
+				::end::
+			}
+			::end_ELEMENT_LAYER::
+			::end::
+		::end::
+		}
 	::end::
 
 	// custom functions -------------------
