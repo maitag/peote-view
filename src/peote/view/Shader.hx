@@ -174,6 +174,7 @@ class Shader
 		::foreach TEXTURES::
 			::foreach ELEMENT_LAYERS::
 			::if_ELEMENT_LAYER::
+			//TODO ::if (IS_DEFAULT):: return(::DEFAULT_VALUE::) ::end::
 			if (TXTNUM == ::LAYER::) {
 				::foreach UNITS::
 				::if !FIRST ::else ::end::::if !LAST ::if (::UNIT:: < ::UNIT_VALUE::)::end::

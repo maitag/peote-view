@@ -832,6 +832,13 @@ class Program
 				trace("LAYER:", layer, units);
 				#end
 				glShaderConfig.TEXTURES.push({LAYER:layer, UNITS:units});
+				// TODO
+				/*glShaderConfig.TEXTURES.push({
+					LAYER:layer, UNITS:units,
+					IS_DEFAULT:true, DEFAULT_VALUE:"vec4(0.0)",
+					USE_TEXTURE_FUNCTION:true
+				});
+				*/
 			}
 		}
 		
