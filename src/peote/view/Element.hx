@@ -1290,6 +1290,13 @@ class ElementImpl
 					pos: Context.currentPos(),
 				});
 				debugLastField(fields);
+				fields.push({
+					name:  "TEXTURE_ID_" + name, //name.toUpperCase(),
+					access:  [Access.APublic, Access.AStatic, Access.AInline],
+					kind: FieldType.FVar(macro:String, macro $v{name+"_ID"}), 
+					pos: Context.currentPos(),
+				});
+				debugLastField(fields);
 			}
 		}
 		
@@ -1300,6 +1307,13 @@ class ElementImpl
 					name:  "TEXTURE_" + name, //name.toUpperCase(),
 					access:  [Access.APublic, Access.AStatic, Access.AInline],
 					kind: FieldType.FVar(macro:String, macro $v{name}), 
+					pos: Context.currentPos(),
+				});
+				debugLastField(fields);				
+				fields.push({
+					name:  "TEXTURE_ID_" + name, //name.toUpperCase(),
+					access:  [Access.APublic, Access.AStatic, Access.AInline],
+					kind: FieldType.FVar(macro:String, macro $v{name+"_ID"}), 
 					pos: Context.currentPos(),
 				});
 				debugLastField(fields);				

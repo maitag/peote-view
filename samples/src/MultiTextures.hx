@@ -150,7 +150,7 @@ class MultiTextures extends Application
 		switch (keyCode) {
 			case KeyCode.U:
 				trace("switch texture unit");
-				element.unitColor = 1;
+				element.unitColor = 1; buffer.updateElement(element);
 			case KeyCode.R:
 				trace("replace texture "); // TODO
 				//program.replaceTexture(texture0, texture1);

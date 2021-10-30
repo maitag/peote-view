@@ -60,10 +60,15 @@ class Program
 		VARIN: "varying",
 		VAROUT: "varying",
 		hasTEXTURES: false,
-		hasTEXVARYING: false,
+		hasTEXTURE_FUNCTIONS: false,
+		hasFRAGMENT_INJECTION: false,
 		FRAGMENT_PROGRAM_UNIFORMS:"",
 		FRAGMENT_CALC_LAYER:"",
 		TEXTURES:[],
+		
+		// TODO:
+		TEXTURE_DEFAULTS:[],
+		
 		isDISCARD: true,
 		DISCARD: "0.0",
 		isPIXELSNAPPING: false,
@@ -101,7 +106,10 @@ class Program
 
 	var textureIdentifiers:Array<String>;
 	var customTextureIdentifiers = new Array<String>();
-	
+	var textureID_Defaults = new Array<{layer:Int, value:String}>();
+	var used_by_ColorFormula:Int = 0;
+	var usedID_by_ColorFormula:Int = 0;
+		
 	var defaultFormulaVars:StringMap<Color>;
 	var defaultColorFormula:String;
 	var colorFormula = "";
@@ -110,7 +118,7 @@ class Program
 	
 	var fragmentFloatPrecision:Null<String> = null;
 	
-	var useTextCoordVaryings:Bool = false;
+	var hasFragmentInjection:Bool = false;
 	
 	public function new(buffer:BufferInterface) 
 	{
@@ -373,6 +381,7 @@ class Program
 			}
 			
 		}
+		
 		for (i in 0...colorIdentifiers.length) {
 			var regexp = Util.regexpIdentifier(colorIdentifiers[i]);
 			if (regexp.match(formula))
@@ -385,23 +394,42 @@ class Program
 					formula = regexp.replace( formula, '$1' + customVaryings[i] );
 				else throw('Error while parsing ColorFormula: custom identifier ${customIdentifiers[i]} need @varying to access in fragmentshader');
 		}
-		for (i in 0...textureIdentifiers.length) {
+		
+		textureID_Defaults = new Array<{layer:Int, value:String}>();
+		used_by_ColorFormula = 0;
+		usedID_by_ColorFormula = 0;
+		
+		for (i in 0...textureIdentifiers.length) 
+		{			
 			var regexp = Util.regexpIdentifier(textureIdentifiers[i]);
-			if (regexp.match(formula) && textureLayers.exists(i))
-				formula = regexp.replace( formula, '$1' + "t" + i );
+			if (regexp.match(formula)) {
+				if (textureLayers.exists(i)) formula = regexp.replace( formula, '$1' + "t" + i );
+				used_by_ColorFormula |= 1 << i;
+			} 
 			
-			regexp = Util.regexpIdentifier(textureIdentifiers[i]+"Texture");
-			if (regexp.match(formula) && textureLayers.exists(i))
+			regexp = Util.regexpIdentifier(textureIdentifiers[i]+"_ID");
+			if (regexp.match(formula)) {
 				formula = regexp.replace( formula, '$1' + i );
+				usedID_by_ColorFormula |= 1 << i;
+				if (!textureLayers.exists(i)) textureID_Defaults.push({layer:i, value:defaultFormulaVars.get(textureIdentifiers[i]).toGLSL()});
+			}			
 		}
-		for (i in 0...customTextureIdentifiers.length) {
+		
+		for (i in 0...customTextureIdentifiers.length)
+		{
 			var regexp = Util.regexpIdentifier(customTextureIdentifiers[i]);
-			if (regexp.match(formula) && textureLayers.exists(textureIdentifiers.length+i))
-				formula = regexp.replace( formula, '$1' + "t" + (textureIdentifiers.length + i) );
+			if (regexp.match(formula)) {
+				if (textureLayers.exists(textureIdentifiers.length + i)) formula = regexp.replace( formula, '$1' + "t" + (textureIdentifiers.length + i) );					
+				used_by_ColorFormula |= 1 << (textureIdentifiers.length + i);
+			}
 				
-			regexp = Util.regexpIdentifier(customTextureIdentifiers[i]+"Texture");
-			if (regexp.match(formula) && textureLayers.exists(textureIdentifiers.length+i))
-				formula = regexp.replace( formula, '$1' + (textureIdentifiers.length+i) );
+			regexp = Util.regexpIdentifier(customTextureIdentifiers[i]+"_ID");
+			if (regexp.match(formula)) {
+				formula = regexp.replace( formula, '$1' + (textureIdentifiers.length + i) );
+				usedID_by_ColorFormula |= 1 << (textureIdentifiers.length + i);
+				if(!textureLayers.exists(textureIdentifiers.length + i)) textureID_Defaults.push({layer:(textureIdentifiers.length + i), value:defaultFormulaVars.get(textureIdentifiers[textureIdentifiers.length + i]).toGLSL()});
+			}
+				
 		}
 		
 		// fill the REST with default values:
@@ -416,7 +444,7 @@ class Program
 		glShaderConfig.FRAGMENT_CALC_LAYER = formula;
 	}
 	
-	public function setColorFormula(formula:String, varDefaults:StringMap<Color>=null, ?autoUpdateTextures:Null<Bool>):Void {
+	public function setColorFormula(formula:String="", varDefaults:StringMap<Color>=null, ?autoUpdateTextures:Null<Bool>):Void {
 		colorFormula = formula;
 		if (varDefaults != null)
 			for (name in varDefaults.keys()) {
@@ -437,7 +465,7 @@ class Program
 	
 	// inject custom defines or functions into fragmentshader
 	public function injectIntoFragmentShader(glslCode:String = "", uTimeUniformEnabled = false, uniformFloats:Array<UniformFloat> = null, ?autoUpdateTextures:Null<Bool>):Void {
-		useTextCoordVaryings = (glslCode == "") ? false : true;
+		hasFragmentInjection = (glslCode == "") ? false : true;
 		uniformFloatsFragment = uniformFloats;
 		glShaderConfig.FRAGMENT_INJECTION = ((uTimeUniformEnabled) ? "uniform float uTime;" : "") + generateUniformFloatsGLSL(uniformFloats) + glslCode;
 		accumulateUniformsFloat();
@@ -789,7 +817,10 @@ class Program
 		#end
 		parseColorFormula();
 		
-		glShaderConfig.hasTEXVARYING = useTextCoordVaryings;
+		glShaderConfig.hasFRAGMENT_INJECTION = hasFragmentInjection;
+		
+		glShaderConfig.FRAGMENT_PROGRAM_UNIFORMS = "";
+		glShaderConfig.TEXTURES = [];
 		
 		if (activeTextures.length == 0) {
 			glShaderConfig.hasTEXTURES = false;
@@ -797,13 +828,12 @@ class Program
 		else {
 			glShaderConfig.hasTEXTURES = true;
 			
-			glShaderConfig.FRAGMENT_PROGRAM_UNIFORMS = "";
 			for (i in 0...activeTextures.length)
 				glShaderConfig.FRAGMENT_PROGRAM_UNIFORMS += 'uniform sampler2D uTexture$i;';
 			
 			// fill texture-layer in template
-			glShaderConfig.TEXTURES = [];
-			for (layer in textureLayers.keys()) {
+			for (layer in textureLayers.keys())
+			{
 				var units = new Array < {UNIT_VALUE:String, TEXTURE:String,
 										SLOTS_X:String, SLOTS_Y:String, SLOT_WIDTH:String, SLOT_HEIGHT:String,
 										SLOTS_WIDTH:String, SLOTS_HEIGHT:String,
@@ -831,16 +861,28 @@ class Program
 				#if peoteview_debug_program
 				trace("LAYER:", layer, units);
 				#end
-				glShaderConfig.TEXTURES.push({LAYER:layer, UNITS:units});
-				// TODO
-				/*glShaderConfig.TEXTURES.push({
-					LAYER:layer, UNITS:units,
-					IS_DEFAULT:true, DEFAULT_VALUE:"vec4(0.0)",
-					USE_TEXTURE_FUNCTION:true
+				
+				var used:Bool = ((used_by_ColorFormula & (1 << layer) ) > 0);
+				var usedID:Bool = ((usedID_by_ColorFormula & (1 << layer) ) > 0);
+				
+				glShaderConfig.TEXTURES.push({
+					LAYER:layer,
+					UNITS:units,
+					USED: used,
+					USED_ID: usedID					
 				});
-				*/
 			}
+			
+			
 		}
+		
+		// fill template for non-added textures to fetch default values
+		glShaderConfig.TEXTURE_DEFAULTS = [];
+		for (defaults in textureID_Defaults) {
+			glShaderConfig.TEXTURE_DEFAULTS.push({LAYER:defaults.layer, DEFAULT_VALUE:defaults.value});
+		}
+		glShaderConfig.hasTEXTURE_FUNCTIONS = (usedID_by_ColorFormula == 0 && textureID_Defaults.length == 0) ? false : true;
+		
 		
 		if (gl != null) reCreateProgram(); // recompile shaders			
 	}

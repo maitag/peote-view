@@ -14,11 +14,12 @@
 		SimpleQuad, Multidisplay, Multibuffer, ElementInherit, DepthBlend,
 		TextureSimple, TextureSlotTiles,
 		MultiTextures,
-		CombineShaders,
 		TextureMipmapFilter,
 		TextureCaching,
 		RenderToTexture,
-		ShaderInjection, CustomUniforms,
+		ShaderInjection,
+		CombineShaders,
+		CustomUniforms,
 		Animation,
 		GLPicking,
 		MouseEvents,
@@ -65,9 +66,9 @@
 	<!--<haxedef name="peoteview_debug_buffer" />-->
 	<!--<haxedef name="peoteview_debug_view" />-->
 	<!--<haxedef name="peoteview_debug_display" />-->
-	<haxedef name="peoteview_debug_program" />
+	<!--<haxedef name="peoteview_debug_program" />-->
 	<!--<haxedef name="peoteview_debug_texture" />-->
-	<haxedef name="peoteview_debug_shader" />
+	<!--<haxedef name="peoteview_debug_shader" />-->
 
 	<!-- <haxedef name="webgl-debug" /> --> <!-- try with chrome and look here: https://www.khronos.org/webgl/wiki/Debugging -->
 	<!-- <haxedef name="source-map-content" /> --> <!-- to debug with chrome it needs also "-debug" -->

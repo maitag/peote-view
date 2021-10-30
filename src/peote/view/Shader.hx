@@ -67,7 +67,7 @@ class Shader
 	::OUT_COLOR::
 	::OUT_VARYING::
 	
-	::if (hasTEXTURES || hasTEXVARYING)::
+	::if (hasTEXTURES || hasFRAGMENT_INJECTION)::
 		::OUT_TEXCOORD::
 		::OUT_TEXVARYING::
 	::end::	
@@ -87,7 +87,7 @@ class Shader
 
 		::CALC_VARYING::
 
-		::if (hasTEXTURES || hasTEXVARYING)::
+		::if (hasTEXTURES || hasFRAGMENT_INJECTION)::
 			::CALC_TEXCOORD::			
 			::CALC_TEXVARYING::
 		::end::
@@ -154,7 +154,7 @@ class Shader
 	::IN_COLOR::
 	::IN_VARYING::
 			
-	::if (hasTEXTURES || hasTEXVARYING)::
+	::if (hasTEXTURES || hasFRAGMENT_INJECTION)::
 		::IN_TEXCOORD::
 		::IN_TEXVARYING::
 	::end::	
@@ -168,41 +168,56 @@ class Shader
 		::end::
 	::end::
 
-	// function to get texture color
-	::if hasTEXTURES::
+	::if hasTEXTURE_FUNCTIONS::
+		// function to get texture color
 		vec4 getTextureColor(int TXTNUM, vec2 vTexCoord) {
 		::foreach TEXTURES::
 			::foreach ELEMENT_LAYERS::
 			::if_ELEMENT_LAYER::
-			//TODO ::if (IS_DEFAULT):: return(::DEFAULT_VALUE::) ::end::
-			if (TXTNUM == ::LAYER::) {
-				::foreach UNITS::
-				::if !FIRST ::else ::end::::if !LAST ::if (::UNIT:: < ::UNIT_VALUE::)::end::
-					return(texture::if !isES3::2D::end::(::TEXTURE::, ::TEXCOORD::));
-				::end::
-			}
+			::if USED_ID::
+				if (TXTNUM == ::LAYER::) {
+					::foreach UNITS::
+					::if !FIRST ::else ::end::::if !LAST ::if (::UNIT:: < ::UNIT_VALUE::)::end::
+						return(texture::if !isES3::2D::end::(::TEXTURE::, ::TEXCOORD::));
+					::end::
+				}
+			::end::
 			::end_ELEMENT_LAYER::
 			::end::
 		::end::
+		// default values:
+		::foreach TEXTURE_DEFAULTS::
+			if (TXTNUM == ::LAYER::) {return(::DEFAULT_VALUE::);}		
+		::end::
 		}
+	::else:: 
+		::if hasFRAGMENT_INJECTION::#define getTextureColor(a,b) vec4(0.0,0.0,0.0,0.0)::end::
 	::end::
 
-	// function to get full texture size
-	::if hasTEXTURES::
+	::if hasTEXTURE_FUNCTIONS::
+		// function to get full texture size
 		vec2 getTextureResolution(int TXTNUM) {
 		::foreach TEXTURES::
 			::foreach ELEMENT_LAYERS::
 			::if_ELEMENT_LAYER::
-			if (TXTNUM == ::LAYER::) {
-				::foreach UNITS::
-				::if !FIRST ::else ::end::::if !LAST ::if (::UNIT:: < ::UNIT_VALUE::)::end::
-					return( vec2(::TEXTURE_WIDTH::, ::TEXTURE_HEIGHT::) );
-				::end::
-			}
+			::if USED_ID::
+				if (TXTNUM == ::LAYER::) {
+					::foreach UNITS::
+					::if !FIRST ::else ::end::::if !LAST ::if (::UNIT:: < ::UNIT_VALUE::)::end::
+						return( vec2(::TEXTURE_WIDTH::, ::TEXTURE_HEIGHT::) );
+					::end::
+				}
+			::end::
 			::end_ELEMENT_LAYER::
 			::end::
 		::end::
+		// default values:
+		::foreach TEXTURE_DEFAULTS::
+			if (TXTNUM == ::LAYER::) {return(vec2(0.0,0.0));}		
+		::end::
 		}
+	::else:: 
+		::if hasFRAGMENT_INJECTION::#define getTextureResolution(a) vec2(0.0,0.0)::end::
 	::end::
 
 	// custom functions -------------------
@@ -218,10 +233,12 @@ class Shader
 				// ------------- LAYER ::LAYER:: --------------
 				::foreach ELEMENT_LAYERS::
 				::if_ELEMENT_LAYER::
-				vec4 t::LAYER::;
-				::foreach UNITS::
-				::if !FIRST ::else ::end::::if !LAST ::if (::UNIT:: < ::UNIT_VALUE::)::end::
-					t::LAYER:: = texture::if !isES3::2D::end::(::TEXTURE::, ::TEXCOORD::);
+				::if USED::
+					vec4 t::LAYER::;
+					::foreach UNITS::
+					::if !FIRST ::else ::end::::if !LAST ::if (::UNIT:: < ::UNIT_VALUE::)::end::
+						t::LAYER:: = texture::if !isES3::2D::end::(::TEXTURE::, ::TEXCOORD::);
+					::end::
 				::end::
 				::end_ELEMENT_LAYER::
 				::end::

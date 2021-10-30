@@ -47,7 +47,7 @@ class Elem implements Element
 	// give texture, texturelayer- or custom-to-use identifiers a default value ( if there is no texture set for )	
 	var DEFAULT_FORMULA_VARS = [
 		"mask"  => 0x000000ff,
-		"image"  => 0xff0000ff,
+		"image"  => 0x00ff00ff,
 	];
 	
 	var OPTIONS = { alpha:true };
@@ -75,6 +75,10 @@ class CombineShaders extends Application
 	
 	var hasBlur = false;
 	var hasMask = true;
+	
+	
+	var maskImage:Array<String> = ["assets/images/peote_tiles.png", "assets/images/peote_tiles_bunnys.png"];
+	var maskImageNumber:Int = 0;
 	
 	override function onWindowCreate():Void
 	{
@@ -118,7 +122,7 @@ class CombineShaders extends Application
 		loadImage(textureImage1, "assets/images/test2.png", 0);
 		loadImage(textureImage1, "assets/images/test3.png", 1);
 		
-		loadImage(textureMask, "assets/images/peote_tiles.png");
+		loadImage(textureMask, maskImage[maskImageNumber]);
 		
 	}
 	
@@ -136,10 +140,10 @@ class CombineShaders extends Application
 		buffer.updateElement(element);		
 	}
 
-	override function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
-	{
+	override function onKeyUp (keyCode:KeyCode, modifier:KeyModifier):Void
+	{	
 		switch (keyCode) {
-			case KeyCode.NUMBER_1:trace(element.imageUnit);
+			case KeyCode.NUMBER_1:
 				trace("switch imageUnit texture to " + ((element.imageUnit == 0) ? 1 : 0));
 				element.imageUnit = (element.imageUnit == 0) ? 1 : 0;
 				buffer.updateElement(element);
@@ -154,10 +158,40 @@ class CombineShaders extends Application
 				element.maskTile++;
 				buffer.updateElement(element);
 				
-			//case KeyCode.NUMBER_4:
-				//loadImage(textureImage0, "assets/images/test0.png");
-				//textureImage0.tilesX = 4;
-				//textureImage0.tilesY = 1;
+			case KeyCode.NUMBER_4:
+				trace("load next mask image");
+				maskImageNumber = (maskImageNumber == 0) ? 1 : 0;
+				loadImage(textureMask, maskImage[maskImageNumber]);
+				
+			case KeyCode.M:
+				if (program.hasTexture(textureMask, Elem.TEXTURE_mask)) {
+					trace("remove mask texture");
+					program.removeTexture(textureMask, Elem.TEXTURE_mask, true);
+				}
+				else {
+					trace("add mask texture");
+					program.addTexture(textureMask, Elem.TEXTURE_mask, true);
+				}
+				
+			case KeyCode.I:
+				if (program.hasTexture(textureImage0, Elem.TEXTURE_image)) {
+					trace("remove image texture unit 0");
+					program.removeTexture(textureImage0, Elem.TEXTURE_image, true);
+				}
+				else {
+					trace("add image texture unit 0");
+					program.addTexture(textureImage0, Elem.TEXTURE_image, true);
+				}
+				
+			case KeyCode.J:
+				if (program.hasTexture(textureImage1, Elem.TEXTURE_image)) {
+					trace("remove image texture unit 1");
+					program.removeTexture(textureImage1, Elem.TEXTURE_image, true);
+				}
+				else {
+					trace("add image texture unit 1");
+					program.addTexture(textureImage1, Elem.TEXTURE_image, true);
+				}
 				
 			// TODO
 /*			case KeyCode.R:
@@ -171,7 +205,7 @@ class CombineShaders extends Application
 					trace("remove mask texture from ColorFormula");
 					hasMask = false;
 					if (hasBlur)
-						program.setColorFormula('${Elem.COLOR_tint} * blur(${Elem.TEXTURE_image}Texture)');				
+						program.setColorFormula('${Elem.COLOR_tint} * blur(${Elem.TEXTURE_ID_image})');				
 					else 
 						program.setColorFormula('${Elem.COLOR_tint} * ${Elem.TEXTURE_image}');
 				}
@@ -180,9 +214,9 @@ class CombineShaders extends Application
 					hasMask = true;
 					
 					if (hasBlur)
-						program.setColorFormula('vec4( (${Elem.COLOR_tint} * blur(${Elem.TEXTURE_image}Texture) ).rgb, ${Elem.TEXTURE_mask}.a )');				
+						program.setColorFormula('vec4( (${Elem.COLOR_tint} * blur(${Elem.TEXTURE_ID_image}) ).rgb, ${Elem.TEXTURE_mask}.a )');				
 					else 
-						program.setColorFormula('vec4( (${Elem.COLOR_tint} * ${Elem.TEXTURE_image} ).rgb, ${Elem.TEXTURE_mask}.a )');
+						program.setColorFormula(); // back to default colorFormula
 					
 				}
 				
@@ -192,16 +226,20 @@ class CombineShaders extends Application
 					trace("remove blur shader");
 					hasBlur = false;
 					if (hasMask)
-						program.setColorFormula('vec4( (${Elem.COLOR_tint} * ${Elem.TEXTURE_image} ).rgb, ${Elem.TEXTURE_mask}.a )');
+						program.setColorFormula(); // back to default colorFormula
 					else 
 						program.setColorFormula('${Elem.COLOR_tint} * ${Elem.TEXTURE_image}');
 						
+					// removes the shadercode-injection
 					program.injectIntoFragmentShader();
 				}
 				else {
 					trace("add blur shader");
 					hasBlur = true;
 					program.injectIntoFragmentShader(
+					
+					// TODO: generate defaults
+					
 					"				
 						float normpdf(in float x, in float sigma) { return 0.39894*exp(-0.5*x*x/(sigma*sigma))/sigma; }
 						
@@ -231,12 +269,15 @@ class CombineShaders extends Application
 							
 							return vec4(final_colour / (Z * Z), 1.0);
 						}			
-					");
+					"
+					,false // no uTime
+					,false // not rebuild shader here 
+					);
 					
 					if (hasMask)
-						program.setColorFormula('vec4( (${Elem.COLOR_tint} * blur(${Elem.TEXTURE_image}Texture) ).rgb, ${Elem.TEXTURE_mask}.a )');
+						program.setColorFormula('vec4( (${Elem.COLOR_tint} * blur(${Elem.TEXTURE_ID_image}) ).rgb, ${Elem.TEXTURE_mask}.a )');
 					else 
-						program.setColorFormula('${Elem.COLOR_tint} * blur(${Elem.TEXTURE_image}Texture)');
+						program.setColorFormula('${Elem.COLOR_tint} * blur(${Elem.TEXTURE_ID_image})');
 						
 				}
 				
