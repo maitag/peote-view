@@ -111,6 +111,7 @@ class Texture
 			#end
 			glDepthBuffer = gl.createRenderbuffer();
 			framebuffer = GLTool.createFramebuffer(gl, glTexture, glDepthBuffer, width, height);
+			updated = true;
 		}
 	}
 
@@ -123,6 +124,7 @@ class Texture
 			framebuffer = null;
 			if (glDepthBuffer != null) gl.deleteRenderbuffer(glDepthBuffer);
 			glDepthBuffer = null;
+			//updated = true;
 		}
 	}
 	

@@ -81,8 +81,8 @@ class Display
 	}
 	
 	public var isVisible:Bool = true;
-	public inline function show() isVisible = true;	
-	public inline function hide() isVisible = false;
+	public function show() isVisible = true;	
+	public function hide() isVisible = false;
 
 	public var backgroundAlpha:Bool = false;
 	public var backgroundDepth:Bool = false;
@@ -184,7 +184,7 @@ class Display
 	{
 		if ( ! isIn(peoteView) ) {
 			#if peoteview_debug_display
-			trace("Add Display to PeoteView");
+			trace("Add Display to PeoteViews Framebuffer list");
 			#end
 			this.peoteView = peoteView;
 			setNewGLContext(peoteView.gl);
@@ -207,6 +207,16 @@ class Display
 		if ( !isIn(peoteView) ) throw("Error, display is not inside peoteView");
 		if ( !peoteView.displayList.has(this) ) this.peoteView = null;
 		peoteView.framebufferDisplayList.remove(this);
+	}
+	
+    /**
+        Swaps the order of this Display instances with another one inside the RenderList.
+		@param  display Display instance
+    **/
+	public function swapDisplay(display:Display):Void
+	{
+		if (peoteView != null && display.peoteView != null) peoteView.displayList.swap(this, display);
+		else throw("Error, display is not added to peoteView");
 	}
 	
 	private function setNewGLContext(newGl:PeoteGL)
@@ -289,7 +299,7 @@ class Display
 		}
 		else if ( ! isIn(peoteView) ) {
 			this.peoteView = peoteView;
-			setNewGLContext(peoteView.gl);			
+			setNewGLContext(peoteView.gl);
 		}
 		
 		if (textureSlot != null) framebufferTextureSlot = textureSlot;

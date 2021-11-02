@@ -71,6 +71,21 @@ class RenderList<T>
 		else throw('Error on remove: $value is not in list.');
 	}
 	
+	@:access(peote.view.utils.RenderListItem)
+	public function swap(a:T, b:T):Void
+	{
+		var itemA:RenderListItem<T> = itemMap.get(a);
+		var itemB:RenderListItem<T> = itemMap.get(b);
+		if (itemA != null && itemB != null) {
+			var valueTMP:T = itemA.value;
+			itemA.value = itemB.value;
+			itemB.value = valueTMP;
+			itemMap.set(a, itemB);
+			itemMap.set(b, itemA);
+		}
+		else throw('Error on remove: $a or $b is not in list.');
+	}
+	
 	public function has(value:T):Bool return itemMap.exists(value);
 	
 	private inline function removeItem(item:RenderListItem<T>):Void {

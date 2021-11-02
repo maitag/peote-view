@@ -210,11 +210,21 @@ class PeoteView
 	}
 	
     /**
-        This function removes an Display instance from the RenderList.
+        Removes an Display instance from the RenderList.
     **/
 	public function removeDisplay(display:Display):Void
 	{
 		display.removeFromPeoteView(this);
+	}
+
+    /**
+        Swaps two Display instances inside the RenderList.
+		@param  display1 first Display instance
+		@param  display2 second Display instance
+    **/
+	public function swapDisplays(display1:Display, display2:Display):Void
+	{
+		display1.swapDisplay(display2);
 	}
 
 	/**
@@ -230,7 +240,7 @@ class PeoteView
 	}
 	
     /**
-        This function removes an Display instance from the hidden framebuffer RenderList (what only render to textures).
+        Removes an Display instance from the hidden framebuffer RenderList (what only render to textures).
     **/
 	public function removeFramebufferDisplay(display:Display):Void
 	{
@@ -403,6 +413,7 @@ class PeoteView
 		if (textureSlot == null) textureSlot = display.framebufferTextureSlot;
 		
 		gl.bindFramebuffer(gl.FRAMEBUFFER, display.fbTexture.framebuffer);
+		//gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, display.fbTexture.framebuffer);
 		
 		gl.viewport(
 			display.fbTexture.slotWidth * (textureSlot % display.fbTexture.slotsX),
@@ -438,6 +449,7 @@ class PeoteView
 		display.renderFramebuffer(this); // <-- render display
 		
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		//gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
 		
 		if (display.fbTexture.createMipmaps) { // re-create for full texture ?
 			gl.bindTexture(gl.TEXTURE_2D, display.fbTexture.glTexture);
