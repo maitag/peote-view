@@ -67,6 +67,7 @@ abstract Color(Int) from Int to Int
     public static inline var GREEN   :Color = 0x00ff00ff;
     public static inline var YELLOW  :Color = 0xffff00ff;
     public static inline var BLUE    :Color = 0x0000ffff;
+    public static inline var LIME    :Color = 0xccff00ff; // https://en.wikipedia.org/wiki/Lime_(color)
     public static inline var MAGENTA :Color = 0xff00ffff;
     public static inline var CYAN    :Color = 0x00ffffff;
     public static inline var WHITE   :Color = 0xffffffff;
