@@ -2,6 +2,7 @@ package;
 
 import haxe.Timer;
 import haxe.CallStack;
+import lime.ui.MouseWheelMode;
 
 import lime.app.Application;
 import lime.ui.Window;
@@ -198,6 +199,17 @@ class RenderToTexture extends Application
 	
 	// ----------- Lime events ------------------
 
+	override function onMouseMove (x:Float, y:Float):Void
+	{
+		displayFrom1.xOffset = -displayFrom1.width  * (0.5 - x/window.width);
+		displayFrom1.yOffset = -displayFrom1.height * (0.5 - y/window.height);
+	}
+	override function onMouseWheel (dx:Float, dy:Float, mode:MouseWheelMode)
+	{
+		if (dy > 0)	displayFrom1.zoom += 0.1;
+		else if (dy < 0) displayFrom1.zoom -= 0.1;
+	}
+	
 	override function onMouseDown (x:Float, y:Float, button:MouseButton):Void
 	{
 		displayFrom1.renderFramebufferEnabled = !displayFrom1.renderFramebufferEnabled;
