@@ -305,11 +305,13 @@ class Program
 		
 		if ( !isPicking ) {
 			uTIME = gl.getUniformLocation(glProg, "uTime");
-			for (u in uniformFloats) u.location = gl.getUniformLocation(glProg, u.name);
+			uniformFloatLocations = new Array<GLUniformLocation>();
+			for (u in uniformFloats) uniformFloatLocations.push( gl.getUniformLocation(glProg, u.name) );
 		}
 		else {
 			uTIME_PICK = gl.getUniformLocation(glProg, "uTime");
-			for (u in uniformFloats) u.pick_location = gl.getUniformLocation(glProg, u.name);
+			uniformFloatPickLocations = new Array<GLUniformLocation>();
+			for (u in uniformFloats) uniformFloatPickLocations.push( gl.getUniformLocation(glProg, u.name) );
 		}
 		
 		if (!isPicking) {
@@ -348,6 +350,8 @@ class Program
 	var uniformFloatsFragment:Array<UniformFloat> = null;
 	// TODO: target-optimization for faster access
 	var uniformFloats:Array<UniformFloat> = new Array<UniformFloat>();
+	var uniformFloatLocations:Array<GLUniformLocation>;
+	var uniformFloatPickLocations:Array<GLUniformLocation>;
 	
 	private function parseColorFormula():Void {
 		var formula:String = "";
@@ -972,7 +976,7 @@ class Program
 			}
 			
 			gl.uniform1f (uTIME, peoteView.time);
-			for (u in uniformFloats) gl.uniform1f (u.location, u.value);
+			for (i in 0...uniformFloats.length) gl.uniform1f (uniformFloatLocations[i], uniformFloats[i].value);
 			
 			peoteView.setColor(colorEnabled);
 			peoteView.setGLDepth(zIndexEnabled);
@@ -1008,7 +1012,7 @@ class Program
 		}
 		
 		gl.uniform1f (uTIME, peoteView.time);
-		for (u in uniformFloats) gl.uniform1f (u.location, u.value);
+		for (i in 0...uniformFloats.length) gl.uniform1f (uniformFloatLocations[i], uniformFloats[i].value);
 		
 		peoteView.setColor(colorEnabled);
 		peoteView.setGLDepth(zIndexEnabled);
@@ -1035,7 +1039,7 @@ class Program
 		                            (display.y + display.yOffset + yOff) / display.yz);
 		
 		gl.uniform1f (uTIME_PICK, peoteView.time);
-		for (u in uniformFloats) gl.uniform1f (u.pick_location, u.value);
+		for (i in 0...uniformFloats.length) gl.uniform1f (uniformFloatPickLocations[i], uniformFloats[i].value);
 		
 		peoteView.setGLDepth((toElement == -1) ? zIndexEnabled : false); // disable for getAllElementsAt() in peoteView
 		peoteView.setGLAlpha(false);
