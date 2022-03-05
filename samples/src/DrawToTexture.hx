@@ -2,15 +2,19 @@ package;
 
 import haxe.Timer;
 import haxe.CallStack;
-import lime.ui.MouseWheelMode;
-import lime.utils.UInt8Array;
 
 import lime.app.Application;
-import lime.ui.Window;
 import lime.graphics.RenderContext;
+import lime.graphics.ImageBuffer;
+import lime.graphics.ImageFileFormat;
+import lime.graphics.PixelFormat;
+import lime.graphics.Image;
+import lime.ui.MouseWheelMode;
+import lime.ui.Window;
 import lime.ui.KeyCode;
 import lime.ui.KeyModifier;
 import lime.ui.MouseButton;
+import lime.utils.UInt8Array;
 
 import peote.view.PeoteGL;
 import peote.view.PeoteView;
@@ -190,11 +194,34 @@ class DrawToTexture extends Application
 			case KeyCode.LEFT_SHIFT: isDraw = true;
 			case KeyCode.SPACE:
 				
-				// TODO: save image
+				trace("save image");
 				
 				// data what holds the rgba-imagedata
 				var data = textureCanvas.readPixelsUInt8(0, 0, 800, 600);
+
+				// convert into lime Image
+				var imageBuffer = new ImageBuffer(data, 800, 600, 32, PixelFormat.RGBA32);
+				imageBuffer.format = RGBA32;
+				var image = new Image(imageBuffer);
+
+				// encode image format
+				var format = ImageFileFormat.PNG;
+				//var format = ImageFileFormat.JPEG;
+				//var format = ImageFileFormat.BMP;
 				
+				var imageData = image.encode(format);
+				
+				#if !html5
+				// save into file
+				var path = "picture." + switch (format) {
+					case JPEG:"jpg";
+					case BMP:"bmp";
+					default: "png";
+				};
+				var fileOutput =  sys.io.File.write(path, true);
+				fileOutput.writeBytes(imageData, 0, imageData.length);
+				fileOutput.close();
+				#end
 				
 			default:
 		}
