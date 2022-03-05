@@ -3,6 +3,7 @@ package;
 import haxe.Timer;
 import haxe.CallStack;
 import lime.ui.MouseWheelMode;
+import lime.utils.UInt8Array;
 
 import lime.app.Application;
 import lime.ui.Window;
@@ -121,6 +122,9 @@ class DrawToTexture extends Application
 		
 		displayPen = new Display(0, 0, 800, 600);
 		peoteView.addDisplay(displayPen);
+		peoteView.addFramebufferDisplay(displayPen); // add also to the hidden RenderList for updating the Framebuffer Textures
+		//displayPen.renderFramebufferSkipFrames = 2; // at 1/3 framerate (after render a frame skip 2)
+		displayPen.renderFramebufferEnabled = false;
 		
 		bufferPen  = new Buffer<ElemPen>(100);
 		programPen = new Program(bufferPen);
@@ -132,19 +136,13 @@ class DrawToTexture extends Application
 		bufferPen.addElement(elemPen);				
 		
 		displayPen.setFramebuffer(textureCanvas); // texture to render into
-		//peoteView.setFramebuffer(displayPen, textureCanvas); // <- alternatively (if display is not added to renderlist or to framebuffer-renderlist!)		
+		//peoteView.setFramebuffer(displayPen, textureCanvas); // <- alternatively (if displayPen is not added to renderlist or to framebuffer-renderlist!)		
 		
 		// display.removeFramebuffer(); // to unbind (is need before using this texture into different gl-context!)	
 		
 		
 		// ------------  Render into Texture permanently ---------------
 		
-/*		//displayPen.renderFramebufferEnabled = false;		
-		displayPen.renderFramebufferSkipFrames = 2; // at 1/3 framerate (after render a frame skip 2)
-		
-		// add the display also to the hidden RenderList for updating the Framebuffer Textures
-		peoteView.addFramebufferDisplay(displayPen);
-*/		
 		peoteView.start();
 	}
 	
@@ -155,17 +153,21 @@ class DrawToTexture extends Application
 		elemPen.x = x;
 		elemPen.y = y;
 		bufferPen.updateElement(elemPen);
+		
+		// draws while hold left-shift key down (diffs on native vs html5 timings!)
 		if (isDraw) peoteView.renderToTexture(displayPen);
 	}
 	
 	override function onMouseDown (x:Float, y:Float, button:MouseButton):Void
 	{
-		isDraw = true;
+		// start drawign the hidden Frambuffer-Renderlist while holding mouse down
+		displayPen.renderFramebufferEnabled = true;
 	}
 	
 	override function onMouseUp (x:Float, y:Float, button:MouseButton):Void
 	{
-		isDraw = false;
+		// stop drawign the hidden Frambuffer-Renderlist
+		displayPen.renderFramebufferEnabled = false;
 	}
 	
 /*	override function onMouseWheel (dx:Float, dy:Float, mode:MouseWheelMode)
@@ -174,14 +176,28 @@ class DrawToTexture extends Application
 		else if (dy < 0) peoteView.zoom -= 0.1;
 	}
 */
-	override function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
+	override function onKeyUp (keyCode:KeyCode, modifier:KeyModifier):Void
 	{
 		switch (keyCode) {
-			case KeyCode.SPACE:
-				// save image
-				
+			case KeyCode.LEFT_SHIFT: isDraw = false;
 			default:
 		}
 	}
 
+	override function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
+	{
+		switch (keyCode) {
+			case KeyCode.LEFT_SHIFT: isDraw = true;
+			case KeyCode.SPACE:
+				
+				// TODO: save image
+				
+				// data what holds the rgba-imagedata
+				var data = textureCanvas.readPixelsUInt8(0, 0, 800, 600);
+				
+				
+			default:
+		}
+	}
+	
 }

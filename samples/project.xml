@@ -83,6 +83,8 @@
 	<!-- <haxedef name="HXCPP_MSVC_VER=120" if="cpp" /> -->
 	<!-- <haxedef name="HXCPP_MSVC_VER=140" if="cpp" /> -->
 	
+	<!-- <haxedef name="js-es" value="6" /> -->
+	
 	<!-- <setenv name="SHOW_CONSOLE" /> --> <!-- on windows it shows console if start by clicking on .exe -->
 		
 	<!-- for html5 and loading inside onPreloadComplete-event the assets need to be embed=true --> 

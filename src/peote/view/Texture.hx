@@ -80,7 +80,8 @@ class Texture
 	
  	public inline function usedByDisplay(display:Display):Bool return (displays.indexOf(display) >= 0);
 
-	private inline function removeFromProgram(program:Program):Void {
+	private inline function removeFromProgram(program:Program) 
+	{
 		#if peoteview_debug_texture
 		trace("Texture removed from Program");
 		#end
@@ -97,7 +98,7 @@ class Texture
 		if (gl != null) createFramebuffer();
 	}
 	
-	private inline function removeFromDisplay(display:Display):Void {
+	private inline function removeFromDisplay(display:Display) {
 		#if peoteview_debug_texture
 		trace("Texture (Framebuffer) removed from Display");
 		#end
@@ -129,8 +130,7 @@ class Texture
 		}
 	}
 	
-	private inline function setNewGLContext(newGl:PeoteGL)
-	{
+	private inline function setNewGLContext(newGl:PeoteGL) {
 		if (newGl != null && newGl != gl) // only if different GL - Context	
 		{
 			// check gl-context of all parents
@@ -152,8 +152,7 @@ class Texture
 		}
 	}
 	
-	private inline function clearOldGLContext() 
-	{
+	private inline function clearOldGLContext() {
 		#if peoteview_debug_texture
 		trace("Texture clearOldGLContext");
 		#end
@@ -163,8 +162,7 @@ class Texture
 		deleteFramebuffer();
 	}
 	
-	private inline function createTexture()
-	{
+	private inline function createTexture()	{
 		#if peoteview_debug_texture
 		trace("Create new Texture");
 		#end
@@ -173,7 +171,20 @@ class Texture
 		glTexture = TexUtils.createEmptyTexture(gl, width, height, colorChannels, createMipmaps, magFilter, minFilter);			
 	}
 
-	public function setImage(image:Image, imageSlot:Int=0, tilesX:Null<Int>=null, tilesY:Null<Int>=null) {
+	public function readPixelsUInt8(x:Int, y:Int, w:Int, h:Int, data:UInt8Array = null):UInt8Array {
+		if (data == null) data = new UInt8Array(w * h * 4);
+		// read pixels
+		gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+		if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE) {
+			gl.readPixels(x, y, w, h, gl.RGBA, gl.UNSIGNED_BYTE, data);
+		}
+		else throw("Error: opengl-Picking - Framebuffer not complete!");
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		return data;
+	}
+	
+
+	public function setImage(image:Image, imageSlot:Int = 0, tilesX:Null<Int> = null, tilesY:Null<Int> = null) {
 		#if peoteview_debug_texture
 		trace("Set Image into Texture Slot" + imageSlot);
 		#end
@@ -230,7 +241,7 @@ class Texture
 	}
 	
 	private static inline function imageToTexture(gl:PeoteGL, glTexture:PeoteGL.GLTexture, x:Int, y:Int, w:Int, h:Int, 
-	                                              image:Image, createMipmaps:Bool=false):Void
+	                                              image:Image, createMipmaps:Bool=false)
 	{
 		gl.bindTexture(gl.TEXTURE_2D, glTexture);
 		
