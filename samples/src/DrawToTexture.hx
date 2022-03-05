@@ -144,24 +144,24 @@ class DrawToTexture extends Application
 		
 		// display.removeFramebuffer(); // to unbind (is need before using this texture into different gl-context!)	
 		
-		
-		// ------------  Render into Texture permanently ---------------
-		
+		// if there is animated Elements:
 		peoteView.start();
 	}
 	
 	// ----------- Lime events ------------------
-
 	override function onMouseMove (x:Float, y:Float):Void
 	{
 		elemPen.x = x;
 		elemPen.y = y;
 		bufferPen.updateElement(elemPen);
-		
+ 		
 		// draws while hold left-shift key down (diffs on native vs html5 timings!)
 		if (isDraw) peoteView.renderToTexture(displayPen);
+		//#if (!html5)
+		//else peoteView.render();
+		//#end
 	}
-	
+		
 	override function onMouseDown (x:Float, y:Float, button:MouseButton):Void
 	{
 		// start drawign the hidden Frambuffer-Renderlist while holding mouse down
