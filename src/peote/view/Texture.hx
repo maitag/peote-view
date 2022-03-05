@@ -19,7 +19,8 @@ class Texture
 	public var glTexture(default, null):GLTexture = null;	
 	
 	var framebuffer:GLFramebuffer = null;
-	var glDepthBuffer:GLRenderbuffer = null;	
+	var glDepthBuffer:GLRenderbuffer = null;
+	public var clearOnRenderInto = true;
 	
 	public var colorChannels(default, null):Int=4;
 	

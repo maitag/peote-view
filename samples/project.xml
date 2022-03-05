@@ -9,14 +9,14 @@
 
 
 	<!-- samples -->
-	<app main="CombineShaders" path="bin" file="Main" />
+	<app main="DrawToTexture" path="bin" file="Main" />
 	<!--
 		SimpleQuad, Multidisplay, Multibuffer, ElementInherit, DepthBlend,
 		TextureSimple, TextureSlotTiles,
 		MultiTextures,
 		TextureMipmapFilter,
 		TextureCaching,
-		RenderToTexture,
+		RenderToTexture, DrawToTexture,
 		ShaderInjection,
 		CombineShaders,
 		CustomUniforms,
@@ -25,6 +25,8 @@
 		MouseEvents,
 		StencilMask
 		BunnyMark, BunnyMarkGPU,
+		...
+		FramebufferChain (TODO!)
 		...
 		TestMultipassTemplate
 		...
