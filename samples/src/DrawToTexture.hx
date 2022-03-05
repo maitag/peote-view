@@ -211,16 +211,25 @@ class DrawToTexture extends Application
 				
 				var imageData = image.encode(format);
 				
-				#if !html5
 				// save into file
-				var path = "picture." + switch (format) {
+				var fileName = "picture." + switch (format) {
 					case JPEG:"jpg";
 					case BMP:"bmp";
 					default: "png";
 				};
-				var fileOutput =  sys.io.File.write(path, true);
-				fileOutput.writeBytes(imageData, 0, imageData.length);
-				fileOutput.close();
+				
+				#if html5
+					var arrayBuffer:js.lib.ArrayBuffer = imageData.getData();					
+					var blob = new js.html.Blob([arrayBuffer]);
+					var url = js.html.URL.createObjectURL(blob);
+					var anchor = js.Browser.document.createAnchorElement();
+					anchor.href = url;
+					anchor.download = fileName;
+					anchor.click();				
+				#else
+					var fileOutput =  sys.io.File.write(fileName, true);
+					fileOutput.writeBytes(imageData, 0, imageData.length);
+					fileOutput.close();
 				#end
 				
 			default:
