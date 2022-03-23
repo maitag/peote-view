@@ -91,9 +91,12 @@ class Boid implements Element
 	inline function get_pos():Vec2 return {x:x, y:y};
 	inline function set_pos(v:Vec2) { x = v.x; y = v.y; return v; }
 
-	public var speed(get, set):Vec2;
-	inline function get_speed():Vec2 return {x:x, y:y};
-	inline function set_speed(v:Vec2) { x = v.x; y = v.y; return v; }
+	public var speed:Vec2;
+	
+	public function new(pos:Vec2, speed:Vec2) {
+		set_pos(pos);
+		this.speed = speed;
+	}
 */	
 
 }
