@@ -7,6 +7,7 @@ import lime.ui.Window;
 import lime.ui.KeyCode;
 import lime.ui.KeyModifier;
 import lime.ui.MouseButton;
+import lime.ui.MouseWheelMode;
 import lime.graphics.Image;
 
 import peote.view.PeoteView;
@@ -17,103 +18,9 @@ import peote.view.Color;
 import peote.view.Texture;
 
 import peote.view.Element;
-import Math;
 import utils.Loader;
+import utils.Vec2;
 
-
-@:structInit
-class _Vec2 {
-	public var x:Float;
-	public var y:Float;
-	
-	public inline function new ( x:Float, y:Float ) {
-		this.x = x;
-		this.y = y;
-	}
-
-	// vector length
-	public inline function length():Float return ( Math.sqrt(x*x + y*y) );	
-}
-
-@:forward
-abstract Vec2(_Vec2) from _Vec2 to _Vec2 {
-	inline public function new(x:Float, y:Float) this = new _Vec2(x, y);
-	
-	@:to public inline function toString():String return '[${this.x}, ${this.y}]';
-	@:to public inline function toFloat():Float return this.length();
-
-	//  --------------- operator overloading -----------------
-	
-	// adding and subtracting two vectors-> returns Vec2
-	@:op(A + B) inline function sum(v:Vec2):Vec2 return { x:this.x + v.x, y: this.y + v.y };	
-	@:op(A - B) inline function diff(v:Vec2):Vec2 return { x:this.x - v.x, y: this.y - v.y };	
-
-	// multiply and divide two vectors -> returns Float
-	@:op(A * B) inline function mul(v:Vec2):Float return this.x * v.x + this.y * v.y;
-	@:op(A / B) inline function div(v:Vec2):Float return this.x / v.x + this.y / v.y;
-	
-	// multiply and divide a vector by a float -> returns Vec2
-	@:commutative @:op(A * B) inline function mul_f(f:Float):Vec2 return { x: this.x * f, y: this.y * f };	
-	@:op(A / B) inline function div_f(f:Float):Vec2 return { x: this.x / f, y: this.y / f };
-	
-	// comparing vector to floats or vice versa (using vector length)
-	@:op(A <  B) static inline function l_vf (v:Vec2, f:Float):Bool return v.length() < f;	
-	@:op(A <  B) static inline function l_fv (f:Float, v:Vec2):Bool return f < v.length();	
-	@:op(A >  B) static inline function g_vf (v:Vec2, f:Float):Bool return v.length() > f;	
-	@:op(A >  B) static inline function g_fv (f:Float, v:Vec2):Bool return f > v.length();	
-	@:op(A <= B) static inline function lt_vf(v:Vec2, f:Float):Bool return v.length() <= f;	
-	@:op(A <= B) static inline function lt_fv(f:Float, v:Vec2):Bool return f <= v.length();	
-	@:op(A >= B) static inline function gt_vf(v:Vec2, f:Float):Bool return v.length() >= f;	
-	@:op(A >= B) static inline function gt_fv(f:Float, v:Vec2):Bool return f >= v.length();	
-
-	// comparing 2 vectors by it's references
-	@:op(A == B) inline function eq(v:Vec2):Bool return this == v;
-	@:op(A != B) inline function ne(v:Vec2):Bool return this != v;
-
-	// compare the values of two vectors for equality
-	public inline function isEqualTo   (v:Vec2):Bool return this.x == v.x && this.y == v.y;
-	public inline function isNotEqualTo(v:Vec2):Bool return this.x != v.x || this.y != v.y;
-
-	// comparing equality of a vector to a float (using vector length again)
-	@:commutative @:op(A == B) inline function eq_f(f:Float):Bool return this.length() == f;	
-	@:commutative @:op(A != B) inline function ne_f(f:Float):Bool return this.length() != f;	
-	
-	
-	// for testing
-	static public function test() {
-		var a:Vec2 = { x:1, y:1 }; // because of @:structInit
-		var b:Vec2 = new Vec2( 2, 1 ); // this also works to initialize
-		var c:Vec2 = new Vec2( 1, 2 );
-		var d = new Vec2( 1, 2 ); // this also works to initialize
-		
-		trace('$a + $b = ${a + b}');
-		trace('$a - $b = ${a - b}');
-		trace('$a * $b = ${a * b}');
-		trace('$a / $b = ${a / b}');
-		
-		trace('$b * 2.0 = ${b * 2.0}');
-		trace('2.0 * $b = ${2.0 * b}');
-		trace('$b / 2.0 = ${b / 2.0}');
-		
-		trace('$a.length() = ${a.length()}');
-		trace('($a : Float) = ${ (a:Float) }'); // into Float-context it allways gives vector-length
-		
-		trace('( $a < $b ) = ${ a < b }'); // into greater and lesser comparing it using the vector-lengths
-		trace('( $a < 1.4 ) = ${ a < 1.4 }');
-		trace('( 1.4 < $a ) = ${ 1.4 < a }');
-		
-		trace('( $c == $d ) = ${ c == d }'); // into equal test of 2 vectors it is checking referenzes
-		var e = d;
-		trace('( $e == $d ) = ${ e == d }');
-		
-		trace('$c.isEqualTo( $d ) = ${ c.isEqualTo(d) }'); // even if this is different variables, the vector-values is true
-		
-		trace('( $b.length() == $c.length() ) = ${ b.length() == c.length() }');
-		
-		trace('( $b == $c.length() ) = ${ b == c.length() }');
-		trace('( $b.length() == $c ) = ${ b.length() == c }');
-	}
-}
 
 class Boid implements Element
 {
@@ -125,50 +32,56 @@ class Boid implements Element
 	
 	@rotation public var rot:Float;
 
+	// TODO: public var speed:Vec2;
 	public var speedX:Float;
 	public var speedY:Float;
 
-	// TODO:
-/*	public var pos(get, set):Vec2;
+	public var pos(get, set):Vec2;
 	inline function get_pos():Vec2 return {x:x, y:y};
 	inline function set_pos(v:Vec2) { x = v.x; y = v.y; return v; }
 
 	public var speed:Vec2;
 	
-	public function new(pos:Vec2, speed:Vec2) {
+	public function new(pos:Vec2, ?speed:Vec2) {
 		set_pos(pos);
-		this.speed = speed;
+		if (speed != null)
+			this.speed = speed;
+		else
+			this.speed = new Vec2(0, 0); // default speed
 	}
-*/	
-
 }
-
 
 
 class Boids extends Application
 {
-	var addingBoids:Bool;
-	var boids:Array<Boid>;
-	var buffer:Buffer<Boid>;
-	var fps:FPS;
 	var peoteView:PeoteView;
-	var minX:Int;
-	var minY:Int;
-	var maxX:Int;
-	var maxY:Int;
+	var display:Display;
+	var buffer:Buffer<Boid>;
+	var program:Program;
+	
+	var fps:FPS;
+
+	var isStart = false;
+	var addingBoids = false;
+
+
+	// boid simulation parameters:
+	var boids = new Array<Boid>();
 	var boidCount:Int = 50;
 	
-	var isStart:Bool = false;
-	
+	var minX:Int = 0;
+	var minY:Int = 0;
+	var maxX:Int;
+	var maxY:Int;
 
-	//boid simulation parameters:
-	var attraction:Float = 0.01; //strength of pull towards centre of mass
-	var privateSpace:Float = 100; //amount of space the boids try to get in between them
-	var velocityMatching:Float = 0.125;//0.04; //pull in flight direction of other boids
-	var speedLimitation:Float=1000; //limit the speed of the boids
-	var pullToCentre:Float=0.00005; //pull towards centre
-	var repulsion:Float=1; //strength at which boids try to not collide
-	var scaling:Float=0.0005; //scale everything down
+	var attraction:Float = 0.01; // strength of pull towards centre of mass
+	var privateSpace:Float = 100; // amount of space the boids try to get in between them
+	var velocityMatching:Float = 0.125;//0.04; // pull in flight direction of other boids
+	var speedLimitation:Float = 1000; // limit the speed of the boids
+	var pullToCentre:Float = 0.00005; // pull towards centre
+	var repulsion:Float = 1; // strength at which boids try to not collide
+	
+	var scaling:Float = 0.0005; // scale everything down
 
 
 	override function onWindowCreate():Void
@@ -184,22 +97,17 @@ class Boids extends Application
 
 	public function startSample(window:Window)
 	{
-		Vec2.test();
+		// Vec2.test(); // test the Vec2 helper
 		
-		minX = 0;
-		maxX = window.width;
-		minY = 0;
-		maxY = window.height;
 		fps = new FPS ();
-		boids = new Array ();
+
+		maxX = window.width;
+		maxY = window.height;
+		
 		peoteView = new PeoteView(window); // at now this should stay first ( to initialize PeoteGL from gl-context! )
-        buffer = new Buffer<Boid>(boidCount, 4096); // automatic grow buffersize about 4096
+        display = new Display(0, 0, maxX, maxY, Color.GREEN);
 
 		Loader.image ("assets/images/boid.png", true, onImageLoad);
-		
-		attraction = attraction * scaling;
-		velocityMatching = velocityMatching * scaling;
-		repulsion = repulsion * scaling;
 	}
 
     private function onImageLoad(image:Image)
@@ -207,30 +115,39 @@ class Boids extends Application
         var texture = new Texture(image.width, image.height);
         texture.setImage(image);
 
-        var program = new Program(buffer); //Sprite buffer
+        buffer = new Buffer<Boid>(boidCount, 4096); // automatic grow buffersize about 4096
+		program = new Program(buffer); //Sprite buffer
         program.addTexture(texture, "custom"); //Sets image for the sprites
-
         //program.setVertexFloatPrecision("low");
         //program.setFragmentFloatPrecision("low");
 
-        var display = new Display(0, 0, maxX, maxY, Color.GREEN);
         display.addProgram(program);    // program to display
-
         peoteView.addDisplay(display);  // display to peoteView
 
-        for (i in 0...boidCount) {
-            addBoid ();
-        }
+		
+		// init Boids
+		
+ 		// scale everything
+		attraction = attraction * scaling;
+		velocityMatching = velocityMatching * scaling;
+		repulsion = repulsion * scaling;
+
+		for (i in 0...boidCount) addBoid ();
+        
         isStart = true;
     }
 		
 	private function addBoid():Void
 	{
-		var boid = new Boid();
-		boid.x = Math.random()*maxX/4;//Math.random()  * maxX/2 ;
- 		boid.y = Math.random()*maxY/4;//Math.random()  * maxY/2 ;
+		var boid = new Boid({
+				x: Math.random() * maxX / 4, //Math.random()  * maxX/2
+				y: Math.random()*maxY/4      //Math.random()  * maxY/2
+		});
+		
+		// TODO:
 		boid.speedX = 0.0;
 		boid.speedY = 0.0;
+		
 		boids.push(boid);
 		buffer.addElement(boid);
 	}
@@ -238,19 +155,15 @@ class Boids extends Application
 
 	// ----------- Lime events ------------------
 
-
 	override function update(deltaTime:Int):Void 
 	{
-		if (!isStart) return;
-		
-
+		if (!isStart) return;		
 
 		for (boid in boids) 
 		{
 			boid.x += boid.speedX;
 			boid.y += boid.speedY;
-			
-			
+						
 			var vChangeX:Float = 0;
 			var vChangeY:Float = 0;
 
@@ -269,6 +182,7 @@ class Boids extends Application
 						nVic++;
 				}
 			}
+			
 			vChangeX += (cx/nVic-boid.x)*attraction;
 			vChangeY += (cy/nVic-boid.y)*attraction;
 		
@@ -290,6 +204,7 @@ class Boids extends Application
 					}
 				}
 			}
+			
 			vChangeX += rx*repulsion;
 			vChangeY += ry*repulsion;
 			
@@ -297,6 +212,7 @@ class Boids extends Application
 			//3. match velocity of other adjacent boids
 			var vx:Float = 0;
 			var vy:Float = 0;
+			
 			for (boid2 in boids)
 			{
 				if (boid != boid2)
@@ -305,6 +221,7 @@ class Boids extends Application
 						vy += boid2.speedY;
 				}
 			}
+			
 			vChangeX += (vx/(boidCount-1) - boid.speedX)*velocityMatching;
 			vChangeY += (vy/(boidCount-1) - boid.speedY)*velocityMatching;
 			
@@ -317,7 +234,8 @@ class Boids extends Application
 			boid.speedX += vChangeX;
 			boid.speedY += vChangeY;
 			
-			var speed:Float = Math.sqrt(Math.pow(boid.speedX,2) + Math.pow(boid.speedY,2));
+			var speed:Float = Math.sqrt(Math.pow(boid.speedX, 2) + Math.pow(boid.speedY, 2));
+			
 			if (speed > speedLimitation)
 			{
 				boid.speedX = boid.speedX / speed * speedLimitation;
@@ -350,15 +268,35 @@ class Boids extends Application
 		trace ('${boids.length} boids @ ${fps.current} FPS');
 	}
 	
+	override function onMouseWheel (dx:Float, dy:Float, mode:MouseWheelMode):Void
+	{
+		if (dy > 0) display.zoom *= 1.1;
+		else if (dy < 0) display.zoom *= 0.9;
+	}
+	
 	override function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
 	{
 		switch (keyCode) {
-			case KeyCode.SPACE:isStart = !isStart;
+			case KeyCode.SPACE: isStart = !isStart;
+			case KeyCode.LEFT:  display.xOffset += 30 * display.zoom;
+			case KeyCode.RIGHT: display.xOffset -= 30 * display.zoom;
+			case KeyCode.UP:    display.yOffset += 30 * display.zoom;
+			case KeyCode.DOWN:  display.yOffset -= 30 * display.zoom;
 			default:
 		}
 	}
+	
+	override function onWindowResize (width:Int, height:Int):Void
+	{
+		display.width = width;
+		display.height = height;
+		
+		// TODO: update min and max also ?
+	}
+	
 
 }
+
 
 // --------------------------------------------
 
