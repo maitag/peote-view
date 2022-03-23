@@ -106,8 +106,12 @@ abstract Vec2(_Vec2) from _Vec2 to _Vec2 {
 		var e = d;
 		trace('( $e == $d ) = ${ e == d }');
 		
-		trace('$c.isEqualTo( $d ) = ${ c.isEqualTo(d) }'); // even if this is different variables the vector-values is true
+		trace('$c.isEqualTo( $d ) = ${ c.isEqualTo(d) }'); // even if this is different variables, the vector-values is true
+		
 		trace('( $b.length() == $c.length() ) = ${ b.length() == c.length() }');
+		
+		trace('( $b == $c.length() ) = ${ b == c.length() }');
+		trace('( $b.length() == $c ) = ${ b.length() == c }');
 	}
 }
 
