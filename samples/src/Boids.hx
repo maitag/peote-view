@@ -59,7 +59,6 @@ class Boids extends Application
 	var velocityMatching:Float = 0.125;//0.04; //pull in flight direction of other boids
 	var speedLimitation:Float=1000; //limit the speed of the boids
 	var pullToCentre:Float=0.00005; //pull towards centre
-	var vicinityDetection:Float=200; //radius at which the boids see each other
 	var repulsion:Float=1; //strength at which boids try to not collide
 	var scaling:Float=0.0005; //scale everything down
 
@@ -198,12 +197,8 @@ class Boids extends Application
 			vChangeX += (vx/(boidCount-1) - boid.speedX)*velocityMatching;
 			vChangeY += (vy/(boidCount-1) - boid.speedY)*velocityMatching;
 			
-
-			//4. run away from predator bunnies
 			
-
-			
-			//accellerate boids to middle of screen if out of borders -- improve!
+			//accellerate boids to middle of screen // Todo: only if out of borders
 			vChangeX += -(boid.x - maxX/2)*pullToCentre;
 			vChangeY += -(boid.y - maxY/2)*pullToCentre;
 		
