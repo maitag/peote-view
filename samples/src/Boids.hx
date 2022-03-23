@@ -37,9 +37,7 @@ class _Vec2 {
 
 @:forward
 abstract Vec2(_Vec2) from _Vec2 to _Vec2 {
-	inline public function new(x:Float, y:Float) {
-		this = new _Vec2(x, y);
-	}
+	inline public function new(x:Float, y:Float) this = new _Vec2(x, y);
 	
 	@:to public inline function toString():String return '[${this.x}, ${this.y}]';
 	@:to public inline function toFloat():Float return this.length();
@@ -89,12 +87,13 @@ abstract Vec2(_Vec2) from _Vec2 to _Vec2 {
 		var d = new Vec2( 1, 2 ); // this also works to initialize
 		
 		trace('$a + $b = ${a + b}');
+		trace('$a - $b = ${a - b}');
 		trace('$a * $b = ${a * b}');
 		trace('$a / $b = ${a / b}');
 		
 		trace('$b * 2.0 = ${b * 2.0}');
-		trace('$b / 2.0 = ${b / 2.0}');
 		trace('2.0 * $b = ${2.0 * b}');
+		trace('$b / 2.0 = ${b / 2.0}');
 		
 		trace('$a.length() = ${a.length()}');
 		trace('($a : Float) = ${ (a:Float) }'); // into Float-context it allways gives vector-length
