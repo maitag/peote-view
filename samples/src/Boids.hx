@@ -20,6 +20,59 @@ import peote.view.Element;
 import Math;
 import utils.Loader;
 
+
+@:structInit
+class _Vec2 {
+	public var x:Float;
+	public var y:Float;
+	public inline function new ( x:Float, y:Float ) {
+		this.x = x;
+		this.y = y;
+	}
+	
+	public inline function len():Float {
+		return ( Math.sqrt(x*x + y*y) );
+	}
+	
+}
+
+@:forward
+abstract Vec2(_Vec2) from _Vec2 to _Vec2 {
+	inline public function new(x:Float, y:Float) {
+		this = new _Vec2(x, y);
+	}
+	
+	@:to public inline function toString():String {
+		return '[${this.x}, ${this.y}]';
+	}
+
+	@:op(A + B) public inline function _sum(v:Vec2):Vec2 {
+		return { x:this.x + v.x, y: this.y + v.y };
+	}
+	
+	@:op(A - B) public inline function _diff(v:Vec2):Vec2 {
+		return { x:this.x - v.x, y: this.y - v.y };
+	}
+	
+	@:op(A * B) public inline function _mul(v:Vec2):Float {
+		return this.x * v.x + this.y * v.y;
+	}
+	
+	@:commutative
+	@:op(A * B) public inline function _mulf(f:Float):Vec2 {
+		return { x: f * this.x, y: f * this.y };
+	}	
+	
+	static public function test() {
+		var a:Vec2 = { x:1, y:1 }; // because of @:structInit
+		var b:Vec2 = new Vec2( 2, 1 ); // this also works to initialize
+		trace('$a + $b = ${a + b}');
+		trace('$a * $b = ${a * b}');
+		trace('$b * 2.0 = ${b * 2.0}');
+		trace('2.0 * $b = ${2.0 * b}');		
+	}
+}
+
 class Boid implements Element
 {
 	@sizeX @const public var w:Int=13;
@@ -32,6 +85,16 @@ class Boid implements Element
 
 	public var speedX:Float;
 	public var speedY:Float;
+
+	// TODO:
+/*	public var pos(get, set):Vec2;
+	inline function get_pos():Vec2 return {x:x, y:y};
+	inline function set_pos(v:Vec2) { x = v.x; y = v.y; return v; }
+
+	public var speed(get, set):Vec2;
+	inline function get_speed():Vec2 return {x:x, y:y};
+	inline function set_speed(v:Vec2) { x = v.x; y = v.y; return v; }
+*/	
 
 }
 
@@ -76,6 +139,8 @@ class Boids extends Application
 
 	public function startSample(window:Window)
 	{
+		//Vec2.test();
+		
 		minX = 0;
 		maxX = window.width;
 		minY = 0;
@@ -86,9 +151,10 @@ class Boids extends Application
         buffer = new Buffer<Boid>(boidCount, 4096); // automatic grow buffersize about 4096
 
 		Loader.image ("assets/images/boid.png", true, onImageLoad);
-		attraction=attraction*scaling;
-		velocityMatching=velocityMatching*scaling;
-		repulsion=repulsion*scaling;
+		
+		attraction = attraction * scaling;
+		velocityMatching = velocityMatching * scaling;
+		repulsion = repulsion * scaling;
 	}
 
     private function onImageLoad(image:Image)
@@ -172,8 +238,8 @@ class Boids extends Application
 				{
 					if (Math.sqrt(Math.pow(boid2.x - boid.x,2) + Math.pow(boid2.y - boid.y,2)) < privateSpace)
 					{ 
-						trace(boid.x);
-						trace(boid2.x);
+						//trace(boid.x);
+						//trace(boid2.x);
 						rx=rx-(boid2.x - boid.x);///Math.pow(boid2.x - boid.x,2);
 						ry=ry-(boid2.y - boid.y);//Math.pow(boid2.y - boid.y, 2);
 					}
