@@ -55,7 +55,8 @@ abstract Vec2(_Vec2) from _Vec2 to _Vec2 {
 
 	// comparing equality of a vector to a float (using vector length again)
 	
-	// TODO: would give problem if comparing with "null"
+	// TODO: would give problem if comparing with "null" (tipp by theangryepicbanana: "if it somehow does not work, add @:nullSafety(Strict)" )
+	// try -> " @:notNull " first !
 	//@:commutative @:op(A == B) inline function eq_f(f:Float):Bool return this.length() == f;	
 	//@:commutative @:op(A != B) inline function ne_f(f:Float):Bool return this.length() != f;	
 	
