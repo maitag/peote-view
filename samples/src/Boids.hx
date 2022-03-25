@@ -24,23 +24,19 @@ import utils.Vec2;
 
 class Boid implements Element
 {
-	@sizeX @const public var w:Int=13;
-	@sizeY @const public var h:Int=32;
+	@sizeX @const public var w:Int = 13;
+	@sizeY @const public var h:Int = 32;
 	
 	@posX public var x:Float; // using 32 bit Float for glBuffer
 	@posY public var y:Float;
 	
 	@rotation public var rot:Float;
 
-	// TODO: public var speed:Vec2;
-	//public var speedX:Float;
-	//public var speedY:Float;
 	public var speed:Vec2;
 
 	public var pos(get, set):Vec2;
 	inline function get_pos():Vec2 return {x:x, y:y};
 	inline function set_pos(v:Vec2) { x = v.x; y = v.y; return v; }
-
 	
 	public function new(pos:Vec2, ?speed:Vec2) {
 		set_pos(pos);
@@ -113,14 +109,13 @@ class Boids extends Application
         texture.setImage(image);
 
         buffer = new Buffer<Boid>(boidCount, 4096); // automatic grow buffersize about 4096
-				program = new Program(buffer); //Sprite buffer
+		program = new Program(buffer); //Sprite buffer
         program.addTexture(texture, "custom"); //Sets image for the sprites
         //program.setVertexFloatPrecision("low");
         //program.setFragmentFloatPrecision("low");
 
         display.addProgram(program);    // program to display
         peoteView.addDisplay(display);  // display to peoteView
-
 		
 		
  		// scale everything
@@ -128,9 +123,9 @@ class Boids extends Application
 		velocityMatching = velocityMatching * scaling;
 		repulsion = repulsion * scaling;
 
-    initializeBoids(); 
+		initializeBoids(); 
 		display.zoom = 0.3;
-    isStart = true;
+		isStart = true;
     }
 	
 
@@ -140,16 +135,18 @@ class Boids extends Application
 		var distance:Float;
 		for (i in 0...boidCount)
 		{
-			alpha = boidCount / (i+1.0) * 2. * Math.PI + Math.random()*0.5 - 0.25;
-			distance = 400 + Math.random()*800;
+			alpha = boidCount / (i + 1.0) * 2.0 * Math.PI + Math.random() * 0.5 - 0.25;
+			distance = 400 + Math.random() * 800;
+			
 			var boid = new Boid({
-				x: distance * Math.sin(alpha) + maxPos.x/2,
-				y: distance * Math.cos(alpha) + maxPos.y/2
-			}, 
+				x: distance * Math.sin(alpha) + maxPos.x / 2,
+				y: distance * Math.cos(alpha) + maxPos.y / 2
+			},
 			{
 				x: Math.sin(alpha) * 5,
 				y: Math.cos(alpha) * 5
 			});
+			
 			boids.push(boid);
 			buffer.addElement(boid);
 		}
@@ -158,8 +155,8 @@ class Boids extends Application
 	private function addBoid():Void
 	{
 		var boid = new Boid({
-				x: Math.random() * maxPos.x *4 - maxPos.x*2, 
-				y: Math.random() * maxPos.y *4 - maxPos.y*2 
+			x: Math.random() * maxPos.x * 4 - maxPos.x * 2,
+			y: Math.random() * maxPos.y * 4 - maxPos.y * 2	
 		});
 		
 		boids.push(boid);
@@ -167,51 +164,51 @@ class Boids extends Application
 	}
 	
 	//1. move to perceived centre of mass
-	private function rule1(boid:Boid):Vec2
+	private inline function rule1(boid:Boid):Vec2
 	{
-			var a1 = new Vec2(0.0, 0.0);
-			var nVic:Float=0;
-			
-			for (boid2 in boids)
+		var a1 = new Vec2(0.0, 0.0);
+		var nVic:Float=0;
+		
+		for (boid2 in boids)
+		{
+			if (boid != boid2)
 			{
-				if (boid != boid2)
-				{
-						a1 = a1 + boid2.pos;
-						nVic++;
-				}
+				a1 = a1 + boid2.pos;
+				nVic++;
 			}
-			return(a1/nVic);
+		}
+		return(a1/nVic);
 	}
 
 	//2. keep distance to other boids
-	private function rule2(boid:Boid):Vec2
+	private inline function rule2(boid:Boid):Vec2
 	{
-			var a2 = new Vec2(0.0, 0.0);
-			for (boid2 in boids)
+		var a2 = new Vec2(0.0, 0.0);
+		for (boid2 in boids)
+		{
+			if (boid != boid2)
 			{
-				if (boid != boid2)
-				{
-					if ((boid.pos-boid2.pos).length() < privateSpace)
-					{ 
-						a2=a2 - (boid2.pos - boid.pos);
-					}
+				if ((boid.pos - boid2.pos).length() < privateSpace)
+				{ 
+					a2 = a2 - (boid2.pos - boid.pos);
 				}
 			}
-			return(a2);
+		}
+		return(a2);
 	}
 
 	//3. match velocity of other adjacent boids
-	private function rule3(boid:Boid):Vec2
+	private inline function rule3(boid:Boid):Vec2
 	{
 		var a3 = new Vec2(0.0, 0.0);
-			for (boid2 in boids)
+		for (boid2 in boids)
+		{
+			if (boid != boid2)
 			{
-				if (boid != boid2)
-				{
-					a3 = a3 + boid2.speed;
-				}
+				a3 = a3 + boid2.speed;
 			}
-			return(a3);
+		}
+		return(a3);
 	}
 
 	// ----------- Lime events ------------------
@@ -230,23 +227,21 @@ class Boids extends Application
 
 			a += rule2(boid)*repulsion;
 			
-			a += (rule3(boid)/(boidCount-1) - boid.speed)*velocityMatching;
+			a += (rule3(boid) / (boidCount - 1) - boid.speed) * velocityMatching;
 			
 			//accellerate boids to middle of screen // Todo: only if out of borders
-			a = a - (boid.pos - maxPos/2)*pullToCentre;
+			a -= (boid.pos - maxPos / 2) * pullToCentre;
 
 			//update velocity
 			boid.speed = boid.speed + a;
 			
-			
 			if (boid.speed.length() > speedLimitation)
 			{
-				boid.speed= boid.speed / boid.speed.length() * speedLimitation;
+				boid.speed = boid.speed / boid.speed.length() * speedLimitation;
 			}
 			
 			//update orientation
-			boid.rot = Math.atan2(boid.speed.y, boid.speed.x)*180/Math.PI + 90;
-
+			boid.rot = Math.atan2(boid.speed.y, boid.speed.x) * 180 / Math.PI + 90;
 		}
 		
 		if (addingBoids)
@@ -293,7 +288,8 @@ class Boids extends Application
 		display.width = width;
 		display.height = height;
 		
-		// TODO: update min and max also ?
+		maxPos.x = width;
+		maxPos.y = height;
 	}
 	
 
