@@ -33,21 +33,21 @@ class Boid implements Element
 	@rotation public var rot:Float;
 
 	// TODO: public var speed:Vec2;
-	public var speedX:Float;
-	public var speedY:Float;
+	//public var speedX:Float;
+	//public var speedY:Float;
+	public var speed:Vec2;
 
 	public var pos(get, set):Vec2;
 	inline function get_pos():Vec2 return {x:x, y:y};
 	inline function set_pos(v:Vec2) { x = v.x; y = v.y; return v; }
 
-	public var speed:Vec2;
 	
 	public function new(pos:Vec2, ?speed:Vec2) {
 		set_pos(pos);
 		if (speed != null)
 			this.speed = speed;
 		else
-			this.speed = new Vec2(0, 0); // default speed
+			this.speed = new Vec2(0.0, 0.0); // default speed
 	}
 }
 
@@ -68,11 +68,9 @@ class Boids extends Application
 	// boid simulation parameters:
 	var boids = new Array<Boid>();
 	var boidCount:Int = 50;
-	
-	var minX:Int = 0;
-	var minY:Int = 0;
-	var maxX:Int;
-	var maxY:Int;
+
+	var minPos = new Vec2(0.0, 0.0);
+	var maxPos:Vec2;
 
 	var attraction:Float = 0.01; // strength of pull towards centre of mass
 	var privateSpace:Float = 100; // amount of space the boids try to get in between them
@@ -100,12 +98,11 @@ class Boids extends Application
 		// Vec2.test(); // test the Vec2 helper
 		
 		fps = new FPS ();
-
-		maxX = window.width;
-		maxY = window.height;
+		
+		maxPos = new Vec2(window.width, window.height);
 		
 		peoteView = new PeoteView(window); // at now this should stay first ( to initialize PeoteGL from gl-context! )
-        display = new Display(0, 0, maxX, maxY, Color.GREEN);
+        display = new Display(0, 0, window.width, window.height, Color.GREEN);
 
 		Loader.image ("assets/images/boid.png", true, onImageLoad);
 	}
@@ -116,7 +113,7 @@ class Boids extends Application
         texture.setImage(image);
 
         buffer = new Buffer<Boid>(boidCount, 4096); // automatic grow buffersize about 4096
-		program = new Program(buffer); //Sprite buffer
+				program = new Program(buffer); //Sprite buffer
         program.addTexture(texture, "custom"); //Sets image for the sprites
         //program.setVertexFloatPrecision("low");
         //program.setFragmentFloatPrecision("low");
@@ -125,33 +122,97 @@ class Boids extends Application
         peoteView.addDisplay(display);  // display to peoteView
 
 		
-		// init Boids
 		
  		// scale everything
 		attraction = attraction * scaling;
 		velocityMatching = velocityMatching * scaling;
 		repulsion = repulsion * scaling;
 
-		for (i in 0...boidCount) addBoid ();
-        
-        isStart = true;
+    initializeBoids(); 
+		display.zoom = 0.3;
+    isStart = true;
     }
+	
+
+	private function initializeBoids():Void
+	{
+		var alpha:Float;
+		var distance:Float;
+		for (i in 0...boidCount)
+		{
+			alpha = boidCount / (i+1.0) * 2. * Math.PI + Math.random()*0.5 - 0.25;
+			distance = 400 + Math.random()*800;
+			var boid = new Boid({
+				x: distance * Math.sin(alpha) + maxPos.x/2,
+				y: distance * Math.cos(alpha) + maxPos.y/2
+			}, 
+			{
+				x: Math.sin(alpha) * 5,
+				y: Math.cos(alpha) * 5
+			});
+			boids.push(boid);
+			buffer.addElement(boid);
+		}
+	}
 		
 	private function addBoid():Void
 	{
 		var boid = new Boid({
-				x: Math.random() * maxX / 4, //Math.random()  * maxX/2
-				y: Math.random()*maxY/4      //Math.random()  * maxY/2
+				x: Math.random() * maxPos.x *4 - maxPos.x*2, 
+				y: Math.random() * maxPos.y *4 - maxPos.y*2 
 		});
-		
-		// TODO:
-		boid.speedX = 0.0;
-		boid.speedY = 0.0;
 		
 		boids.push(boid);
 		buffer.addElement(boid);
 	}
 	
+	//1. move to perceived centre of mass
+	private function rule1(boid:Boid):Vec2
+	{
+			var a1 = new Vec2(0.0, 0.0);
+			var nVic:Float=0;
+			
+			for (boid2 in boids)
+			{
+				if (boid != boid2)
+				{
+						a1 = a1 + boid2.pos;
+						nVic++;
+				}
+			}
+			return(a1/nVic);
+	}
+
+	//2. keep distance to other boids
+	private function rule2(boid:Boid):Vec2
+	{
+			var a2 = new Vec2(0.0, 0.0);
+			for (boid2 in boids)
+			{
+				if (boid != boid2)
+				{
+					if ((boid.pos-boid2.pos).length() < privateSpace)
+					{ 
+						a2=a2 - (boid2.pos - boid.pos);
+					}
+				}
+			}
+			return(a2);
+	}
+
+	//3. match velocity of other adjacent boids
+	private function rule3(boid:Boid):Vec2
+	{
+		var a3 = new Vec2(0.0, 0.0);
+			for (boid2 in boids)
+			{
+				if (boid != boid2)
+				{
+					a3 = a3 + boid2.speed;
+				}
+			}
+			return(a3);
+	}
 
 	// ----------- Lime events ------------------
 
@@ -161,89 +222,30 @@ class Boids extends Application
 
 		for (boid in boids) 
 		{
-			boid.x += boid.speedX;
-			boid.y += boid.speedY;
+			boid.pos += boid.speed;
 						
-			var vChangeX:Float = 0;
-			var vChangeY:Float = 0;
+			var a = new Vec2(0.0, 0.0); 
 
-			//boid update algorithm
-			//1. move to perceived centre of mass
-			var cx:Float=0;
-			var cy:Float=0;
-			var nVic:Float=0;
-			
-			for (boid2 in boids)
-			{
-				if (boid != boid2)
-				{
-						cx=cx+boid2.x;
-						cy=cy+boid2.y;
-						nVic++;
-				}
-			}
-			
-			vChangeX += (cx/nVic-boid.x)*attraction;
-			vChangeY += (cy/nVic-boid.y)*attraction;
-		
-			
-			//2. keep distance to other boids
-			var rx:Float = 0;
-			var ry:Float = 0;
+			a += (rule1(boid)- boid.pos)*attraction;
 
-			for (boid2 in boids)
-			{
-				if (boid != boid2)
-				{
-					if (Math.sqrt(Math.pow(boid2.x - boid.x,2) + Math.pow(boid2.y - boid.y,2)) < privateSpace)
-					{ 
-						//trace(boid.x);
-						//trace(boid2.x);
-						rx=rx-(boid2.x - boid.x);///Math.pow(boid2.x - boid.x,2);
-						ry=ry-(boid2.y - boid.y);//Math.pow(boid2.y - boid.y, 2);
-					}
-				}
-			}
+			a += rule2(boid)*repulsion;
 			
-			vChangeX += rx*repulsion;
-			vChangeY += ry*repulsion;
-			
-			
-			//3. match velocity of other adjacent boids
-			var vx:Float = 0;
-			var vy:Float = 0;
-			
-			for (boid2 in boids)
-			{
-				if (boid != boid2)
-				{
-						vx += boid2.speedX;
-						vy += boid2.speedY;
-				}
-			}
-			
-			vChangeX += (vx/(boidCount-1) - boid.speedX)*velocityMatching;
-			vChangeY += (vy/(boidCount-1) - boid.speedY)*velocityMatching;
-			
+			a += (rule3(boid)/(boidCount-1) - boid.speed)*velocityMatching;
 			
 			//accellerate boids to middle of screen // Todo: only if out of borders
-			vChangeX += -(boid.x - maxX/2)*pullToCentre;
-			vChangeY += -(boid.y - maxY/2)*pullToCentre;
-		
+			a = a - (boid.pos - maxPos/2)*pullToCentre;
+
 			//update velocity
-			boid.speedX += vChangeX;
-			boid.speedY += vChangeY;
+			boid.speed = boid.speed + a;
 			
-			var speed:Float = Math.sqrt(Math.pow(boid.speedX, 2) + Math.pow(boid.speedY, 2));
 			
-			if (speed > speedLimitation)
+			if (boid.speed.length() > speedLimitation)
 			{
-				boid.speedX = boid.speedX / speed * speedLimitation;
-				boid.speedY = boid.speedY / speed * speedLimitation;
+				boid.speed= boid.speed / boid.speed.length() * speedLimitation;
 			}
 			
 			//update orientation
-			boid.rot = Math.atan2(boid.speedY, boid.speedX)*180/Math.PI + 90;
+			boid.rot = Math.atan2(boid.speed.y, boid.speed.x)*180/Math.PI + 90;
 
 		}
 		
