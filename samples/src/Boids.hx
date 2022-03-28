@@ -63,7 +63,7 @@ class Boids extends Application
 
 	// boid simulation parameters:
 	var boids = new Array<Boid>();
-	var boidCount:Int = 50;
+	var boidCount:Int = 100;
 
 	var minPos = new Vec2(0.0, 0.0);
 	var maxPos:Vec2;
@@ -71,11 +71,11 @@ class Boids extends Application
 	var attraction:Float = 0.01; // strength of pull towards centre of mass
 	var privateSpace:Float = 100; // amount of space the boids try to get in between them
 	var velocityMatching:Float = 0.125;//0.04; // pull in flight direction of other boids
-	var speedLimitation:Float = 1000; // limit the speed of the boids
+	var speedLimitation:Float = 50; // limit the speed of the boids
 	var pullToCentre:Float = 0.00005; // pull towards centre
-	var repulsion:Float = 1; // strength at which boids try to not collide
-	
-	var scaling:Float = 0.0005; // scale everything down
+	var repulsion:Float = 0.1; // strength at which boids try to not collide
+	var visionRange:Float = 700;
+	var scaling:Float = 0.01; // scale everything down
 
 
 	override function onWindowCreate():Void
@@ -171,13 +171,14 @@ class Boids extends Application
 		
 		for (boid2 in boids)
 		{
-			if (boid != boid2)
+			if (boid != boid2 && (boid.pos - boid2.pos).length() < visionRange)
 			{
 				a1 = a1 + boid2.pos;
 				nVic++;
 			}
 		}
-		return(a1/nVic);
+		if (nVic != 0){a1 = a1 / nVic;}
+		return(a1);
 	}
 
 	//2. keep distance to other boids
@@ -201,14 +202,32 @@ class Boids extends Application
 	private inline function rule3(boid:Boid):Vec2
 	{
 		var a3 = new Vec2(0.0, 0.0);
+		var nVic:Float=0;
 		for (boid2 in boids)
 		{
-			if (boid != boid2)
+			if (boid != boid2 && (boid.pos - boid2.pos).length() < visionRange)
 			{
 				a3 = a3 + boid2.speed;
+				nVic++;
 			}
 		}
+		if (nVic != 0){a3 = a3 / nVic;}
 		return(a3);
+	}
+
+	//4. keep boids inside borders
+	private inline function rule4(boid:Boid):Vec2
+	{
+		var a4 = new Vec2(0.0, 0.0);
+		if (boid.pos.x < - maxPos.x || boid.pos.x > 2 * maxPos.x)
+		{
+			a4.x += -(boid.pos.x - maxPos.x / 2);
+		}
+		if (boid.pos.y < - maxPos.y || boid.pos.y > 2 * maxPos.y)
+		{
+			a4.y += -(boid.pos.y - maxPos.y / 2);
+		}
+		return(a4);
 	}
 
 	// ----------- Lime events ------------------
@@ -223,21 +242,23 @@ class Boids extends Application
 						
 			var a = new Vec2(0.0, 0.0); 
 
-			a += (rule1(boid)- boid.pos)*attraction;
+			a += (rule1(boid) - boid.pos)*attraction;
 
-			a += rule2(boid)*repulsion;
+			a += rule2(boid) * repulsion;
 			
-			a += (rule3(boid) / (boidCount - 1) - boid.speed) * velocityMatching;
+			a += (rule3(boid) - boid.speed) * velocityMatching;
 			
 			//accellerate boids to middle of screen // Todo: only if out of borders
-			a -= (boid.pos - maxPos / 2) * pullToCentre;
+			//a -= (boid.pos - maxPos / 2) * pullToCentre;
+			a += rule4(boid)*pullToCentre;
 
 			//update velocity
 			boid.speed = boid.speed + a;
 			
-			if (boid.speed.length() > speedLimitation)
+			var speed:Float = boid.speed.length();
+			if (speed > speedLimitation)
 			{
-				boid.speed = boid.speed / boid.speed.length() * speedLimitation;
+				boid.speed = boid.speed / speed * speedLimitation;
 			}
 			
 			//update orientation
@@ -275,10 +296,10 @@ class Boids extends Application
 	{
 		switch (keyCode) {
 			case KeyCode.SPACE: isStart = !isStart;
-			case KeyCode.LEFT:  display.xOffset += 30 * display.zoom;
-			case KeyCode.RIGHT: display.xOffset -= 30 * display.zoom;
-			case KeyCode.UP:    display.yOffset += 30 * display.zoom;
-			case KeyCode.DOWN:  display.yOffset -= 30 * display.zoom;
+			case KeyCode.LEFT:  display.xOffset += 300 * display.zoom;
+			case KeyCode.RIGHT: display.xOffset -= 300 * display.zoom;
+			case KeyCode.UP:    display.yOffset += 300 * display.zoom;
+			case KeyCode.DOWN:  display.yOffset -= 300 * display.zoom;
 			default:
 		}
 	}
