@@ -73,8 +73,8 @@ class Boids extends Application
 	var velocityMatching:Float = 0.125;//0.04; // pull in flight direction of other boids
 	var speedLimitation:Float = 50; // limit the speed of the boids
 	var pullToCentre:Float = 0.00005; // pull towards centre
-	var repulsion:Float = 0.1; // strength at which boids try to not collide
-	var visionRange:Float = 700;
+	var repulsion:Float = 0.05; // strength at which boids try to not collide
+	var visionRange:Float = 550;
 	var scaling:Float = 0.01; // scale everything down
 
 
