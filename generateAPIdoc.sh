@@ -4,8 +4,9 @@ haxe -xml doc/api/doc.xml \
 	peote.view.PeoteView
 
 haxelib run dox \
-	-in "^peote\.view\.(PeoteView|Display|Program|Texture|Color)$" \
 	-i doc/api/doc.xml \
-	-o doc/api
+	-o doc/api \
+	--toplevel-package peote.view \
+#	-in "^peote\.view\.(PeoteView|Display|Program|Texture|Color|Mask|UniformFloat)$" \
 
 rm doc/api/doc.xml

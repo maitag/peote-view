@@ -30,7 +30,7 @@ haxelib git peote-view https://github.com/maitag/peote-view
 
 ## Scenegraph and Namespace
 
-![scenegraph](doc/PeoteVIew.png?raw=true)
+![scenegraph](doc/PeoteView.png?raw=true)
 
 `PeoteView`
 - main screenarea that contains all Displays
