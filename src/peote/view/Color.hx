@@ -1,7 +1,7 @@
 package peote.view;
 import peote.view.utils.Util;
 
-abstract Color(Int) from Int to Int
+abstract Color(Int) from Int to Int from UInt to UInt
 {
 	inline function new(rgba:Int) this = rgba;
 	
