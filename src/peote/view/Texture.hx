@@ -1,5 +1,6 @@
 package peote.view;
 
+import lime.utils.Float32Array;
 import lime.utils.UInt8Array;
 
 import peote.view.PeoteGL.Image;
@@ -43,13 +44,15 @@ class Texture
 	public var createMipmaps:Bool = false;
 	public var magFilter:Int = 0;
 	public var minFilter:Int = 0;
+	public var useFloat:Bool = false;
 
 	var updated:Bool = false;
 	
 	var programs = new Array<Program>();
 	var displays = new Array<Display>();
 	
-	public function new(slotWidth:Int, slotHeight:Int, imageSlots:Int=1, colorChannels:Int=4, createMipmaps:Bool=false, minFilter:Int=0, magFilter:Int=0, maxTextureSize:Int=16384)
+	// TODO: better via @structinit TextureParam
+	public function new(slotWidth:Int, slotHeight:Int, imageSlots:Int=1, colorChannels:Int=4, createMipmaps:Bool=false, minFilter:Int=0, magFilter:Int=0, useFloat:Bool = false, maxTextureSize:Int=16384)
 	{
 		this.slotWidth = slotWidth;
 		this.slotHeight = slotHeight;
@@ -58,6 +61,8 @@ class Texture
 		this.createMipmaps = createMipmaps;
 		this.magFilter = magFilter;
 		this.minFilter = minFilter;
+		this.useFloat = useFloat;
+		
 		// optimal size!
 		var p = TexUtils.optimalTextureSize(imageSlots, slotWidth, slotHeight, maxTextureSize);
 		width = p.width;
@@ -168,7 +173,7 @@ class Texture
 		#end
 		if (width > gl.getParameter(gl.MAX_TEXTURE_SIZE) || height > gl.getParameter(gl.MAX_TEXTURE_SIZE))
 			throw("Error, texture size is greater then gl.MAX_TEXTURE_SIZE");
-		glTexture = TexUtils.createEmptyTexture(gl, width, height, colorChannels, createMipmaps, magFilter, minFilter);			
+		glTexture = TexUtils.createEmptyTexture(gl, width, height, colorChannels, createMipmaps, magFilter, minFilter, useFloat);
 	}
 
 	public function readPixelsUInt8(x:Int, y:Int, w:Int, h:Int, data:UInt8Array = null):UInt8Array {
@@ -183,7 +188,12 @@ class Texture
 		return data;
 	}
 	
-
+/*	public function writePixelFloat32(x:Int, y:Int, r:Float, g:Float, b:Float, a:Float) {
+	}
+	
+	public function writePixelsFloat32(x:Int, y:Int, w:Int, h:Int, data:Float32Array = null) {		
+	}
+*/
 	public function setImage(image:Image, imageSlot:Int = 0, tilesX:Null<Int> = null, tilesY:Null<Int> = null) {
 		#if peoteview_debug_texture
 		trace("Set Image into Texture Slot" + imageSlot);
@@ -235,18 +245,25 @@ class Texture
 		                   slotWidth * (imgProp.imageSlot % slotsX),
 		                   slotHeight * Math.floor(imgProp.imageSlot / slotsX),
 		                   image.width, image.height, //slotWidth, slotHeight,
-		                   image, createMipmaps );	
+		                   image, createMipmaps, useFloat );	
 						   
 		updated = true; // to reset peoteView.glStateTexture  <-- TODO: check isTextureStateChange()
 	}
 	
 	private static inline function imageToTexture(gl:PeoteGL, glTexture:PeoteGL.GLTexture, x:Int, y:Int, w:Int, h:Int, 
-	                                              image:Image, createMipmaps:Bool=false)
+	                                              image:Image, createMipmaps:Bool=false, useFloat:Bool = false)
 	{
 		gl.bindTexture(gl.TEXTURE_2D, glTexture);
 		
-		//gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, w, h, gl.RGBA, gl.UNSIGNED_BYTE,  image.buffer.data );
-		gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, w, h, gl.RGBA, gl.UNSIGNED_BYTE,  image.data );
+		// TODO: separate image-data for better using data with floatpoint precision per colorchannel
+		if (useFloat) {
+			var fa = new Float32Array(w * h * 4);
+			for (i in 0...(w * h * 4)) fa[i] = image.data[i] / 255;
+			gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, w, h, gl.RGBA, gl.FLOAT,  fa );
+		}
+		else
+			gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, w, h, gl.RGBA, gl.UNSIGNED_BYTE,  image.data );
+			//gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, w, h, gl.RGBA, gl.UNSIGNED_BYTE,  image.buffer.data );
 		
 		if (createMipmaps) { // re-create for full texture ?
 			//gl.hint(gl.GENERATE_MIPMAP_HINT, gl.NICEST);

@@ -430,10 +430,10 @@ class PeoteView
 		
 		gl.clearColor(0.0, 0.0, 0.0, 0.0);
 		if (display.fbTexture.clearOnRenderInto) {
-			//gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
 		}
 		else gl.clear(gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+		//else gl.clear(gl.STENCIL_BUFFER_BIT); // TODO: also let draw in depend of z-buffer
 		
 		// Optimize: only clear depth and stencil bits if is used somewhere (hasDepth und hasStencil)
 		// TODO: let a program clear at start

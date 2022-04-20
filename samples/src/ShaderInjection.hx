@@ -159,7 +159,7 @@ class Elem3 implements Element
 	@rotation @const @formula("(h-45.0)*8.0") var r:Float = 30.0;
 	
 	@pivotX @const @formula("w") public var px:Int=50;
-	@pivotY @const @formula("h-45") public var py:Int=50;
+	@pivotY @const @formula("h-45.0") public var py:Int=50;
 	
 	@texX public var tx:Int = 0;
 	@texX("B") public var txb:Int = 0;

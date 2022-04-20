@@ -133,7 +133,8 @@ class Shader
 	@:allow(peote.view) static var fragmentShader(default, null):String =	
 	"
 	::if isES3::#version 300 es::end::
-	::foreach FRAGMENT_EXTENSIONS::#extension ::EXTENSION:: : enable::end::
+	::foreach FRAGMENT_EXTENSIONS::#extension ::EXTENSION:: : enable
+	::end::
 	
 	::if FRAGMENT_INT_PRECISION::precision ::FRAGMENT_INT_PRECISION:: int; ::end::
 	::if FRAGMENT_FLOAT_PRECISION::precision ::FRAGMENT_FLOAT_PRECISION:: float; ::end::

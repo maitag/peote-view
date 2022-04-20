@@ -206,10 +206,15 @@ class Program
 			if (PeoteGL.Version.isINSTANCED) glShaderConfig.isINSTANCED = true;
 			
 			// gl-extensions for fragment-shader
+			// TODO: let enable custom extensions for shaders like "GL_OES_fragment_precision_high"
 			glShaderConfig.FRAGMENT_EXTENSIONS = [];
 			if (gl.getExtension("OES_standard_derivatives") != null)
 				glShaderConfig.FRAGMENT_EXTENSIONS.push({EXTENSION:"GL_OES_standard_derivatives"});
-			// TODO: let enable custom extensions for shaders like "GL_OES_fragment_precision_high"
+				
+			if (gl.getExtension("EXT_color_buffer_float") != null)
+				glShaderConfig.FRAGMENT_EXTENSIONS.push({EXTENSION:"EXT_color_buffer_float"});
+			else if (gl.getExtension("OES_texture_float") != null)
+				glShaderConfig.FRAGMENT_EXTENSIONS.push({EXTENSION:"OES_texture_float"});
 
 			buffer.setNewGLContext(gl);
 			createProgram();

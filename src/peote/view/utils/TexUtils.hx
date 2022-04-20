@@ -4,9 +4,10 @@ import peote.view.PeoteGL.GLTexture;
 
 class TexUtils 
 {
-
+	// TODO: better via @structinit TextureParam
 	public static function createEmptyTexture(gl:PeoteGL, width:Int, height:Int, colorChannels:Int = 4,
-	                                          createMipmaps:Bool=false, magFilter:Int=0, minFilter:Int=0):GLTexture
+	                                          createMipmaps:Bool = false, magFilter:Int = 0, minFilter:Int = 0,
+	                                          useFloat:Bool = false):GLTexture
 	{
 		// TODO: colorchannels !
 		
@@ -16,12 +17,24 @@ class TexUtils
 		
 		GLTool.clearGlErrorQueue(gl);
 		 // <-- TODO: using only shared RAM on neko/cpp with "0" .. better using empty image-data
-		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, 0);
+		if (useFloat) {
+			// sometimes 32 float is essential for multipass-rendering,
+			// needs EXT_color_buffer_float or OES_texture_float extension
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, width, height, 0, gl.RGBA, gl.FLOAT, 0);
+			if (GLTool.getLastGlError(gl) == gl.INVALID_VALUE) {
+				trace("switching to RGBA16F for float precision texture creation");
+				gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, width, height, 0, gl.RGBA, gl.FLOAT, 0);
+				if (GLTool.getLastGlError(gl) == gl.INVALID_VALUE) {
+					trace("switching to RGBA for float precision texture creation");
+					gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.FLOAT, 0);
+				}
+			}
+		}
+		else gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, 0);
+		
 		if (GLTool.getLastGlError(gl) == gl.OUT_OF_MEMORY) {
 			throw("OUT OF GPU MEMORY while texture creation");
 		}
-		// sometimes 32 float is essential for multipass-rendering (needs extension EXT_color_buffer_float)
-		// gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, width, height, 0, gl.RGBA, gl.FLOAT, 0);
 		
 		
 		// TODO: outsource into other function ?

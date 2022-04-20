@@ -98,7 +98,7 @@ class DrawToTexture extends Application
 		
 		// ----------- texture to render into ------------------------
 		
-		textureCanvas = new Texture(800, 600); // 2 Slots
+		textureCanvas = new Texture(800, 600);
 		textureCanvas.clearOnRenderInto = false; // do not clear the texture before rendering into
 		
 		
