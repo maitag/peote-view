@@ -844,7 +844,13 @@ class ElementImpl
 				glConf.CALC_TIME += 'float time$i = 1.0 - abs(mix( -1.0, 1.0, fract((uTime - aTime$t) / max(aTime$d * 2.0, 0.000001)))); ';
 			else
 				glConf.CALC_TIME += 'float time$i = clamp( (uTime - aTime$t) / aTime$d, 0.0, 1.0); ';
+			
+			// CALC ease in and out
+			//var easeStart = "0.0";
+			//var easeEnd = "1.0";
+			//glConf.CALC_TIME += 'time$i = mix(mix(smoothstep(0.0, 1.0 + $easeEnd, time$i), time$i, $easeStart ),mix(smoothstep(0.0 - $easeStart, 1.0, time$i), time$i, $easeEnd ), time$i); ';
 		}
+		
 		if (timers.length > 0) glConf.UNIFORM_TIME = "uniform float uTime;";
 		
 		// pack & formulas -------------------------------------------------------
