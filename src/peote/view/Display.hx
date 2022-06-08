@@ -337,18 +337,62 @@ class Display
 	// ----------------------------- Helpers ----------------------------------------
 	
     /**
-		Gives true if a point at px and py is inside the Display-area.
+		Gives true if a point at global screenposition px and py is inside the Display-area.
 		@param px global x-position
 		@param py global y-position
 		@param peoteView (optional) if not already added to a peoteView you can set one here to include it's zoom and offset into calculation
     **/
-	public inline function isPointInside(px:Int, py:Int, peoteView:PeoteView = null) {
+	public inline function isPointInside(px:Int, py:Int, peoteView:PeoteView = null):Bool {
 		if (peoteView == null) peoteView = this.peoteView;
 		if (peoteView != null) {
 			px = Std.int(px/peoteView.xz - peoteView.xOffset);
 			py = Std.int(py/peoteView.yz - peoteView.yOffset);			
 		}
 		return (px >= x && px < x + width && py >= y && py < y + height);
+	}
+
+    /**
+		Converts a local x-position from display-coordinates to the correspondending global screen ones.
+		@param localX x-position inside of the display
+		@param peoteView (optional) if not already added to a peoteView you can set one here to include it's zoom and offset into calculation
+    **/
+	public inline function globalX(localX:Float, peoteView:PeoteView = null):Float {
+		if (peoteView == null) peoteView = this.peoteView;
+		if (peoteView != null) return (localX * xz + peoteView.xOffset + xOffset + x) * peoteView.xz;
+		else return localX * xz + xOffset + x;
+	}
+
+    /**
+		Converts a global x-position from screen-coordinates to the correspondending local display ones.
+		@param globalX x-position at screen
+		@param peoteView (optional) if not already added to a peoteView you can set one here to include it's zoom and offset into calculation
+    **/
+	public inline function localX(globalX:Float, peoteView:PeoteView = null):Float {
+		if (peoteView == null) peoteView = this.peoteView;
+		if (peoteView != null) return (globalX / peoteView.xz - peoteView.xOffset - xOffset - x) / xz;
+		else return (globalX - xOffset - x) / xz;
+	}
+
+    /**
+		Converts a local y-position from display-coordinates to the correspondending global screen ones.
+		@param localY y-position inside of the display
+		@param peoteView (optional) if not already added to a peoteView you can set one here to include it's zoom and offset into calculation
+    **/
+	public inline function globalY(localY:Float, peoteView:PeoteView = null):Float {
+		if (peoteView == null) peoteView = this.peoteView;
+		if (peoteView != null) return (localY * yz + peoteView.yOffset + yOffset + y) * peoteView.yz;
+		else return localY * yz + yOffset + y;
+	}
+
+    /**
+		Converts a global y-position from screen-coordinates to the correspondending local display ones.
+		@param globalY y-position at screen
+		@param peoteView (optional) if not already added to a peoteView you can set one here to include it's zoom and offset into calculation
+    **/
+	public inline function localY(globalY:Float, peoteView:PeoteView = null):Float {
+		if (peoteView == null) peoteView = this.peoteView;
+		if (peoteView != null) return (globalY / peoteView.yz - peoteView.yOffset - yOffset - y) / yz;
+		else return (globalY - yOffset - y) / yz;
 	}
 
 	

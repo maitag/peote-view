@@ -4,9 +4,9 @@
 	"license": "MIT",
 	"tags": ["peote", "opengl", "2d", "shader", "glsl"],
 	"description": "2D Render Library (lime/opengl)",
-	"version": "0.8.7",
+	"version": "0.8.8",
 	"classPath": "src/",
-	"releasenote": "float precision for texture colors",
+	"releasenote": "adding functions for converting global coordinates from and to display ones",
 	"contributors": ["Sylvio Sell - maitag"],
 	"dependencies": {
 		"lime": ""

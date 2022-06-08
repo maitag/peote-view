@@ -1,6 +1,7 @@
 package;
 
 import haxe.CallStack;
+import lime.ui.MouseButton;
 
 import lime.app.Application;
 import lime.ui.Window;
@@ -83,8 +84,10 @@ class Multidisplay extends Application
 
 	override function onKeyDown (keyCode:KeyCode, modifier:KeyModifier):Void
 	{
-		var steps = 10;
-		var esteps = element.w;
+		var steps = 1;
+		var esteps = 1;
+		//var steps = 10;
+		//var esteps = element.w;
 		switch (keyCode) {
 			case KeyCode.P: //  switch the program to the other display
 				if (displayLeft.hasProgram(program)) {
@@ -96,7 +99,7 @@ class Multidisplay extends Application
 					displayLeft.addProgram(program);
 				}
 			case KeyCode.LEFT:
-					if (modifier.ctrlKey) {element.x-=esteps; buffer.updateElement(element);}
+					if (modifier.ctrlKey) {element.x -= esteps; buffer.updateElement(element);}
 					else if (modifier.shiftKey) displayLeft.xOffset-=steps;
 					else if (modifier.altKey) displayRight.xOffset-=steps;
 					else peoteView.xOffset-=steps;
@@ -140,7 +143,12 @@ class Multidisplay extends Application
 					
 			default:
 		}
+		// debug local and global position of the yellow element
+		trace('local ${element.x} - global: ${displayLeft.globalX(element.x)}');
 	}
 
-
+	override function onMouseDown (x:Float, y:Float, button:MouseButton):Void
+	{
+		trace('atLocal: ${displayLeft.localX(x)}');
+	}
 }
