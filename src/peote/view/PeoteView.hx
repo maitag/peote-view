@@ -284,6 +284,31 @@ class PeoteView
 		if (PeoteGL.Version.isUBO) uniformBuffer.updateResolution(gl, width, height);
 	}
 
+	// ----------------------------- Helpers ----------------------------------------
+	
+    /**
+		Converts a local x-position from view-coordinates to the correspondending global screen ones.
+		@param localX x-position inside of the view
+    **/
+	public inline function globalX(localX:Float):Float return localX * xz + xOffset;
+
+    /**
+		Converts a global x-position from screen-coordinates to the correspondending local view ones.
+		@param globalX x-position at screen
+    **/
+	public inline function localX(globalX:Float):Float return (globalX - xOffset) / xz;
+
+    /**
+		Converts a local y-position from view-coordinates to the correspondending global screen ones.
+		@param localY y-position inside of the view
+    **/
+	public inline function globalY(localY:Float):Float return localY * yz + yOffset;
+
+    /**
+		Converts a global y-position from screen-coordinates to the correspondending local view ones.
+		@param globalY y-position at screen
+    **/
+	public inline function localY(globalY:Float):Float return (globalY - yOffset) / yz;
 	
 
 	// ------------------------------------------------------------------------------
