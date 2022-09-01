@@ -845,10 +845,12 @@ class ElementImpl
 			else
 				glConf.CALC_TIME += 'float time$i = clamp( (uTime - aTime$t) / aTime$d, 0.0, 1.0); ';
 			
-			// CALC ease in and out
+			// to CALC ease in and out into @anim() also:
 			//var easeStart = "0.0";
 			//var easeEnd = "1.0";
 			//glConf.CALC_TIME += 'time$i = mix(mix(smoothstep(0.0, 1.0 + $easeEnd, time$i), time$i, $easeStart ),mix(smoothstep(0.0 - $easeStart, 1.0, time$i), time$i, $easeEnd ), time$i); ';
+
+			// TODO: best would be to have a formula-string after "pingpong" what using "time" and @custom-attributes like what works now via templating
 		}
 		
 		if (timers.length > 0) glConf.UNIFORM_TIME = "uniform float uTime;";
@@ -1128,7 +1130,7 @@ class ElementImpl
 					} 
 					else _mapCustom.push(c.name);
 				}
-		}	
+		}
 		resolveVaryings(varyings, packedVaryings, [conf.custom]);
 		resolveVaryings(texVaryings, packedTexVaryings, [conf.texUnit, conf.texSlot, conf.texTile, conf.texX, conf.texY, conf.texW, conf.texH, conf.texPosX, conf.texPosY, conf.texSizeX, conf.texSizeY]);
 						
@@ -2235,7 +2237,7 @@ class ElementImpl
 			kind: FieldType.FVar(macro:String, macro $v{parseShader(Shader.vertexShader)}), 
 			pos: Context.currentPos(),
 		});
-		//trace("ELEMENT ---------- \n"+parseShader(Shader.vertexShader));
+		// trace("ELEMENT ---------- \n"+parseShader(Shader.vertexShader));
 		fields.push({
 			name:  "fragmentShader",
 			meta:  allowForBuffer,

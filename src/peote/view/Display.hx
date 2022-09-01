@@ -219,6 +219,16 @@ class Display
 		else throw("Error, display is not added to peoteView");
 	}
 	
+    /**
+        Swaps the order of two Programs inside the RenderList.
+		@param  program Program instance
+		@param  programToSwapWith Program instance to swap with
+    **/
+	public function swapPrograms(program:Program, programToSwapWith:Program):Void
+	{
+		programList.swap(program, programToSwapWith);
+	}
+	
 	private function setNewGLContext(newGl:PeoteGL)
 	{
 		if (newGl != null && newGl != gl) // only if different GL - Context	

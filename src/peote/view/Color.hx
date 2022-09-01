@@ -44,6 +44,9 @@ abstract Color(Int) from Int to Int from UInt to UInt
 	inline function set_blue (b:Int) return set_b(b);
 	inline function set_alpha(a:Int) return set_a(a);
 	
+	// set by Float values
+	public inline function setAlpha(a:Float):Color { return (this & 0xffffff00) | Std.int(a*0xFF); }
+	
 	public static inline function random():Color {
 		return (Std.int(Math.random()*256) << 24) | Std.random(0x1000000);
 	}
