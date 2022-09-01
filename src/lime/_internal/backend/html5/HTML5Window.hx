@@ -73,6 +73,7 @@ class HTML5Window
 	private var setHeight:Int;
 	private var setWidth:Int;
 	private var textInputEnabled:Bool;
+	private var textInputRect:Rectangle;
 	private var unusedTouchesPool = new List<Touch>();
 
 	public function new(parent:Window)
@@ -420,7 +421,13 @@ class HTML5Window
 	private function handleCutOrCopyEvent(event:ClipboardEvent):Void
 	{
 		// FIX for peote-view to handle clipboard inside keyboard-handler
-		//event.clipboardData.setData("text/plain", Clipboard.text);
+		/*
+		var text = Clipboard.text;
+		if (text == null) {
+			text = "";
+		}
+		event.clipboardData.setData("text/plain", text);
+		*/
 		if (event.cancelable) event.preventDefault();
 	}
 
@@ -1170,6 +1177,11 @@ class HTML5Window
 		}
 
 		return textInputEnabled = value;
+	}
+
+	public function setTextInputRect(value:Rectangle):Rectangle
+	{
+		return textInputRect = value;
 	}
 
 	private var inputing = false;
