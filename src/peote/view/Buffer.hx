@@ -408,11 +408,14 @@ class $className implements BufferInterface
 	/**
         Returns the number of Elements inside the buffer
     **/
-	public inline function length():Int // TODO: better here with getter/setter
-	{
-		return _maxElements;
-	}
+	//public inline function length():Int // TODO: better here with getter/setter
+	//{
+		//return _maxElements;
+	//}
 
+	public var length(get, never):Int;
+	inline function get_length():Int return _maxElements;
+	
 	private function getElementWithHighestZindex(elementIndices:Array<Int>): Int
 	{
 		var lastZindex:Int = - $p{elemField}.MAX_ZINDEX;

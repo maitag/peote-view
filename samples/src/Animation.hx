@@ -23,6 +23,11 @@ class Elem implements Element
 	@posY @set("PosSize") @anim("Position", "pingpong") //@constStart(0) //@constEnd(100) 
 	public var y:Int;
 	
+	// TODO: custom formula to recalculate time
+	//@custom public var easeOut:Float;
+	//@posY @set("PosSize") @anim("Position", "pingpong", "ease(time, 0.0, easeOut)")
+
+	
 	// Size in pixel
 	@sizeX @set("PosSize") @time("SizePivot") @anim("Size") //@constStart(300) //@constEnd(400) 
 	public var w=100;
