@@ -37,9 +37,9 @@ class Display
 		return yOffset = yo;
 	}
 
-	private var xz(default, null):Float = 1.0;
-	private var yz(default, null):Float = 1.0;
-
+	public var xz(default, null):Float = 1.0;
+	public var yz(default, null):Float = 1.0;
+	
 	public var zoom(default, set):Float = 1.0;
 	public inline function set_zoom(z:Float):Float {
 		xz = xZoom * z;
@@ -94,7 +94,7 @@ class Display
 	var alpha:Float = 1.0;
 
 	
-	var peoteView:PeoteView = null;
+	public var peoteView(default, null):PeoteView = null;
 	var gl:PeoteGL = null;
 
 	var programList:RenderList<Program>;

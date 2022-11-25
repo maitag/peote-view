@@ -336,6 +336,7 @@ class $className implements BufferInterface
 				#end
 				var lastElement: $elementType = _elements.get(--_maxElements);
 				lastElement.bytePos = element.bytePos;
+				//trace(lastElement.);
 				lastElement.bufferPointer = new peote.view.utils.GLBufferPointer(_bytes, element.bytePos, _elemBuffSize);
 				updateElement(lastElement);
 				_elements.set( Std.int(  element.bytePos / _elemBuffSize ), lastElement);
@@ -407,7 +408,7 @@ class $className implements BufferInterface
 	/**
         Returns the number of Elements inside the buffer
     **/
-	public inline function length():Int
+	public inline function length():Int // TODO: better here with getter/setter
 	{
 		return _maxElements;
 	}

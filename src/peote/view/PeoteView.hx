@@ -60,8 +60,8 @@ class PeoteView
 		} else return false;
 	}
 	
-	private var xz(default, null):Float = 1.0;
-	private var yz(default, null):Float = 1.0;
+	public var xz(default, null):Float = 1.0;
+	public var yz(default, null):Float = 1.0;
 	
 	public var zoom(default, set):Float = 1.0;
 	public inline function set_zoom(z:Float):Float {
