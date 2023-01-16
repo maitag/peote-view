@@ -356,14 +356,16 @@ class $className implements BufferInterface
 
 	/**
         Removes all elements from the buffer.
-        @param  clearElementsReferences all inner element-references will be set to null
-        @param  useElementsLater let all elements add to (another) Buffer later.
+        @param  clearElementsRefs all inner element-references will be set to null (false by default)
+        @param  notUseElementsLater if the elements not need to add to any Buffer again (false by default)
     **/
-	public function clear(clearElementsReferences:Bool = true, useElementsLater:Bool = true):Void
+	public function clear(clearElementsRefs:Bool = false, notUseElementsLater:Bool = false):Void
 	{
-		for (i in 0..._maxElements) {
-			if (useElementsLater) _elements.get(i).bytePos = -1;
-			if (clearElementsReferences) _elements.set(i, null);
+		if ( clearElementsRefs || (!notUseElementsLater) ) {
+			for (i in 0..._maxElements) {
+				if (!notUseElementsLater) _elements.get(i).bytePos = -1;
+				if (clearElementsRefs) _elements.set(i, null);
+			}
 		}
 		_maxElements = 0;
 		if (_shrinkAtSize > 0) {
