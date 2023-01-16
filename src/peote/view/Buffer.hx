@@ -355,12 +355,14 @@ class $className implements BufferInterface
 	}
 
 	/**
-        Removes all elements from the buffer.
+        Removes all elements from the buffer. Arguments like this makes sense: clear(), clear(true) or clear(true, true)!
         @param  clearElementsRefs all inner element-references will be set to null (false by default)
-        @param  notUseElementsLater if the elements not need to add to any Buffer again (false by default)
+        @param  notUseElementsLater if the elements not need to add to any Buffer again, clears also all inner references (false by default)
     **/
 	public function clear(clearElementsRefs:Bool = false, notUseElementsLater:Bool = false):Void
 	{
+		if (notUseElementsLater) clearElementsRefs = true;
+		if (_shrinkAtSize > 0) clearElementsRefs = false;
 		if ( clearElementsRefs || (!notUseElementsLater) ) {
 			for (i in 0..._maxElements) {
 				if (!notUseElementsLater) _elements.get(i).bytePos = -1;
