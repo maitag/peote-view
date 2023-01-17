@@ -200,7 +200,7 @@ class DrawToTexture extends Application
 				var data = textureCanvas.readPixelsUInt8(0, 0, 800, 600);
 
 				// convert into lime Image
-				var imageBuffer = new ImageBuffer(data, 800, 600, 32, PixelFormat.RGBA32);
+				var imageBuffer = new ImageBuffer(lime.utils.UInt8Array.fromBytes(data.view.buffer), 800, 600, 32, PixelFormat.RGBA32);
 				imageBuffer.format = RGBA32;
 				var image = new Image(imageBuffer);
 

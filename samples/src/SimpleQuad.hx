@@ -38,7 +38,7 @@ class SimpleQuad extends Application
 		display.addProgram(program);
 		
 		var element = new ElementSimple();
-		buffer.addElement(element);		
+		buffer.addElement(element);
 	}
 		
 }
