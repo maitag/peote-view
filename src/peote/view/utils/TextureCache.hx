@@ -2,7 +2,6 @@ package peote.view.utils;
 
 import haxe.ds.ArraySort;
 
-import peote.view.PeoteGL.Image;
 import peote.view.Program;
 import peote.view.Texture;
 import peote.view.utils.TexUtils;

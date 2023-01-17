@@ -4,7 +4,7 @@ import haxe.io.Bytes;
 import haxe.io.UInt8Array;
 import haxe.io.Float32Array;
 
-import peote.view.Image;
+import peote.view.TextureData;
 import peote.view.PeoteGL.GLTexture;
 import peote.view.PeoteGL.GLFramebuffer;
 import peote.view.PeoteGL.GLRenderbuffer;
@@ -40,7 +40,7 @@ class Texture
 	public var tilesX:Int = 1;
 	public var tilesY:Int = 1;
 	
-	public var images = new Map<Image, ImgProp>();
+	public var images = new Map<TextureData, ImgProp>();
 	
 	public var createMipmaps:Bool = false;
 	public var magFilter:Int = 0;
@@ -195,7 +195,7 @@ class Texture
 	public function writePixelsFloat32(x:Int, y:Int, w:Int, h:Int, data:Float32Array = null) {		
 	}
 */
-	public function setImage(image:Image, imageSlot:Int = 0, tilesX:Null<Int> = null, tilesY:Null<Int> = null) {
+	public function setImage(image:TextureData, imageSlot:Int = 0, tilesX:Null<Int> = null, tilesY:Null<Int> = null) {
 		#if peoteview_debug_texture
 		trace("Set Image into Texture Slot" + imageSlot);
 		#end
@@ -213,7 +213,7 @@ class Texture
 		}
 	}
 	
-	public function removeImage(image:Image) {
+	public function removeImage(image:TextureData) {
 		#if peoteview_debug_texture
 		trace("Remove Image from Texture");
 		#end
@@ -239,7 +239,7 @@ class Texture
 		}
 	}
 	
-	private function bufferImage(image:Image, imgProp:ImgProp) {
+	private function bufferImage(image:TextureData, imgProp:ImgProp) {
 		#if peoteview_debug_texture
 		trace("buffer Image to Texture");
 		#end
@@ -254,7 +254,7 @@ class Texture
 	}
 	
 	private static inline function imageToTexture(gl:PeoteGL, glTexture:PeoteGL.GLTexture, x:Int, y:Int, w:Int, h:Int, 
-	                                              image:Image, createMipmaps:Bool=false, useFloat:Bool = false)
+	                                              image:TextureData, createMipmaps:Bool=false, useFloat:Bool = false)
 	{
 		gl.bindTexture(gl.TEXTURE_2D, glTexture);
 		

@@ -6,7 +6,7 @@ import lime.app.Application;
 import lime.ui.Window;
 import lime.ui.KeyCode;
 import lime.ui.KeyModifier;
-import lime.ui.MouseButton;
+import lime.graphics.Image;
 
 import utils.Loader;
 
@@ -39,7 +39,7 @@ class Elem implements Element
 	}
 }
 
-class ImageConvertion extends Application
+class TextureDataInOut extends Application
 {
 	var peoteView:PeoteView;
 	var element:Elem;
@@ -73,7 +73,7 @@ class ImageConvertion extends Application
 		element  = new Elem();
 		buffer.addElement(element);
 		
-		Loader.image ("assets/images/peote_tiles.png", true, function (image:lime.graphics.Image) {
+		Loader.image ("assets/images/peote_tiles.png", true, function (image:Image) {
 			
 			//var img = new peote.view.Image(image.width, image.height);
 			

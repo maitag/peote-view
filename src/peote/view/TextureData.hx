@@ -1,16 +1,13 @@
 package peote.view;
 
-import haxe.io.Bytes;
 import haxe.io.UInt8Array;
 import haxe.io.Float32Array;
 
-@:enum
-abstract ImageType(Int) {
+// TODO:
+@:enum abstract TextureType(Int) {
   var UINT = 0;   //for gl.UNSIGNED_BYTE
   var FLOAT = 1; //for gl.FLOAT
 }
-
-// TODO:
 /*                 bytes per pixel
                  FLOAT   UNSIGNED_BYTE
 RGBA              16         4
@@ -19,7 +16,8 @@ LUMINANCE_ALPHA   8          2
 LUMINANCE         4          1
 ALPHA             4          1
 */	
-private class ImageImpl
+
+private class TextureDataImpl
 {
 	
 	public var width:Int = 0;
@@ -31,7 +29,7 @@ private class ImageImpl
 	public var dataUInt8:UInt8Array = null;
 	public var dataFloat:Float32Array = null;
 	
-	public function new(width:Int, height:Int, type:ImageType = ImageType.UINT, data:UInt8Array = null)
+	public function new(width:Int, height:Int, type:TextureType = TextureType.UINT, data:UInt8Array = null)
 	{
 		this.width = width;
 		this.height = height;
@@ -44,16 +42,16 @@ private class ImageImpl
 }
 
 @:forward
-abstract Image(ImageImpl) to ImageImpl 
+abstract TextureData(TextureDataImpl) to TextureDataImpl 
 {
-	inline public function new(width:Int, height:Int, type:ImageType = ImageType.UINT, data:UInt8Array = null) {
-		this = new ImageImpl(width, height, type, data);
+	inline public function new(width:Int, height:Int, type:TextureType = TextureType.UINT, data:UInt8Array = null) {
+		this = new TextureDataImpl(width, height, type, data);
 	}
 	
 	
 	@:from
 	static public function fromLimeImage(image:lime.graphics.Image) {
-		return new Image(image.width, image.height, ImageType.UINT,
+		return new TextureData(image.width, image.height, TextureType.UINT,
 			UInt8Array.fromBytes( image.data.toBytes() )
 		);
 	}
