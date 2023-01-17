@@ -1,9 +1,10 @@
 package peote.view;
 
-import lime.utils.Float32Array;
-import lime.utils.UInt8Array;
+import haxe.io.Bytes;
+import haxe.io.UInt8Array;
+import haxe.io.Float32Array;
 
-import peote.view.PeoteGL.Image;
+import peote.view.Image;
 import peote.view.PeoteGL.GLTexture;
 import peote.view.PeoteGL.GLFramebuffer;
 import peote.view.PeoteGL.GLRenderbuffer;
@@ -224,6 +225,8 @@ class Texture
 		if (gl != null) {
 			// TODO
 			var data = new UInt8Array(image.width * image.height * 4);
+			//var data = Bytes.alloc(image.width * image.height * 4);
+			
 			gl.bindTexture(gl.TEXTURE_2D, glTexture);
 			gl.texSubImage2D(gl.TEXTURE_2D, 0, 
 				slotWidth * (imgProp.imageSlot % slotsX),
@@ -255,15 +258,15 @@ class Texture
 	{
 		gl.bindTexture(gl.TEXTURE_2D, glTexture);
 		
-		// TODO: separate image-data for better using data with floatpoint precision per colorchannel
 		if (useFloat) {
+			// TODO: separate image-data for better using data with floatpoint precision per colorchannel
 			var fa = new Float32Array(w * h * 4);
-			for (i in 0...(w * h * 4)) fa[i] = image.data[i] / 255;
-			gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, w, h, gl.RGBA, gl.FLOAT,  fa );
+			for (i in 0...(w * h * 4)) fa[i] = image.dataUInt8[i] / 255;
+			gl.texSubImage2D_Float(gl.TEXTURE_2D, 0, x, y, w, h, gl.RGBA, gl.FLOAT, fa);
 		}
-		else
-			gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, w, h, gl.RGBA, gl.UNSIGNED_BYTE,  image.data );
-			//gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, w, h, gl.RGBA, gl.UNSIGNED_BYTE,  image.buffer.data );
+		else {
+			gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, w, h, gl.RGBA, gl.UNSIGNED_BYTE, image.dataUInt8 );
+		}
 		
 		if (createMipmaps) { // re-create for full texture ?
 			//gl.hint(gl.GENERATE_MIPMAP_HINT, gl.NICEST);

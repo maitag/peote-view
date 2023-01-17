@@ -1,5 +1,11 @@
 package peote.view;
 
+import haxe.io.Bytes;
+import haxe.io.UInt8Array;
+import haxe.io.Float32Array;
+
+import lime.utils.DataPointer;
+import peote.view.utils.BufferBytes;
 import peote.view.utils.GLBufferPointer;
 
 typedef GLTexture           = lime.graphics.opengl.GLTexture;
@@ -11,7 +17,7 @@ typedef GLBuffer            = lime.graphics.opengl.GLBuffer;
 typedef GLVertexArrayObject = lime.graphics.opengl.GLVertexArrayObject;
 typedef GLRenderbuffer      = lime.graphics.opengl.GLRenderbuffer;
 
-typedef Image = lime.graphics.Image;
+//typedef Image = lime.graphics.Image;
 
 /*
 #if html5
@@ -46,13 +52,26 @@ abstract PeoteGL(LimeGLRenderContext) from LimeGLRenderContext to LimeGLRenderCo
 			this.bufferSubData (target, offset, srcData);
 		}
 		
-		public inline function texImage2D (target:Int, level:Int, internalformat:Int, width:Int, height:Int, border:Int, format:Int, type:Int, srcData:Dynamic):Void {
-			if (srcData == 0)
-				this.texImage2D(target, level, internalformat, width, height, border, format, type, null);
-			else this.texImage2D(target, level, internalformat, width, height, border, format, type, srcData);
+		public inline function texImage2D (target:Int, level:Int, internalformat:Int, width:Int, height:Int, border:Int, format:Int, type:Int, data:Dynamic):Void {
+			if (data == 0)
+			     this.texImage2D(target, level, internalformat, width, height, border, format, type, null);
+			else this.texImage2D(target, level, internalformat, width, height, border, format, type, data);
+		}
+		
+		public inline function texSubImage2D (target:Int, level:Int, x:Int, y:Int, width:Int, height:Int, format:Int, type:Int, data:UInt8Array):Void {
+			this.texSubImage2D(target, level, x, y, width, height, format, type, data);
+		}
+		public inline function texSubImage2D_Float (target:Int, level:Int, x:Int, y:Int, width:Int, height:Int, format:Int, type:Int, data:Float32Array):Void {
+			this.texSubImage2D(target, level, x, y, width, height, format, type, data);
 		}
 		
 	#else
+		public inline function texSubImage2D(target:Int, level:Int, x:Int, y:Int, width:Int, height:Int, format:Int, type:Int, data:UInt8Array):Void {
+			     this.texSubImage2D(target, level, x, y, width, height, format, type, data.view.buffer);
+		}
+		public inline function texSubImage2D_Float(target:Int, level:Int, x:Int, y:Int, width:Int, height:Int, format:Int, type:Int, data:Float32Array):Void {
+			     this.texSubImage2D(target, level, x, y, width, height, format, type, data.view.buffer);
+		}
 	/*
 		#if peoteview_es2
 			public inline function getShaderParameter (shader:GLShader, name:Int):Dynamic {
