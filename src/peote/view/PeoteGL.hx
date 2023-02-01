@@ -2,6 +2,7 @@ package peote.view;
 
 import haxe.io.Bytes;
 import haxe.io.UInt8Array;
+import haxe.io.Int32Array;
 import haxe.io.Float32Array;
 
 import lime.utils.DataPointer;
@@ -65,13 +66,28 @@ abstract PeoteGL(LimeGLRenderContext) from LimeGLRenderContext to LimeGLRenderCo
 			this.texSubImage2D(target, level, x, y, width, height, format, type, data);
 		}
 		
+		public inline function readPixels(x:Int, y:Int, w:Int, h:Int, format:Int, type:Int, data:UInt8Array):Void {
+			this.readPixels(x, y, w, h, format, type, data);
+		}
+		public inline function readPixels_Int32(x:Int, y:Int, w:Int, h:Int, format:Int, type:Int, data:Int32Array):Void {
+			this.readPixels(x, y, w, h, format, type, data);
+		}
+		
 	#else
 		public inline function texSubImage2D(target:Int, level:Int, x:Int, y:Int, width:Int, height:Int, format:Int, type:Int, data:UInt8Array):Void {
-			     this.texSubImage2D(target, level, x, y, width, height, format, type, data.view.buffer);
+			this.texSubImage2D(target, level, x, y, width, height, format, type, data.view.buffer);
 		}
 		public inline function texSubImage2D_Float(target:Int, level:Int, x:Int, y:Int, width:Int, height:Int, format:Int, type:Int, data:Float32Array):Void {
-			     this.texSubImage2D(target, level, x, y, width, height, format, type, data.view.buffer);
+			this.texSubImage2D(target, level, x, y, width, height, format, type, data.view.buffer);
 		}
+				
+		public inline function readPixels(x:Int, y:Int, w:Int, h:Int, format:Int, type:Int, data:UInt8Array):Void {
+			this.readPixels(x, y, w, h, format, type, data.view.buffer);
+		}
+		public inline function readPixels_Int32(x:Int, y:Int, w:Int, h:Int, format:Int, type:Int, data:Int32Array):Void {
+			this.readPixels(x, y, w, h, format, type, data.view.buffer);
+		}
+		
 	/*
 		#if peoteview_es2
 			public inline function getShaderParameter (shader:GLShader, name:Int):Dynamic {

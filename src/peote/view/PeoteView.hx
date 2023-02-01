@@ -2,6 +2,8 @@ package peote.view;
 
 import haxe.Timer;
 import haxe.ds.Vector;
+import haxe.io.Int32Array;
+import haxe.io.UInt8Array;
 
 import lime.ui.Window;
 import lime.graphics.RenderContext;
@@ -317,16 +319,16 @@ class PeoteView
 	var pickFB:GLFramebuffer;
 	var pickTexture:GLTexture;
 	var pickDepthBuffer:GLRenderbuffer;
-	var pickInt32:lime.utils.Int32Array;
-	var pickUInt8:lime.utils.UInt8Array;
+	var pickInt32:Int32Array;
+	var pickUInt8:UInt8Array;
 	
 	private inline function initGlPicking()
 	{
 		if (PeoteGL.Version.isINSTANCED) {
-			pickInt32 = new lime.utils.Int32Array(4);
+			pickInt32 = new Int32Array(4);
 			pickTexture = TexUtils.createPickingTexture(gl, true); // RGBA32I
 		} else {
-			pickUInt8  = new lime.utils.UInt8Array(4);
+			pickUInt8  = new UInt8Array(4);
 			pickTexture = TexUtils.createPickingTexture(gl); // RGBA
 		}
 		pickDepthBuffer = gl.createRenderbuffer();
@@ -397,7 +399,7 @@ class PeoteView
 		// read picked pixel (element-number)
 		if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE) { // Optimizing: is check need here ?
 			if (peote.view.PeoteGL.Version.isINSTANCED) {
-				gl.readPixels(0, 0, 1, 1, gl.RGBA_INTEGER, gl.INT, pickInt32);
+				gl.readPixels_Int32(0, 0, 1, 1, gl.RGBA_INTEGER, gl.INT, pickInt32);
 				return pickInt32[0] - 1;
 			}
 			else {

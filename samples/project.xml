@@ -9,7 +9,7 @@
 
 
 	<!-- samples -->
-	<app main="TextureDataInOut" path="bin" file="Main" />
+	<app main="SimpleQuad" path="bin" file="Main" />
 	<!--
 		SimpleQuad, Multidisplay, Multibuffer, ElementInherit, DepthBlend,
 		TextureSimple, TextureDataInOut, TextureSlotTiles,
