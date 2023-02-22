@@ -9,7 +9,7 @@
 
 
 	<!-- samples -->
-	<app main="SimpleQuad" path="bin" file="Main" />
+	<app main="TextureCaching" path="bin" file="Main" />
 	<!--
 		SimpleQuad, Multidisplay, Multibuffer, ElementInherit, DepthBlend,
 		TextureSimple, TextureDataInOut, TextureSlotTiles,
@@ -78,6 +78,7 @@
 	<!-- <haxedef name="source-map-content" /> --> <!-- to debug with chrome it needs also "-debug" -->
 	<haxeflag name="-dce" value="full" />
 	<!-- <haxedef name="dump=pretty output" /> -->
+	<haxedef name="keep_inline_positions" />
 	
 	<!-- <haxedef name="HXCPP_CHECK_POINTER"/> -->
 	<!-- <haxedef name="HXCPP_M32" if="cpp" /> --> <!-- on windows 64 is default -->

@@ -1,6 +1,7 @@
 package peote.view.utils;
 
 import haxe.ds.ArraySort;
+import peote.view.TextureData;
 
 import peote.view.Program;
 import peote.view.Texture;
@@ -8,7 +9,7 @@ import peote.view.utils.TexUtils;
 
 class TextureCache 
 {
-	var imageMap = new Map<Image, {texSize:Int, unit:Int, slot:Int}>();
+	var imageMap = new Map<TextureData, {texSize:Int, unit:Int, slot:Int}>();
 	var texSizes = new Array <{
 			width:Int, height:Int, slots:Int, freeSlots:Int,
 			textures:Array<{unit:Int, freeSlots:Array<Int>}>
@@ -51,7 +52,7 @@ class TextureCache
 	// if there is not already a textureslot with that image
 	// it puts the image into next free texture and slot where it best fits
 	// returns the texture-unit (index of textures-array) and slot
-	public function addImage(image:Image, tilesX:Null<Int>=null, tilesY:Null<Int>=null):{unit:Int, slot:Int}
+	public function addImage(image:TextureData, tilesX:Null<Int>=null, tilesY:Null<Int>=null):{unit:Int, slot:Int}
 	{
 		var prop = imageMap.get(image);
 		if (prop == null) {
@@ -79,13 +80,13 @@ class TextureCache
 		}
 	}
 
-	public function addImages(images:Array<Image>):Void
+	public function addImages(images:Array<TextureData>):Void
 	{
 		for (image in images) addImage(image);
 	}
 
 	// removes image from cache
-	public function removeImage(image:Image)
+	public function removeImage(image:TextureData)
 	{
 		var prop = imageMap.get(image);
 		var s = texSizes[prop.texSize];
