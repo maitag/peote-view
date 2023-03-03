@@ -276,6 +276,8 @@ class PeoteView
 		if (PeoteGL.Version.isUBO) uniformBuffer.deleteGLBuffer(gl);
 	}
 
+	public var onResize:Int->Int->Void;
+	
 	/**
 		This function need to call if window-size is changed
 	**/
@@ -284,6 +286,7 @@ class PeoteView
 		this.width = width;
 		this.height = height;
 		if (PeoteGL.Version.isUBO) uniformBuffer.updateResolution(gl, width, height);
+		if (onResize != null) onResize(width, height);
 	}
 
 	// ----------------------------- Helpers ----------------------------------------
