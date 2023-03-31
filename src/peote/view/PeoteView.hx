@@ -23,6 +23,7 @@ import peote.view.PeoteGL.GLFramebuffer;
 @:allow(peote.view)
 class PeoteView 
 {
+	public var window(default, null):Window = null;
 	public var gl(default, null):PeoteGL;
 	
 	public var width(default, null):Int;
@@ -137,6 +138,7 @@ class PeoteView
 		trace (window.context.type + " " + window.context.version);
 		#end
 		
+		this.window = window;
 		gl = window.context;
 		width = window.width;
 		height = window.height;
