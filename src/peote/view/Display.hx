@@ -444,13 +444,20 @@ class Display
 				peoteView.background.render(red, green, blue, alpha);
 			}
 			
-			programListItem = programList.first;
-			while (programListItem != null)
-			{
-				programListItem.value.render(peoteView, this);			
-				programListItem = programListItem.next;
-			}
+			renderProgram(peoteView);
 		}		
+	}
+	
+	// -- let write custom GL code inside a Childclass by overriding this --
+	#if !peoteview_customdisplay inline #end
+	private function renderProgram(peoteView:PeoteView):Void
+	{
+		programListItem = programList.first;
+		while (programListItem != null)
+		{
+			programListItem.value.render(peoteView, this);			
+			programListItem = programListItem.next;
+		}
 	}
 	
 	// ------------------------------------------------------------------------------
@@ -471,8 +478,14 @@ class Display
 			peoteView.setGLAlpha(backgroundAlpha);
 			peoteView.setMask(Mask.OFF, false);
 			peoteView.background.render(red, green, blue, alpha);
-		}
-		
+		}		
+		renderFramebufferProgram(peoteView);
+	}
+	
+	// -- let write custom GL code inside a Childclass by overriding this --
+	#if !peoteview_customdisplay inline #end
+	private function renderFramebufferProgram(peoteView:PeoteView):Void
+	{
 		programListItem = programList.first;
 		while (programListItem != null)
 		{
@@ -489,5 +502,6 @@ class Display
 		glScissor(peoteView.gl, 1, 1, xOff, yOff, peoteView.xz, peoteView.yz);
 		program.pick( xOff, yOff, peoteView, this, toElement);
 	}
-
+	
+	
 }
