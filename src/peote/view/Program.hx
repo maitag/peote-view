@@ -569,7 +569,7 @@ class Program
 					if (fy == null) fy = dy;
 					
 					if (x == "rotation" && fx != "0.0") fx = '($fx)/180.0*${Math.PI}';
-					if (y == "zIndex" && fy != "0.0") fy = 'clamp( $fy/${Util.toFloatString(${buffer.getMaxZindex()})}, -1.0, 1.0)'; // TODO: MAX_ZINDEX from buffer
+					if (y == "zIndex" && fy != "0.0") fy = 'clamp( $fy/${Util.toFloatString(buffer.getMaxZindex())}, -1.0, 1.0)';
 					
 					//trace(' -- replacing Formula $nx, $ny => vec2($fx, $fy)');
 					return('vec2($fx, $fy)');
