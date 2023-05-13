@@ -72,6 +72,9 @@ abstract PeoteGL(LimeGLRenderContext) from LimeGLRenderContext to LimeGLRenderCo
 		public inline function readPixels_Int32(x:Int, y:Int, w:Int, h:Int, format:Int, type:Int, data:Int32Array):Void {
 			this.readPixels(x, y, w, h, format, type, data);
 		}
+		public inline function readPixels_Float32(x:Int, y:Int, w:Int, h:Int, format:Int, type:Int, data:Float32Array):Void {
+			this.readPixels(x, y, w, h, format, type, data);
+		}
 		
 	#else
 		public inline function texSubImage2D(target:Int, level:Int, x:Int, y:Int, width:Int, height:Int, format:Int, type:Int, data:UInt8Array):Void {
@@ -85,6 +88,9 @@ abstract PeoteGL(LimeGLRenderContext) from LimeGLRenderContext to LimeGLRenderCo
 			this.readPixels(x, y, w, h, format, type, data.view.buffer);
 		}
 		public inline function readPixels_Int32(x:Int, y:Int, w:Int, h:Int, format:Int, type:Int, data:Int32Array):Void {
+			this.readPixels(x, y, w, h, format, type, data.view.buffer);
+		}
+		public inline function readPixels_Float32(x:Int, y:Int, w:Int, h:Int, format:Int, type:Int, data:Float32Array):Void {
 			this.readPixels(x, y, w, h, format, type, data.view.buffer);
 		}
 		

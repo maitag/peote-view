@@ -1012,6 +1012,8 @@ class Program
 			// ------------- simple uniform -------------
 			gl.uniform2f (uRESOLUTION, display.width, -display.height);
 			gl.uniform2f (uZOOM, display.xz, display.yz);
+			
+			// TODO: check if peoteViews offset have to be here!
 			gl.uniform2f (uOFFSET, (display.xOffset + peoteView.xOffset) / display.xz, 
 			                       (display.yOffset + peoteView.yOffset - display.height) / display.yz );
 		}

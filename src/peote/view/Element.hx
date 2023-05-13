@@ -2245,7 +2245,13 @@ class ElementImpl
 			kind: FieldType.FVar(macro:String, macro $v{parseShader(Shader.fragmentShader)}),
 			pos: Context.currentPos(),
 		});
-				
+		
+/*		var elemSrc = "class "+Context.getLocalClass() + " {\n";
+		var printer = new Printer();
+		for (f in fields) elemSrc += printer.printField(f) + "\n";
+		elemSrc += "}\n";
+		trace(elemSrc);
+*/		
 		return fields; // <------ classgeneration complete !
 	}
 

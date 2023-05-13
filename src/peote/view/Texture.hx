@@ -189,6 +189,18 @@ class Texture
 		return data;
 	}
 	
+	public function readPixelsFloat32(x:Int, y:Int, w:Int, h:Int, data:Float32Array = null):Float32Array {
+		if (data == null) data = new Float32Array(w * h * 4);
+		// read pixels
+		gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+		if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE) {
+			gl.readPixels_Float32(x, y, w, h, gl.RGBA, gl.FLOAT, data);
+		}
+		else throw("Error: opengl-Picking - Framebuffer not complete!");
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		return data;
+	}
+	
 /*	public function writePixelFloat32(x:Int, y:Int, r:Float, g:Float, b:Float, a:Float) {
 	}
 	

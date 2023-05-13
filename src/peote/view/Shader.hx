@@ -258,7 +258,7 @@ class Shader
 		::else::
 			::if !isES3::gl_Frag::end::Color = col;
 			// this fixing problem on old FF if alpha goes zero
-			::if !isES3::gl_Frag::end::Color.w = clamp(::if !isES3::gl_Frag::end::Color.w, 0.003, 1.0);
+			// ::if !isES3::gl_Frag::end::Color.w = clamp(::if !isES3::gl_Frag::end::Color.w, 0.003, 1.0);
 		::end::
 	}
 	";
