@@ -32,64 +32,61 @@ class ActiveTexture {
 class Program 
 {
 	public var colorEnabled:Bool = true;
-	public var alphaEnabled:Bool;
 	
 	// ------ blend mode --------
-	public var blendEnabled:Bool = false;
+	public var blendEnabled:Bool;
 	public var blendSeparate:Bool = false;
 	public var blendFuncSeparate:Bool = false;
 	
 	var blendValues:Int = 0; // stores all 6 following values into one Int here
 	
 	public var blendSrc(get, set):BlendMode;
-	public var blendDest(get, set):BlendMode;
+	public var blendDst(get, set):BlendMode;
 	public var blendSrcAlpha(get, set):BlendMode;
-	public var blendDestAlpha(get, set):BlendMode;
+	public var blendDstAlpha(get, set):BlendMode;
 	
+	inline function get_blendSrc      ():BlendMode return BlendMode.getSrc      (blendValues);
+	inline function get_blendDst     ():BlendMode return BlendMode.getDst     (blendValues);
+	inline function get_blendSrcAlpha ():BlendMode return BlendMode.getSrcAlpha (blendValues);
+	inline function get_blendDstAlpha():BlendMode return BlendMode.getDstAlpha(blendValues);
+	inline function set_blendSrc      (v:BlendMode):BlendMode { setBlendUseColor(); if (gl != null) glBlendSrc       = v.toGL(gl); blendValues = v.setSrc      (blendValues); return v; }
+	inline function set_blendDst     (v:BlendMode):BlendMode { setBlendUseColor(); if (gl != null) glBlendDst      = v.toGL(gl); blendValues = v.setDst     (blendValues); return v; }
+	inline function set_blendSrcAlpha (v:BlendMode):BlendMode { setBlendUseColor(); if (gl != null) glBlendSrcAlpha  = v.toGL(gl); blendValues = v.setSrcAlpha (blendValues); return v; }
+	inline function set_blendDstAlpha(v:BlendMode):BlendMode { setBlendUseColor(); if (gl != null) glBlendDstAlpha = v.toGL(gl); blendValues = v.setDstAlpha(blendValues); return v; }
+		
 	public var blendFunc(get, set):BlendFunc;
 	public var blendFuncAlpha(get, set):BlendFunc;
 	
-	inline function get_blendSrc      ():BlendMode return BlendMode.getSrc      (blendValues);
-	inline function get_blendDest     ():BlendMode return BlendMode.getDest     (blendValues);
-	inline function get_blendSrcAlpha ():BlendMode return BlendMode.getSrcAlpha (blendValues);
-	inline function get_blendDestAlpha():BlendMode return BlendMode.getDestAlpha(blendValues);
-	
 	inline function get_blendFunc     ():BlendFunc return BlendFunc.getFunc     (blendValues);
-	inline function get_blendFuncAlpha():BlendFunc return BlendFunc.getFuncAlpha(blendValues);
-	
-	inline function set_blendSrc      (v:BlendMode):BlendMode { setBlendUseColor(); if (gl != null) glBlendSrc       = v.toGL(gl); blendValues = v.setSrc      (blendValues); return v; }
-	inline function set_blendDest     (v:BlendMode):BlendMode { setBlendUseColor(); if (gl != null) glBlendDest      = v.toGL(gl); blendValues = v.setDest     (blendValues); return v; }
-	inline function set_blendSrcAlpha (v:BlendMode):BlendMode { setBlendUseColor(); if (gl != null) glBlendSrcAlpha  = v.toGL(gl); blendValues = v.setSrcAlpha (blendValues); return v; }
-	inline function set_blendDestAlpha(v:BlendMode):BlendMode { setBlendUseColor(); if (gl != null) glBlendDestAlpha = v.toGL(gl); blendValues = v.setDestAlpha(blendValues); return v; }
-	
+	inline function get_blendFuncAlpha():BlendFunc return BlendFunc.getFuncAlpha(blendValues);	
 	inline function set_blendFunc     (v:BlendFunc):BlendFunc { if (gl != null) glBlendFunc      = v.toGL(gl); blendValues = v.setFunc     (blendValues); return v; }
 	inline function set_blendFuncAlpha(v:BlendFunc):BlendFunc { if (gl != null) glBlendFuncAlpha = v.toGL(gl); blendValues = v.setFuncAlpha(blendValues); return v; }
 	
 	inline function setBlendUseColor() {
-		useBlendColor = (glBlendSrc > 10 || glBlendDest > 10) ? true : false;
-		useBlendColorSeparate = (useBlendColor || glBlendSrcAlpha > 10 || glBlendDestAlpha > 10) ? true : false;		
+		useBlendColor = (glBlendSrc > 10 || glBlendDst > 10) ? true : false;
+		useBlendColorSeparate = (useBlendColor || glBlendSrcAlpha > 10 || glBlendDstAlpha > 10) ? true : false;		
 	}
 	
 	inline function setDefaultBlendValues() {
 		blendSrc  = blendSrcAlpha  = BlendMode.SRC_ALPHA;
-		blendDest = blendDestAlpha = BlendMode.ONE_MINUS_SRC_ALPHA;
+		blendDst = blendDstAlpha = BlendMode.ONE_MINUS_SRC_ALPHA;
 		blendFunc = blendFuncAlpha = BlendFunc.ADD;
 	}
 	
 	inline function updateBlendGLValues() {
 		glBlendSrc       = BlendMode.getSrc      (blendValues).toGL(gl);
-		glBlendDest      = BlendMode.getDest     (blendValues).toGL(gl);
+		glBlendDst      = BlendMode.getDst     (blendValues).toGL(gl);
 		glBlendSrcAlpha  = BlendMode.getSrcAlpha (blendValues).toGL(gl);
-		glBlendDestAlpha = BlendMode.getDestAlpha(blendValues).toGL(gl);
+		glBlendDstAlpha = BlendMode.getDstAlpha(blendValues).toGL(gl);
 		
 		glBlendFunc      = BlendFunc.getFunc     (blendValues).toGL(gl);
 		glBlendFuncAlpha = BlendFunc.getFuncAlpha(blendValues).toGL(gl);
 	}
 	
 	var glBlendSrc:Int = 0;
-	var glBlendDest:Int = 0;
+	var glBlendDst:Int = 0;
 	var glBlendSrcAlpha:Int = 0;
-	var glBlendDestAlpha:Int = 0;
+	var glBlendDstAlpha:Int = 0;
 	var glBlendFunc:Int = 0;
 	var glBlendFuncAlpha:Int = 0;
 	
@@ -108,6 +105,7 @@ class Program
 	var glBlendG:Float;
 	var glBlendB:Float;
 	var glBlendA:Float;
+	
 	// -----------------------
 	
 	public var zIndexEnabled:Bool;
@@ -206,9 +204,7 @@ class Program
 		this.buffer = buffer;
 		
 		setDefaultBlendValues();
-		
-		// TODO: blend defaults from Element->Buffer!
-		alphaEnabled = buffer.hasAlpha();
+		blendEnabled = buffer.hasBlend();
 		
 		zIndexEnabled = buffer.hasZindex();
 		
@@ -1074,9 +1070,8 @@ class Program
 			peoteView.setColor(colorEnabled);
 			peoteView.setGLDepth(zIndexEnabled);
 			
-			// TODO: activate blend instead of alpha here!
-			peoteView.setGLAlpha(alphaEnabled);
-			//peoteView.setGLBlend(blendEnabled, blendSeparate, glBlendSrc, glBlendDest, glBlendSrcAlpha, glBlendDestAlpha, blendFuncSeparate, glBlendFunc, glBlendFuncAlpha, blendColor, useBlendColor, useBlendColorSeparate, glBlendR, glBlendG, glBlendB, glBlendA);
+			//peoteView.setGLAlpha(alphaEnabled);
+			peoteView.setGLBlend(blendEnabled, blendSeparate, glBlendSrc, glBlendDst, glBlendSrcAlpha, glBlendDstAlpha, blendFuncSeparate, glBlendFunc, glBlendFuncAlpha, blendColor, useBlendColor, useBlendColorSeparate, glBlendR, glBlendG, glBlendB, glBlendA);
 			
 			peoteView.setMask(mask, clearMask);
 			
@@ -1116,9 +1111,8 @@ class Program
 		peoteView.setColor(colorEnabled);
 		peoteView.setGLDepth(zIndexEnabled);
 		
-		// TODO: activate blend instead of alpha here!
-		peoteView.setGLAlpha(alphaEnabled);
-		//peoteView.setGLBlend(blendEnabled, blendSeparate, glBlendSrc, glBlendDest, glBlendSrcAlpha, glBlendDestAlpha, blendFuncSeparate, glBlendFunc, glBlendFuncAlpha, blendColor, useBlendColor, useBlendColorSeparate, glBlendR, glBlendG, glBlendB, glBlendA);
+		//peoteView.setGLAlpha(alphaEnabled);
+		peoteView.setGLBlend(blendEnabled, blendSeparate, glBlendSrc, glBlendDst, glBlendSrcAlpha, glBlendDstAlpha, blendFuncSeparate, glBlendFunc, glBlendFuncAlpha, blendColor, useBlendColor, useBlendColorSeparate, glBlendR, glBlendG, glBlendB, glBlendA);
 		
 		peoteView.setMask(mask, clearMask);
 		
@@ -1146,9 +1140,8 @@ class Program
 		
 		peoteView.setGLDepth((toElement == -1) ? zIndexEnabled : false); // disable for getAllElementsAt() in peoteView
 		
-		// TODO: activate blend instead of alpha here!
-		peoteView.setGLAlpha(false);
-		//peoteView.setGLBlend(false, blendSeparate, glBlendSrc, glBlendDest, glBlendSrcAlpha, glBlendDestAlpha, blendFuncSeparate, glBlendFunc, glBlendFuncAlpha, blendColor, useBlendColor, useBlendColorSeparate, glBlendR, glBlendG, glBlendB, glBlendA);
+		//peoteView.setGLAlpha(false);
+		peoteView.setGLBlend(false, blendSeparate, glBlendSrc, glBlendDst, glBlendSrcAlpha, glBlendDstAlpha, blendFuncSeparate, glBlendFunc, glBlendFuncAlpha, blendColor, useBlendColor, useBlendColorSeparate, glBlendR, glBlendG, glBlendB, glBlendA);
 		
 		
 		buffer.pick(peoteView, display, this, toElement);

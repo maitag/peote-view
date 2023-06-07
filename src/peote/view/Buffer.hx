@@ -478,7 +478,7 @@ class $className implements BufferInterface
 	private inline function getFormulaCustoms():Array<String> return ($p{elemField}.FORMULA_CUSTOMS == "") ? [] :  $p{elemField}.FORMULA_CUSTOMS.split(",");
 	
 	private inline function getMaxZindex():Int return $p{elemField}.MAX_ZINDEX;
-	private inline function hasAlpha():Bool return $p{elemField}.ALPHA_ENABLED;
+	private inline function hasBlend():Bool return $p{elemField}.BLEND_ENABLED;
 	private inline function hasZindex():Bool return $p{elemField}.ZINDEX_ENABLED;
 	private inline function hasPicking():Bool return $p{elemField}.PICKING_ENABLED;
 	private inline function hasTime():Bool return $p{elemField}.TIME_ENABLED;

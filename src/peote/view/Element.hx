@@ -591,7 +591,7 @@ class ElementImpl
 			ELEMENT_LAYERS:[],
 		};
 		
-		var options = { alpha:false, picking:false, texRepeatX:false, texRepeatY:false };
+		var options = { blend:false, picking:false, texRepeatX:false, texRepeatY:false };
 		
 		setFun  = new StringMap<Dynamic>();
 		animFun = new StringMap<Dynamic>();
@@ -681,7 +681,7 @@ class ElementImpl
 										if (v==null) throw Context.error('Error: "${o.field}" should be of type $expType', f.pos);
 									}
 									switch (o.field) {
-										case ("alpha"):        checkErr(vBool, "Bool"); options.alpha      = vBool;
+										case ("blend"):        checkErr(vBool, "Bool"); options.blend      = vBool;
 										case ("picking"):      checkErr(vBool, "Bool"); options.picking    = vBool;
 										case ("texRepeatX"):   checkErr(vBool, "Bool"); options.texRepeatX = vBool;
 										case ("texRepeatY"):   checkErr(vBool, "Bool"); options.texRepeatY = vBool;
@@ -1578,10 +1578,10 @@ class ElementImpl
 			pos: Context.currentPos(),
 		});
 		fields.push({
-			name:  "ALPHA_ENABLED",
+			name:  "BLEND_ENABLED",
 			meta:  allowForBuffer,
 			access:  [Access.APrivate, Access.AStatic, Access.AInline],
-			kind: FieldType.FVar(macro:Bool, macro $v{options.alpha}),
+			kind: FieldType.FVar(macro:Bool, macro $v{options.blend}),
 			pos: Context.currentPos(),
 		});
 		fields.push({

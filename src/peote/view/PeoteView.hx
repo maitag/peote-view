@@ -42,11 +42,6 @@ class PeoteView
 	var blue:Float = 0.0;
 	var alpha:Float = 1.0;
 	
-	var colorState:Bool = true;
-	var glStateAlpha:Bool = false;
-	var glStateDepth:Bool = false;
-	var maskState:Mask = Mask.OFF;
-	
 	var maxTextureImageUnits:Int;
 	var glStateTexture:Vector<GLTexture>;
 	public function isTextureStateChange(activeTextureUnit:Int, texture:Texture):Bool {
@@ -500,37 +495,7 @@ class PeoteView
 	// ------------------------------------------------------------------------------
 	// ----------------------------- Render -----------------------------------------
 	// ------------------------------------------------------------------------------
-	private inline function initGLViewport(w:Int, h:Int):Void
-	{
-		gl.viewport (0, 0, w, h);
-		
-		gl.scissor(0, 0, w, h);
-		gl.enable(gl.SCISSOR_TEST);	
-		
-		gl.clearColor(red, green, blue, alpha);
-		
-		// Optimize: only set depth and stencil bits here if used somewhere (hasDepth state und hasStencil)
-		// CHECK: this may not need on HTML5 (look at preserveDrawingBuffer -> https://stackoverflow.com/questions/27746091/preservedrawingbuffer-false-is-it-worth-the-effort)
-		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
-
-		
-		// Optimize: only clear depth and stencil bits if is used somewhere (hasDepth und hasStencil)
-		// TODO: let a program clear at start
-		//gl.clearStencil(0);
-		//gl.clearDepthf(1.0);
-		
-		// Optimize: only set if is in use somewhere (stencilON state!)
-		gl.stencilMask(0xFF);
-		
-		// TODO: set only if program added or background need it
-		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-		//gl.blendFunc(gl.ONE_MINUS_SRC_ALPHA, gl.SRC_ALPHA); // reverse
-		//glBlendFuncSeparate(gl.ONE_MINUS_SRC_ALPHA, gl.SRC_ALPHA, gl.ONE, gl.ZERO); // colors separate
-		//gl.blendEquation(gl.FUNC_ADD);
-		
-		gl.depthFunc(gl.LEQUAL);
-	}
-	
+	var colorState:Bool = true;
 	private inline function setColor(enabled:Bool):Void
 	{	
 		if (enabled != colorState) {
@@ -539,86 +504,19 @@ class PeoteView
 		}
 	}
 
+	var depthState:Bool = false;
 	private inline function setGLDepth(enabled:Bool):Void
 	{	
-		if (enabled && !glStateDepth) {
-			glStateDepth = true;
+		if (enabled && !depthState) {
+			depthState = true;
 			gl.enable(gl.DEPTH_TEST);
-		} else if (!enabled && glStateDepth) {
-			glStateDepth = false;
+		} else if (!enabled && depthState) {
+			depthState = false;
 			gl.disable(gl.DEPTH_TEST);
 		}
 	}
 	
-	// TODO: depracated
-	private inline function setGLAlpha(enabled:Bool):Void
-	{	
-		if (enabled && !glStateAlpha) {
-			glStateAlpha = true;
-			gl.enable(gl.BLEND);
-		} else if (!enabled && glStateAlpha) {
-			glStateAlpha = false;
-			gl.disable(gl.BLEND);
-		}
-	}
-	
-	var glStateBlend:Bool = false;
-	var glStateBlendSeparate:Bool = false;
-	var glStateBlendSrc:Int = 0;
-	var glStateBlendDest:Int = 0;
-	var glStateBlendSrcAlpha:Int = 0;
-	var glStateBlendDestAlpha:Int = 0;
-	
-	var glStateBlendFuncSeparate:Bool = false;
-	var glStateBlendFunc:Int = 0;
-	var glStateBlendFuncAlpha:Int = 0;
-	
-	var glStateBlendColor:Int = 0;
-	
-	private inline function setGLBlend(blendEnabled:Bool, blendSeparate:Bool,
-		blendSrc:Int, blendDest:Int, blendSrcAlpha:Int, blendDestAlpha:Int,
-		funcSeparate:Bool, func:Int, funcAlpha:Int,
-		color:Color, useColor:Bool, useColorSeparate:Bool, r:Float, g:Float, b:Float, a:Float
-	):Void
-	{	
-		if (blendEnabled) {
-			if (!glStateBlend) { glStateBlend = true; gl.enable(gl.BLEND); }
-			
-			if (blendSeparate) {
-				if ( !glStateBlendSeparate || (glStateBlendSrc != blendSrc) || (glStateBlendDest != blendDest) || (glStateBlendSrcAlpha != blendSrcAlpha) || (glStateBlendDestAlpha != blendDestAlpha)  ) {
-					gl.blendFuncSeparate(glStateBlendSrc = blendSrc, glStateBlendDest = blendDest, glStateBlendSrcAlpha = blendSrcAlpha, glStateBlendDestAlpha = blendDestAlpha);
-				}
-				if (useColorSeparate && (glStateBlendColor != color)) {
-					glStateBlendColor = color;
-					gl.blendColor(r, g, b, a);
-				}
-			}
-			else {
-				if ( glStateBlendSeparate || (glStateBlendSrc != blendSrc) || (glStateBlendDest != blendDest) ) {
-					gl.blendFunc(glStateBlendSrc = blendSrc, glStateBlendDest = blendDest);
-				}
-				if (useColor && (glStateBlendColor != color)) {
-					glStateBlendColor = color;
-					gl.blendColor(r, g, b, a);
-				}
-			}
-			
-			if (funcSeparate) {
-				if ( !glStateBlendFuncSeparate || (glStateBlendFunc != func) || (glStateBlendFuncAlpha != funcAlpha) ) {
-					gl.blendEquationSeparate(glStateBlendFunc = func, glStateBlendFuncAlpha = funcAlpha);
-				}
-			}
-			else if ( glStateBlendFuncSeparate || (glStateBlendFunc != func) ) {
-					gl.blendEquation(glStateBlendFunc = func);
-			}
-			
-		}
-		else if (glStateBlend) {
-			glStateBlend = false;
-			gl.disable(gl.BLEND);
-		}
-	}
-	
+	var maskState:Mask = Mask.OFF;	
 	private inline function setMask(mask:Mask, clearMask:Bool):Void
 	{
 		if (mask != maskState) 
@@ -647,7 +545,92 @@ class PeoteView
 		}
 	}
 	
+	var blendState:Bool = false;
+	var blendStateSeparate:Bool = false;
+	var blendStateSrc:Int = 0;
+	var blendStateDst:Int = 0;
+	var blendStateSrcAlpha:Int = 0;
+	var blendStateDstAlpha:Int = 0;
+	
+	var blendStateFuncSeparate:Bool = false;
+	var blendStateFunc:Int = 0;
+	var blendStateFuncAlpha:Int = 0;
+	
+	var blendStateColor:Int = 0;
+	
+	private inline function setGLBlend(blendEnabled:Bool, blendSeparate:Bool,
+		blendSrc:Int, blendDst:Int, blendSrcAlpha:Int, blendDstAlpha:Int,
+		funcSeparate:Bool, func:Int, funcAlpha:Int,
+		color:Color, useColor:Bool, useColorSeparate:Bool, r:Float, g:Float, b:Float, a:Float
+	):Void
+	{	
+		if (blendEnabled) {
+			if (!blendState) { blendState = true; gl.enable(gl.BLEND); }
+			
+			if (blendSeparate) {
+				if ( !blendStateSeparate || (blendStateSrc != blendSrc) || (blendStateDst != blendDst) || (blendStateSrcAlpha != blendSrcAlpha) || (blendStateDstAlpha != blendDstAlpha)  ) {
+					gl.blendFuncSeparate(blendStateSrc = blendSrc, blendStateDst = blendDst, blendStateSrcAlpha = blendSrcAlpha, blendStateDstAlpha = blendDstAlpha);
+				}
+				if (useColorSeparate && (blendStateColor != color)) {
+					blendStateColor = color;
+					gl.blendColor(r, g, b, a);
+				}
+			}
+			else {
+				if ( blendStateSeparate || (blendStateSrc != blendSrc) || (blendStateDst != blendDst) ) {
+					gl.blendFunc(blendStateSrc = blendSrc, blendStateDst = blendDst);
+				}
+				if (useColor && (blendStateColor != color)) {
+					blendStateColor = color;
+					gl.blendColor(r, g, b, a);
+				}
+			}
+			
+			if (funcSeparate) {
+				if ( !blendStateFuncSeparate || (blendStateFunc != func) || (blendStateFuncAlpha != funcAlpha) ) {
+					gl.blendEquationSeparate(blendStateFunc = func, blendStateFuncAlpha = funcAlpha);
+				}
+			}
+			else if ( blendStateFuncSeparate || (blendStateFunc != func) ) {
+					gl.blendEquation(blendStateFunc = func);
+			}
+			
+		}
+		else if (blendState) {
+			blendState = false;
+			gl.disable(gl.BLEND);
+		}
+	}
+	
 	// ------------------------------------------------------------------------------
+	// ------------------------------------------------------------------------------
+	// ----------------------------- Render -----------------------------------------
+	// ------------------------------------------------------------------------------
+	private inline function initGLViewport(w:Int, h:Int):Void
+	{
+		gl.viewport (0, 0, w, h);
+		
+		gl.scissor(0, 0, w, h);
+		gl.enable(gl.SCISSOR_TEST);	
+		
+		gl.clearColor(red, green, blue, alpha);
+		
+		// Optimize: only set depth and stencil bits here if used somewhere (hasDepth state und hasStencil)
+		// CHECK: this may not need on HTML5 (look at preserveDrawingBuffer -> https://stackoverflow.com/questions/27746091/preservedrawingbuffer-false-is-it-worth-the-effort)
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+
+		
+		// Optimize: only clear depth and stencil bits if is used somewhere (hasDepth und hasStencil)
+		// TODO: let a program clear at start
+		//gl.clearStencil(0);
+		//gl.clearDepthf(1.0);
+		
+		// Optimize: only set if is in use somewhere (stencilON state!)
+		gl.stencilMask(0xFF);
+				
+		gl.depthFunc(gl.LEQUAL);
+	}
+	
 	var displayListItem:RenderListItem<Display>;
 
 	private inline function renderFramebuffer(context:RenderContext = null):Void

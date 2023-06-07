@@ -42,13 +42,13 @@ abstract BlendMode(Int) from Int to Int
 	}
 	
 	static inline function getSrc      (v:Int):BlendMode return  v        & 0xF;
-	static inline function getDest     (v:Int):BlendMode return (v >> 4 ) & 0xF;
+	static inline function getDst     (v:Int):BlendMode return (v >> 4 ) & 0xF;
 	static inline function getSrcAlpha (v:Int):BlendMode return (v >> 8 ) & 0xF;
-	static inline function getDestAlpha(v:Int):BlendMode return (v >> 12) & 0xF;
+	static inline function getDstAlpha(v:Int):BlendMode return (v >> 12) & 0xF;
 	
 	inline function setSrc      (v:Int):Int return (v & 0xFFFFFFF0) | this;
-	inline function setDest     (v:Int):Int return (v & 0xFFFFF0FF) | (this << 4 );
-	inline function setSrcAlpha (v:Int):Int return (v & 0xFFFF0FFF) | (this << 8 );
-	inline function setDestAlpha(v:Int):Int return (v & 0xFFF0FFFF) | (this << 12);
+	inline function setDst     (v:Int):Int return (v & 0xFFFFFF0F) | (this << 4 );
+	inline function setSrcAlpha (v:Int):Int return (v & 0xFFFFF0FF) | (this << 8 );
+	inline function setDstAlpha(v:Int):Int return (v & 0xFFFF0FFF) | (this << 12);
 	
 }

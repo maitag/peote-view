@@ -27,7 +27,7 @@ interface BufferInterface
 	private function getFormulaCustoms():Array<String>;
 	
 	private function getMaxZindex():Int;
-	private function hasAlpha():Bool;
+	private function hasBlend():Bool;
 	private function hasZindex():Bool;
 	private function hasPicking():Bool;
 	private function hasTime():Bool;

@@ -23,7 +23,7 @@ abstract BlendFunc(Int) from Int to Int
 	static inline function getFunc     (v:Int):BlendFunc return (v >> 16 ) & 0xF;
 	static inline function getFuncAlpha(v:Int):BlendFunc return (v >> 20 ) & 0xF;
 	
-	inline function setFunc     (v:Int):Int return (v & 0xFF0FFFFF) | (this << 16);
-	inline function setFuncAlpha(v:Int):Int return (v & 0xF0FFFFFF) | (this << 20);
+	inline function setFunc     (v:Int):Int return (v & 0xFFF0FFFF) | (this << 16);
+	inline function setFuncAlpha(v:Int):Int return (v & 0xFF0FFFFF) | (this << 20);
 	
 }

@@ -438,8 +438,8 @@ class Display
 			
 			if (backgroundEnabled) {
 				peoteView.setColor(true);
-				peoteView.setGLDepth(backgroundDepth);
-				peoteView.setGLAlpha(backgroundAlpha);
+				peoteView.setGLDepth(backgroundDepth);				
+				peoteView.setGLBlend(backgroundAlpha, false, peoteView.gl.SRC_ALPHA, peoteView.gl.ONE_MINUS_SRC_ALPHA, 0, 0, false, peoteView.gl.FUNC_ADD, 0, 0, false, false, 0.0, 0.0, 0.0, 0.0);				
 				peoteView.setMask(Mask.OFF, false);
 				peoteView.background.render(red, green, blue, alpha);
 			}
@@ -475,7 +475,7 @@ class Display
 	{
 		if (backgroundEnabled) {
 			peoteView.setColor(true);
-			peoteView.setGLAlpha(backgroundAlpha);
+			peoteView.setGLBlend(backgroundAlpha, false, peoteView.gl.SRC_ALPHA, peoteView.gl.ONE_MINUS_SRC_ALPHA, 0, 0, false, peoteView.gl.FUNC_ADD, 0, 0, false, false, 0.0, 0.0, 0.0, 0.0);
 			peoteView.setMask(Mask.OFF, false);
 			peoteView.background.render(red, green, blue, alpha);
 		}		

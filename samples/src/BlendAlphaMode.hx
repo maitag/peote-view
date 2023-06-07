@@ -38,16 +38,15 @@ class ElementSimple implements Element
 	
 	var OPTIONS = {
 		
-		alpha:true, // <- deprecated
+		//blend:true,
 		
 		// TODO:
-		//blend:true,
 		//blendSrc:BlendMode.SRC_ALPHA,
-		//blendDest:BlendMode.ONE_MINUS_SRC_ALPHA,
+		//blendDst:BlendMode.ONE_MINUS_SRC_ALPHA,
 		
 		//blendSeparate:true,
 		//blendSrcAlpha:BlendMode.SRC_ALPHA;
-		//blendDestAlpha:BlendMode.ONE_MINUS_SRC_ALPHA;
+		//blendDstAlpha:BlendMode.ONE_MINUS_SRC_ALPHA;
 		
 		//blendFunc = BlendFunc.ADD
 		
@@ -100,12 +99,12 @@ class BlendAlphaMode extends Application
 		
 		// ---------- blendmode --------
 		program.blendSrc  = BlendMode.SRC_ALPHA;
-		program.blendDest = BlendMode.ONE_MINUS_SRC_ALPHA;
+		program.blendDst = BlendMode.ONE_MINUS_SRC_ALPHA;
 
 		// --- separate blendmode for Alpha channel ------
 		program.blendSeparate = true; // false by default
 		program.blendSrcAlpha  = BlendMode.SRC_ALPHA;
-		program.blendDestAlpha = BlendMode.ONE_MINUS_SRC_ALPHA;
+		program.blendDstAlpha = BlendMode.ONE_MINUS_SRC_ALPHA;
 		
 		// ------- blend equation function ---------
 		program.blendFunc = BlendFunc.ADD;
