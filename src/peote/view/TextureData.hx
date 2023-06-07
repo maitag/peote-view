@@ -4,7 +4,8 @@ import haxe.io.UInt8Array;
 import haxe.io.Float32Array;
 
 // TODO:
-@:enum abstract TextureType(Int) {
+#if (haxe_ver >= 4.0) enum #else @:enum#end
+abstract TextureType(Int) {
   var UINT = 0;   //for gl.UNSIGNED_BYTE
   var FLOAT = 1; //for gl.FLOAT
 }

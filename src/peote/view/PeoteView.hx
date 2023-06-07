@@ -526,6 +526,7 @@ class PeoteView
 		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 		//gl.blendFunc(gl.ONE_MINUS_SRC_ALPHA, gl.SRC_ALPHA); // reverse
 		//glBlendFuncSeparate(gl.ONE_MINUS_SRC_ALPHA, gl.SRC_ALPHA, gl.ONE, gl.ZERO); // colors separate
+		//gl.blendEquation(gl.FUNC_ADD);
 		
 		gl.depthFunc(gl.LEQUAL);
 	}
@@ -549,6 +550,7 @@ class PeoteView
 		}
 	}
 	
+	// TODO: depracated
 	private inline function setGLAlpha(enabled:Bool):Void
 	{	
 		if (enabled && !glStateAlpha) {
@@ -556,6 +558,63 @@ class PeoteView
 			gl.enable(gl.BLEND);
 		} else if (!enabled && glStateAlpha) {
 			glStateAlpha = false;
+			gl.disable(gl.BLEND);
+		}
+	}
+	
+	var glStateBlend:Bool = false;
+	var glStateBlendSeparate:Bool = false;
+	var glStateBlendSrc:Int = 0;
+	var glStateBlendDest:Int = 0;
+	var glStateBlendSrcAlpha:Int = 0;
+	var glStateBlendDestAlpha:Int = 0;
+	
+	var glStateBlendFuncSeparate:Bool = false;
+	var glStateBlendFunc:Int = 0;
+	var glStateBlendFuncAlpha:Int = 0;
+	
+	var glStateBlendColor:Int = 0;
+	
+	private inline function setGLBlend(blendEnabled:Bool, blendSeparate:Bool,
+		blendSrc:Int, blendDest:Int, blendSrcAlpha:Int, blendDestAlpha:Int,
+		funcSeparate:Bool, func:Int, funcAlpha:Int,
+		color:Color, useColor:Bool, useColorSeparate:Bool, r:Float, g:Float, b:Float, a:Float
+	):Void
+	{	
+		if (blendEnabled) {
+			if (!glStateBlend) { glStateBlend = true; gl.enable(gl.BLEND); }
+			
+			if (blendSeparate) {
+				if ( !glStateBlendSeparate || (glStateBlendSrc != blendSrc) || (glStateBlendDest != blendDest) || (glStateBlendSrcAlpha != blendSrcAlpha) || (glStateBlendDestAlpha != blendDestAlpha)  ) {
+					gl.blendFuncSeparate(glStateBlendSrc = blendSrc, glStateBlendDest = blendDest, glStateBlendSrcAlpha = blendSrcAlpha, glStateBlendDestAlpha = blendDestAlpha);
+				}
+				if (useColorSeparate && (glStateBlendColor != color)) {
+					glStateBlendColor = color;
+					gl.blendColor(r, g, b, a);
+				}
+			}
+			else {
+				if ( glStateBlendSeparate || (glStateBlendSrc != blendSrc) || (glStateBlendDest != blendDest) ) {
+					gl.blendFunc(glStateBlendSrc = blendSrc, glStateBlendDest = blendDest);
+				}
+				if (useColor && (glStateBlendColor != color)) {
+					glStateBlendColor = color;
+					gl.blendColor(r, g, b, a);
+				}
+			}
+			
+			if (funcSeparate) {
+				if ( !glStateBlendFuncSeparate || (glStateBlendFunc != func) || (glStateBlendFuncAlpha != funcAlpha) ) {
+					gl.blendEquationSeparate(glStateBlendFunc = func, glStateBlendFuncAlpha = funcAlpha);
+				}
+			}
+			else if ( glStateBlendFuncSeparate || (glStateBlendFunc != func) ) {
+					gl.blendEquation(glStateBlendFunc = func);
+			}
+			
+		}
+		else if (glStateBlend) {
+			glStateBlend = false;
 			gl.disable(gl.BLEND);
 		}
 	}

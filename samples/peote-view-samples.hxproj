@@ -18,13 +18,7 @@
   </classpaths>
   <!-- Build options -->
   <build>
-    <option directives="peote-view=0.8.0&#xA;lime=7.7.0&#xA;lime-openal&#xA;bunnies=14000&#xA;peoteview_instancedrawing&#xA;peoteview_vertexarrayobjects&#xA;peoteview_debug_view&#xA;native&#xA;lime-curl&#xA;peoteview_uniformbuffers&#xA;peoteview_debug_shader&#xA;lime-harfbuzz&#xA;tools=7.7.0&#xA;ShaderInjection&#xA;lime-cairo&#xA;lime-opengl&#xA;no-compilation&#xA;peoteview_debug_macro&#xA;lime-native&#xA;lime-vorbis&#xA;lime-cffi&#xA;fdb&#xA;windows&#xA;desktop" />
-    <option flashStrict="False" />
-    <option noInlineOnDebug="False" />
-    <option mainClass="ApplicationMain" />
-    <option enabledebug="False" />
-    <option additional="--macro lime._internal.macros.DefineMacro.run()&#xA;-dce full" />
-  </build>
+ </build>
   <!-- haxelib libraries -->
   <haxelib>
     <!-- example: <library name="..." /> -->

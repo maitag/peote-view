@@ -9,11 +9,12 @@
 
 
 	<!-- samples -->
-	<app main="TextureCaching" path="bin" file="Main" />
+	<app main="BlendAlphaMode" path="bin" file="Main" />
 	<!--
 		SimpleQuad, Multidisplay, Multibuffer, ElementInherit, DepthBlend,
 		TextureSimple, TextureDataInOut, TextureSlotTiles,
 		MultiTextures,
+		BlendAlphaMode,
 		TextureMipmapFilter,
 		TextureCaching,
 		RenderToTexture, DrawToTexture,
