@@ -1068,11 +1068,8 @@ class Program
 			for (i in 0...uniformFloats.length) gl.uniform1f (uniformFloatLocations[i], uniformFloats[i].value);
 			
 			peoteView.setColor(colorEnabled);
-			peoteView.setGLDepth(zIndexEnabled);
-			
-			//peoteView.setGLAlpha(alphaEnabled);
-			peoteView.setGLBlend(blendEnabled, blendSeparate, glBlendSrc, glBlendDst, glBlendSrcAlpha, glBlendDstAlpha, blendFuncSeparate, glBlendFunc, glBlendFuncAlpha, blendColor, useBlendColor, useBlendColorSeparate, glBlendR, glBlendG, glBlendB, glBlendA);
-			
+			peoteView.setGLDepth(zIndexEnabled);			
+			peoteView.setGLBlend(blendEnabled, blendSeparate, glBlendSrc, glBlendDst, glBlendSrcAlpha, glBlendDstAlpha, blendFuncSeparate, glBlendFunc, glBlendFuncAlpha, blendColor, useBlendColor, useBlendColorSeparate, glBlendR, glBlendG, glBlendB, glBlendA);			
 			peoteView.setMask(mask, clearMask);
 			
 			buffer.render(peoteView, display, this);
@@ -1109,11 +1106,8 @@ class Program
 		for (i in 0...uniformFloats.length) gl.uniform1f (uniformFloatLocations[i], uniformFloats[i].value);
 		
 		peoteView.setColor(colorEnabled);
-		peoteView.setGLDepth(zIndexEnabled);
-		
-		//peoteView.setGLAlpha(alphaEnabled);
-		peoteView.setGLBlend(blendEnabled, blendSeparate, glBlendSrc, glBlendDst, glBlendSrcAlpha, glBlendDstAlpha, blendFuncSeparate, glBlendFunc, glBlendFuncAlpha, blendColor, useBlendColor, useBlendColorSeparate, glBlendR, glBlendG, glBlendB, glBlendA);
-		
+		peoteView.setGLDepth(zIndexEnabled);		
+		peoteView.setGLBlend(blendEnabled, blendSeparate, glBlendSrc, glBlendDst, glBlendSrcAlpha, glBlendDstAlpha, blendFuncSeparate, glBlendFunc, glBlendFuncAlpha, blendColor, useBlendColor, useBlendColorSeparate, glBlendR, glBlendG, glBlendB, glBlendA);		
 		peoteView.setMask(mask, clearMask);
 		
 		buffer.render(peoteView, display, this);

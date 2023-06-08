@@ -138,7 +138,6 @@ class PeoteView
 		width = window.width;
 		height = window.height;
 		this.color = color;
-		//set_color(color);
 				
 		if (PeoteGL.Version.isUBO) {
             #if peoteview_debug_view
@@ -471,10 +470,6 @@ class PeoteView
 		// Optimize: only set if is in use somewhere (stencilON state!)
 		gl.stencilMask(0xFF);
 
-		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-		//gl.blendFunc(gl.ONE_MINUS_SRC_ALPHA, gl.SRC_ALPHA); // reverse
-		//glBlendFuncSeparate(gl.ONE_MINUS_SRC_ALPHA, gl.SRC_ALPHA, gl.ONE, gl.ZERO); // colors separate
-
 		gl.depthFunc(gl.LEQUAL);
 		
 		display.renderFramebuffer(this); // <-- render display
@@ -494,7 +489,7 @@ class PeoteView
 	}
 		
 	// ------------------------------------------------------------------------------
-	// ----------------------------- Render -----------------------------------------
+	// ---------- Color, Depth, Stencil Mask and Blendmode states -------------------
 	// ------------------------------------------------------------------------------
 	var colorState:Bool = true;
 	private inline function setColor(enabled:Bool):Void
@@ -559,10 +554,10 @@ class PeoteView
 	
 	var blendStateColor:Int = 0;
 	
-	private inline function setGLBlend(blendEnabled:Bool, blendSeparate:Bool,
-		blendSrc:Int, blendDst:Int, blendSrcAlpha:Int, blendDstAlpha:Int,
-		funcSeparate:Bool, func:Int, funcAlpha:Int,
-		color:Color, useColor:Bool, useColorSeparate:Bool, r:Float, g:Float, b:Float, a:Float
+	private inline function setGLBlend(blendEnabled:Bool, blendSeparate:Bool = false,
+		blendSrc:Int = 0, blendDst:Int = 0, blendSrcAlpha:Int = 0, blendDstAlpha:Int = 0,
+		funcSeparate:Bool = false, func:Int = 0, funcAlpha:Int = 0,
+		color:Color = 0, useColor:Bool = false, useColorSeparate:Bool = false, r:Float = 0.0, g:Float = 0.0, b:Float = 0.0, a:Float = 0.0
 	):Void
 	{	
 		if (blendEnabled) {
@@ -619,7 +614,6 @@ class PeoteView
 		// Optimize: only set depth and stencil bits here if used somewhere (hasDepth state und hasStencil)
 		// CHECK: this may not need on HTML5 (look at preserveDrawingBuffer -> https://stackoverflow.com/questions/27746091/preservedrawingbuffer-false-is-it-worth-the-effort)
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
-
 		
 		// Optimize: only clear depth and stencil bits if is used somewhere (hasDepth und hasStencil)
 		// TODO: let a program clear at start
