@@ -56,7 +56,7 @@ class Elem implements Element
 		"own"  => 0x0000ffff,
 	];
 	
-	var OPTIONS = { alpha:true };
+	var OPTIONS = { blend:true };
 		
 	public function new(positionX:Int=0, positionY:Int=0, width:Int=100, height:Int=100)
 	{

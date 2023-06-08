@@ -105,7 +105,7 @@ class Elem1 implements Element
 		
 		program.setColorFormula('compose(bgcolor, borderColor, borderSize, borderRadius)');// parsed by color and custom identifiers
 		
-		program.alphaEnabled = true;
+		program.blendEnabled = true;
 		display.addProgram(program);
 	}
 	

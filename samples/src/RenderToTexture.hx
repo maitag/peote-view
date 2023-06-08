@@ -153,7 +153,7 @@ class RenderToTexture extends Application
 		
 		programTo.setTexture(texture, "renderFrom");
 		programTo.setColorFormula('renderFrom');
-		programTo.alphaEnabled = true;
+		programTo.blendEnabled = true;
 		programTo.discardAtAlpha(null);
 		displayTo.addProgram(programTo);
 		

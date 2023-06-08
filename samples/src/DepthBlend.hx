@@ -129,8 +129,8 @@ class DepthBlend extends Application
 				if (discardValue > 0.9) programL.discardAtAlpha(); else programL.discardAtAlpha(discardValue);
 			case KeyCode.A: displayR.backgroundAlpha = !displayR.backgroundAlpha;
 			case KeyCode.B: displayR.backgroundEnabled = !displayR.backgroundEnabled;
-			case KeyCode.X: programL.alphaEnabled = !programL.alphaEnabled;
-			case KeyCode.Y: programR.alphaEnabled = !programR.alphaEnabled;
+			case KeyCode.X: programL.blendEnabled = !programL.blendEnabled;
+			case KeyCode.Y: programR.blendEnabled = !programR.blendEnabled;
 			case KeyCode.C: programL.zIndexEnabled = !programL.zIndexEnabled;
 			case KeyCode.V: programR.zIndexEnabled = !programR.zIndexEnabled;
 			case KeyCode.Z: displayR.backgroundDepth = !displayR.backgroundDepth;

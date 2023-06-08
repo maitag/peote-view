@@ -28,8 +28,8 @@ class SimpleQuad extends Application
 
 	public function startSample(window:Window)
 	{
-		var peoteView = new PeoteView(window);
-		var display   = new Display(10,10, window.width-20, window.height-20, Color.GREEN);
+		var peoteView = new PeoteView(window, Color.BLUE);
+		var display   = new Display(10, 10, window.width-20, window.height-20, Color.GREEN);
 
 		var buffer = new Buffer<ElementSimple>(4, 4, true);
 		var program   = new Program(buffer);

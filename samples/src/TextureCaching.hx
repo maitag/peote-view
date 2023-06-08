@@ -30,7 +30,7 @@ class Elem implements Element
 	@texUnit public var unit:Int=0;
 	@texSlot public var slot:Int = 0;
 	
-	//var OPTIONS = { alpha:false };
+	//var OPTIONS = { blend:false };
 		
 	public function new(positionX:Int, positionY:Int, width:Int, height:Int, texW:Int, texH:Int, unit:Int, slot:Int)
 	{

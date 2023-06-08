@@ -2,6 +2,7 @@ package;
 
 import haxe.Timer;
 import haxe.CallStack;
+import peote.view.utils.BlendMode;
 
 import lime.app.Application;
 import lime.graphics.RenderContext;
@@ -112,7 +113,7 @@ class DrawToTexture extends Application
 		
 		programCanvas.setTexture(textureCanvas, "renderFrom");
 		//programCanvas.setColorFormula('renderFrom');
-		programCanvas.alphaEnabled = true;
+		programCanvas.blendEnabled = true;
 		programCanvas.discardAtAlpha(null);
 		displayCanvas.addProgram(programCanvas);
 		
@@ -132,10 +133,14 @@ class DrawToTexture extends Application
 		bufferPen  = new Buffer<ElemPen>(100);
 		programPen = new Program(bufferPen);
 		
+		//programPen.blendEnabled = true;
+		//programPen.blendSrc = BlendMode.SRC_ALPHA;
+		//programPen.blendDst = BlendMode.ONE;
+		
 		displayPen.addProgram(programPen);
 		
 		// Pen Element
-		elemPen = new ElemPen(100, 100, 10, 10, Color.RED);
+		elemPen = new ElemPen(100, 100, 50, 50, Color.RED.setAlpha(0.5));
 		bufferPen.addElement(elemPen);				
 		
 		displayPen.setFramebuffer(textureCanvas); // texture to render into

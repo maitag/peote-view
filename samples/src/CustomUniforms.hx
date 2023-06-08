@@ -74,7 +74,7 @@ class SinWave implements Element
 		// program.setFragmentFloatPrecision("high");
 		#end
 		
-		program.alphaEnabled = true;
+		program.blendEnabled = true;
 		
 		display.addProgram(program);
 	}

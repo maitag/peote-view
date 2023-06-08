@@ -93,12 +93,12 @@ class Program
 	var useBlendColor:Bool = false;
 	var useBlendColorSeparate:Bool = false;
 	
-	public var blendColor(default, set):Color = Color.RED;
+	public var blendColor(default, set):Color = 0x7F7F7F7F;
 	inline function set_blendColor(v:Color):Color {
-		glBlendR = v.r / 255;
-		glBlendG = v.g / 255;
-		glBlendB = v.b / 255;
-		glBlendA = v.a / 255;
+		glBlendR = v.r / 255.0;
+		glBlendG = v.g / 255.0;
+		glBlendB = v.b / 255.0;
+		glBlendA = v.a / 255.0;
 		return blendColor = v;
 	}
 	var glBlendR:Float;

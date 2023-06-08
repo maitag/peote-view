@@ -29,7 +29,7 @@ class PeoteView
 	public var width(default, null):Int;
 	public var height(default, null):Int;
 	
-	public var color(default,set):Color = 0x000000FF;
+	public var color(default, set):Color = 0x000000FF;
 	inline function set_color(c:Color):Color {
 		red   = c.red   / 255.0;			
 		green = c.green / 255.0;			
@@ -137,7 +137,8 @@ class PeoteView
 		gl = window.context;
 		width = window.width;
 		height = window.height;
-		set_color(color);
+		this.color = color;
+		//set_color(color);
 				
 		if (PeoteGL.Version.isUBO) {
             #if peoteview_debug_view

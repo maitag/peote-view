@@ -28,7 +28,7 @@ class Elem implements Element
 	
 	@texSlot public var slot:Int = 0;
 		
-	//var OPTIONS = { texRepeatX:true, texRepeatY:true, alpha:true };
+	//var OPTIONS = { texRepeatX:true, texRepeatY:true, blend:true };
 	
 	public function new(x:Int=0, y:Int=0, w:Int=100, h:Int=100)
 	{

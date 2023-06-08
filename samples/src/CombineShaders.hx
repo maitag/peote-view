@@ -50,7 +50,7 @@ class Elem implements Element
 		"image"  => 0x00ff00ff,
 	];
 	
-	var OPTIONS = { alpha:true };
+	var OPTIONS = { blend:true };
 		
 	public function new(positionX:Int=0, positionY:Int=0, width:Int=100, height:Int=100)
 	{

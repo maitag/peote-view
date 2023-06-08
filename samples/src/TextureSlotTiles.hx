@@ -39,7 +39,7 @@ class Elem implements Element
 	@texTile() @anim("Tile")
 	public var tile:Int;  // unsigned 2 bytes integer
 
-	var OPTIONS = { alpha:true };
+	var OPTIONS = { blend:true };
 	
 	public function new(positionX:Int=0, positionY:Int=0, width:Int=100, height:Int=100 )
 	{

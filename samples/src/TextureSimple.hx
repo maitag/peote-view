@@ -45,7 +45,7 @@ class Elem implements Element
 	@texSizeX public var twOffset:Int = 256;
 	@texSizeY public var thOffset:Int = 256;
 */	
-	var OPTIONS = { texRepeatX:true, texRepeatY:true, alpha:true };
+	var OPTIONS = { texRepeatX:true, texRepeatY:true, blend:true };
 	
 	public function new(positionX:Int=0, positionY:Int=0, width:Int=100, height:Int=100, c:Int=0xFF0000FF )
 	{

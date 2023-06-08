@@ -104,6 +104,9 @@ class GLPicking extends Application
 		
 		program = new Program(buffer);
 		
+		// to disable alpha-discard:
+		// program.discardAtAlpha(null);
+		
 		display.addProgram(program);
 		
 		Loader.image("assets/images/wabbit_alpha.png", true, function (image:Image)
@@ -125,7 +128,7 @@ class GLPicking extends Application
 			var elem = buffer.getElement(pickedElement);
 			elem.color = Color.random();
 			elem.color.alpha = 255;
-			buffer.updateElement(elem);			
+			buffer.updateElement(elem);		
 		}
 		
 		var pickedElements = peoteView.getAllElementsAt(x, y, display, program);
