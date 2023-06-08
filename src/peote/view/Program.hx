@@ -14,7 +14,7 @@ import peote.view.utils.Util;
 import peote.view.utils.GLTool;
 import peote.view.utils.RenderList;
 import peote.view.utils.RenderListItem;
-import peote.view.utils.BlendMode;
+import peote.view.utils.BlendFactor;
 import peote.view.utils.BlendFunc;
 
 class ActiveTexture {
@@ -40,19 +40,19 @@ class Program
 	
 	var blendValues:Int = 0; // stores all 6 following values into one Int here
 	
-	public var blendSrc(get, set):BlendMode;
-	public var blendDst(get, set):BlendMode;
-	public var blendSrcAlpha(get, set):BlendMode;
-	public var blendDstAlpha(get, set):BlendMode;
+	public var blendSrc(get, set):BlendFactor;
+	public var blendDst(get, set):BlendFactor;
+	public var blendSrcAlpha(get, set):BlendFactor;
+	public var blendDstAlpha(get, set):BlendFactor;
 	
-	inline function get_blendSrc      ():BlendMode return BlendMode.getSrc      (blendValues);
-	inline function get_blendDst     ():BlendMode return BlendMode.getDst     (blendValues);
-	inline function get_blendSrcAlpha ():BlendMode return BlendMode.getSrcAlpha (blendValues);
-	inline function get_blendDstAlpha():BlendMode return BlendMode.getDstAlpha(blendValues);
-	inline function set_blendSrc      (v:BlendMode):BlendMode { setBlendUseColor(); if (gl != null) glBlendSrc       = v.toGL(gl); blendValues = v.setSrc      (blendValues); return v; }
-	inline function set_blendDst     (v:BlendMode):BlendMode { setBlendUseColor(); if (gl != null) glBlendDst      = v.toGL(gl); blendValues = v.setDst     (blendValues); return v; }
-	inline function set_blendSrcAlpha (v:BlendMode):BlendMode { setBlendUseColor(); if (gl != null) glBlendSrcAlpha  = v.toGL(gl); blendValues = v.setSrcAlpha (blendValues); return v; }
-	inline function set_blendDstAlpha(v:BlendMode):BlendMode { setBlendUseColor(); if (gl != null) glBlendDstAlpha = v.toGL(gl); blendValues = v.setDstAlpha(blendValues); return v; }
+	inline function get_blendSrc     ():BlendFactor return BlendFactor.getSrc      (blendValues);
+	inline function get_blendDst     ():BlendFactor return BlendFactor.getDst     (blendValues);
+	inline function get_blendSrcAlpha():BlendFactor return BlendFactor.getSrcAlpha (blendValues);
+	inline function get_blendDstAlpha():BlendFactor return BlendFactor.getDstAlpha(blendValues);
+	inline function set_blendSrc     (v:BlendFactor):BlendFactor { setBlendUseColor(); if (gl != null) glBlendSrc      = v.toGL(gl); blendValues = v.setSrc     (blendValues); return v; }
+	inline function set_blendDst     (v:BlendFactor):BlendFactor { setBlendUseColor(); if (gl != null) glBlendDst      = v.toGL(gl); blendValues = v.setDst     (blendValues); return v; }
+	inline function set_blendSrcAlpha(v:BlendFactor):BlendFactor { setBlendUseColor(); if (gl != null) glBlendSrcAlpha = v.toGL(gl); blendValues = v.setSrcAlpha(blendValues); return v; }
+	inline function set_blendDstAlpha(v:BlendFactor):BlendFactor { setBlendUseColor(); if (gl != null) glBlendDstAlpha = v.toGL(gl); blendValues = v.setDstAlpha(blendValues); return v; }
 		
 	public var blendFunc(get, set):BlendFunc;
 	public var blendFuncAlpha(get, set):BlendFunc;
@@ -68,16 +68,16 @@ class Program
 	}
 	
 	inline function setDefaultBlendValues() {
-		blendSrc  = blendSrcAlpha  = BlendMode.SRC_ALPHA;
-		blendDst = blendDstAlpha = BlendMode.ONE_MINUS_SRC_ALPHA;
+		blendSrc  = blendSrcAlpha  = BlendFactor.SRC_ALPHA;
+		blendDst  = blendDstAlpha  = BlendFactor.ONE_MINUS_SRC_ALPHA;
 		blendFunc = blendFuncAlpha = BlendFunc.ADD;
 	}
 	
 	inline function updateBlendGLValues() {
-		glBlendSrc       = BlendMode.getSrc      (blendValues).toGL(gl);
-		glBlendDst      = BlendMode.getDst     (blendValues).toGL(gl);
-		glBlendSrcAlpha  = BlendMode.getSrcAlpha (blendValues).toGL(gl);
-		glBlendDstAlpha = BlendMode.getDstAlpha(blendValues).toGL(gl);
+		glBlendSrc      = BlendFactor.getSrc     (blendValues).toGL(gl);
+		glBlendDst      = BlendFactor.getDst     (blendValues).toGL(gl);
+		glBlendSrcAlpha = BlendFactor.getSrcAlpha(blendValues).toGL(gl);
+		glBlendDstAlpha = BlendFactor.getDstAlpha(blendValues).toGL(gl);
 		
 		glBlendFunc      = BlendFunc.getFunc     (blendValues).toGL(gl);
 		glBlendFuncAlpha = BlendFunc.getFuncAlpha(blendValues).toGL(gl);

@@ -2,7 +2,7 @@ package peote.view.utils;
 import peote.view.PeoteGL;
 
 @:allow(peote.view.Program)
-abstract BlendMode(Int) from Int to Int
+abstract BlendFactor(Int) from Int to Int
 {
 	public static inline var ZERO                    :Int = 0;
 	public static inline var ONE                     :Int = 1;
@@ -41,14 +41,14 @@ abstract BlendMode(Int) from Int to Int
 		}
 	}
 	
-	static inline function getSrc      (v:Int):BlendMode return  v        & 0xF;
-	static inline function getDst     (v:Int):BlendMode return (v >> 4 ) & 0xF;
-	static inline function getSrcAlpha (v:Int):BlendMode return (v >> 8 ) & 0xF;
-	static inline function getDstAlpha(v:Int):BlendMode return (v >> 12) & 0xF;
+	static inline function getSrc     (v:Int):BlendFactor return  v        & 0xF;
+	static inline function getDst     (v:Int):BlendFactor return (v >> 4 ) & 0xF;
+	static inline function getSrcAlpha(v:Int):BlendFactor return (v >> 8 ) & 0xF;
+	static inline function getDstAlpha(v:Int):BlendFactor return (v >> 12) & 0xF;
 	
-	inline function setSrc      (v:Int):Int return (v & 0xFFFFFFF0) | this;
+	inline function setSrc     (v:Int):Int return (v & 0xFFFFFFF0) |  this;
 	inline function setDst     (v:Int):Int return (v & 0xFFFFFF0F) | (this << 4 );
-	inline function setSrcAlpha (v:Int):Int return (v & 0xFFFFF0FF) | (this << 8 );
+	inline function setSrcAlpha(v:Int):Int return (v & 0xFFFFF0FF) | (this << 8 );
 	inline function setDstAlpha(v:Int):Int return (v & 0xFFFF0FFF) | (this << 12);
 	
 }

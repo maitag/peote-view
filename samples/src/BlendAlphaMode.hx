@@ -12,7 +12,7 @@ import peote.view.Program;
 import peote.view.Color;
 import peote.view.Element;
 
-import peote.view.utils.BlendMode;
+import peote.view.utils.BlendFactor;
 import peote.view.utils.BlendFunc;
 
 class ElementSimple implements Element
@@ -36,26 +36,9 @@ class ElementSimple implements Element
 		this.c = c;
 	}
 	
-	var OPTIONS = {
-		
-		//blend:true,
-		
-		// TODO:
-		//blendSrc:BlendMode.SRC_ALPHA,
-		//blendDst:BlendMode.ONE_MINUS_SRC_ALPHA,
-		
-		//blendSeparate:true,
-		//blendSrcAlpha:BlendMode.SRC_ALPHA;
-		//blendDstAlpha:BlendMode.ONE_MINUS_SRC_ALPHA;
-		
-		//blendFunc = BlendFunc.ADD
-		
-		//blendFuncSeparate:true;
-		//blendFuncAlpha:BlendFunc.ADD;
-		
+	var OPTIONS = {	
+		//blend:true,		
 	};
-
-
 }
 
 
@@ -98,21 +81,20 @@ class BlendAlphaMode extends Application
 		program.blendColor = Color.RED;
 		
 		// ---------- blendmode --------
-		program.blendSrc  = BlendMode.SRC_ALPHA;
-		program.blendDst = BlendMode.ONE_MINUS_SRC_ALPHA;
+		program.blendSrc = BlendFactor.SRC_ALPHA;
+		program.blendDst = BlendFactor.ONE_MINUS_SRC_ALPHA;
 
 		// --- separate blendmode for Alpha channel ------
 		program.blendSeparate = true; // false by default
-		program.blendSrcAlpha  = BlendMode.SRC_ALPHA;
-		program.blendDstAlpha = BlendMode.ONE_MINUS_SRC_ALPHA;
+		program.blendSrcAlpha = BlendFactor.SRC_ALPHA;
+		program.blendDstAlpha = BlendFactor.ONE_MINUS_SRC_ALPHA;
 		
 		// ------- blend equation function ---------
 		program.blendFunc = BlendFunc.ADD;
 		
 		// -- separate blend equation functions Alpha channel --
 		program.blendFuncSeparate = true; // false by default
-		program.blendFuncAlpha = BlendFunc.ADD;
-		
+		program.blendFuncAlpha = BlendFunc.ADD;		
 	}
 		
 }
