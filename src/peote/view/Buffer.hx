@@ -392,14 +392,16 @@ class $className implements BufferInterface
 		if (element1.bytePos == -1) throw("Error: first Element is not inside a Buffer");
 		if (element2.bytePos == -1) throw("Error: second Element is not inside a Buffer");
 		
-		//var bytePos1 = element1.bytePos;
+		var bytePos1 = element1.bytePos;
 		var bufferPointer1 = element1.bufferPointer;
 		
 		element1.bufferPointer = element2.bufferPointer;//new peote.view.utils.GLBufferPointer(_bytes, element2.bytePos, _elemBuffSize);
+		element1.bytePos = element2.bytePos;
 		//updateElement(element1);
 		
 		//element2.bufferPointer = new peote.view.utils.GLBufferPointer(_bytes, bytePos1, _elemBuffSize);
 		element2.bufferPointer = bufferPointer1;
+		element2.bytePos = bytePos1;
 		//updateElement(element2);
 		
 		_elements.set( Std.int(  element1.bytePos / _elemBuffSize ), element1);

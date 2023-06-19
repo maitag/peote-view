@@ -175,7 +175,7 @@ abstract PeoteGL(LimeGLRenderContext) from LimeGLRenderContext to LimeGLRenderCo
 class Version {
 	#if peoteview_es3
 	
-		static inline var isES3 = true; // force compiling without runtimecheck for UBOs/InstanceDrawing
+		static inline public var isES3 = true; // force compiling without runtimecheck for UBOs/InstanceDrawing
 
 		#if peoteview_uniformbuffers
 			static inline var isUBO = true;
@@ -195,14 +195,14 @@ class Version {
 		
 	#elseif peoteview_es2  // force compiling without runtimecheck for UBOs/InstanceDrawing
 	
-		static inline var isES3 = false;
+		static inline public var isES3 = false;
 		static inline var isUBO = false;
 		static inline var isINSTANCED = false;
 		static inline var isVAO = false;
 		
 	#else // check at runtime (depends on available es-version) 
 
-		static var isES3(default, set) = false;		// <---- set this true if detected gl-Version is es3
+		static public var isES3(default, set) = false;		// <---- set this true if detected gl-Version is es3
 		static inline function set_isES3(b:Bool):Bool {
 			#if peoteview_uniformbuffers
 				isUBO = b;

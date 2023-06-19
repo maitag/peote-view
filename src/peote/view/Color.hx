@@ -46,6 +46,7 @@ abstract Color(Int) from Int to Int from UInt to UInt
 	
 	// set by Float values
 	public inline function setAlpha(a:Float):Color { return (this & 0xffffff00) | Std.int(a*0xFF); }
+	public inline function setRed(r:Float):Color { return (this & 0x00ffffff) | (Std.int(r*0xFF)<<24); }
 	
 	public static inline function random():Color {
 		return (Std.int(Math.random()*256) << 24) | Std.random(0x1000000);
