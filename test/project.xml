@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+	
+	<meta title="PeoteView" package="peote.view" version="0.8.0" company="Sylvio Sell - maitag" />
+	
+	<android target-sdk-version="28" />
+
+	<!-- test -->
+	<app main="TestMultipassTemplate" path="bin" file="Main" />
+
+	<window width="800" height="600" fps="61" />
+	<window if="html5||android" width="0" height="0" allowHighDPI="true" />
+	
+	<source path="src" />
+	
+	<haxelib name="lime" />	
+	<haxelib name="peote-view" />
+	
+	<haxedef name="peoteview_es2" if="android" /> <!-- android autodetect es3 but did not work, so force to es2 -->
+	
+	<haxeflag name="-dce" value="full" />
+	<haxedef name="message.reporting=pretty" />
+	<haxedef name="keep_inline_positions" />
+	
+	<setenv name="SHOW_CONSOLE" /> <!-- on windows it shows console if start by clicking on .exe -->
+	
+</project>

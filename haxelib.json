@@ -4,10 +4,10 @@
 	"license": "MIT",
 	"tags": ["peote", "opengl", "2d", "shader", "glsl"],
 	"description": "2D Render Library (lime/opengl)",
-	"version": "0.8.8",
+	"version": "0.8.9",
 	"classPath": "src/",
-	"releasenote": "adding functions for converting global coordinates from and to display ones",
-	"contributors": ["Sylvio Sell - maitag"],
+	"releasenote": "outsourcing the samples into peote-view-samples repo",
+	"contributors": ["maitag"],
 	"dependencies": {
 		"lime": ""
 	}
