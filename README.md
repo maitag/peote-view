@@ -9,7 +9,10 @@ It's written in [Haxe](http://haxe.org) and runs multiplatform with [Lime](https
 ```
 haxelib git peote-view https://github.com/maitag/peote-view
 ```
+## Samples:
 
+start here: [peote-view-samples](https://github.com/maitag/peote-view-samples) to test out core features  
+or play around into: [peote-playground](https://github.com/maitag/peote-playground)
 
 ## Features
 
