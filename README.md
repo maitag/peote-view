@@ -3,7 +3,7 @@
 This library is to simplify opengl-usage for 2D rendering and to easy  
 handle procedural shadercode and imagedata from texture-atlases.
   
-It's written in [Haxe](http://haxe.org) and runs multiplatform with [Lime](https://github.com/haxelime/lime)s [GL-context](https://github.com/haxelime/lime/tree/develop/src/lime/graphics/opengl) and environment.  
+It's written in [Haxe](http://haxe.org) and runs multiplatform with [Lime](https://github.com/openfl/lime)s [GL-context](https://github.com/openfl/lime/tree/develop/src/lime/graphics/opengl) and environment.  
 
 ## Installation:
 ```
@@ -54,7 +54,7 @@ or play around into: [peote-playground](https://github.com/maitag/peote-playgrou
 - only properties/shaderattribures that is need will be generated (to have optimized types of Elements for any purpose)
 
 
-`Buffer`
+`Buffer<Element>`
 - depends on type of generated Element
 - stores many Element-instances to build up an equivalent gl-vertexbuffer
 - can be dynamically grow/shrink
