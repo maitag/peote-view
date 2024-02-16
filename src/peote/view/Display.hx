@@ -1,8 +1,10 @@
 package peote.view;
 
 import peote.view.PeoteView;
-import peote.view.utils.RenderList;
-import peote.view.utils.RenderListItem;
+import peote.view.intern.RenderList;
+import peote.view.intern.RenderListItem;
+import peote.view.intern.UniformBufferView;
+import peote.view.intern.UniformBufferDisplay;
 
 @:allow(peote.view)
 class Display 

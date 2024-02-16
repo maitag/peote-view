@@ -1,5 +1,6 @@
 package peote.view;
-import peote.view.utils.Util;
+
+import peote.view.intern.Util;
 
 abstract Color(Int) from Int to Int from UInt to UInt
 {

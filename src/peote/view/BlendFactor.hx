@@ -1,4 +1,5 @@
-package peote.view.utils;
+package peote.view;
+
 import peote.view.PeoteGL;
 
 @:allow(peote.view.Program)

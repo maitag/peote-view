@@ -1,8 +1,6 @@
-package peote.view;
+package peote.view.intern;
 
 import peote.view.PeoteGL.GLBuffer;
-import peote.view.utils.BufferBytes;
-import peote.view.utils.GLBufferPointer;
 
 class UniformBufferDisplay
 {

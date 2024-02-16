@@ -6,8 +6,8 @@ import haxe.io.Int32Array;
 import haxe.io.Float32Array;
 
 import lime.utils.DataPointer;
-import peote.view.utils.BufferBytes;
-import peote.view.utils.GLBufferPointer;
+import peote.view.intern.BufferBytes;
+import peote.view.intern.GLBufferPointer;
 
 typedef GLTexture           = lime.graphics.opengl.GLTexture;
 typedef GLFramebuffer       = lime.graphics.opengl.GLFramebuffer;                    

@@ -8,8 +8,8 @@ import peote.view.TextureData;
 import peote.view.PeoteGL.GLTexture;
 import peote.view.PeoteGL.GLFramebuffer;
 import peote.view.PeoteGL.GLRenderbuffer;
-import peote.view.utils.GLTool;
-import peote.view.utils.TexUtils;
+import peote.view.intern.GLTool;
+import peote.view.intern.TexUtils;
 
 typedef ImgProp = {imageSlot:Int}; //isRotated
 

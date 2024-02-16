@@ -1,4 +1,4 @@
-package peote.view.utils;
+package peote.view.intern;
 
 import peote.view.PeoteGL.GLBuffer;
 import peote.view.PeoteGL.GLProgram;
@@ -6,7 +6,6 @@ import peote.view.PeoteGL.GLShader;
 import peote.view.PeoteGL.GLUniformLocation;
 import peote.view.PeoteGL.Precision;
 
-import peote.view.utils.BufferBytes;
 
 // for rendering a colored background-GL-quad
 class Background 

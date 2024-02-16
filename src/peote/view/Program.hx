@@ -9,13 +9,16 @@ import peote.view.Mask;
 import peote.view.PeoteGL.GLProgram;
 import peote.view.PeoteGL.GLShader;
 import peote.view.PeoteGL.GLUniformLocation;
+import peote.view.BlendFactor;
+import peote.view.BlendFunc;
 
-import peote.view.utils.Util;
-import peote.view.utils.GLTool;
-import peote.view.utils.RenderList;
-import peote.view.utils.RenderListItem;
-import peote.view.utils.BlendFactor;
-import peote.view.utils.BlendFunc;
+import peote.view.intern.Util;
+import peote.view.intern.GLTool;
+import peote.view.intern.RenderList;
+import peote.view.intern.RenderListItem;
+import peote.view.intern.BufferInterface;
+import peote.view.intern.UniformBufferView;
+import peote.view.intern.UniformBufferDisplay;
 
 class ActiveTexture {
 	public var unit:Int;

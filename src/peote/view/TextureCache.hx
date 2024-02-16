@@ -1,11 +1,11 @@
-package peote.view.utils;
+package peote.view;
 
 import haxe.ds.ArraySort;
-import peote.view.TextureData;
 
+import peote.view.TextureData;
 import peote.view.Program;
 import peote.view.Texture;
-import peote.view.utils.TexUtils;
+import peote.view.intern.TexUtils;
 
 class TextureCache 
 {

@@ -1,4 +1,4 @@
-package peote.view.utils;
+package peote.view.intern;
 
 import peote.view.PeoteGL.GLTexture;
 

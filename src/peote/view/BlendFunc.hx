@@ -1,4 +1,4 @@
-package peote.view.utils;
+package peote.view;
 
 @:allow(peote.view.Program)
 abstract BlendFunc(Int) from Int to Int

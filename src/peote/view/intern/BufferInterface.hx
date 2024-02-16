@@ -1,4 +1,4 @@
-package peote.view;
+package peote.view.intern;
 
 
 @:allow(peote.view.Program)

@@ -1,4 +1,4 @@
-package peote.view.utils;
+package peote.view.intern;
 
 #if (!html5) // ----------- neko, cpp
 

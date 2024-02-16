@@ -1,6 +1,5 @@
-package peote.view.utils;
+package peote.view.intern;
 
-import peote.view.utils.BufferBytes;
 
 // to wrap around cpp Pointer and cffi Datapointer of Lime
 

@@ -1,11 +1,12 @@
-package peote.view.utils;
+package peote.view.intern;
 
-import lime.graphics.opengl.GLRenderbuffer;
+import utils.MultipassTemplate;
+
+import peote.view.PeoteGL.GLRenderbuffer;
 import peote.view.PeoteGL.GLFramebuffer;
 import peote.view.PeoteGL.GLProgram;
 import peote.view.PeoteGL.GLShader;
 import peote.view.PeoteGL.GLTexture;
-import utils.MultipassTemplate;
 
 class GLTool 
 {

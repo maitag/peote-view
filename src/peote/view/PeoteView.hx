@@ -10,11 +10,12 @@ import lime.graphics.RenderContext;
 import lime.graphics.opengl.GLRenderbuffer;
 
 import peote.view.Mask;
-import peote.view.utils.Background;
-import peote.view.utils.GLTool;
-import peote.view.utils.RenderList;
-import peote.view.utils.RenderListItem;
-import peote.view.utils.TexUtils;
+import peote.view.intern.Background;
+import peote.view.intern.GLTool;
+import peote.view.intern.RenderList;
+import peote.view.intern.RenderListItem;
+import peote.view.intern.TexUtils;
+import peote.view.intern.UniformBufferView;
 
 import peote.view.PeoteGL.GLTexture;
 import peote.view.PeoteGL.GLFramebuffer;

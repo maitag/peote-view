@@ -13,7 +13,7 @@ import haxe.macro.Context;
 import haxe.macro.ExprTools;
 import haxe.macro.Printer;
 
-import peote.view.utils.Util;
+import peote.view.intern.Util;
 
 typedef ConfParam =
 {
@@ -1651,7 +1651,7 @@ class ElementImpl
 			name:  "bufferPointer",
 			meta:  allowForBuffer,
 			access:  [Access.APrivate],
-			kind: FieldType.FVar(macro:peote.view.utils.GLBufferPointer, null), 
+			kind: FieldType.FVar(macro:peote.view.intern.GLBufferPointer, null), 
 			pos: Context.currentPos(),
 		});
 		
@@ -1762,7 +1762,7 @@ class ElementImpl
 		fields.push({
 			name:  "instanceBytes", // only for instanceDrawing
 			access:  [Access.APrivate, Access.AStatic],
-			kind: FieldType.FVar(macro:peote.view.utils.BufferBytes, macro null), 
+			kind: FieldType.FVar(macro:peote.view.intern.BufferBytes, macro null), 
 			pos: Context.currentPos(),
 		});
 		fields.push({
@@ -1775,7 +1775,7 @@ class ElementImpl
 				expr: macro {
 					if (instanceBytes == null) {
 						//trace("create bytes for instance GLbuffer");
-						instanceBytes = peote.view.utils.BufferBytes.alloc(VERTEX_COUNT * 2);
+						instanceBytes = peote.view.intern.BufferBytes.alloc(VERTEX_COUNT * 2);
 						instanceBytes.set(0 , 1); instanceBytes.set(1,  1);
 						instanceBytes.set(2 , 1); instanceBytes.set(3,  1);
 						instanceBytes.set(4 , 0); instanceBytes.set(5,  1);
@@ -1799,7 +1799,7 @@ class ElementImpl
 				expr: macro {
 					//trace("fill full instance GLbuffer");
 					gl.bindBuffer (gl.ARRAY_BUFFER, glInstanceBuffer);
-					gl.bufferData (gl.ARRAY_BUFFER, instanceBytes.length, new peote.view.utils.GLBufferPointer(instanceBytes), gl.STATIC_DRAW);
+					gl.bufferData (gl.ARRAY_BUFFER, instanceBytes.length, new peote.view.intern.GLBufferPointer(instanceBytes), gl.STATIC_DRAW);
 					gl.bindBuffer (gl.ARRAY_BUFFER, null);
 				},
 				ret: null
@@ -1926,7 +1926,7 @@ class ElementImpl
 			access: [Access.APrivate, Access.AInline],
 			pos: Context.currentPos(),
 			kind: FFun({
-				args:[ {name:"bytes", type:macro:peote.view.utils.BufferBytes}
+				args:[ {name:"bytes", type:macro:peote.view.intern.BufferBytes}
 				],
 				expr: macro $b{ writeBytesExpr() },
 				ret: null
@@ -1940,7 +1940,7 @@ class ElementImpl
 			access: [Access.APrivate, Access.AInline],
 			pos: Context.currentPos(),
 			kind: FFun({
-				args:[ {name:"bytes", type:macro:peote.view.utils.BufferBytes}
+				args:[ {name:"bytes", type:macro:peote.view.intern.BufferBytes}
 				],
 				expr: macro $b{ writeBytesExpr([[1,1],[1,1],[0,1],[1,0],[0,0],[0,0]]) },
 				ret: null
@@ -2234,15 +2234,15 @@ class ElementImpl
 			name:  "vertexShader",
 			meta:  allowForBuffer,
 			access:  [Access.APrivate, Access.AStatic, Access.AInline],
-			kind: FieldType.FVar(macro:String, macro $v{parseShader(Shader.vertexShader)}), 
+			kind: FieldType.FVar(macro:String, macro $v{parseShader(peote.view.intern.Shader.vertexShader)}), 
 			pos: Context.currentPos(),
 		});
-		// trace("ELEMENT ---------- \n"+parseShader(Shader.vertexShader));
+		// trace("ELEMENT ---------- \n"+parseShader(peote.view.intern.Shader.vertexShader));
 		fields.push({
 			name:  "fragmentShader",
 			meta:  allowForBuffer,
 			access:  [Access.APrivate, Access.AStatic, Access.AInline],
-			kind: FieldType.FVar(macro:String, macro $v{parseShader(Shader.fragmentShader)}),
+			kind: FieldType.FVar(macro:String, macro $v{parseShader(peote.view.intern.Shader.fragmentShader)}),
 			pos: Context.currentPos(),
 		});
 		

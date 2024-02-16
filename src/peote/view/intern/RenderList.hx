@@ -1,4 +1,4 @@
-package peote.view.utils;
+package peote.view.intern;
 
 @:generic
 class RenderList<T>
@@ -71,7 +71,7 @@ class RenderList<T>
 		else throw('Error on remove: $value is not in list.');
 	}
 	
-	@:access(peote.view.utils.RenderListItem)
+	@:access(peote.view.intern.RenderListItem)
 	public function swap(a:T, b:T):Void
 	{
 		var itemA:RenderListItem<T> = itemMap.get(a);

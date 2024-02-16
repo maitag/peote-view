@@ -72,7 +72,7 @@ class BufferMacro
 // -------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------
 
-class $className implements BufferInterface
+class $className implements peote.view.intern.BufferInterface
 {
 	var _gl: peote.view.PeoteGL = null;
 	var _glBuffer: peote.view.PeoteGL.GLBuffer;
@@ -88,7 +88,7 @@ class $className implements BufferInterface
 	var _shrinkAtSize:Int = 0;
 	
 	// local bytes-buffer
-	var _bytes: peote.view.utils.BufferBytes;
+	var _bytes: peote.view.intern.BufferBytes;
 	
 	#if peoteview_queueGLbuffering
 	var updateGLBufferElementQueue:Array<$elementType>;
@@ -122,7 +122,7 @@ class $className implements BufferInterface
 		#if peoteview_debug_buffer
 		trace("create bytes for GLbuffer");
 		#end
-		_bytes = peote.view.utils.BufferBytes.alloc(_elemBuffSize * _minSize);
+		_bytes = peote.view.intern.BufferBytes.alloc(_elemBuffSize * _minSize);
 		_bytes.fill(0, _elemBuffSize * _minSize, 0);		
 	}
 	
@@ -165,7 +165,7 @@ class $className implements BufferInterface
 		_glBuffer = _gl.createBuffer();
 		
 		_gl.bindBuffer (_gl.ARRAY_BUFFER, _glBuffer);
-		_gl.bufferData (_gl.ARRAY_BUFFER, _bytes.length, new peote.view.utils.GLBufferPointer(_bytes), _gl.STREAM_DRAW); // STATIC_DRAW, DYNAMIC_DRAW, STREAM_DRAW 
+		_gl.bufferData (_gl.ARRAY_BUFFER, _bytes.length, new peote.view.intern.GLBufferPointer(_bytes), _gl.STREAM_DRAW); // STATIC_DRAW, DYNAMIC_DRAW, STREAM_DRAW 
 		_gl.bindBuffer (_gl.ARRAY_BUFFER, null);
 		
 		if (peote.view.PeoteGL.Version.isINSTANCED) { // init and update instance buffer
@@ -220,14 +220,14 @@ class $className implements BufferInterface
 		//_gl.bufferData (_gl.ARRAY_BUFFER, _bytes.length, _bytes, _gl.STREAM_DRAW); // more performance if allways updating (on IE better then DYNAMIC_DRAW)
 		
 		//_gl.bufferSubData(_gl.ARRAY_BUFFER, 0, _elemBuffSize*_maxElements, _bytes );
-		_gl.bufferSubData(_gl.ARRAY_BUFFER, 0, _elemBuffSize*_maxElements, new peote.view.utils.GLBufferPointer(_bytes) );
+		_gl.bufferSubData(_gl.ARRAY_BUFFER, 0, _elemBuffSize*_maxElements, new peote.view.intern.GLBufferPointer(_bytes) );
 		
 		_gl.bindBuffer (_gl.ARRAY_BUFFER, null);
 	}
 	
 	inline function changeBufferSize(newSize:Int):Void
 	{
-		var _newBytes = peote.view.utils.BufferBytes.alloc(_elemBuffSize * newSize);
+		var _newBytes = peote.view.intern.BufferBytes.alloc(_elemBuffSize * newSize);
 		_newBytes.blit(0, _bytes, 0, _elemBuffSize * _maxElements);
 		_bytes = _newBytes;
 		
@@ -235,7 +235,7 @@ class $className implements BufferInterface
 		//haxe.ds.Vector.blit(_elements, 0, _newElements, 0, _maxElements);
 		for (i in 0..._maxElements) {
 			var element = _elements.get(i);
-			element.bufferPointer = new peote.view.utils.GLBufferPointer(_bytes, element.bytePos, _elemBuffSize);
+			element.bufferPointer = new peote.view.intern.GLBufferPointer(_bytes, element.bytePos, _elemBuffSize);
 			_newElements.set(i, element); 
 		}
 		_elements = _newElements;
@@ -244,7 +244,7 @@ class $className implements BufferInterface
 			_gl.deleteBuffer(_glBuffer);
 			_glBuffer = _gl.createBuffer();
 			_gl.bindBuffer (_gl.ARRAY_BUFFER, _glBuffer);
-			_gl.bufferData (_gl.ARRAY_BUFFER, _bytes.length, new peote.view.utils.GLBufferPointer(_bytes), _gl.STREAM_DRAW); // STATIC_DRAW, DYNAMIC_DRAW, STREAM_DRAW 
+			_gl.bufferData (_gl.ARRAY_BUFFER, _bytes.length, new peote.view.intern.GLBufferPointer(_bytes), _gl.STREAM_DRAW); // STATIC_DRAW, DYNAMIC_DRAW, STREAM_DRAW 
 			_gl.bindBuffer (_gl.ARRAY_BUFFER, null);
 			if (peote.view.PeoteGL.Version.isVAO) { // rebind VAO	
 				_gl.bindVertexArray(_glVAO);
@@ -314,7 +314,7 @@ class $className implements BufferInterface
 				changeBufferSize(_maxElements + _growSize);
 			}
 			element.bytePos = _maxElements * _elemBuffSize;
-			element.bufferPointer = new peote.view.utils.GLBufferPointer(_bytes, element.bytePos, _elemBuffSize);
+			element.bufferPointer = new peote.view.intern.GLBufferPointer(_bytes, element.bytePos, _elemBuffSize);
 			//trace("Buffer.addElement", _maxElements, element.bytePos);
 			_elements.set(_maxElements++, element);
 			updateElement(element);		
@@ -337,7 +337,7 @@ class $className implements BufferInterface
 				var lastElement: $elementType = _elements.get(--_maxElements);
 				lastElement.bytePos = element.bytePos;
 				//trace(lastElement.);
-				lastElement.bufferPointer = new peote.view.utils.GLBufferPointer(_bytes, element.bytePos, _elemBuffSize);
+				lastElement.bufferPointer = new peote.view.intern.GLBufferPointer(_bytes, element.bytePos, _elemBuffSize);
 				updateElement(lastElement);
 				_elements.set( Std.int(  element.bytePos / _elemBuffSize ), lastElement);
 			}
@@ -395,11 +395,11 @@ class $className implements BufferInterface
 		var bytePos1 = element1.bytePos;
 		var bufferPointer1 = element1.bufferPointer;
 		
-		element1.bufferPointer = element2.bufferPointer;//new peote.view.utils.GLBufferPointer(_bytes, element2.bytePos, _elemBuffSize);
+		element1.bufferPointer = element2.bufferPointer;//new peote.view.intern.GLBufferPointer(_bytes, element2.bytePos, _elemBuffSize);
 		element1.bytePos = element2.bytePos;
 		//updateElement(element1);
 		
-		//element2.bufferPointer = new peote.view.utils.GLBufferPointer(_bytes, bytePos1, _elemBuffSize);
+		//element2.bufferPointer = new peote.view.intern.GLBufferPointer(_bytes, bytePos1, _elemBuffSize);
 		element2.bufferPointer = bufferPointer1;
 		element2.bytePos = bytePos1;
 		//updateElement(element2);

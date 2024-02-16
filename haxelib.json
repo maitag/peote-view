@@ -4,9 +4,9 @@
 	"license": "MIT",
 	"tags": ["peote", "opengl", "2d", "shader", "glsl"],
 	"description": "2D Render Library (lime/opengl)",
-	"version": "0.8.9",
+	"version": "0.9.0",
 	"classPath": "src/",
-	"releasenote": "outsourcing the samples into peote-view-samples repo",
+	"releasenote": "package and module refactoring",
 	"contributors": ["maitag"],
 	"dependencies": {
 		"lime": ""
