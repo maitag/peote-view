@@ -4,12 +4,11 @@ import peote.view.PeoteGL.GLTexture;
 
 class TexUtils 
 {
-	// TODO: better via @structinit TextureParam
-	public static function createEmptyTexture(gl:PeoteGL, width:Int, height:Int, colorChannels:Int = 4,
+	public static function createEmptyTexture(gl:PeoteGL, width:Int, height:Int,
 	                                          createMipmaps:Bool = false, magFilter:Int = 0, minFilter:Int = 0,
 	                                          useFloat:Bool = false):GLTexture
 	{
-		// TODO: colorchannels !
+		// TODO: textureFormat !
 		
 		var glTexture:GLTexture = gl.createTexture();
 		

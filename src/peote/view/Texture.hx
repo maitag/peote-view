@@ -11,8 +11,6 @@ import peote.view.PeoteGL.GLRenderbuffer;
 import peote.view.intern.GLTool;
 import peote.view.intern.TexUtils;
 
-typedef ImgProp = {imageSlot:Int}; //isRotated
-
 @:allow(peote.view)
 class Texture 
 {
@@ -22,14 +20,15 @@ class Texture
 	
 	var framebuffer:GLFramebuffer = null;
 	var glDepthBuffer:GLRenderbuffer = null;
+	
 	public var clearOnRenderInto = true;
 	
-	public var colorChannels(default, null):Int=4;
+	public var textureFormat(default, null):TextureFormat;
 	
 	public var width(default, null):Int = 0;
 	public var height(default, null):Int = 0;
 	
-	public var imageSlots(default, null):Int = 1;
+	public var maxSlots(default, null):Int = 1;
 	public var freeSlots(default, null):Int = 1;
 	
 	public var slotsX(default, null):Int = 1;
@@ -40,32 +39,28 @@ class Texture
 	public var tilesX:Int = 1;
 	public var tilesY:Int = 1;
 	
-	public var images = new Map<TextureData, ImgProp>();
+	public var textureDataSlot = new Map<TextureData, Int>();
 	
-	public var createMipmaps:Bool = false;
-	public var magFilter:Int = 0;
-	public var minFilter:Int = 0;
-	public var useFloat:Bool = false;
-
 	var updated:Bool = false;
 	
 	var programs = new Array<Program>();
 	var displays = new Array<Display>();
 	
-	// TODO: better via @structinit TextureParam
-	public function new(slotWidth:Int, slotHeight:Int, imageSlots:Int=1, colorChannels:Int=4, createMipmaps:Bool=false, minFilter:Int=0, magFilter:Int=0, useFloat:Bool = false, maxTextureSize:Int=16384)
+	// TODO: return error if not fit into maxTextureSize!
+	public function new(slotWidth:Int, slotHeight:Int, maxSlots:Int=1, textureConfig:TextureConfig=null)
 	{
+		if (textureConfig == null) textureConfig = new TextureConfig();
+
 		this.slotWidth = slotWidth;
 		this.slotHeight = slotHeight;
-		this.imageSlots = this.freeSlots = imageSlots;
-		this.colorChannels = colorChannels;
-		this.createMipmaps = createMipmaps;
-		this.magFilter = magFilter;
-		this.minFilter = minFilter;
-		this.useFloat = useFloat;
+		this.maxSlots = this.freeSlots = maxSlots;
+
+		this.tilesX = textureConfig.tileX;
+		this.tilesY = textureConfig.tileY;
+		
 		
 		// optimal size!
-		var p = TexUtils.optimalTextureSize(imageSlots, slotWidth, slotHeight, maxTextureSize);
+		var p = TexUtils.optimalTextureSize(maxSlots, slotWidth, slotHeight, textureConfig.maxTextureSize);
 		width = p.width;
 		height = p.height;
 		slotsX = p.slotsX;
@@ -153,8 +148,8 @@ class Texture
 			gl = newGl;
 			createTexture();
 			createFramebuffer();
-			// all images to gpu
-			for (image in images.keys()) bufferImage(image, images.get(image));
+			// all data to gpu
+			for (textureData in textureDataSlot.keys()) bufferImage(textureData, textureDataSlot.get(textureData));
 		}
 	}
 	
@@ -174,7 +169,7 @@ class Texture
 		#end
 		if (width > gl.getParameter(gl.MAX_TEXTURE_SIZE) || height > gl.getParameter(gl.MAX_TEXTURE_SIZE))
 			throw("Error, texture size is greater then gl.MAX_TEXTURE_SIZE");
-		glTexture = TexUtils.createEmptyTexture(gl, width, height, colorChannels, createMipmaps, magFilter, minFilter, useFloat);
+		glTexture = TexUtils.createEmptyTexture(gl, width, height, textureFormat);
 	}
 
 	public function readPixelsUInt8(x:Int, y:Int, w:Int, h:Int, data:UInt8Array = null):UInt8Array {
@@ -207,43 +202,40 @@ class Texture
 	public function writePixelsFloat32(x:Int, y:Int, w:Int, h:Int, data:Float32Array = null) {		
 	}
 */
-	public function setImage(image:TextureData, imageSlot:Int = 0, tilesX:Null<Int> = null, tilesY:Null<Int> = null) {
+	public function setImage(textureData:TextureData, slot:Int = 0) {
 		#if peoteview_debug_texture
-		trace("Set Image into Texture Slot" + imageSlot);
+		trace("Set Image into Texture Slot" + slot);
 		#end
-		if (images.exists(image))
-			throw("Error, image is already inside texture inside slot "+images.get(image).imageSlot);
+		if (textureDataSlot.exists(textureData))
+			throw("Error, textureData is already inside texture inside slot "+textureDataSlot.get(textureData));
 		
-		if (tilesX != null) this.tilesX = tilesX;
-		if (tilesY != null) this.tilesY = tilesY;
-		
-		images.set(image, {imageSlot:imageSlot});
+		textureDataSlot.set(textureData, slot);
 		freeSlots--;
 		if (gl != null) {
 			if (glTexture == null) createTexture();
-			bufferImage(image, {imageSlot:imageSlot});
+			bufferImage(textureData, slot);
 		}
 	}
 	
-	public function removeImage(image:TextureData) {
+	public function removeImage(textureData:TextureData) {
 		#if peoteview_debug_texture
 		trace("Remove Image from Texture");
 		#end
-		var imgProp = images.get(image);
-		if (imgProp == null)
-			throw("Error, image did not exists inside texture");
-		images.remove(image);
+		var slot:Null<Int> = textureDataSlot.get(textureData);
+		if (slot == null)
+			throw("Error, textureData did not exists inside texture");
+		textureDataSlot.remove(textureData);
 		freeSlots++;
 		if (gl != null) {
 			// TODO
-			var data = new UInt8Array(image.width * image.height * 4);
-			//var data = Bytes.alloc(image.width * image.height * 4);
+			var data = new UInt8Array(textureData.width * textureData.height * 4);
+			//var data = Bytes.alloc(textureData.width * textureData.height * 4);
 			
 			gl.bindTexture(gl.TEXTURE_2D, glTexture);
 			gl.texSubImage2D(gl.TEXTURE_2D, 0, 
-				slotWidth * (imgProp.imageSlot % slotsX),
-		        slotHeight * Math.floor(imgProp.imageSlot / slotsX),
-		        image.width, image.height,
+				slotWidth * (slot % slotsX),
+		        slotHeight * Math.floor(slot / slotsX),
+		        textureData.width, textureData.height,
 				gl.RGBA, gl.UNSIGNED_BYTE,  data );
 			gl.bindTexture(gl.TEXTURE_2D, null);
 			
@@ -251,41 +243,55 @@ class Texture
 		}
 	}
 	
-	private function bufferImage(image:TextureData, imgProp:ImgProp) {
+	private function bufferImage(textureData:TextureData, slot:Int) {
 		#if peoteview_debug_texture
 		trace("buffer Image to Texture");
 		#end
 		// TODO: overwrite and fit-parameters
 		imageToTexture(gl, glTexture,
-		                   slotWidth * (imgProp.imageSlot % slotsX),
-		                   slotHeight * Math.floor(imgProp.imageSlot / slotsX),
-		                   image.width, image.height, //slotWidth, slotHeight,
-		                   image, createMipmaps, useFloat );	
+		                   slotWidth * (slot % slotsX),
+		                   slotHeight * Math.floor(slot / slotsX),
+		                   textureData.width, textureData.height, //slotWidth, slotHeight,
+		                   textureData);	
 						   
 		updated = true; // to reset peoteView.glStateTexture  <-- TODO: check isTextureStateChange()
 	}
 	
-	private static inline function imageToTexture(gl:PeoteGL, glTexture:PeoteGL.GLTexture, x:Int, y:Int, w:Int, h:Int, 
-	                                              image:TextureData, createMipmaps:Bool=false, useFloat:Bool = false)
+	private function imageToTexture(gl:PeoteGL, glTexture:PeoteGL.GLTexture, x:Int, y:Int, w:Int, h:Int, textureData:TextureData)
 	{
 		gl.bindTexture(gl.TEXTURE_2D, glTexture);
 		
-		if (useFloat) {
-			// TODO: separate image-data for better using data with floatpoint precision per colorchannel
+		if (textureFormat.isFloat()) {
+			// TODO: separate textureData-data for better using data with floatpoint precision per colorchannel
 			var fa = new Float32Array(w * h * 4);
-			for (i in 0...(w * h * 4)) fa[i] = image.dataUInt8[i] / 255;
+			for (i in 0...(w * h * 4)) fa[i] = textureData.dataUInt8[i] / 255;
 			gl.texSubImage2D_Float(gl.TEXTURE_2D, 0, x, y, w, h, gl.RGBA, gl.FLOAT, fa);
 		}
 		else {
-			gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, w, h, gl.RGBA, gl.UNSIGNED_BYTE, image.dataUInt8 );
+			gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, w, h, gl.RGBA, gl.UNSIGNED_BYTE, textureData.dataUInt8 );
 		}
-		
+
+		// TODO:
+
+		/*
 		if (createMipmaps) { // re-create for full texture ?
 			//gl.hint(gl.GENERATE_MIPMAP_HINT, gl.NICEST);
 			//gl.hint(gl.GENERATE_MIPMAP_HINT, gl.FASTEST);
 			gl.generateMipmap(gl.TEXTURE_2D); // TODO: check speed vs quality
 		}
+		*/
 		gl.bindTexture(gl.TEXTURE_2D, null);
 	}
+
+
+	// TODO:
+	public function setSmooth(smoothExpand:Bool, smoothShrink:Bool, smoothMipmapTransition:Null<Bool> = null) {
+		
+	}
+
+	public function generateMipmap() {
+
+	}
+
 	
 }
