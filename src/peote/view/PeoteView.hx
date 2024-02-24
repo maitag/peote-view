@@ -20,6 +20,14 @@ import peote.view.intern.UniformBufferView;
 import peote.view.PeoteGL.GLTexture;
 import peote.view.PeoteGL.GLFramebuffer;
 
+/*
+    o-o    o-o  o-o-o  o-o
+   o   o  o        o      o
+  o-o-o  o-o  \|/   o    o-o
+ o      o     <O>    o      o
+o      o-o            o    o-o
+
+*/
 
 @:allow(peote.view)
 class PeoteView 

@@ -20,16 +20,14 @@ import peote.view.intern.BufferInterface;
 import peote.view.intern.UniformBufferView;
 import peote.view.intern.UniformBufferDisplay;
 
-class ActiveTexture {
-	public var unit:Int;
-	public var texture:Texture;
-	public var uniformLoc:GLUniformLocation;
-	public function new(unit:Int, texture:Texture, uniformLoc:GLUniformLocation) {
-		this.unit = unit;
-		this.texture = texture;
-		this.uniformLoc = uniformLoc;
-	}
-}
+/*
+    o-o    o-o  o-o-o  o-o
+   o   o  o        o      o
+  o-o-o  o-o   o    o    o-o
+ o      o     (_\    o      o
+o      o-o     |\     o    o-o
+
+*/
 
 @:allow(peote.view,peote.ui)
 class Program 
@@ -1146,3 +1144,20 @@ class Program
 	}
 	
 }
+
+
+
+// helper type
+
+class ActiveTexture
+{
+	public var unit:Int;
+	public var texture:Texture;
+	public var uniformLoc:GLUniformLocation;
+	public function new(unit:Int, texture:Texture, uniformLoc:GLUniformLocation) {
+		this.unit = unit;
+		this.texture = texture;
+		this.uniformLoc = uniformLoc;
+	}
+}
+

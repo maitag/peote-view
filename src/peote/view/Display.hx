@@ -6,6 +6,15 @@ import peote.view.intern.RenderListItem;
 import peote.view.intern.UniformBufferView;
 import peote.view.intern.UniformBufferDisplay;
 
+/*
+    o-o    o-o  o-o-o  o-o
+   o   o  o        o      o
+  o-o-o  o-o  \|/   o    o-o
+ o      o     <O>    o      o
+o      o-o    /|\     o    o-o
+
+*/
+
 @:allow(peote.view)
 class Display 
 {
