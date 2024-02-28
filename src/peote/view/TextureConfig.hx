@@ -4,15 +4,15 @@ package peote.view;
 @:structInit
 class TextureConfig
 {
-	public var format:TextureFormat = TextureFormat.RGBA;
-
-	// maximum available Texture-Size (is need for maxSlots-calculation)
-	public var maxTextureSize:Int=16384;
-
-
 	// Tile-Resolution for all slots (if the Element have @tile):
-	public var tileX:Int = 1;
-	public var tileY:Int = 1;
+	public var tilesX:Int = 1;
+	public var tilesY:Int = 1;
+
+	// maximum available Texture-Size (is need for size-calculation to hold all slots)
+	public var maxTextureSize:Int = 16384;
+
+	// Textureformat (int/float and what colorchannels)
+	public var format:TextureFormat = TextureFormat.RGBA;
 
 
 	// ---- Texture-Filtering -----
@@ -26,7 +26,4 @@ class TextureConfig
 	// smooth Interpolation between mipmap levels (if mipmapping is enabled)
 	public var smoothMipmap:Bool = false;
 
-	public function new() {
-
-	}
 }

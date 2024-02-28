@@ -23,7 +23,12 @@ class Texture
 	
 	public var clearOnRenderInto = true;
 	
-	public var textureFormat(default, null):TextureFormat;
+	public var format(default, null):TextureFormat;
+	public var smoothExpand(default, null):Bool = false; // while pixels are expanding (zoom in)
+	public var smoothShrink(default, null):Bool = false; // while pixels are shrinking (zoom out)
+	public var mipmap(default, null):Bool = false; // enable to generate mipmap levels
+	public var smoothMipmap(default, null):Bool = false;
+
 	
 	public var width(default, null):Int = 0;
 	public var height(default, null):Int = 0;
@@ -47,24 +52,31 @@ class Texture
 	var displays = new Array<Display>();
 	
 	// TODO: return error if not fit into maxTextureSize!
-	public function new(slotWidth:Int, slotHeight:Int, maxSlots:Int=1, textureConfig:TextureConfig=null)
+	public function new(slotWidth:Int, slotHeight:Int, slots:Int=1, ?textureConfig:TextureConfig)
 	{
-		if (textureConfig == null) textureConfig = new TextureConfig();
+		if (textureConfig == null) textureConfig = {};
 
 		this.slotWidth = slotWidth;
 		this.slotHeight = slotHeight;
-		this.maxSlots = this.freeSlots = maxSlots;
 
-		this.tilesX = textureConfig.tileX;
-		this.tilesY = textureConfig.tileY;
+		this.tilesX = textureConfig.tilesX;
+		this.tilesY = textureConfig.tilesY;
 		
+		format = textureConfig.format;
+
+		smoothExpand = textureConfig.smoothExpand;
+		smoothShrink = textureConfig.smoothShrink;
+		mipmap = textureConfig.mipmap;
+		smoothMipmap = textureConfig.smoothMipmap;
 		
-		// optimal size!
-		var p = TexUtils.optimalTextureSize(maxSlots, slotWidth, slotHeight, textureConfig.maxTextureSize);
+		// optimal size! TODO: let allow also non-power-of-2 ones
+		var p = TexUtils.optimalTextureSize(slots, slotWidth, slotHeight, textureConfig.maxTextureSize);
 		width = p.width;
 		height = p.height;
 		slotsX = p.slotsX;
 		slotsY = p.slotsY;
+
+		maxSlots = freeSlots = slotsX * slotsY;
 	}
 	
  	public inline function usedByProgram(program:Program):Bool return (programs.indexOf(program) >= 0);
@@ -169,7 +181,7 @@ class Texture
 		#end
 		if (width > gl.getParameter(gl.MAX_TEXTURE_SIZE) || height > gl.getParameter(gl.MAX_TEXTURE_SIZE))
 			throw("Error, texture size is greater then gl.MAX_TEXTURE_SIZE");
-		glTexture = TexUtils.createEmptyTexture(gl, width, height, textureFormat);
+		glTexture = TexUtils.createEmptyTexture(gl, width, height, format, smoothExpand, smoothShrink, mipmap, smoothMipmap);
 	}
 
 	public function readPixelsUInt8(x:Int, y:Int, w:Int, h:Int, data:UInt8Array = null):UInt8Array {
@@ -261,7 +273,7 @@ class Texture
 	{
 		gl.bindTexture(gl.TEXTURE_2D, glTexture);
 		
-		if (textureFormat.isFloat()) {
+		if (format.isFloat()) {
 			// TODO: separate textureData-data for better using data with floatpoint precision per colorchannel
 			var fa = new Float32Array(w * h * 4);
 			for (i in 0...(w * h * 4)) fa[i] = textureData.dataUInt8[i] / 255;
@@ -271,15 +283,13 @@ class Texture
 			gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, w, h, gl.RGBA, gl.UNSIGNED_BYTE, textureData.dataUInt8 );
 		}
 
-		// TODO:
-
-		/*
-		if (createMipmaps) { // re-create for full texture ?
-			//gl.hint(gl.GENERATE_MIPMAP_HINT, gl.NICEST);
-			//gl.hint(gl.GENERATE_MIPMAP_HINT, gl.FASTEST);
+		// TODO: let disable while load data into slots (so only after the last slot it have to generate!)
+		if (mipmap) { // re-create for full texture ?
+			// gl.hint(gl.GENERATE_MIPMAP_HINT, gl.NICEST);
+			// gl.hint(gl.GENERATE_MIPMAP_HINT, gl.FASTEST);
 			gl.generateMipmap(gl.TEXTURE_2D); // TODO: check speed vs quality
 		}
-		*/
+		
 		gl.bindTexture(gl.TEXTURE_2D, null);
 	}
 

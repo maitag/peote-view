@@ -1,73 +1,63 @@
 package peote.view.intern;
 
 import peote.view.PeoteGL.GLTexture;
+import peote.view.TextureConfig;
 
 class TexUtils 
 {
-	public static function createEmptyTexture(gl:PeoteGL, width:Int, height:Int,
-	                                          createMipmaps:Bool = false, magFilter:Int = 0, minFilter:Int = 0,
-	                                          useFloat:Bool = false):GLTexture
+	public static function createEmptyTexture(gl:PeoteGL, width:Int, height:Int, format:TextureFormat,
+	                                          smoothExpand:Bool = false, smoothShrink:Bool = false,
+	                                          mipmap:Bool = false, smoothMipmap:Bool = false):GLTexture
 	{
-		// TODO: textureFormat !
-		
 		var glTexture:GLTexture = gl.createTexture();
 		
 		gl.bindTexture(gl.TEXTURE_2D, glTexture);
 		
 		GLTool.clearGlErrorQueue(gl);
 		 // <-- TODO: using only shared RAM on neko/cpp with "0" .. better using empty image-data
-		if (useFloat) {
+		if (format.isFloat()) {
 			// sometimes 32 float is essential for multipass-rendering,
 			// needs EXT_color_buffer_float or OES_texture_float extension
-			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, width, height, 0, gl.RGBA, gl.FLOAT, 0);
+			gl.texImage2D(gl.TEXTURE_2D, 0, format.float32(gl), width, height, 0, format.formatFloat(gl), gl.FLOAT, 0);
 			if (GLTool.getLastGlError(gl) == gl.INVALID_VALUE) {
-				trace("switching to RGBA16F for float precision texture creation");
-				gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, width, height, 0, gl.RGBA, gl.FLOAT, 0);
+				trace("switching to lower float precision while texture creation");
+				gl.texImage2D(gl.TEXTURE_2D, 0, format.float16(gl), width, height, 0, format.formatFloat(gl), gl.FLOAT, 0);
 				if (GLTool.getLastGlError(gl) == gl.INVALID_VALUE) {
-					trace("switching to RGBA for float precision texture creation");
-					gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.FLOAT, 0);
+					trace("fallback for float precision while texture creation");
+					gl.texImage2D(gl.TEXTURE_2D, 0, format.formatFloat(gl), width, height, 0, format.formatFloat(gl), gl.FLOAT, 0);
 				}
 			}
 		}
-		else gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, 0);
+		else gl.texImage2D(gl.TEXTURE_2D, 0, format.integer(gl), width, height, 0, format.formatInteger(gl), gl.UNSIGNED_BYTE, 0);
 		
 		if (GLTool.getLastGlError(gl) == gl.OUT_OF_MEMORY) {
 			throw("OUT OF GPU MEMORY while texture creation");
 		}
 		
 		
-		// TODO: outsource into other function ?
-		// magnification filter (only this values are usual):
-		switch (magFilter) {
-			default:gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST); //bilinear
-			case 1: gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);  //trilinear
-		}
+		// TODO: outsource into other function
+		// magnification filter:
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, (smoothExpand) ? gl.LINEAR : gl.NEAREST);
 		
 		// minification filter:
-		if (createMipmaps)
+		if (mipmap)
 		{
 			//gl.hint(gl.GENERATE_MIPMAP_HINT, gl.NICEST);
 			//gl.hint(gl.GENERATE_MIPMAP_HINT, gl.FASTEST);
-			switch (minFilter) {
-				default:gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST); //bilinear
-				case 1: gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);  //trilinear
-				case 2:	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_NEAREST);
-				case 3:	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_LINEAR);				
-			}
+			if (smoothMipmap) 
+				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, (smoothShrink) ? gl.LINEAR_MIPMAP_LINEAR : gl.NEAREST_MIPMAP_LINEAR);
+			else 
+				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, (smoothShrink) ? gl.LINEAR_MIPMAP_NEAREST : gl.NEAREST_MIPMAP_NEAREST);
 		}
-		else
-		{
-			switch (minFilter) {
-				default:gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-				case 1:	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-			}
-		}
+		else gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, (smoothShrink) ? gl.LINEAR : gl.NEAREST);
 		
 		// firefox needs this texture wrapping for gl.texSubImage2D if imagesize is non power of 2 
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 		
-		if (createMipmaps) { // re-create for full texture ?
+
+		// TODO: IS NEED HERE? -> better outsource into other function and only after data
+		if (mipmap) { // re-create for full texture ?
 			//gl.hint(gl.GENERATE_MIPMAP_HINT, gl.NICEST);
 			//gl.hint(gl.GENERATE_MIPMAP_HINT, gl.FASTEST);
 			gl.generateMipmap(gl.TEXTURE_2D); // again after texSubImage2D!

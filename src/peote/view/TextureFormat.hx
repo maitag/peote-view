@@ -1,5 +1,6 @@
 package peote.view;
 
+@:allow(peote.view.intern.TexUtils, peote.view.Texture)
 #if (haxe_ver >= 4.0) enum #else @:enum#end
 abstract TextureFormat(Int) from Int to Int  
 {
@@ -23,7 +24,9 @@ abstract TextureFormat(Int) from Int to Int
 
 	public inline function isFloat():Bool return (this > 6);
 
-	public inline function intern(gl:PeoteGL):Int {
+	// Integer internal- and format
+
+	inline function integer(gl:PeoteGL):Int {
 		return switch(this) {
 			case LUMINANCE       : gl.LUMINANCE;
 			case ALPHA           : gl.ALPHA;
@@ -35,16 +38,11 @@ abstract TextureFormat(Int) from Int to Int
 			case RG : gl.RG8;
 			case R  : gl.R8;
 
-			case FLOAT_RGBA : gl.RGBA32F;
-			case FLOAT_RGB  : gl.RGB32F;
-			case FLOAT_RG   : gl.RG32F;
-			case FLOAT_R    : gl.R32F;
-			
 			default: gl.RGBA;
 		}
 	}
 
-	public inline function format(gl:PeoteGL):Int {
+	inline function formatInteger(gl:PeoteGL):Int {
 		return switch(this) {
 			case LUMINANCE       : gl.LUMINANCE;
 			case ALPHA           : gl.ALPHA;
@@ -56,6 +54,39 @@ abstract TextureFormat(Int) from Int to Int
 			case RG : gl.RG;
 			case R  : gl.RED;
 
+			default: gl.RGBA;
+		}
+	}
+
+
+	// Float internal- and format
+
+	inline function float32(gl:PeoteGL):Int {
+		return switch(this) {
+
+			case FLOAT_RGBA : gl.RGBA32F;
+			case FLOAT_RGB  : gl.RGB32F;
+			case FLOAT_RG   : gl.RG32F;
+			case FLOAT_R    : gl.R32F;
+			
+			default: gl.RGBA32F;
+		}
+	}
+
+	inline function float16(gl:PeoteGL):Int {
+		return switch(this) {
+
+			case FLOAT_RGBA : gl.RGBA16F;
+			case FLOAT_RGB  : gl.RGB16F;
+			case FLOAT_RG   : gl.RG16F;
+			case FLOAT_R    : gl.R16F;
+			
+			default: gl.RGBA16F;
+		}
+	}
+
+	inline function formatFloat(gl:PeoteGL):Int {
+		return switch(this) {
 			case FLOAT_RGBA : gl.RGBA;
 			case FLOAT_RGB  : gl.RGB;
 			case FLOAT_RG   : gl.RG;

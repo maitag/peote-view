@@ -486,9 +486,8 @@ class PeoteView
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		//gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
 		
-		// TODO:
-		/*
-		if (display.fbTexture.createMipmaps) { // re-create for full texture ?
+		// re-generate mipmaps after rendering into:		
+		if (display.fbTexture.mipmap) { // re-create for full texture ?
 			gl.bindTexture(gl.TEXTURE_2D, display.fbTexture.glTexture);
 			//gl.hint(gl.GENERATE_MIPMAP_HINT, gl.NICEST); // OPTIMIZING
 			//gl.hint(gl.GENERATE_MIPMAP_HINT, gl.FASTEST);
@@ -496,7 +495,6 @@ class PeoteView
 			gl.bindTexture(gl.TEXTURE_2D, null); // <-- TODO: check isTextureStateChange()
 			display.fbTexture.updated = true;
 		}
-		*/
 	}
 		
 	// ------------------------------------------------------------------------------
