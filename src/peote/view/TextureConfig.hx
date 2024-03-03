@@ -8,7 +8,7 @@ class TextureConfig
 	public var tilesX:Int = 1;
 	public var tilesY:Int = 1;
 
-	// maximum available Texture-Size (is need for size-calculation to hold all slots)
+	// maximum available Texture-Size (for optimal texturesize-calculation for slotsX/Y tiling )
 	public var maxTextureSize:Int = 16384;
 
 	// Textureformat (int/float and what colorchannels)
@@ -25,5 +25,4 @@ class TextureConfig
 
 	// smooth Interpolation between mipmap levels (if mipmapping is enabled)
 	public var smoothMipmap:Bool = false;
-
 }

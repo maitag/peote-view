@@ -3,6 +3,7 @@ package peote.view;
 import haxe.io.Bytes;
 import haxe.io.UInt8Array;
 import haxe.io.Float32Array;
+import haxe.ds.IntMap;
 
 import peote.view.TextureData;
 import peote.view.PeoteGL.GLTexture;
@@ -34,7 +35,6 @@ class Texture
 	public var height(default, null):Int = 0;
 	
 	public var maxSlots(default, null):Int = 1;
-	public var freeSlots(default, null):Int = 1;
 	
 	public var slotsX(default, null):Int = 1;
 	public var slotsY(default, null):Int = 1;
@@ -44,7 +44,7 @@ class Texture
 	public var tilesX:Int = 1;
 	public var tilesY:Int = 1;
 	
-	public var textureDataSlot = new Map<TextureData, Int>();
+	public var usedSlots = new IntMap<TextureData>();
 	
 	var updated:Bool = false;
 	
@@ -76,7 +76,7 @@ class Texture
 		slotsX = p.slotsX;
 		slotsY = p.slotsY;
 
-		maxSlots = freeSlots = slotsX * slotsY;
+		maxSlots = slotsX * slotsY;
 	}
 	
  	public inline function usedByProgram(program:Program):Bool return (programs.indexOf(program) >= 0);
@@ -161,7 +161,8 @@ class Texture
 			createTexture();
 			createFramebuffer();
 			// all data to gpu
-			for (textureData in textureDataSlot.keys()) bufferImage(textureData, textureDataSlot.get(textureData));
+			// for (textureData in usedSlots.keys()) bufferImage(textureData, usedSlots.get(textureData));
+			for (slot => textureData in usedSlots) bufferImage(textureData, slot);
 		}
 	}
 	
@@ -218,26 +219,21 @@ class Texture
 		#if peoteview_debug_texture
 		trace("Set Image into Texture Slot" + slot);
 		#end
-		if (textureDataSlot.exists(textureData))
-			throw("Error, textureData is already inside texture inside slot "+textureDataSlot.get(textureData));
 		
-		textureDataSlot.set(textureData, slot);
-		freeSlots--;
+		usedSlots.set(slot, textureData);
+
 		if (gl != null) {
 			if (glTexture == null) createTexture();
 			bufferImage(textureData, slot);
 		}
 	}
 	
-	public function removeImage(textureData:TextureData) {
+	public function clearSlot(slot:Int) {
 		#if peoteview_debug_texture
 		trace("Remove Image from Texture");
 		#end
-		var slot:Null<Int> = textureDataSlot.get(textureData);
-		if (slot == null)
-			throw("Error, textureData did not exists inside texture");
-		textureDataSlot.remove(textureData);
-		freeSlots++;
+		var textureData = usedSlots.get(slot);
+		usedSlots.remove(slot); 
 		if (gl != null) {
 			// TODO
 			var data = new UInt8Array(textureData.width * textureData.height * 4);
