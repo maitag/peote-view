@@ -32,8 +32,7 @@ class TextureCache
 			var slots = size.slots;
 			while (slots > 0) {
 				// how many fit into one texture
-				// var s = TexUtils.optimalTextureSize(slots, size.width, size.height, size.config.maxTextureSize, false, false).imageSlots;
-				var p = TexUtils.optimalTextureSize(slots, size.width, size.height, size.config.maxTextureSize, false, false);
+				var p = TexUtils.optimalTextureSize(slots, size.width, size.height, size.config.maxTextureSize, size.config.powerOfTwo, false, false);
 				var s:Int = p.slotsX * p.slotsY;
 				t.push( {unit:textures.length, freeSlots:[for (i in 0...s) s-1-i]} );
 				textures.push( new Texture(size.width, size.height, s, size.config) );

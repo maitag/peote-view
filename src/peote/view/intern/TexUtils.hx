@@ -169,6 +169,9 @@ class TexUtils
 		
 			if (aspect == null && _aspect == null) {
 				if (errorIfNotFit) throw('Error: max texture-size ($maxTextureSize) is to small for $slots images ($slotWidth x $slotHeight)');
+				if (slotWidth > maxTextureSize || slotHeight > maxTextureSize) throw('Error: max texture-size ($maxTextureSize) is to small for image ($slotWidth x $slotHeight)');
+				w = wMax;
+				h = hMax;
 			}
 			else if (aspect == null || (_aspect != null && (_r < r || ( _r == r && aspect > _aspect))) )
 			{
@@ -240,7 +243,7 @@ class TexUtils
         else
 		{
 			if (errorIfNotFit) throw('Error: max texture-size ($maxTextureSize) is to small for $slots images ($slotWidth x $slotHeight)');
-			if (slotWidth>maxTextureSize || slotHeight>maxTextureSize) throw('Error: max texture-size ($maxTextureSize) is to small for image ($slotWidth x $slotHeight)');
+			if (slotWidth > maxTextureSize || slotHeight > maxTextureSize) throw('Error: max texture-size ($maxTextureSize) is to small for image ($slotWidth x $slotHeight)');
 			w = h = maxTextureSize;
 		}
 				
