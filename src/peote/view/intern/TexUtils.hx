@@ -181,7 +181,6 @@ class TexUtils
 		
 			if (aspect == null && _aspect == null) {
 				if (errorIfNotFit) throw('Error: max texture-size ($maxTextureSize) is to small for $slots images ($slotWidth x $slotHeight)');
-				if (slotWidth > maxTextureSize || slotHeight > maxTextureSize) throw('Error: max texture-size ($maxTextureSize) is to small for image ($slotWidth x $slotHeight)');
 				w = wMax;
 				h = hMax;
 			}
