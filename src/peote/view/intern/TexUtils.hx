@@ -113,12 +113,83 @@ class TexUtils
 		return glTexture;
 	}
 	
-	public static function optimalTextureSize(imageSlots:Int, slotWidth:Int, slotHeight:Int, maxTextureSize:Int, errorIfNotFit=true, debug=true):{width:Int, height:Int, slotsX:Int, slotsY:Int, imageSlots:Int}
 
+
+	
+	public static function optimalTextureSize(slots:Int, slotWidth:Int, slotHeight:Int, maxTextureSize:Int, powerOfTwo=true, errorIfNotFit=true, debug=true):{width:Int, height:Int, slotsX:Int, slotsY:Int}
+	{
+		if (powerOfTwo) return optimalTextureSizePowerTwo(slots, slotWidth, slotHeight, maxTextureSize, errorIfNotFit, debug);
+		
+		var wMax:Int = Std.int(maxTextureSize/slotWidth);
+		var hMax:Int = Std.int(maxTextureSize/slotHeight);
+
+		var w:Int = Std.int( Math.sqrt( (slots * slotHeight) / slotWidth ) );
+		var best:Int = w;
+		var h:Int = Math.ceil(slots / w);
+		var r:Int = w * h - slots;
+		var aspect:Null<Float> = null;
+		
+		if (h <= hMax && w <= wMax)
+		{
+			while (r > 0 && w < slots && w < wMax) {
+				w++;
+				h = Math.ceil(slots / w);
+				if (w * h - slots < r) { 
+					r = w * h - slots; 
+					best = w;
+				}
+			}
+			w = best;
+			h = Math.ceil(slots / w);
+			aspect = ((w*slotWidth) > (h*slotHeight)) ? (w*slotWidth)/(h*slotHeight) : (h*slotHeight)/(w*slotWidth);
+		}
+
+		if (aspect == null || aspect != 1.0) 
+		{
+			var _h:Int = Std.int( Math.sqrt( (slots * slotWidth) / slotHeight ) );
+			best = _h;
+			var _w:Int = Math.ceil(slots / _h);
+			var _r:Int = _w * _h - slots;
+			var _aspect:Null<Float> = null;
+		
+			if (_w <= wMax && _h <= hMax) 
+			{
+				while (_r > 0 && _h < slots && _h < hMax) {
+					_h++;
+					_w = Math.ceil(slots / _h);
+					if (_w * _h - slots < _r) {
+						_r = _w * _h - slots;		
+						best = _h;
+					}
+				}
+				_h = best;
+				_w = Math.ceil(slots / _h);
+				aspect = (((_w*slotWidth) > (_h*slotHeight)) ? (_w*slotWidth)/(_h*slotHeight) : (_h*slotHeight)/(_w*slotWidth));
+			}
+		
+			if (aspect == null && _aspect == null) {
+				if (errorIfNotFit) throw('Error: max texture-size ($maxTextureSize) is to small for $slots images ($slotWidth x $slotHeight)');
+			}
+			else if (aspect == null || (_aspect != null && (_r < r || ( _r == r && aspect > _aspect))) )
+			{
+				w = _w;
+				h = _h;
+			}
+		}
+		
+		return ({
+			width:  w*slotWidth,
+			height: h*slotHeight,
+			slotsX: w,
+			slotsY: h,
+		});
+	}
+
+	static inline function optimalTextureSizePowerTwo(slots:Int, slotWidth:Int, slotHeight:Int, maxTextureSize:Int, errorIfNotFit=true, debug=true):{width:Int, height:Int, slotsX:Int, slotsY:Int}
     {
         var mts = Math.ceil( Math.log(maxTextureSize) / Math.log(2) );
         
-        var a:Int = Math.ceil( Math.log(imageSlots * slotWidth * slotHeight ) / Math.log(2) );  //trace(a);
+        var a:Int = Math.ceil( Math.log(slots * slotWidth * slotHeight ) / Math.log(2) );  //trace(a);
         var r:Int; // unused area -> minimize!
         var w:Int = 1;
         var h:Int = a-1;
@@ -133,8 +204,8 @@ class TexUtils
  	        m = Math.floor(Math.min( mts, a - n + 1 ));
             while ((1 << m) >= slotHeight)
             {	//trace('  $n,$m - ${1<<n} w ${1<<m}');  
-                if (Math.floor((1 << n) / slotWidth) * Math.floor((1 << m) / slotHeight) < imageSlots) break;
-                r = ( (1 << n) * (1 << m) ) - (imageSlots * slotWidth * slotHeight);    //trace('$r');   
+                if (Math.floor((1 << n) / slotWidth) * Math.floor((1 << m) / slotHeight) < slots) break;
+                r = ( (1 << n) * (1 << m) ) - (slots * slotWidth * slotHeight);    //trace('$r');   
 				if (r < 0) break;
                 if (r <= rmin)
                 {
@@ -168,23 +239,19 @@ class TexUtils
         }
         else
 		{
-			if (errorIfNotFit) throw('Error: max texture-size ($maxTextureSize) is to small for $imageSlots images ($slotWidth x $slotHeight)');
+			if (errorIfNotFit) throw('Error: max texture-size ($maxTextureSize) is to small for $slots images ($slotWidth x $slotHeight)');
 			if (slotWidth>maxTextureSize || slotHeight>maxTextureSize) throw('Error: max texture-size ($maxTextureSize) is to small for image ($slotWidth x $slotHeight)');
 			w = h = maxTextureSize;
 		}
-		
-		#if peoteview_debug_texture
-		if (debug) trace('${Std.int(w/slotWidth) * Std.int(h/slotHeight)} imageSlots (${Std.int(w/slotWidth)} * ${Std.int(h/slotHeight)}) on a ${w} x ${h} Texture');
-		#end
-		
+				
 		return ({
 			width:  w,
 			height: h,
 			slotsX: Std.int(w/slotWidth),
 			slotsY: Std.int(h/slotHeight),
-			imageSlots: Std.int(w/slotWidth) * Std.int(h/slotHeight)
 		});
 		
     }
-	
+
+
 }

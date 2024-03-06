@@ -11,6 +11,7 @@ import peote.view.PeoteGL.GLFramebuffer;
 import peote.view.PeoteGL.GLRenderbuffer;
 import peote.view.intern.GLTool;
 import peote.view.intern.TexUtils;
+import peote.view.intern.IntUtil;
 
 @:allow(peote.view)
 class Texture 
@@ -52,7 +53,7 @@ class Texture
 	var displays = new Array<Display>();
 	
 	// TODO: return error if not fit into maxTextureSize!
-	public function new(slotWidth:Int, slotHeight:Int, slots:Int=1, ?textureConfig:TextureConfig)
+	public function new(slotWidth:Int, slotHeight:Int, ?slots:Null<Int>, ?textureConfig:TextureConfig)
 	{
 		if (textureConfig == null) textureConfig = {};
 
@@ -69,14 +70,30 @@ class Texture
 		mipmap = textureConfig.mipmap;
 		smoothMipmap = textureConfig.smoothMipmap;
 		
-		// optimal size! TODO: let allow also non-power-of-2 ones
-		var p = TexUtils.optimalTextureSize(slots, slotWidth, slotHeight, textureConfig.maxTextureSize);
-		width = p.width;
-		height = p.height;
-		slotsX = p.slotsX;
-		slotsY = p.slotsY;
+		if (slots == null) {
+			slotsX = textureConfig.slotsX;
+			slotsY = textureConfig.slotsY;
+			width = slotsX * slotWidth;
+			height = slotsY * slotHeight;
+			if (textureConfig.powerOfTwo) {
+				width = IntUtil.nextPowerOfTwo(width);
+				height = IntUtil.nextPowerOfTwo(height);
+			}
+			if (width > textureConfig.maxTextureSize || height > textureConfig.maxTextureSize) throw('Error: max texture-size (${textureConfig.maxTextureSize}) is to small for $slots images ($slotWidth x $slotHeight)');
+		}
+		else {
+			var p = TexUtils.optimalTextureSize(slots, slotWidth, slotHeight, textureConfig.maxTextureSize, textureConfig.powerOfTwo);
+			width = p.width;
+			height = p.height;
+			slotsX = p.slotsX;
+			slotsY = p.slotsY;
+		}
 
 		maxSlots = slotsX * slotsY;
+
+		#if peoteview_debug_texture
+		trace('${maxSlots} slots ($slotsX * $slotsY) on a ${width} x ${height} Texture');
+		#end
 	}
 	
  	public inline function usedByProgram(program:Program):Bool return (programs.indexOf(program) >= 0);
