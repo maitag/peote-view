@@ -120,6 +120,18 @@ class TexUtils
 	{
 		if (powerOfTwo) return optimalTextureSizePowerTwo(slots, slotWidth, slotHeight, maxTextureSize, errorIfNotFit, debug);
 		
+		if (slots < 1) throw('Error: the slots have to be greater then 1');
+		else if (slots == 1) {
+			if (slotWidth > maxTextureSize || slotHeight > maxTextureSize) 
+				throw('Error: max texture-size ($maxTextureSize) is to small for image ($slotWidth x $slotHeight)');
+			else return {
+				width:  slotWidth,
+				height: slotHeight,
+				slotsX: 1,
+				slotsY: 1,
+			};
+		}
+
 		var wMax:Int = Std.int(maxTextureSize/slotWidth);
 		var hMax:Int = Std.int(maxTextureSize/slotHeight);
 
