@@ -178,7 +178,6 @@ class Texture
 			createTexture();
 			createFramebuffer();
 			// all data to gpu
-			// for (textureData in usedSlots.keys()) bufferImage(textureData, usedSlots.get(textureData));
 			for (slot => textureData in usedSlots) bufferImage(textureData, slot);
 		}
 	}
@@ -207,7 +206,7 @@ class Texture
 		// read pixels
 		gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
 		if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE) {
-			gl.readPixels(x, y, w, h, gl.RGBA, gl.UNSIGNED_BYTE, data);
+			gl.readPixels(x, y, w, h, format.formatInteger(gl), gl.UNSIGNED_BYTE, data);
 		}
 		else throw("Error: opengl-Picking - Framebuffer not complete!");
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -219,7 +218,7 @@ class Texture
 		// read pixels
 		gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
 		if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE) {
-			gl.readPixels_Float32(x, y, w, h, gl.RGBA, gl.FLOAT, data);
+			gl.readPixels_Float32(x, y, w, h, format.formatFloat(gl), gl.FLOAT, data);
 		}
 		else throw("Error: opengl-Picking - Framebuffer not complete!");
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -286,14 +285,17 @@ class Texture
 	{
 		gl.bindTexture(gl.TEXTURE_2D, glTexture);
 		
+		// TODO: this also better outsourced into intern/TexUtils.hx
 		if (format.isFloat()) {
 			// TODO: separate textureData-data for better using data with floatpoint precision per colorchannel
-			var fa = new Float32Array(w * h * 4);
-			for (i in 0...(w * h * 4)) fa[i] = textureData.dataUInt8[i] / 255;
-			gl.texSubImage2D_Float(gl.TEXTURE_2D, 0, x, y, w, h, gl.RGBA, gl.FLOAT, fa);
+			// var fa = new Float32Array(w * h * 4);
+			// for (i in 0...(w * h * 4)) fa[i] = textureData.dataUInt8[i] / 255;
+			// for (i in 0...(w * h * 4)) fa[i] = textureData.data.get(i) / 255;
+			gl.texSubImage2D_Float(gl.TEXTURE_2D, 0, x, y, w, h, format.formatFloat(gl), gl.FLOAT, textureData);
 		}
 		else {
-			gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, w, h, gl.RGBA, gl.UNSIGNED_BYTE, textureData.dataUInt8 );
+			// gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, w, h, gl.RGBA, gl.UNSIGNED_BYTE, textureData.dataUInt8 );
+			gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, w, h, format.formatInteger(gl), gl.UNSIGNED_BYTE, textureData);
 		}
 
 		// TODO: let disable while load data into slots (so only after the last slot it have to generate!)

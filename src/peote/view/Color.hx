@@ -45,6 +45,15 @@ abstract Color(Int) from Int to Int from UInt to UInt
 	inline function set_blue (b:Int) return set_b(b);
 	inline function set_alpha(a:Int) return set_a(a);
 	
+	public var luminance(get,set):Int;
+	inline function get_luminance() return Math.round((r+g+b)/3);
+	inline function set_luminance(lum:Int) {
+		set_r(lum);
+		set_g(lum);
+		set_b(lum);
+		return lum;
+	}
+
 	// set by Float values
 	public inline function setAlpha(a:Float):Color { return (this & 0xffffff00) | Std.int(a*0xFF); }
 	public inline function setRed(r:Float):Color { return (this & 0x00ffffff) | (Std.int(r*0xFF)<<24); }
