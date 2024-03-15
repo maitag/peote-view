@@ -87,7 +87,7 @@ private class TextureDataImpl
 		if ( format.isFloat() ) throw("error, use setPixelFloat() for FLOAT textureformats");		
 		var pos = (y * width + x) * format._bytesPerPixelInt();
 		switch (format) {
-			case RGBA: bytes.setInt32(pos, color);
+			case RGBA: _setRGBAByte(pos, color);
 			case LUMINANCE: bytes.set(pos, color.luminance);
 			case ALPHA: bytes.set(pos, color.alpha);
 			case LUMINANCE_ALPHA:
@@ -107,7 +107,14 @@ private class TextureDataImpl
 	
 	// optimized variants
 	inline public function setPixelRGBA(x:Int, y:Int, color:Color) {
-		bytes.setInt32((y * width + x) << 2, color);
+		_setRGBAByte((y * width + x) << 2, color);
+	}
+
+	inline public function _setRGBAByte(pos:Int, color:Color) {
+		bytes.set(pos, color.red);
+		bytes.set(pos + 1, color.green);
+		bytes.set(pos + 2, color.blue);
+		bytes.set(pos + 3, color.alpha);
 	}
 
 	inline public function setPixelRGB(x:Int, y:Int, red:Int, green:Int, blue:Int) {
