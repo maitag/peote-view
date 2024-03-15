@@ -66,7 +66,7 @@ class TextureCache
 							s.freeSlots--;
 							var p = {texSize:i, unit:t.unit, slot:t.freeSlots.pop()};
 							imageMap.set(image, p);
-							textures[p.unit].setImage(image, p.slot);
+							textures[p.unit].setData(image, p.slot);
 							return {unit:p.unit, slot:p.slot};
 						}
 					}
