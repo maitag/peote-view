@@ -208,6 +208,7 @@ abstract TextureData(TextureDataImpl) to TextureDataImpl
 		return Float32Array.fromBytes(this.bytes);
 	}
 	
+	// ----------- Read Image-Data from Lime -------------
 	@:from
 	static public inline function fromLimeImage(image:lime.graphics.Image) {
 		return new TextureData(image.width, image.height, TextureFormat.RGBA, image.data.toBytes() );
@@ -217,5 +218,22 @@ abstract TextureData(TextureDataImpl) to TextureDataImpl
 	//public function toLimeImage() {
 		//return ;
 	//}
+
 	
+	// ----------- Read Image-Data from other haxelibs -------------
+
+	#if vision
+	// Vision: https://lib.haxe.org/p/vision/
+	@:from
+	static public inline function fromVisionImage(image:vision.ds.Image) {
+		return new TextureData(image.width, image.height, TextureFormat.RGBA, image.toBytes(vision.ds.PixelFormat.RGBA ) );
+	}
+	#end
+
+
+	// here more please ! (^_^)
+
+
+	
+
 }
