@@ -225,15 +225,23 @@ abstract TextureData(TextureDataImpl) to TextureDataImpl
 	#if vision
 	// Vision: https://lib.haxe.org/p/vision/
 	@:from
-	static public inline function fromVisionImage(image:vision.ds.Image) {
-		return new TextureData(image.width, image.height, TextureFormat.RGBA, image.toBytes(vision.ds.PixelFormat.RGBA ) );
+	static public inline function fromVisionImage(image:vision.ds.Image):TextureData {
+		return new TextureData( image.width, image.height, TextureFormat.RGBA, image.toBytes(vision.ds.PixelFormat.RGBA) );
 	}
 	#end
 
 
 	// here more please ! (^_^)
 
-
+	#if pi_xy
+	// pi_xy: https://github.com/nanjizal/pi_xy
+	@:from
+    static public inline function fromPixelImage(pixelImage:pi_xy.Pixelimage):TextureData {
+        // return pixelImage.peoteTexture.toTextureData();
+		// return new TextureData( pixelImage.width, pixelImage.height, TextureFormat.RGBA, pixelImage.peoteTexture.toPeotePixels(pixelImage) );
+		return new TextureData( pixelImage.width, pixelImage.height, TextureFormat.RGBA, pixelImage.getBytes() );
+    }
+	#end
 	
 
 }
