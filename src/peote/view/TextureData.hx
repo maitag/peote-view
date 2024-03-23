@@ -31,6 +31,16 @@ private class TextureDataImpl
 	
 	public var bytes:Bytes = null;
 	
+	public function new(width:Int, height:Int, format:TextureFormat, bytes:Bytes = null)
+	{
+		this.width = width;
+		this.height = height;
+		this.format = format;
+		
+		if (bytes == null) this.bytes = Bytes.alloc(width * height * format.bytesPerPixel() );
+		else this.bytes = bytes;
+	}
+		
 	public function clear(color:Color = 0)
 	{
 		if ( format.isFloat() ) throw("error, use clearFloat() for FLOAT textureformats");
@@ -174,22 +184,10 @@ private class TextureDataImpl
 	inline public function setPixelFloatR(x:Int, y:Int, red:Float) {
 		bytes.setFloat((y * width + x) << 2, red);
 	}
-
-
-
-	// -------------------- constructor -------------------
-
-	public function new(width:Int, height:Int, format:TextureFormat, bytes:Bytes = null)
-	{
-		this.width = width;
-		this.height = height;
-		this.format = format;
-		
-		if (bytes == null) this.bytes = Bytes.alloc(width * height * format.bytesPerPixel() );
-		else this.bytes = bytes;
-	}
 	
 }
+
+// -------------------- TextureData -------------------
 
 @:forward
 abstract TextureData(TextureDataImpl) to TextureDataImpl 
@@ -207,6 +205,87 @@ abstract TextureData(TextureDataImpl) to TextureDataImpl
 	public inline function toFloat32Array():Float32Array {
 		return Float32Array.fromBytes(this.bytes);
 	}
+
+
+	// ----------- decode by format lib ---------
+	#if format
+	public static function fromFormatPNG(bytes:Bytes):TextureData {
+		var reader = new format.png.Reader( new haxe.io.BytesInput(bytes) );
+		var data = reader.read();
+		var header = format.png.Tools.getHeader(data);
+
+		trace(header);
+
+		var imageBytes:Bytes;
+		var textureFormat:TextureFormat;
+
+		switch (header.color) {
+			case ColGrey(false):
+				if (header.colbits == 8) {
+					imageBytes = format.png.Tools.extractGrey(data);
+					textureFormat =  TextureFormat.LUMINANCE;
+				}
+				else {
+					imageBytes = format.png.Tools.extract(data);
+					textureFormat = TextureFormat.FLOAT_R;
+					var size:Int = header.width*header.height;
+					var imageBytesFloats = new Float32Array(size);
+					for (i in 0...size) {
+						imageBytesFloats.set(i, imageBytes.getUInt16(i*2) / 0xffff);
+					}
+					imageBytes = imageBytesFloats.getData().bytes;
+				}
+
+			case ColGrey(true):
+				imageBytes = format.png.Tools.extract(data);
+				if (header.colbits == 8) textureFormat =  TextureFormat.LUMINANCE_ALPHA;
+				else {
+					textureFormat = TextureFormat.FLOAT_RG;
+					var size:Int = header.width*header.height * 2;
+					var imageBytesFloats = new Float32Array(size);
+					for (i in 0...size) {
+						imageBytesFloats.set(i, imageBytes.getUInt16(i*2) / 0xffff);
+					}
+					imageBytes = imageBytesFloats.getData().bytes;
+				}
+
+			case ColTrue(false):
+				imageBytes = format.png.Tools.extract(data);
+				if (header.colbits == 8) textureFormat =  TextureFormat.RGB;
+				else {
+					textureFormat = TextureFormat.FLOAT_RGB;
+					var size:Int = header.width*header.height * 3;
+					var imageBytesFloats = new Float32Array(size);
+					for (i in 0...size) {
+						imageBytesFloats.set(i, imageBytes.getUInt16(i*2) / 0xffff);
+					}
+					imageBytes = imageBytesFloats.getData().bytes;
+				}
+
+			case ColTrue(true):
+				imageBytes = format.png.Tools.extract(data);
+				if (header.colbits == 8) textureFormat =  TextureFormat.RGBA;
+				else {
+					textureFormat = TextureFormat.FLOAT_RGBA;
+					var size:Int = header.width*header.height * 4;
+					var imageBytesFloats = new Float32Array(size);
+					for (i in 0...size) {
+						imageBytesFloats.set(i, imageBytes.getUInt16(i*2) / 0xffff);
+					}
+					imageBytes = imageBytesFloats.getData().bytes;
+				}
+
+			case ColIndexed: throw("Error by decoding PNG for TextureData: indexed colors not supperted");
+		}
+
+		// TODO: for colbits => 16
+		// var imageBytes = format.png.Tools.extract32(data);
+		// format.png.Tools.reverseBytes(imageBytes);
+
+		return new TextureData(header.width, header.height, textureFormat, imageBytes);
+	}
+
+	#end
 	
 	// ----------- Read Image-Data from Lime -------------
 	@:from
@@ -223,24 +302,21 @@ abstract TextureData(TextureDataImpl) to TextureDataImpl
 	// ----------- Read Image-Data from other haxelibs -------------
 
 	#if vision
-	// Vision: https://lib.haxe.org/p/vision/
+	// Vision: https://lib.haxe.org/p/vision/, https://github.com/ShaharMS/Vision
 	@:from
 	static public inline function fromVisionImage(image:vision.ds.Image):TextureData {
 		return new TextureData( image.width, image.height, TextureFormat.RGBA, image.toBytes(vision.ds.PixelFormat.RGBA) );
 	}
 	#end
 
-
-	// here more please ! (^_^)
-
 	#if pi_xy
 	// pi_xy: https://github.com/nanjizal/pi_xy
 	@:from
-    static public inline function fromPixelImage(pixelImage:pi_xy.Pixelimage):TextureData {
-        // return pixelImage.peoteTexture.toTextureData();
+	static public inline function fromPixelImage(pixelImage:pi_xy.Pixelimage):TextureData {
+		// return pixelImage.peoteTexture.toTextureData();
 		// return new TextureData( pixelImage.width, pixelImage.height, TextureFormat.RGBA, pixelImage.peoteTexture.toPeotePixels(pixelImage) );
 		return new TextureData( pixelImage.width, pixelImage.height, TextureFormat.RGBA, pixelImage.getBytes() );
-    }
+	}
 	#end
 	
 
