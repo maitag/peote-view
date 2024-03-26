@@ -4,8 +4,6 @@ import peote.view.intern.Util;
 
 abstract Color(Int) from Int to Int from UInt to UInt
 {
-	public inline function new(rgba:Int = 0) this = rgba;
-	
 	public var r(get,set):Int;
 	public var g(get,set):Int;
 	public var b(get,set):Int;
