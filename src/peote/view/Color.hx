@@ -4,7 +4,7 @@ import peote.view.intern.Util;
 
 abstract Color(Int) from Int to Int from UInt to UInt
 {
-	inline function new(rgba:Int) this = rgba;
+	public inline function new(rgba:Int = 0) this = rgba;
 	
 	public var r(get,set):Int;
 	public var g(get,set):Int;
@@ -19,6 +19,9 @@ abstract Color(Int) from Int to Int from UInt to UInt
 	public var blue(get,set):Int;
 	public var alpha(get,set):Int;
 
+	public var luminance(get,set):Int;
+
+	// getter
 	inline function get_r() return (this >> 24) & 0xff;
 	inline function get_g() return (this >> 16) & 0xff;
 	inline function get_b() return (this >>  8) & 0xff;
@@ -32,6 +35,7 @@ abstract Color(Int) from Int to Int from UInt to UInt
 	inline function get_blue () return get_b();
 	inline function get_alpha() return get_a();
 
+	// setter
 	inline function set_r(r:Int) { this = (this & 0x00ffffff) | (r<<24); return r; }
 	inline function set_g(g:Int) { this = (this & 0xff00ffff) | (g<<16); return g; }
 	inline function set_b(b:Int) { this = (this & 0xffff00ff) | (b<<8 ); return b; }
@@ -45,19 +49,64 @@ abstract Color(Int) from Int to Int from UInt to UInt
 	inline function set_blue (b:Int) return set_b(b);
 	inline function set_alpha(a:Int) return set_a(a);
 	
-	public var luminance(get,set):Int;
 	inline function get_luminance() return Math.round((r+g+b)/3);
-	inline function set_luminance(lum:Int) {
-		set_r(lum);
-		set_g(lum);
-		set_b(lum);
-		return lum;
-	}
+	inline function set_luminance(lum:Int) { setRGB(lum, lum, lum); return lum; }
 
-	// set by Float values
-	public inline function setAlpha(a:Float):Color { return (this & 0xffffff00) | Std.int(a*0xFF); }
-	public inline function setRed(r:Float):Color { return (this & 0x00ffffff) | (Std.int(r*0xFF)<<24); }
+	// set multiple color channels by Integer values and also returns it
+	public inline function setARGB (a:Int, r:Int, g:Int, b:Int):Color return this = ARGB(a, r, g, b);
+	public inline function setRGBA (r:Int, g:Int, b:Int, a:Int):Color return this = RGBA(r, g, b, a);
+	public inline function setRGB  (r:Int, g:Int, b:Int):Color return this = (this & 0x000000ff)|(r<<24)|(g<<16)|(b<<8);
+	public inline function setLuminanceAlpha(lum:Int, a:Int):Color return setRGBA(lum, lum, lum, a);
+	// set single color channels by Integer value and also returns it
+	public inline function setRed  (r:Int):Color return this = (this & 0x00ffffff)|(r<<24);
+	public inline function setGreen(g:Int):Color return this = (this & 0xff00ffff)|(g<<16);
+	public inline function setBlue (b:Int):Color return this = (this & 0xffff00ff)|(b<<8);
+	public inline function setAlpha(a:Int):Color return this = (this & 0xffffff00)|a;
+	public inline function setLuminance(lum:Int):Color return setRGB(lum, lum, lum);
 	
+	// set multiple color channels by Float values and also returns it
+	public inline function setFloatARGB (a:Float, r:Float, g:Float, b:Float):Color return this = FloatARGB(a, r, g, b);
+	public inline function setFloatRGBA (r:Float, g:Float, b:Float, a:Float):Color return this = FloatRGBA(r, g, b, a);
+	public inline function setFloatRGB  (r:Float, g:Float, b:Float):Color return this = (this & 0x000000ff)|(Std.int(r*0xFF)<<24)|(Std.int(g*0xFF)<<16)|(Std.int(b*0xFF)<<8);
+	public inline function setFloatLuminanceAlpha(lum:Float, a:Float):Color return setFloatRGBA(lum, lum, lum, a);
+	// set single color channels by Float value and also returns it
+	public inline function setFloatRed  (r:Float):Color return this = (this & 0x00ffffff) | (Std.int(r*0xFF)<<24);
+	public inline function setFloatGreen(g:Float):Color return this = (this & 0xff00ffff) | (Std.int(g*0xFF)<<16);
+	public inline function setFloatBlue (b:Float):Color return this = (this & 0xffff00ff) | (Std.int(b*0xFF)<<8);
+	public inline function setFloatAlpha(a:Float):Color return this = (this & 0xffffff00) | Std.int(a*0xFF);
+	public inline function setFloatLuminance(lum:Float):Color return setFloatRGB(lum, lum, lum);
+	
+
+	// ------------ static functions to create new Colors ------------
+
+	// create multiple color channels by Integer values
+	public static inline function ARGB (a:Int, r:Int, g:Int, b:Int):Color return (a<<24)|(r<<16)|(g<<8)|b;
+	public static inline function RGBA (r:Int, g:Int, b:Int, a:Int):Color return (r<<24)|(g<<16)|(b<<8)|a;
+	public static inline function RGB  (r:Int, g:Int, b:Int):Color return (r<<24)|(g<<16)|(b<<8)|0xff;
+	static inline function RG (r:Int, g:Int):Color return (r<<24)|(g<<16)|0xff;
+	public static inline function LuminanceAlpha(lum:Int, a:Int):Color return RGBA(lum, lum, lum, a);
+	// create single color channel by Integer value
+	public static inline function Red  (r:Int):Color return (r<<24)|0xff;
+	public static inline function Green(g:Int):Color return (g<<16)|0xff;
+	public static inline function Blue (b:Int):Color return (b<<8)|0xff;
+	public static inline function Alpha(a:Int):Color return a;
+	public static inline function Luminance(lum:Int):Color return RGB(lum, lum, lum);
+
+
+	// create multiple color channels by Float values
+	public static inline function FloatARGB (a:Float, r:Float, g:Float, b:Float):Color return (Std.int(a*0xFF)<<24)|(Std.int(r*0xFF)<<16)|(Std.int(g*0xFF)<<8)|Std.int(b*0xFF);
+	public static inline function FloatRGBA (r:Float, g:Float, b:Float, a:Float):Color return (Std.int(r*0xFF)<<24)|(Std.int(g*0xFF)<<16)|(Std.int(b*0xFF)<<8)|Std.int(a*0xFF);
+	public static inline function FloatRGB  (r:Float, g:Float, b:Float):Color return (Std.int(r*0xFF)<<24)|(Std.int(g*0xFF)<<16)|(Std.int(b*0xFF)<<8)|0xff;
+	public static inline function FloatLuminanceAlpha(lum:Float, a:Float):Color return FloatRGBA(lum, lum, lum, a);
+	// create single color channel by Float value
+	public static inline function FloatRed  (r:Float):Color return (Std.int(r*0xFF)<<24)|0xff;
+	public static inline function FloatGreen(g:Float):Color return (Std.int(g*0xFF)<<16)|0xff;
+	public static inline function FloatBlue (b:Float):Color return (Std.int(b*0xFF)<<8)|0xff;
+	public static inline function FloatAlpha(a:Float):Color return Std.int(a*0xFF);
+	public static inline function FloatLuminance(lum:Float):Color return FloatRGB(lum, lum, lum);
+
+
+	// random colors
 	public static inline function random():Color {
 		return (Std.int(Math.random()*256) << 24) | Std.random(0x1000000);
 	}

@@ -22,7 +22,8 @@ abstract TextureFormat(Int) from Int to Int
 	public static inline var FLOAT_RGBA:Int = 11;
 
 
-	public inline function isFloat():Bool return (this > LUMINANCE_ALPHA);
+	public var isFloat(get, never):Bool;
+	public inline function get_isFloat():Bool return (this > LUMINANCE_ALPHA);
 
 	inline function isGreaterR():Bool return this > R;
 	inline function isGreaterRG():Bool return this > RG;
@@ -31,18 +32,21 @@ abstract TextureFormat(Int) from Int to Int
 	inline function isGreaterFloatRG():Bool return this > FLOAT_RG;
 	inline function isGreaterFloatRGB():Bool return this > FLOAT_RGB;
 
-	public inline function bytesPerPixel():Int {
-		if ( isFloat() ) return _bytesPerPixelFloat();
-		else return _bytesPerPixelInt();
+	public var bytesPerPixel(get, never):Int;
+	inline function get_bytesPerPixel():Int {
+		if ( isFloat ) return get_bytesPerPixelFloat();
+		else return get_bytesPerPixelInt();
 	}
 
-	inline function _bytesPerPixelInt():Int {
+	public var bytesPerPixelInt(get, never):Int;
+	inline function get_bytesPerPixelInt():Int {
 		if (this < LUMINANCE) return this;
 		else if (this < LUMINANCE_ALPHA) return 1;
 		else return 2;
 	}
 
-	inline function _bytesPerPixelFloat():Int return (this - LUMINANCE_ALPHA) * 4;
+	public var bytesPerPixelFloat(get, never):Int;
+	inline function get_bytesPerPixelFloat():Int return (this - LUMINANCE_ALPHA) * 4;
 
 
 	// Integer internal- and format

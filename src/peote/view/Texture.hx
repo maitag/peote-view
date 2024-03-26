@@ -287,7 +287,7 @@ class Texture
 		gl.bindTexture(gl.TEXTURE_2D, glTexture);
 		
 		// TODO: this also better outsourced into intern/TexUtils.hx
-		if (format.isFloat()) {
+		if (format.isFloat) {
 			gl.texSubImage2D_Float(gl.TEXTURE_2D, 0, x, y, w, h, format.formatFloat(gl), gl.FLOAT, textureData);
 		}
 		else {
