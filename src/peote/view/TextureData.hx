@@ -36,7 +36,6 @@ private class TextureDataImpl
 		this.width = width;
 		this.height = height;
 		this.format = format;
-		
 		if (bytes == null) this.bytes = Bytes.alloc(width * height * format.bytesPerPixel );
 		else this.bytes = bytes;
 	}
@@ -97,7 +96,7 @@ private class TextureDataImpl
 	// ------- getPixel and setPixel for Integer textureformat -------
 	// ---------------------------------------------------------------
 
-	public function setPixel(x:Int, y:Int, color:Color)
+	public function setColor(x:Int, y:Int, color:Color)
 	{
 		if ( format.isFloat ) throw("error, use setPixelFloat() for FLOAT textureformats");		
 		var pos = (y * width + x) * format.bytesPerPixelInt;
@@ -119,8 +118,8 @@ private class TextureDataImpl
 		}
 	}
 	
-	// optimized variants for setPixel in RGBA, RGB, RG or R textureFormat
-	public inline function setPixelRGBA(x:Int, y:Int, color:Color) _setRGBABytes((y * width + x) << 2, color);
+	// optimized variants for setPixel in specific textureFormat
+	public inline function setColor_RGBA(x:Int, y:Int, color:Color) _setRGBABytes((y * width + x) << 2, color);
 
 	inline function _setRGBABytes(pos:Int, color:Color) {
 		bytes.set(pos, color.red);
@@ -129,25 +128,72 @@ private class TextureDataImpl
 		bytes.set(pos + 3, color.alpha);
 	}
 
-	public inline function setPixelRGB(x:Int, y:Int, red:Int, green:Int, blue:Int) {
+	public inline function set_RGBA(x:Int, y:Int, red:Int, green:Int, blue:Int, alpha:Int) {
+		var pos = (y * width + x) * 3;
+		bytes.set(pos, red); bytes.set(pos+1, green); bytes.set(pos+2, blue); bytes.set(pos+3, alpha);
+	}
+
+	public inline function set_RGB(x:Int, y:Int, red:Int, green:Int, blue:Int) {
 		var pos = (y * width + x) * 3;
 		bytes.set(pos, red); bytes.set(pos+1, green); bytes.set(pos+2, blue);
 	}
 
-	public inline function setPixelRG(x:Int, y:Int, red:Int, green:Int) {
+	public inline function set_RG(x:Int, y:Int, red:Int, green:Int) {
 		var pos = (y * width + x) << 1;
 		bytes.set(pos, red); bytes.set(pos+1, green);
 	}
 
-	public inline function setPixelLuminanceAlpha(x:Int, y:Int, luminance:Int, alpha:Int) setPixelRG(x, y, luminance, alpha);
-	public inline function setPixelR(x:Int, y:Int, red:Int)               bytes.set(y * width + x, red);
-	public inline function setPixelLuminance(x:Int, y:Int, luminance:Int) bytes.set(y * width + x, luminance);
-	public inline function setPixelAlpha(x:Int, y:Int, alpha:Int)         bytes.set(y * width + x, alpha);
+	public inline function set_R(x:Int, y:Int, red:Int) bytes.set(y * width + x, red);
 
+	public inline function set_LUMINANCE_ALPHA(x:Int, y:Int, luminance:Int, alpha:Int) set_RG(x, y, luminance, alpha);
+	public inline function set_LUMINANCE(x:Int, y:Int, luminance:Int) set_R(x, y, luminance);
+	public inline function set_ALPHA(x:Int, y:Int, alpha:Int) set_R(x, y, alpha);
+
+	// set single value for one specific colorchannel in depend of Integer TextureFormat
+
+	public inline function setRed(x:Int, y:Int, red:Int) {
+		bytes.set((y * width + x) * format.bytesPerPixelInt, red);
+	}
+
+	public inline function setGreen(x:Int, y:Int, green:Int) {
+		if (format.isGreaterR()) bytes.set( (y * width + x) * format.bytesPerPixelInt + 1, green );
+		else throw("Error: Textureformat have no green channel");
+	}
+	
+	public inline function setBlue(x:Int, y:Int, blue:Int) {
+		if (format.isGreaterRG()) bytes.set( (y * width + x) * format.bytesPerPixelInt + 2, blue );
+		else throw("Error: Textureformat have no green channel");
+	}
+	
+	public inline function setAlpha(x:Int, y:Int, alpha:Int) {
+		switch (format) {
+			case RGBA:            bytes.set( (y * width + x) * 4 + 3, alpha );
+			case LUMINANCE_ALPHA: bytes.set( (y * width + x) * 2 + 1, alpha );
+			case ALPHA:           bytes.set( (y * width + x), alpha);
+			default: throw("Error: Textureformat have no green channel");
+		}
+	}
+	
+	public inline function setLuminance(x:Int, y:Int, luminance:Int) {
+		var pos = (y * width + x) * format.bytesPerPixelInt;
+		switch (format) {
+			case LUMINANCE:       bytes.set(pos, luminance);
+			case LUMINANCE_ALPHA: bytes.set(pos, luminance);	
+			case ALPHA: throw("Error: Textureformat have no red, green or blue channel to set luminance");
+			default: 
+				bytes.set(pos, luminance);
+				if ( format.isGreaterR() ) {
+					bytes.set(pos+1, luminance);
+					if ( format.isGreaterRG() ) {
+						bytes.set(pos+2, luminance);
+					}
+				}
+		}
+	}
 
 	// get Pixels for integer textureformat
 
-	public function getPixel(x:Int, y:Int):Color
+	public function getColor(x:Int, y:Int):Color
 	{
 		if ( format.isFloat ) throw("error, use getPixelFloat() for FLOAT textureformats");		
 		var pos = (y * width + x) * format.bytesPerPixelInt;		
@@ -171,39 +217,80 @@ private class TextureDataImpl
 
 	// optimized variants of getPixel for the specific Integer TextureFormat
 
-	public inline function getPixelRGBA(x:Int, y:Int):Color return _getRGBABytes((y * width + x) << 2);
+	public inline function getColor_RGBA(x:Int, y:Int):Color return _getRGBABytes((y * width + x) << 2);
 
 	inline function _getRGBABytes(pos:Int):Color {
 		return Color.RGBA( bytes.get(pos), bytes.get(pos + 1), bytes.get(pos + 2), bytes.get(pos + 3) );
 	}
 
-	public inline function getPixelRGB(x:Int, y:Int):Color {
+	public inline function getColor_RGB(x:Int, y:Int):Color {
 		var pos = (y * width + x) * 3;
 		return Color.RGB( bytes.get(pos), bytes.get(pos + 1), bytes.get(pos + 2) );
 	}
 
 	@:access(peote.view.Color) // Color.RG is not public!
-	public inline function getPixelRG(x:Int, y:Int):Color {
+	public inline function getColor_RG(x:Int, y:Int):Color {
 		var pos = (y * width + x) << 1;
 		return Color.RG( bytes.get(pos), bytes.get(pos + 1) );
 	}
 
-	public inline function getPixelLuminanceAlpha(x:Int, y:Int):Color {
+	public inline function getColor_LUMINANCE_ALPHA(x:Int, y:Int):Color {
 		var pos = (y * width + x) << 1;
 		return Color.LuminanceAlpha( bytes.get(pos), bytes.get(pos + 1) );
 	}
 
-	public inline function getPixelR(x:Int, y:Int):Color         return Color.Red      ( bytes.get(y * width + x) );
-	public inline function getPixelLuminance(x:Int, y:Int):Color return Color.Luminance( bytes.get(y * width + x) );
-	public inline function getPixelAlpha(x:Int, y:Int):Color     return Color.Alpha    ( bytes.get(y * width + x) );
+	public inline function getColor_R(x:Int, y:Int):Color         return Color.Red      ( get_R(x, y) );
+	public inline function getColor_LUMINANCE(x:Int, y:Int):Color return Color.Luminance( get_R(x, y) );
+	public inline function getColor_ALPHA(x:Int, y:Int):Color     return Color.Alpha    ( get_R(x, y) );
+	
+	public inline function get_R(x:Int, y:Int):Int         return bytes.get(y * width + x);
+	public inline function get_LUMINANCE(x:Int, y:Int):Int return get_R(x, y);
+	public inline function get_ALPHA(x:Int, y:Int):Int     return get_R(x, y);
 	
 	
+	// get single value for one specific colorchannel in depend of Integer TextureFormat
+
+	public inline function getRed(x:Int, y:Int):Int {
+		return bytes.get((y * width + x) * format.bytesPerPixel);
+	}
+
+	public inline function getGreen(x:Int, y:Int):Int {
+		if (!format.isGreaterR()) throw("Error: Textureformat have no green channel");
+		return bytes.get(((y * width + x) * format.bytesPerPixel) + 1);
+	}
+
+	public inline function getBlue(x:Int, y:Int):Int {
+		if (!format.isGreaterRG()) throw("Error: Textureformat have no blue channel");
+		return bytes.get(((y * width + x) * format.bytesPerPixel) + 2);
+	}
+
+	public inline function getAlpha(x:Int, y:Int):Int {
+		return switch (format) {
+			case ALPHA:           bytes.get( (y * width + x) );
+			case LUMINANCE_ALPHA: bytes.get( (y * width + x) * 2 + 1 );
+			case RGBA:            bytes.get( (y * width + x) * 4 + 3 );
+			default: throw("Error: Textureformat have no alpha channel");
+		}
+	}
+
+	public inline function getLuminance(x:Int, y:Int):Int {
+		var pos = (y * width + x) * format.bytesPerPixelInt;
+		return switch (format) {
+			case LUMINANCE:       bytes.get(pos);
+			case LUMINANCE_ALPHA: bytes.get(pos);	
+			case R:               bytes.get(pos);
+			case RGBA: Std.int( (bytes.get(pos) + bytes.get(pos + 1) + bytes.get(pos + 2)) / 3 );
+			case RGB:  Std.int( (bytes.get(pos) + bytes.get(pos + 1) + bytes.get(pos + 2)) / 3 );
+			case RG:   Std.int( (bytes.get(pos) + bytes.get(pos + 1)) / 2 );
+			default: throw("Error: Textureformat have no red, green or blue channel to get luminance");
+		}
+	}
 
 	// -------------------------------------------------------------
 	// ------- getPixel and setPixel for Float textureformat -------
 	// -------------------------------------------------------------
 
-	public inline function setPixelFloat(x:Int, y:Int, red:Float, green:Float = 0.0, blue:Float = 0.0, alpha:Float = 0.0)
+	public inline function setFloat(x:Int, y:Int, red:Float, green:Float, blue:Float, alpha:Float = 0.0)
 	{
 		if ( !format.isFloat ) throw("error, use setPixel() for INTEGER textureformats");
 		
@@ -223,7 +310,7 @@ private class TextureDataImpl
 
 	// optimized variants for setPixelFloat for the specific Float TextureFormat
 
-	public inline function setPixelFloatRGBA(x:Int, y:Int, red:Float, green:Float, blue:Float, alpha:Float) {
+	public inline function setFloat_RGBA(x:Int, y:Int, red:Float, green:Float, blue:Float, alpha:Float) {
 		var pos:Int = (y * width + x) << 4;
 		bytes.setFloat(pos     , red);
 		bytes.setFloat(pos + 4 , green);
@@ -231,41 +318,41 @@ private class TextureDataImpl
 		bytes.setFloat(pos + 12, alpha);
 	}
 
-	public inline function setPixelFloatRGB(x:Int, y:Int, red:Float, green:Float, blue:Float) {
+	public inline function setFloat_RGB(x:Int, y:Int, red:Float, green:Float, blue:Float) {
 		var pos:Int = (y * width + x) * 12;
 		bytes.setFloat(pos     , red);
 		bytes.setFloat(pos + 4 , green);
 		bytes.setFloat(pos + 8 , blue);
 	}
 
-	public inline function setPixelFloatRG(x:Int, y:Int, red:Float, green:Float) {
+	public inline function setFloat_RG(x:Int, y:Int, red:Float, green:Float) {
 		var pos:Int = (y * width + x) << 3;
 		bytes.setFloat(pos     , red);
 		bytes.setFloat(pos + 4 , green);
 	}
 
-	inline public function setPixelFloatR(x:Int, y:Int, red:Float) {
+	inline public function setFloat_R(x:Int, y:Int, red:Float) {
 		bytes.setFloat((y * width + x) << 2, red);
 	}
 	
 
 	// set single value for one specific colorchannel in depend of Float TextureFormat
 
-	public inline function setPixelFloatRed(x:Int, y:Int, red:Float) {
+	public inline function setFloatRed(x:Int, y:Int, red:Float) {
 		bytes.setFloat((y * width + x) * format.bytesPerPixelFloat, red);
 	}
 	
-	public inline function setPixelFloatGreen(x:Int, y:Int, green:Float) {
+	public inline function setFloatGreen(x:Int, y:Int, green:Float) {
 		if (format.isGreaterFloatR()) bytes.setFloat(((y * width + x) * format.bytesPerPixelFloat) + 4, green);
 		else throw("Error: Textureformat have no green channel");
 	}
 	
-	public inline function setPixelFloatBlue(x:Int, y:Int, blue:Float) {
+	public inline function setFloatBlue(x:Int, y:Int, blue:Float) {
 		if (format.isGreaterFloatRG()) bytes.setFloat(((y * width + x) * format.bytesPerPixelFloat) + 8, blue);
 		else throw("Error: Textureformat have no blue channel");
 	}
 	
-	public inline function setPixelFloatAlpha(x:Int, y:Int, alpha:Float) {
+	public inline function setFloatAlpha(x:Int, y:Int, alpha:Float) {
 		if (format.isGreaterFloatRGB()) bytes.setFloat(((y * width + x) * format.bytesPerPixelFloat) + 12, alpha);
 		else throw("Error: Textureformat have no alpha channel");
 	}
@@ -273,21 +360,21 @@ private class TextureDataImpl
 
 	// get single float for one specific colorchannel in depend of Float TextureFormat
 
-	public inline function getPixelFloatRed(x:Int, y:Int):Float {
+	public inline function getFloatRed(x:Int, y:Int):Float {
 		return bytes.getFloat((y * width + x) * format.bytesPerPixelFloat);
 	}
 	
-	public inline function getPixelFloatGreen(x:Int, y:Int):Float {
+	public inline function getFloatGreen(x:Int, y:Int):Float {
 		if (!format.isGreaterFloatR()) throw("Error: Textureformat have no green channel");
-		return bytes.getFloat(((y * width + x)  * format.bytesPerPixelFloat) + 4);
+		return bytes.getFloat(((y * width + x) * format.bytesPerPixelFloat) + 4);
 	}
 	
-	public inline function getPixelFloatBlue(x:Int, y:Int):Float {
+	public inline function getFloatBlue(x:Int, y:Int):Float {
 		if (!format.isGreaterFloatRG()) throw("Error: Textureformat have no blue channel");
 		return bytes.getFloat(((y * width + x) * format.bytesPerPixelFloat) + 8);
 	}
 	
-	public inline function getPixelFloatAlpha(x:Int, y:Int):Float {
+	public inline function getFloatAlpha(x:Int, y:Int):Float {
 		if (!format.isGreaterFloatRGB()) throw("Error: Textureformat have no alpha channel");
 		return bytes.getFloat(((y * width + x) * format.bytesPerPixelFloat) + 12);
 	}
@@ -340,7 +427,8 @@ abstract TextureData(TextureDataImpl) to TextureDataImpl
 					for (i in 0...size) {
 						imageBytesFloats.set(i, imageBytes.getUInt16(i*2) / 0xffff);
 					}
-					imageBytes = imageBytesFloats.getData().bytes;
+					// imageBytes = imageBytesFloats.getData().bytes;
+					imageBytes = imageBytesFloats.view.buffer;
 				}
 
 			case ColGrey(true):
@@ -353,7 +441,8 @@ abstract TextureData(TextureDataImpl) to TextureDataImpl
 					for (i in 0...size) {
 						imageBytesFloats.set(i, imageBytes.getUInt16(i*2) / 0xffff);
 					}
-					imageBytes = imageBytesFloats.getData().bytes;
+					// imageBytes = imageBytesFloats.getData().bytes;
+					imageBytes = imageBytesFloats.view.buffer;
 				}
 
 			case ColTrue(false):
@@ -366,7 +455,8 @@ abstract TextureData(TextureDataImpl) to TextureDataImpl
 					for (i in 0...size) {
 						imageBytesFloats.set(i, imageBytes.getUInt16(i*2) / 0xffff);
 					}
-					imageBytes = imageBytesFloats.getData().bytes;
+					// imageBytes = imageBytesFloats.getData().bytes;
+					imageBytes = imageBytesFloats.view.buffer;
 				}
 
 			case ColTrue(true):
@@ -379,7 +469,8 @@ abstract TextureData(TextureDataImpl) to TextureDataImpl
 					for (i in 0...size) {
 						imageBytesFloats.set(i, imageBytes.getUInt16(i*2) / 0xffff);
 					}
-					imageBytes = imageBytesFloats.getData().bytes;
+					// imageBytes = imageBytesFloats.getData().bytes;
+					imageBytes = imageBytesFloats.view.buffer;
 				}
 
 			case ColIndexed: throw("Error by decoding PNG for TextureData: indexed colors not supperted");

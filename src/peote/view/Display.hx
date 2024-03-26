@@ -23,17 +23,17 @@ class Display
 		
 	public var x(default, set):Int = 0;
 	public inline function set_x(_x:Int):Int {
-		if (PeoteGL.Version.isUBO) uniformBuffer.updateXOffset(gl, _x + xOffset);
+		if (PeoteGL.Version.isUBO && gl != null) uniformBuffer.updateXOffset(gl, _x + xOffset);
 		return x = _x;
 	}
 	public var y(default, set):Int = 0;
 	public inline function set_y(_y:Int):Int {
-		if (PeoteGL.Version.isUBO) uniformBuffer.updateYOffset(gl, _y + yOffset);
+		if (PeoteGL.Version.isUBO && gl != null) uniformBuffer.updateYOffset(gl, _y + yOffset);
 		return y = _y;
 	}
 	public var xOffset(default, set):Float = 0;
 	public inline function set_xOffset(xo:Float):Float {
-		if (PeoteGL.Version.isUBO) {
+		if (PeoteGL.Version.isUBO && gl != null) {
 			uniformBuffer.updateXOffset(gl, x + xo);
 			uniformBufferFB.updateXOffset(gl, xo);
 		}
@@ -41,7 +41,7 @@ class Display
 	}
 	public var yOffset(default, set):Float = 0;
 	public inline function set_yOffset(yo:Float):Float {
-		if (PeoteGL.Version.isUBO) {
+		if (PeoteGL.Version.isUBO && gl != null) {
 			uniformBuffer.updateYOffset(gl, y + yo);
 			uniformBufferFB.updateYOffset(gl, yo - height);
 		}
@@ -55,7 +55,7 @@ class Display
 	public inline function set_zoom(z:Float):Float {
 		xz = xZoom * z;
 		yz = yZoom * z;
-		if (PeoteGL.Version.isUBO) {
+		if (PeoteGL.Version.isUBO && gl != null) {
 			uniformBuffer.updateZoom(gl, xz, yz);
 			uniformBufferFB.updateZoom(gl, xz, yz);
 		}
@@ -64,7 +64,7 @@ class Display
 	public var xZoom(default, set):Float = 1.0;
 	public inline function set_xZoom(z:Float):Float {
 		xz = zoom * z;
-		if (PeoteGL.Version.isUBO) {
+		if (PeoteGL.Version.isUBO && gl != null) {
 			uniformBuffer.updateXZoom(gl, xz);
 			uniformBufferFB.updateXZoom(gl, xz);
 		}
@@ -73,7 +73,7 @@ class Display
 	public var yZoom(default, set):Float = 1.0;
 	public inline function set_yZoom(z:Float):Float {
 		yz = zoom * z;
-		if (PeoteGL.Version.isUBO) {
+		if (PeoteGL.Version.isUBO && gl != null) {
 			uniformBuffer.updateYZoom(gl, yz);
 			uniformBufferFB.updateYZoom(gl, yz);
 		}
