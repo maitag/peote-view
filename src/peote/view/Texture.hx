@@ -232,8 +232,14 @@ class Texture
 	}
 */
 	public function setData(textureData:TextureData, slot:Int = 0) {
+		if (format.isFloat != textureData.format.isFloat)
+			throw('Error: Can not use ${(textureData.format.isFloat) ? "float" : "integer"} TextureData for ${(format.isFloat) ? "float" : "integer"} Texture');
+		else if (format.colorChannels != textureData.format.colorChannels) 
+			throw("Error: Number of colorchannels of TextureData and Texture don't match");
+
 		#if peoteview_debug_texture
-		trace("Set Image into Texture Slot" + slot);
+		trace('Set TextureData (${textureData.format}) to Texture (${format}) into Slot' + slot);
+		if (format != textureData.format) trace("Warning: Textureformat of Texture and TextureData don't match");
 		#end
 		
 		usedSlots.set(slot, textureData);
@@ -251,17 +257,26 @@ class Texture
 		#end
 		var textureData = usedSlots.get(slot);
 		usedSlots.remove(slot); 
-		if (gl != null) {
-			// TODO
-			var bytes = new UInt8Array(textureData.width * textureData.height * 4);
-			//var bytes = Bytes.alloc(textureData.width * textureData.height * 4);
-			
+		if (gl != null) {		
+			// TODO: this also better outsourced into intern/TexUtils.hx and opengl-fallback for float-precision
 			gl.bindTexture(gl.TEXTURE_2D, glTexture);
-			gl.texSubImage2D(gl.TEXTURE_2D, 0, 
-				slotWidth * (slot % slotsX),
-		        slotHeight * Math.floor(slot / slotsX),
-		        textureData.width, textureData.height,
-				gl.RGBA, gl.UNSIGNED_BYTE,  bytes );
+			if (format.isFloat) {
+				gl.texSubImage2D_Float(gl.TEXTURE_2D, 0, 
+					slotWidth * (slot % slotsX),
+					slotHeight * Math.floor(slot / slotsX),
+					textureData.width, textureData.height,
+					format.formatFloat(gl), gl.FLOAT,  
+					new Float32Array(textureData.width * textureData.height * format.bytesPerPixel)
+				);
+			} else {
+				gl.texSubImage2D(gl.TEXTURE_2D, 0, 
+					slotWidth * (slot % slotsX),
+					slotHeight * Math.floor(slot / slotsX),
+					textureData.width, textureData.height,
+					format.formatInteger(gl), gl.UNSIGNED_BYTE,  
+					new UInt8Array(textureData.width * textureData.height * format.bytesPerPixel)
+				);
+			}
 			gl.bindTexture(gl.TEXTURE_2D, null);
 			
 			updated = true; // to reset peoteView.glStateTexture  <-- TODO: check isTextureStateChange()
@@ -286,7 +301,7 @@ class Texture
 	{
 		gl.bindTexture(gl.TEXTURE_2D, glTexture);
 		
-		// TODO: this also better outsourced into intern/TexUtils.hx
+		// TODO: this also better outsourced into intern/TexUtils.hx and opengl-fallback for float-precision
 		if (format.isFloat) {
 			gl.texSubImage2D_Float(gl.TEXTURE_2D, 0, x, y, w, h, format.formatFloat(gl), gl.FLOAT, textureData);
 		}
