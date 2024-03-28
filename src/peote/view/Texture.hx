@@ -234,7 +234,7 @@ class Texture
 	public function setData(textureData:TextureData, slot:Int = 0) {
 		if (format.isFloat != textureData.format.isFloat)
 			throw('Error: Can not use ${(textureData.format.isFloat) ? "float" : "integer"} TextureData for ${(format.isFloat) ? "float" : "integer"} Texture');
-		else if (format.colorChannels != textureData.format.colorChannels) 
+		else if (format.channels != textureData.format.channels) 
 			throw("Error: Number of colorchannels of TextureData and Texture don't match");
 
 		#if peoteview_debug_texture

@@ -64,8 +64,8 @@ abstract TextureFormat(Int) from Int to Int
 	public var bytesPerPixelFloat(get, never):Int;
 	inline function get_bytesPerPixelFloat():Int return (this - LUMINANCE_ALPHA) * 4;
 
-	public var colorChannels(get, never):Int;
-	inline function get_colorChannels():Int {
+	public var channels(get, never):Int;
+	inline function get_channels():Int {
 		if ( isFloat ) return this - LUMINANCE_ALPHA;
 		else return get_bytesPerPixelInt();
 	}
