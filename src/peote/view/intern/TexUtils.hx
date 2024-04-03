@@ -67,15 +67,8 @@ class TexUtils
 			gl.texSubImage2D_Float(gl.TEXTURE_2D, 0, x, y, textureData.width, textureData.height, format.formatFloat(gl), gl.FLOAT, textureData);
 			if (GLTool.getLastGlError(gl) == gl.INVALID_VALUE) {
 				#if peoteview_debug_texture
-				trace("switching to lower float precision while dataToTexture");
+				trace("Error while dataToTexture for float-texture");
 				#end
-				gl.texSubImage2D_Float(gl.TEXTURE_2D, 0, x, y, textureData.width, textureData.height, format.float16(gl), gl.FLOAT, textureData);
-				if (GLTool.getLastGlError(gl) == gl.INVALID_VALUE) {
-					#if peoteview_debug_texture
-					trace("fallback for float precision while dataToTexture");
-					#end
-					gl.texImage2D(gl.TEXTURE_2D, 0, x, y, textureData.width, textureData.height, format.formatFloat(gl), gl.FLOAT, textureData);
-				}
 			}
 		}
 		else gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, textureData.width, textureData.height, format.formatInteger(gl), gl.UNSIGNED_BYTE, textureData);
