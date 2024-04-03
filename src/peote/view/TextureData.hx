@@ -31,35 +31,52 @@ private class TextureDataImpl
 	
 	public var bytes:Bytes = null;
 	
-	public function new(width:Int, height:Int, format:TextureFormat, bytes:Bytes = null)
+	public function new(width:Int, height:Int, format:TextureFormat, color:Color = 0, bytes:Bytes = null)
 	{
 		this.width = width;
 		this.height = height;
 		this.format = format;
-		if (bytes == null) this.bytes = Bytes.alloc(width * height * format.bytesPerPixel );
+		if (bytes == null) {
+			this.bytes = Bytes.alloc(width * height * format.bytesPerPixel );
+			if (color != 0) clear(color);
+		}
 		else this.bytes = bytes;
 	}
 		
 	public function clear(color:Color = 0)
 	{
-		if ( format.isFloat ) throw("error, use clearFloat() for FLOAT textureformats");
-		var pos:Int = 0;
-		switch (format) {
-			case FLOAT_RGBA:
-				for (i in 0...width * height) bytes.setInt32(pos, color); pos += 4;
-			case FLOAT_RGB:
-				for (i in 0...width * height) {
-					bytes.set(pos++, color.red);
-					bytes.set(pos++, color.green);
-					bytes.set(pos++, color.blue);
-				}
-			case FLOAT_RG:
-				for (i in 0...width * height) {
-					bytes.set(pos++, color.red);
-					bytes.set(pos++, color.green);
-				}
-			default:
-				for (i in 0...width * height) bytes.set(pos++, color.red);
+		if ( format.isFloat ) clearFloat(color.redF, color.greenF, color.blueF, color.alphaF);
+		else {
+			var pos:Int = 0;
+			switch (format) {
+				case RGBA:
+					for (i in 0...width * height) {
+						bytes.set(pos++, color.red);
+						bytes.set(pos++, color.green);
+						bytes.set(pos++, color.blue);
+						bytes.set(pos++, color.alpha);
+					}
+				case RGB:
+					for (i in 0...width * height) {
+						bytes.set(pos++, color.red);
+						bytes.set(pos++, color.green);
+						bytes.set(pos++, color.blue);
+					}
+				case RG:
+					for (i in 0...width * height) {
+						bytes.set(pos++, color.red);
+						bytes.set(pos++, color.green);
+					}
+				case R:         for (i in 0...width * height) bytes.set(pos++, color.red);
+				case LUMINANCE:	for (i in 0...width * height) bytes.set(pos++, color.luminance);
+				case ALPHA:     for (i in 0...width * height) bytes.set(pos++, color.alpha);
+				case LUMINANCE_ALPHA:
+					for (i in 0...width * height) {
+						bytes.set(pos++, color.luminance);
+						bytes.set(pos++, color.alpha);
+					}
+				default:
+			}
 		}
 	}
 

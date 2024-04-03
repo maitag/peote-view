@@ -4,6 +4,7 @@ import peote.view.intern.Util;
 
 abstract Color(Int) from Int to Int from UInt to UInt
 {
+	// colorchannels by Integer
 	public var r(get,set):Int;
 	public var g(get,set):Int;
 	public var b(get,set):Int;
@@ -16,10 +17,21 @@ abstract Color(Int) from Int to Int from UInt to UInt
 	public var green(get,set):Int;
 	public var blue(get,set):Int;
 	public var alpha(get,set):Int;
-
 	public var luminance(get,set):Int;
 
-	// getter
+	// colorchannels by Float
+	public var rF(get,set):Float;
+	public var gF(get,set):Float;
+	public var bF(get,set):Float;
+	public var aF(get,set):Float;
+
+	public var redF(get,set):Float;
+	public var greenF(get,set):Float;
+	public var blueF(get,set):Float;
+	public var alphaF(get,set):Float;
+	public var luminanceF(get,set):Float;
+
+	// getter Integer
 	inline function get_r() return (this >> 24) & 0xff;
 	inline function get_g() return (this >> 16) & 0xff;
 	inline function get_b() return (this >>  8) & 0xff;
@@ -32,8 +44,21 @@ abstract Color(Int) from Int to Int from UInt to UInt
 	inline function get_green() return get_g();
 	inline function get_blue () return get_b();
 	inline function get_alpha() return get_a();
+	inline function get_luminance() return Math.round((r + g + b)/3);
 
-	// setter
+	// getter Float
+	inline function get_rF() return get_r() / 0xff;
+	inline function get_gF() return get_g() / 0xff;
+	inline function get_bF() return get_b() / 0xff;
+	inline function get_aF() return get_a() / 0xff;
+
+	inline function get_redF  () return get_rF();
+	inline function get_greenF() return get_gF();
+	inline function get_blueF () return get_bF();
+	inline function get_alphaF() return get_aF();
+	inline function get_luminanceF() return (rF + gF + bF)/3;
+
+	// setter Integer
 	inline function set_r(r:Int) { this = (this & 0x00ffffff) | (r<<24); return r; }
 	inline function set_g(g:Int) { this = (this & 0xff00ffff) | (g<<16); return g; }
 	inline function set_b(b:Int) { this = (this & 0xffff00ff) | (b<<8 ); return b; }
@@ -45,10 +70,22 @@ abstract Color(Int) from Int to Int from UInt to UInt
 	inline function set_red  (r:Int) return set_r(r);
 	inline function set_green(g:Int) return set_g(g);
 	inline function set_blue (b:Int) return set_b(b);
-	inline function set_alpha(a:Int) return set_a(a);
-	
-	inline function get_luminance() return Math.round((r+g+b)/3);
+	inline function set_alpha(a:Int) return set_a(a);	
 	inline function set_luminance(lum:Int) { setRGB(lum, lum, lum); return lum; }
+
+	// setter Float
+	inline function set_rF(r:Float) return set_r( Std.int(r * 0xff) );
+	inline function set_gF(g:Float) return set_g( Std.int(g * 0xff) );
+	inline function set_bF(b:Float) return set_b( Std.int(b * 0xff) );
+	inline function set_aF(a:Float) return set_a( Std.int(a * 0xff) );
+
+	inline function set_redF  (r:Float) return set_rF(r);
+	inline function set_greenF(g:Float) return set_gF(g);
+	inline function set_blueF (b:Float) return set_bF(b);
+	inline function set_alphaF(a:Float) return set_aF(a);
+	inline function set_luminanceF(lum:Float) { setFloatRGB(lum, lum, lum); return lum; }
+
+	// --------------------- Helper functions ----------------------------------
 
 	// set multiple color channels by Integer values and also returns the resulting color
 	public inline function setARGB (a:Int, r:Int, g:Int, b:Int):Color return this = ARGB(a, r, g, b);

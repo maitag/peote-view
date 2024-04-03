@@ -26,10 +26,33 @@ class Texture
 	public var clearOnRenderInto = true;
 	
 	public var format(default, null):TextureFormat;
-	public var smoothExpand(default, null):Bool = false; // while pixels are expanding (zoom in)
-	public var smoothShrink(default, null):Bool = false; // while pixels are shrinking (zoom out)
+	public var smoothExpand(default, set):Bool = false; // while pixels are expanding (zoom in)
+	inline function set_smoothExpand(b:Bool):Bool {
+		if (gl != null) TexUtils.setMinMagFilter(gl, smoothExpand, null, null, glTexture);
+		return smoothExpand = b;
+	}
+	public var smoothShrink(default, set):Bool = false; // while pixels are shrinking (zoom out)
+	inline function set_smoothShrink(b:Bool):Bool {
+		if (gl != null) TexUtils.setMinMagFilter(gl, null, smoothShrink, (mipmap) ? smoothMipmap : null, glTexture);
+		return smoothShrink = b;
+	}
+
+	private var mipmapIsCreated:Bool = false;
+
 	public var mipmap(default, null):Bool = false; // enable to generate mipmap levels
-	public var smoothMipmap(default, null):Bool = false;
+	inline function set_mipmap(b:Bool):Bool {
+		if (gl != null && b && !mipmapIsCreated) {
+			TexUtils.createMipmap(gl, glTexture);
+			mipmapIsCreated = true;
+		}
+		return mipmap = b;
+	}
+
+	public var smoothMipmap(default, set):Bool = false;
+	inline function set_smoothMipmap(b:Bool):Bool {
+		if (gl != null) TexUtils.setMinMagFilter(gl, null, smoothShrink, (mipmap) ? smoothMipmap : null, glTexture);
+		return smoothMipmap = b;
+	}
 
 	
 	public var width(default, null):Int = 0;
@@ -175,10 +198,20 @@ class Texture
 			trace("Texture setNewGLContext");
 			#end
 			gl = newGl;
+
+			// TODO: optimize here to also setData while creation if there is only 1 slot and textureData already set
 			createTexture();
 			createFramebuffer();
-			// all data to gpu
-			for (slot => textureData in usedSlots) bufferImage(textureData, slot);
+			// all slot data to gpu
+			gl.bindTexture(gl.TEXTURE_2D, glTexture);
+			for (slot => textureData in usedSlots) 
+				TexUtils.dataToTexture(gl, slotWidth * (slot % slotsX), slotHeight * Std.int(slot / slotsX), format, textureData, false);
+			if (mipmap) {
+				TexUtils.createMipmap(gl);
+				mipmapIsCreated = true;
+			}
+			gl.bindTexture(gl.TEXTURE_2D, null);
+			updated = true; // to reset peoteView.glStateTexture  <-- TODO: check isTextureStateChange()
 		}
 	}
 	
@@ -245,88 +278,38 @@ class Texture
 		usedSlots.set(slot, textureData);
 
 		if (gl != null) {
+			// TODO: optimize here to also setData while creation if there is only 1 slot and textureData already set
 			if (glTexture == null) createTexture();
-			bufferImage(textureData, slot);
-		}
-	}
-	
-	// frees a Texture-Slot from linked TextureData
-	public function clearSlot(slot:Int) {
-		#if peoteview_debug_texture
-		trace("Remove Image from Texture");
-		#end
-		var textureData = usedSlots.get(slot);
-		usedSlots.remove(slot); 
-		if (gl != null) {		
-			// TODO: this also better outsourced into intern/TexUtils.hx and opengl-fallback for float-precision
-			gl.bindTexture(gl.TEXTURE_2D, glTexture);
-			if (format.isFloat) {
-				gl.texSubImage2D_Float(gl.TEXTURE_2D, 0, 
-					slotWidth * (slot % slotsX),
-					slotHeight * Math.floor(slot / slotsX),
-					textureData.width, textureData.height,
-					format.formatFloat(gl), gl.FLOAT,  
-					new Float32Array(textureData.width * textureData.height * format.bytesPerPixel)
-				);
-			} else {
-				gl.texSubImage2D(gl.TEXTURE_2D, 0, 
-					slotWidth * (slot % slotsX),
-					slotHeight * Math.floor(slot / slotsX),
-					textureData.width, textureData.height,
-					format.formatInteger(gl), gl.UNSIGNED_BYTE,  
-					new UInt8Array(textureData.width * textureData.height * format.bytesPerPixel)
-				);
-			}
-			gl.bindTexture(gl.TEXTURE_2D, null);
-			
+			TexUtils.dataToTexture(gl, slotWidth * (slot % slotsX), slotHeight * Std.int(slot / slotsX), format, textureData, mipmap, glTexture);
+			if (mipmap) mipmapIsCreated = true;
 			updated = true; // to reset peoteView.glStateTexture  <-- TODO: check isTextureStateChange()
 		}
 	}
 	
-	private inline function bufferImage(textureData:TextureData, slot:Int) {
-		#if peoteview_debug_texture
-		trace("buffer Image to Texture");
-		#end
-		// TODO: overwrite and fit-parameters
-		imageToTexture(gl, glTexture,
-		                   slotWidth * (slot % slotsX),
-		                   slotHeight * Math.floor(slot / slotsX),
-		                   textureData.width, textureData.height,
-		                   textureData);	
-						   
-		updated = true; // to reset peoteView.glStateTexture  <-- TODO: check isTextureStateChange()
-	}
+	// TODO: clear with color, save what need to clear if get gl-context later!
 	
-	private function imageToTexture(gl:PeoteGL, glTexture:PeoteGL.GLTexture, x:Int, y:Int, w:Int, h:Int, textureData:TextureData)
-	{
-		gl.bindTexture(gl.TEXTURE_2D, glTexture);
-		
-		// TODO: this also better outsourced into intern/TexUtils.hx and opengl-fallback for float-precision
-		if (format.isFloat) {
-			gl.texSubImage2D_Float(gl.TEXTURE_2D, 0, x, y, w, h, format.formatFloat(gl), gl.FLOAT, textureData);
-		}
-		else {
-			gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, w, h, format.formatInteger(gl), gl.UNSIGNED_BYTE, textureData);
-		}
+	// frees a Texture-Slot from linked TextureData
+	public function clearSlot(slot:Int) {
+		#if peoteview_debug_texture
+		trace("Clear Texture slot");
+		#end
+		var textureData = usedSlots.get(slot);
+		usedSlots.remove(slot);
 
-		// TODO: let disable while load data into slots (so only after the last slot it have to generate!)
-		if (mipmap) { // re-create for full texture ?
-			// gl.hint(gl.GENERATE_MIPMAP_HINT, gl.NICEST);
-			// gl.hint(gl.GENERATE_MIPMAP_HINT, gl.FASTEST);
-			gl.generateMipmap(gl.TEXTURE_2D); // TODO: check speed vs quality
+		// TODO: test it into sample!
+		if (gl != null) {			
+			var emptyTextureData = new TextureData(slotWidth, slotHeight, format);
+			emptyTextureData.clear(0);
+			TexUtils.dataToTexture(gl, slotWidth * (slot % slotsX), slotHeight * Std.int(slot / slotsX), format, emptyTextureData, false, glTexture);
+			updated = true; // to reset peoteView.glStateTexture  <-- TODO: check isTextureStateChange()
 		}
-		
-		gl.bindTexture(gl.TEXTURE_2D, null);
 	}
 
-
-	// TODO:
-	public function setSmooth(smoothExpand:Bool, smoothShrink:Bool, smoothMipmapTransition:Null<Bool> = null) {
-		
-	}
-
-	public function generateMipmap() {
-
+	public function setSmooth(smoothExpand:Bool, smoothShrink:Bool, smoothMipmap:Null<Bool> = null) {
+		this.smoothExpand = smoothExpand;
+		this.smoothShrink = smoothShrink;
+		if (smoothMipmap != null) this.smoothMipmap = smoothMipmap;
+		if (gl != null) TexUtils.setMinMagFilter(gl, smoothExpand, smoothShrink, (mipmap) ? this.smoothMipmap : null, glTexture);
 	}
 
 	

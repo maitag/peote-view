@@ -5,69 +5,120 @@ import peote.view.TextureConfig;
 
 class TexUtils 
 {
+
+	// TODO: also let use optional Data here
 	public static function createEmptyTexture(gl:PeoteGL, width:Int, height:Int, format:TextureFormat,
 	                                          smoothExpand:Bool = false, smoothShrink:Bool = false,
 	                                          mipmap:Bool = false, smoothMipmap:Bool = false):GLTexture
 	{
+		// mabye better by using ARB-STORAGE (its like malloc!), loot at here:
+		// https://registry.khronos.org/OpenGL/extensions/ARB/ARB_texture_storage.txt
+		// https://www.khronos.org/opengl/wiki/Texture_Storage#Immutable_storage
 		var glTexture:GLTexture = gl.createTexture();
 		
 		gl.bindTexture(gl.TEXTURE_2D, glTexture);
 		
 		GLTool.clearGlErrorQueue(gl);
-		 // <-- TODO: using only shared RAM on neko/cpp with "0" .. better using empty image-data
+		// <-- TODO: using only shared RAM on neko/cpp with "0" .. better using empty image-data or maybe ARB-STORAGE
 		if (format.isFloat) {
 			// sometimes 32 float is essential for multipass-rendering,
 			// needs EXT_color_buffer_float or OES_texture_float extension
 			gl.texImage2D(gl.TEXTURE_2D, 0, format.float32(gl), width, height, 0, format.formatFloat(gl), gl.FLOAT, 0);
 			if (GLTool.getLastGlError(gl) == gl.INVALID_VALUE) {
+				#if peoteview_debug_texture
 				trace("switching to lower float precision while texture creation");
+				#end
 				gl.texImage2D(gl.TEXTURE_2D, 0, format.float16(gl), width, height, 0, format.formatFloat(gl), gl.FLOAT, 0);
 				if (GLTool.getLastGlError(gl) == gl.INVALID_VALUE) {
+					#if peoteview_debug_texture
 					trace("fallback for float precision while texture creation");
+					#end
 					gl.texImage2D(gl.TEXTURE_2D, 0, format.formatFloat(gl), width, height, 0, format.formatFloat(gl), gl.FLOAT, 0);
 				}
 			}
 		}
 		else gl.texImage2D(gl.TEXTURE_2D, 0, format.integer(gl), width, height, 0, format.formatInteger(gl), gl.UNSIGNED_BYTE, 0);
 		
-		if (GLTool.getLastGlError(gl) == gl.OUT_OF_MEMORY) {
-			throw("OUT OF GPU MEMORY while texture creation");
-		}
+		if (GLTool.getLastGlError(gl) == gl.OUT_OF_MEMORY) throw("OUT OF GPU MEMORY while texture creation");
 		
-		
-		// TODO: outsource into other function
-		// magnification filter:
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, (smoothExpand) ? gl.LINEAR : gl.NEAREST);
-		
-		// minification filter:
-		if (mipmap)
-		{
-			//gl.hint(gl.GENERATE_MIPMAP_HINT, gl.NICEST);
-			//gl.hint(gl.GENERATE_MIPMAP_HINT, gl.FASTEST);
-			if (smoothMipmap) 
-				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, (smoothShrink) ? gl.LINEAR_MIPMAP_LINEAR : gl.NEAREST_MIPMAP_LINEAR);
-			else 
-				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, (smoothShrink) ? gl.LINEAR_MIPMAP_NEAREST : gl.NEAREST_MIPMAP_NEAREST);
-		}
-		else gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, (smoothShrink) ? gl.LINEAR : gl.NEAREST);
+		setMinMagFilter(gl, smoothExpand, smoothShrink, (mipmap) ? smoothMipmap : null);
 		
 		// firefox needs this texture wrapping for gl.texSubImage2D if imagesize is non power of 2 
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-		
-
-		// TODO: IS NEED HERE? -> better outsource into other function and only after data
-		if (mipmap) { // re-create for full texture ?
-			//gl.hint(gl.GENERATE_MIPMAP_HINT, gl.NICEST);
-			//gl.hint(gl.GENERATE_MIPMAP_HINT, gl.FASTEST);
-			gl.generateMipmap(gl.TEXTURE_2D); // again after texSubImage2D!
-		}
 
 		//peoteView.glStateTexture.set(gl.getInteger(gl.ACTIVE_TEXTURE), null); // TODO: check with multiwindows (gl.getInteger did not work on html5)
 		gl.bindTexture(gl.TEXTURE_2D, null);
 		
 		return glTexture;
 	}
+
+	public static function dataToTexture(gl:PeoteGL, x:Int, y:Int, format:TextureFormat, textureData:TextureData, genMipmap:Bool, ?glTexture:GLTexture)
+	{
+		#if peoteview_debug_texture
+		trace("send TextureData to Texture");
+		#end
+
+		if (glTexture != null) gl.bindTexture(gl.TEXTURE_2D, glTexture);
+		
+		GLTool.clearGlErrorQueue(gl);
+
+		if (format.isFloat) {
+			gl.texSubImage2D_Float(gl.TEXTURE_2D, 0, x, y, textureData.width, textureData.height, format.formatFloat(gl), gl.FLOAT, textureData);
+			if (GLTool.getLastGlError(gl) == gl.INVALID_VALUE) {
+				#if peoteview_debug_texture
+				trace("switching to lower float precision while dataToTexture");
+				#end
+				gl.texSubImage2D_Float(gl.TEXTURE_2D, 0, x, y, textureData.width, textureData.height, format.float16(gl), gl.FLOAT, textureData);
+				if (GLTool.getLastGlError(gl) == gl.INVALID_VALUE) {
+					#if peoteview_debug_texture
+					trace("fallback for float precision while dataToTexture");
+					#end
+					gl.texImage2D(gl.TEXTURE_2D, 0, x, y, textureData.width, textureData.height, format.formatFloat(gl), gl.FLOAT, textureData);
+				}
+			}
+		}
+		else gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, textureData.width, textureData.height, format.formatInteger(gl), gl.UNSIGNED_BYTE, textureData);
+
+		if (GLTool.getLastGlError(gl) == gl.OUT_OF_MEMORY) throw("OUT OF GPU MEMORY while texture creation");
+
+		if (genMipmap) createMipmap(gl);
+		
+		if (glTexture != null) gl.bindTexture(gl.TEXTURE_2D, null);
+	}
+	
+	public static inline function setMinMagFilter(gl:PeoteGL, ?smoothExpand:Null<Bool>, ?smoothShrink:Null<Bool>, ?smoothMipmap:Null<Bool>, ?glTexture:GLTexture) {
+		if (glTexture != null) gl.bindTexture(gl.TEXTURE_2D, glTexture);
+
+		// magnification filter:
+		if (smoothExpand != null) gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, (smoothExpand) ? gl.LINEAR : gl.NEAREST);
+		
+		// minification filter:
+		if (smoothShrink != null)
+		{
+			if (smoothMipmap != null)
+			{
+				//gl.hint(gl.GENERATE_MIPMAP_HINT, gl.NICEST);
+				//gl.hint(gl.GENERATE_MIPMAP_HINT, gl.FASTEST);
+				if (smoothMipmap) 
+					gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, (smoothShrink) ? gl.LINEAR_MIPMAP_LINEAR : gl.NEAREST_MIPMAP_LINEAR);
+				else 
+					gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, (smoothShrink) ? gl.LINEAR_MIPMAP_NEAREST : gl.NEAREST_MIPMAP_NEAREST);
+			}
+			else gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, (smoothShrink) ? gl.LINEAR : gl.NEAREST);
+		}
+
+		if (glTexture != null) gl.bindTexture(gl.TEXTURE_2D, null);
+	}
+
+	public static inline function createMipmap(gl:PeoteGL, ?glTexture:GLTexture) {
+		if (glTexture != null) gl.bindTexture(gl.TEXTURE_2D, glTexture);
+		//gl.hint(gl.GENERATE_MIPMAP_HINT, gl.NICEST);
+		//gl.hint(gl.GENERATE_MIPMAP_HINT, gl.FASTEST);
+		gl.generateMipmap(gl.TEXTURE_2D);
+		if (glTexture != null) gl.bindTexture(gl.TEXTURE_2D, null);
+	}
+
 	/*
 	public static function createDepthTexture(gl:PeoteGL, width:Int, height:Int):GLTexture
 	{
