@@ -21,7 +21,8 @@ FLOAT_R            4
 
 */	
 
-private class TextureDataImpl
+#if (!doc_gen) private #end
+class TextureDataImpl
 {
 	public var width:Int = 0;
 	public var height:Int = 0;

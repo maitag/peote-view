@@ -1,4 +1,5 @@
 package peote.view;
+#if (!doc_gen)
 
 #if !macro
 @:genericBuild(peote.view.Buffer.BufferMacro.build())
@@ -564,4 +565,24 @@ class $className implements peote.view.intern.BufferInterface
 		return TPath({ pack:classPackage, name:className, params:[] });
 	}
 }
+#end
+
+
+
+#else
+
+// ------------ ONLY FOR DOX ------------------
+
+
+class Buffer<T>// implements peote.view.intern.BufferInterface
+{
+	/**
+        Get the index of element into buffer.
+        @param  element the element inside buffer
+    **/
+	public function getElementIndex(element:Element):Int return 0;
+
+	// TODO:
+
+}	
 #end
