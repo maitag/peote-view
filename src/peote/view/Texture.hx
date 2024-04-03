@@ -312,5 +312,9 @@ class Texture
 		if (gl != null) TexUtils.setMinMagFilter(gl, smoothExpand, smoothShrink, (mipmap) ? this.smoothMipmap : null, glTexture);
 	}
 
-	
+	public static function fromData(textureData:TextureData):Texture {
+		var texture = new Texture(textureData.width, textureData.height, 1, {format:textureData.format} );
+		texture.setData(textureData);
+		return texture;
+	}
 }

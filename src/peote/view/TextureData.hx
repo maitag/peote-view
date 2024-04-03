@@ -31,7 +31,7 @@ private class TextureDataImpl
 	
 	public var bytes:Bytes = null;
 	
-	public function new(width:Int, height:Int, format:TextureFormat, color:Color = 0, bytes:Bytes = null)
+	public function new(width:Int, height:Int, format:TextureFormat, color:Color=0, ?bytes:Bytes)
 	{
 		this.width = width;
 		this.height = height;
@@ -395,6 +395,227 @@ private class TextureDataImpl
 		if (!format.isGreaterFloatRGB()) throw("Error: Textureformat have no alpha channel");
 		return bytes.getFloat(((y * width + x) * format.bytesPerPixelFloat) + 12);
 	}
+
+	// --------- convert into other TextureFormats ---------
+
+	public function toRGBA():TextureData {
+		var t = new TextureData(width, height, TextureFormat.RGBA);
+		var d:Int = 0; // destination pos
+		var s:Int = 0; // source pos
+		switch (format) {
+			case RGB: while (d < t.bytes.length ) {
+				t.bytes.set(d++, bytes.get(s++)); t.bytes.set(d++, bytes.get(s++)); t.bytes.set(d++, bytes.get(s++));
+				t.bytes.set(d++, 0xff);
+			}
+			case RG: while (d < t.bytes.length ) {
+				t.bytes.set(d++, bytes.get(s++)); t.bytes.set(d++, bytes.get(s++));
+				d++; t.bytes.set(d++, 0xff);
+			}
+			case R: while (d < t.bytes.length ) {
+				t.bytes.set(d++, bytes.get(s++));
+				d+=2; t.bytes.set(d++, 0xff);
+			}
+			case LUMINANCE_ALPHA: while (d < t.bytes.length ) {
+				var lum = bytes.get(s++);
+				t.bytes.set(d++, lum);
+				t.bytes.set(d++, lum);
+				t.bytes.set(d++, lum);				
+				t.bytes.set(d++, bytes.get(s++));				
+			}
+			case LUMINANCE: while (d < t.bytes.length ) {
+				var lum = bytes.get(s++);
+				t.bytes.set(d++, lum);
+				t.bytes.set(d++, lum);
+				t.bytes.set(d++, lum);
+				t.bytes.set(d++, 0xff);
+			}
+			case ALPHA: while (d < t.bytes.length ) {
+				d+=3; t.bytes.set(d++, bytes.get(s++));
+			}
+			case RGBA: t.bytes.blit( 0, bytes, 0, bytes.length);
+			default:
+		}
+		return t;
+	}
+
+	public function toRGB():TextureData {
+		var t = new TextureData(width, height, TextureFormat.RGB);
+		var d:Int = 0; // destination pos
+		var s:Int = 0; // source pos
+		switch (format) {
+			case RGBA: while (d < t.bytes.length ) {
+				 t.bytes.set(d++, bytes.get(s++)); t.bytes.set(d++, bytes.get(s++)); t.bytes.set(d++, bytes.get(s++));
+				 s++;
+			}
+			case RG: while (d < t.bytes.length ) {
+				t.bytes.set(d++, bytes.get(s++)); t.bytes.set(d++, bytes.get(s++));
+				d++;
+			}
+			case R: while (d < t.bytes.length ) {
+				t.bytes.set(d++, bytes.get(s++));
+				d+=2;
+			}
+			case LUMINANCE_ALPHA: while (d < t.bytes.length ) {
+				var lum = bytes.get(s++); s++;
+				t.bytes.set(d++, lum);
+				t.bytes.set(d++, lum);
+				t.bytes.set(d++, lum);				
+			}
+			case LUMINANCE: while (d < t.bytes.length ) {
+				var lum = bytes.get(s++);
+				t.bytes.set(d++, lum);
+				t.bytes.set(d++, lum);
+				t.bytes.set(d++, lum);
+			}
+			case RGB: t.bytes.blit( 0, bytes, 0, bytes.length);
+			default:
+		}
+		return t;
+	}
+	
+	public function toRG():TextureData {
+		var t = new TextureData(width, height, TextureFormat.RG);
+		var d:Int = 0; // destination pos
+		var s:Int = 0; // source pos
+		switch (format) {
+			case RGBA: while (d < t.bytes.length ) {
+				t.bytes.set(d++, bytes.get(s++)); t.bytes.set(d++, bytes.get(s++)); s+=2;
+			}
+			case RGB: while (d < t.bytes.length ) {
+				t.bytes.set(d++, bytes.get(s++)); t.bytes.set(d++, bytes.get(s++)); s++;
+			}
+			case R: while (d < t.bytes.length ) {
+				t.bytes.set(d++, bytes.get(s++)); d++;
+			}
+			case LUMINANCE_ALPHA: while (d < t.bytes.length ) {
+				var lum = bytes.get(s++); s++;
+				t.bytes.set(d++, lum);
+				t.bytes.set(d++, lum);			
+			}
+			case LUMINANCE: while (d < t.bytes.length ) {
+				var lum = bytes.get(s++);
+				t.bytes.set(d++, lum);
+				t.bytes.set(d++, lum);
+			}
+			case RG: t.bytes.blit( 0, bytes, 0, bytes.length);
+			default:
+		}
+		return t;
+	}
+	
+	public function toR():TextureData {
+		var t = new TextureData(width, height, TextureFormat.R);
+		var d:Int = 0; // destination pos
+		var s:Int = 0; // source pos
+		switch (format) {
+			case RGBA: while (d < t.bytes.length ) {
+				t.bytes.set(d++, bytes.get(s++)); s+=3;
+			}
+			case RGB: while (d < t.bytes.length ) {
+				t.bytes.set(d++, bytes.get(s++)); s+=2;
+			}
+			case RG | LUMINANCE_ALPHA: while (d < t.bytes.length ) {
+				t.bytes.set(d++, bytes.get(s++)); s++;
+			}
+			case LUMINANCE | ALPHA: while (d < t.bytes.length ) {
+				t.bytes.set(d++, bytes.get(s++));
+			}
+			case R: t.bytes.blit( 0, bytes, 0, bytes.length);
+			default:
+		}
+		return t;
+	}
+
+	public function toLuminanceAlpha():TextureData {
+		var t = new TextureData(width, height, TextureFormat.LUMINANCE_ALPHA);
+		var d:Int = 0; // destination pos
+		var s:Int = 0; // source pos
+		switch (format) {
+			case RGBA: while (d < t.bytes.length ) {
+				t.bytes.set(d++, Math.round( (bytes.get(s++) + bytes.get(s++) + bytes.get(s++)) / 3) );
+				t.bytes.set(d++, bytes.get(s++));
+			}
+			case RGB: while (d < t.bytes.length ) {
+				t.bytes.set(d++, Math.round( (bytes.get(s++) + bytes.get(s++) + bytes.get(s++)) / 3) );
+				t.bytes.set(d++, 0xff); s++;
+			}
+			case RG: while (d < t.bytes.length ) {
+				t.bytes.set(d++, Math.round( (bytes.get(s++) + bytes.get(s++)) / 2) );
+				t.bytes.set(d++, 0xff);
+			}
+			case R: while (d < t.bytes.length ) {
+				t.bytes.set(d++, bytes.get(s++));
+				t.bytes.set(d++, 0xff);
+			}
+			case LUMINANCE: while (d < t.bytes.length ) {
+				t.bytes.set(d++, bytes.get(s++));
+				t.bytes.set(d++, 0xff);
+			}
+			case ALPHA: while (d < t.bytes.length ) {
+				d++; t.bytes.set(d++, bytes.get(s++));
+			}
+			case LUMINANCE_ALPHA: t.bytes.blit( 0, bytes, 0, bytes.length);
+			default:
+		}
+		return t;
+	}
+	
+	public function toLuminance():TextureData {
+		var t = new TextureData(width, height, TextureFormat.LUMINANCE);
+		var d:Int = 0; // destination pos
+		var s:Int = 0; // source pos
+		switch (format) {
+			case RGBA: while (d < t.bytes.length ) {
+				t.bytes.set(d++, Math.round( (bytes.get(s++) + bytes.get(s++) + bytes.get(s++)) / 3) ); s++;
+			}
+			case RGB: while (d < t.bytes.length ) {
+				t.bytes.set(d++, Math.round( (bytes.get(s++) + bytes.get(s++) + bytes.get(s++)) / 3) );
+			}
+			case RG: while (d < t.bytes.length ) {
+				t.bytes.set(d++, Math.round( (bytes.get(s++) + bytes.get(s++)) / 2) );
+			}
+			case LUMINANCE_ALPHA: while (d < t.bytes.length ) {
+				t.bytes.set(d++, bytes.get(s++)); s++;
+			}
+			case R | ALPHA: while (d < t.bytes.length ) {
+				t.bytes.set(d++, bytes.get(s++));
+			}
+			case LUMINANCE: t.bytes.blit( 0, bytes, 0, bytes.length);
+			default:
+		}
+		return t;
+	}
+
+	public function toAlpha():TextureData {
+		var t = new TextureData(width, height, TextureFormat.ALPHA);
+		var d:Int = 0; // destination pos
+		var s:Int = 0; // source pos
+		switch (format) {
+			case RGBA: while (d < t.bytes.length ) {
+				s+=3; t.bytes.set(d++, bytes.get(s++) );
+			}
+			case RGB: while (d < t.bytes.length ) {
+				t.bytes.set(d++, bytes.get(s++) ); s+=2;
+			}
+			case RG: while (d < t.bytes.length ) {
+				t.bytes.set(d++, bytes.get(s++) ); s++;
+			}
+			case R: while (d < t.bytes.length ) {
+				t.bytes.set(d++, bytes.get(s++));
+			}
+			case ALPHA: t.bytes.blit( 0, bytes, 0, bytes.length);
+			default:
+		}
+		return t;
+	}
+
+
+	// ----- cloning -------
+	public function clone():TextureDataImpl {
+		var t = new TextureDataImpl(width, height, format);
+		t.bytes.blit( 0, bytes, 0, bytes.length);
+		return t;
+	}
 	
 }
 
@@ -403,9 +624,12 @@ private class TextureDataImpl
 @:forward
 abstract TextureData(TextureDataImpl) to TextureDataImpl 
 {
-	public inline function new(width:Int, height:Int, format:TextureFormat = TextureFormat.RGBA, bytes:Bytes = null) {
-		this = new TextureDataImpl(width, height, format, bytes);
+	public inline function new(width:Int, height:Int, format:TextureFormat = TextureFormat.RGBA, color:Color = 0, ?bytes:Bytes) {
+		this = new TextureDataImpl(width, height, format, color, bytes);
 	}
+
+
+	// ----------- from basic haxe array-types -------
 
 	@:to
 	public inline function toUInt8Array():UInt8Array {
@@ -417,8 +641,22 @@ abstract TextureData(TextureDataImpl) to TextureDataImpl
 		return Float32Array.fromBytes(this.bytes);
 	}
 
+	// TODO: --------- clone textureData -----------
 
-	// ----------- decode by format lib ---------
+
+
+	// --------- static functions to create and convert from other TextureFormats ---------
+	static public inline function RGBAfrom(textureData:TextureData):TextureData return textureData.toRGBA();
+	static public inline function RGBfrom(textureData:TextureData):TextureData return textureData.toRGB();
+	static public inline function RGfrom(textureData:TextureData):TextureData return textureData.toRG();
+	static public inline function Rfrom(textureData:TextureData):TextureData return textureData.toR();
+	static public inline function LuminanceAlphaFrom(textureData:TextureData):TextureData return textureData.toLuminanceAlpha();
+	static public inline function LuminanceFrom(textureData:TextureData):TextureData return textureData.toLuminance();
+	static public inline function AlphaFrom(textureData:TextureData):TextureData return textureData.toAlpha();
+
+	
+	// ----------- static functions to decode by format lib ---------
+
 	#if format
 	static public function fromFormatPNG(bytes:Bytes):TextureData {
 		var reader = new format.png.Reader( new haxe.io.BytesInput(bytes) );
