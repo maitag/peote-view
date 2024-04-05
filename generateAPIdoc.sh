@@ -12,3 +12,5 @@ haxelib run dox \
 	-in "^peote\.view\.(PeoteView|Display|Program|Buffer|Texture|TextureData|TextureDataImpl|TextureFormat|TextureConfig|TextureCache|Color|Mask|UniformFloat|BlendFactor|BlendFunc)$" \
 
 rm doc/api/doc.xml
+
+# put ".label-inline { display:none; }" inside style.css to make it better readable!

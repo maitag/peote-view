@@ -5,14 +5,18 @@ handle procedural shadercode and imagedata from texture-atlases.
   
 It's written in [Haxe](http://haxe.org) and runs multiplatform with [Lime](https://github.com/openfl/lime)s [GL-context](https://github.com/openfl/lime/tree/develop/src/lime/graphics/opengl) and environment.  
 
+
 ## Installation:
 ```
 haxelib git peote-view https://github.com/maitag/peote-view
 ```
+
+
 ## Samples:
 
-start here: [peote-view-samples](https://github.com/maitag/peote-view-samples) to test out core features  
+start here: [peote-view-samples](https://github.com/maitag/peote-view-samples) to test out some core features  
 or play around into: [peote-playground](https://github.com/maitag/peote-playground)
+
 
 ## Features
 
@@ -70,9 +74,19 @@ or play around into: [peote-playground](https://github.com/maitag/peote-playgrou
 
 
 `Texture`
-- to store imagedata or textureatlases
-- can be splitted into Slots to store many images, calculates best size for gl-texture
-- Slots can be parted into Tiles
+- represents the opengl-texture what is used by the shader program
+- supports multiple amount of colorchannels (by `TextureFormat`) and can be filled by `TextureData`
+- can be splitted into Slots to store many texture data at once
+- can calculates best size for gl-texture (also into power-of-two size)
+- Slots can be parted into tiles for textureatlases
+- supports mipmapping and min/mag filtering
+
+
+`TextureData`
+- stores imagedata into different `TextureFormat`s
+- automatically converts lime image or some other libs data
+- can be used to set or get pixel colors
+- converts from and to different textureformats (e.g. RGBA into RGB etc)
 
 
 `TextureCache`
@@ -84,10 +98,6 @@ or play around into: [peote-playground](https://github.com/maitag/peote-playgrou
 
 
 ## Todo
-- better Readme, more documentation and api-generation
-- better texture/imagehandling and more texture-colortypes
-- better blendmode handling
-- z-depth via texture-channel
-- normal-mapping
-- uv-mapping
+- complete the inline documentation (Dox!)
+- better documentation (more readmes for each part)
 - multiwindows (did not work with textures yet)
