@@ -7,6 +7,12 @@ It's written in [Haxe](http://haxe.org) and runs multiplatform with [Lime](https
 
 
 ## Installation:
+by [haxelib](https://lib.haxe.org): [peote-view](https://lib.haxe.org/p/peote-view/)
+```
+haxelib install peote-view
+```
+  
+or use the latest developement version by:
 ```
 haxelib git peote-view https://github.com/maitag/peote-view
 ```
