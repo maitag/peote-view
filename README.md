@@ -23,7 +23,6 @@ or play around into: [peote-playground](https://github.com/maitag/peote-playgrou
 - runs native on linux/bsd/windows/android, neko/hashlink-vm, javascript-webbrowser
   (macOS and iOS should run but not much tested yet)  
 - can be compiled for a special OpenGL version (ES 2/3 - webgl 1/2) or with version-detection at runtime
-  
 - optimized to draw many elements thats sharing the same shader and textures
 - simple usage of textureatlases (parted into slots and tiles)
 - multitexture usage per shader
@@ -32,7 +31,7 @@ or play around into: [peote-playground](https://github.com/maitag/peote-playgrou
 - animation by gpu transition-rendering of vertexattributes
 - opengl-picking for fast detection of elements that hits a point at screen
 - renderToTextures (framebuffer)
-- ...
+- easy to interpolate element attributes over time (linear) e.g. for particleanimation
 
 
 ## Scenegraph and Namespace
