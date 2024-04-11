@@ -6,7 +6,7 @@
 	"description": "2D Render Library (lime/opengl)",
 	"version": "1.0.1",
 	"classPath": "src/",
-	"releasenote": "refactoring and codecleaning",
+	"releasenote": "refactoring, codecleaning, more inline doxing",
 	"contributors": ["maitag"],
 	"dependencies": {
 		"lime": ""

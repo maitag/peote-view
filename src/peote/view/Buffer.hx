@@ -1,4 +1,5 @@
 package peote.view;
+
 #if (!doc_gen)
 
 #if !macro
@@ -566,6 +567,7 @@ class $className implements peote.view.intern.BufferInterface
 	}
 }
 #end
+
 
 
 

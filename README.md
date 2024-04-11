@@ -22,6 +22,12 @@ haxelib git peote-view https://github.com/maitag/peote-view
 
 start here: [peote-view-samples](https://github.com/maitag/peote-view-samples) to test out some core features  
 or play around into: [peote-playground](https://github.com/maitag/peote-playground)
+  
+  
+You can test some of them also [here](http://maitag.de/semmi/haxelime/peote-view-remaster/).  
+  
+
+[##API](http://maitag.de/semmi/haxelime/peote-view-api/peote/view/PeoteView.html) is still work in progress.
 
 
 ## Features
@@ -96,7 +102,6 @@ or play around into: [peote-playground](https://github.com/maitag/peote-playgrou
 
 `TextureCache`
 - handle multiple textures, imageloading and texture reusage
-
 
 
 
