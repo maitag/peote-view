@@ -24,10 +24,10 @@ start here: [peote-view-samples](https://github.com/maitag/peote-view-samples) t
 or play around into: [peote-playground](https://github.com/maitag/peote-playground)
   
   
-You can test some of them also [here](http://maitag.de/semmi/haxelime/peote-view-remaster/).  
+You can test some of them also [here](http://maitag.de/semmi/haxelime/peote-view-remaster/?C=M;O=D).  
   
 
-[##API](http://maitag.de/semmi/haxelime/peote-view-api/peote/view/PeoteView.html) is still work in progress.
+##[API](http://maitag.de/semmi/haxelime/peote-view-api/peote/view/PeoteView.html) is still work in progress.
 
 
 ## Features
