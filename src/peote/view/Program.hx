@@ -3,7 +3,6 @@ package peote.view;
 import haxe.ds.IntMap;
 import haxe.ds.StringMap;
 import peote.view.Color;
-import peote.view.PeoteGL;
 
 import peote.view.Mask;
 import peote.view.PeoteGL.GLProgram;

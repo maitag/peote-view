@@ -4,9 +4,9 @@
 	"license": "MIT",
 	"tags": ["peote", "opengl", "2d", "shader", "glsl"],
 	"description": "2D Render Library (lime/opengl)",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"classPath": "src/",
-	"releasenote": "texture refactoring",
+	"releasenote": "refactoring and codecleaning",
 	"contributors": ["maitag"],
 	"dependencies": {
 		"lime": ""
