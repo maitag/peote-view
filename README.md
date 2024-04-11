@@ -6,7 +6,7 @@ handle procedural shadercode and imagedata from texture-atlases.
 It's written in [Haxe](http://haxe.org) and runs multiplatform with [Lime](https://github.com/openfl/lime)s [GL-context](https://github.com/openfl/lime/tree/develop/src/lime/graphics/opengl) and environment.  
 
 
-## Installation:
+## Installation
 by [haxelib](https://lib.haxe.org): [peote-view](https://lib.haxe.org/p/peote-view/)
 ```
 haxelib install peote-view
@@ -18,7 +18,7 @@ haxelib git peote-view https://github.com/maitag/peote-view
 ```
 
 
-## Samples:
+## Samples
 
 start here: [peote-view-samples](https://github.com/maitag/peote-view-samples) to test out some core features  
 or play around into: [peote-playground](https://github.com/maitag/peote-playground)
@@ -27,7 +27,10 @@ or play around into: [peote-playground](https://github.com/maitag/peote-playgrou
 You can test some of them also [here](http://maitag.de/semmi/haxelime/peote-view-remaster/?C=M;O=D).  
   
 
-##[API](http://maitag.de/semmi/haxelime/peote-view-api/peote/view/PeoteView.html) is still work in progress.
+## API
+
+is still [work in progress](http://maitag.de/semmi/haxelime/peote-view-api/peote/view/PeoteView.html)
+(can be generated locally by [Dox](https://lib.haxe.org/p/dox/) and [generateAPIdoc.sh](https://github.com/maitag/peote-view/blob/master/generateAPIdoc.sh))
 
 
 ## Features
