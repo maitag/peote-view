@@ -28,71 +28,143 @@ o      o-o     |\     o    o-o
 
 */
 
+/**
+The Program is rendering the graphical elements of a `Buffer` with the corresponding shader and assigned `Texture`s.  
+The shader code can be modified at runtime by formulas or also by `glsl` code-injection and custom `uniforms`.  
+It supports different modes for `color blending`, `stencil masks` or `depth-buffer`.
+**/
 @:allow(peote.view,peote.ui)
 class Program 
 {
+	/**
+		The `Display` instances in which the program is contained.
+	**/
+	public var displays(default, null) = new Array<Display>();
+
+	var gl:PeoteGL = null;
+
+ 	// TODO: setter for bufferswitching
+
+	/**
+		Gets the used `Buffer`.
+	**/
+	public var buffer(default, null):BufferInterface;
+	
+	/**
+		Shows or hides the program during rendering.
+	**/
+	public var isVisible:Bool = true;
+
+	/**
+		Shows the program during rendering.
+	**/
+	public inline function show() isVisible = true;	
+
+	/**
+		Hides the program during rendering.
+	**/
+	public inline function hide() isVisible = false;
+
+	/**
+		To enable or disable color rendering, e.g. disable to only render into the stencil-buffer by drawing a mask.
+	**/
 	public var colorEnabled:Bool = true;
 	
-	// ------ blend mode --------
+	/**
+		To enable or disable the color/alpha blendmode.
+	**/
 	public var blendEnabled:Bool;
+
+	/**
+		Use a separate blend-function for the alpha channel if the blendmode is enabled.
+	**/
 	public var blendSeparate:Bool = false;
+
+	/**
+		Separate blend-function for the alpha channel if blendSeparate is true.
+	**/
 	public var blendFuncSeparate:Bool = false;
 	
 	var blendValues:Int = 0; // stores all 6 following values into one Int here
 	
+	/**
+		`BlendFactor` for the source colors if into blendmode.
+	**/
 	public var blendSrc(get, set):BlendFactor;
+
+	/**
+		`BlendFactor` for the destination colors if into blendmode.
+	**/
 	public var blendDst(get, set):BlendFactor;
+
+	/**
+		`BlendFactor` for the source alpha channel if into blendmode.
+	**/
 	public var blendSrcAlpha(get, set):BlendFactor;
+
+	/**
+		`BlendFactor` for the destination alpha channel if into blendmode.
+	**/
 	public var blendDstAlpha(get, set):BlendFactor;
-	
-	inline function get_blendSrc     ():BlendFactor return BlendFactor.getSrc      (blendValues);
-	inline function get_blendDst     ():BlendFactor return BlendFactor.getDst     (blendValues);
-	inline function get_blendSrcAlpha():BlendFactor return BlendFactor.getSrcAlpha (blendValues);
+
+	inline function get_blendSrc():BlendFactor return BlendFactor.getSrc(blendValues);
+	inline function get_blendDst():BlendFactor return BlendFactor.getDst(blendValues);
+	inline function get_blendSrcAlpha():BlendFactor return BlendFactor.getSrcAlpha(blendValues);
 	inline function get_blendDstAlpha():BlendFactor return BlendFactor.getDstAlpha(blendValues);
-	inline function set_blendSrc     (v:BlendFactor):BlendFactor { setBlendUseColor(); if (gl != null) glBlendSrc      = v.toGL(gl); blendValues = v.setSrc     (blendValues); return v; }
-	inline function set_blendDst     (v:BlendFactor):BlendFactor { setBlendUseColor(); if (gl != null) glBlendDst      = v.toGL(gl); blendValues = v.setDst     (blendValues); return v; }
+	inline function set_blendSrc(v:BlendFactor):BlendFactor { setBlendUseColor(); if (gl != null) glBlendSrc = v.toGL(gl); blendValues = v.setSrc(blendValues); return v; }
+	inline function set_blendDst(v:BlendFactor):BlendFactor { setBlendUseColor(); if (gl != null) glBlendDst = v.toGL(gl); blendValues = v.setDst(blendValues); return v; }
 	inline function set_blendSrcAlpha(v:BlendFactor):BlendFactor { setBlendUseColor(); if (gl != null) glBlendSrcAlpha = v.toGL(gl); blendValues = v.setSrcAlpha(blendValues); return v; }
 	inline function set_blendDstAlpha(v:BlendFactor):BlendFactor { setBlendUseColor(); if (gl != null) glBlendDstAlpha = v.toGL(gl); blendValues = v.setDstAlpha(blendValues); return v; }
-		
+
+	/**
+		`BlendFunc` for the color channels if into blendmode.
+	**/
 	public var blendFunc(get, set):BlendFunc;
+
+	/**
+		`BlendFunc` for the alpha channel if into blendmode.
+	**/
 	public var blendFuncAlpha(get, set):BlendFunc;
-	
-	inline function get_blendFunc     ():BlendFunc return BlendFunc.getFunc     (blendValues);
+
+	inline function get_blendFunc():BlendFunc return BlendFunc.getFunc(blendValues);
 	inline function get_blendFuncAlpha():BlendFunc return BlendFunc.getFuncAlpha(blendValues);	
-	inline function set_blendFunc     (v:BlendFunc):BlendFunc { if (gl != null) glBlendFunc      = v.toGL(gl); blendValues = v.setFunc     (blendValues); return v; }
+	inline function set_blendFunc(v:BlendFunc):BlendFunc { if (gl != null) glBlendFunc = v.toGL(gl); blendValues = v.setFunc(blendValues); return v; }
 	inline function set_blendFuncAlpha(v:BlendFunc):BlendFunc { if (gl != null) glBlendFuncAlpha = v.toGL(gl); blendValues = v.setFuncAlpha(blendValues); return v; }
-	
+
 	inline function setBlendUseColor() {
 		useBlendColor = (glBlendSrc > 10 || glBlendDst > 10) ? true : false;
-		useBlendColorSeparate = (useBlendColor || glBlendSrcAlpha > 10 || glBlendDstAlpha > 10) ? true : false;		
+		useBlendColorSeparate = (useBlendColor || glBlendSrcAlpha > 10 || glBlendDstAlpha > 10) ? true : false;
 	}
-	
+
 	inline function setDefaultBlendValues() {
 		blendSrc  = blendSrcAlpha  = BlendFactor.SRC_ALPHA;
 		blendDst  = blendDstAlpha  = BlendFactor.ONE_MINUS_SRC_ALPHA;
 		blendFunc = blendFuncAlpha = BlendFunc.ADD;
 	}
-	
+
 	inline function updateBlendGLValues() {
-		glBlendSrc      = BlendFactor.getSrc     (blendValues).toGL(gl);
-		glBlendDst      = BlendFactor.getDst     (blendValues).toGL(gl);
+		glBlendSrc = BlendFactor.getSrc(blendValues).toGL(gl);
+		glBlendDst = BlendFactor.getDst(blendValues).toGL(gl);
 		glBlendSrcAlpha = BlendFactor.getSrcAlpha(blendValues).toGL(gl);
 		glBlendDstAlpha = BlendFactor.getDstAlpha(blendValues).toGL(gl);
 		
-		glBlendFunc      = BlendFunc.getFunc     (blendValues).toGL(gl);
+		glBlendFunc = BlendFunc.getFunc(blendValues).toGL(gl);
 		glBlendFuncAlpha = BlendFunc.getFuncAlpha(blendValues).toGL(gl);
 	}
-	
+
 	var glBlendSrc:Int = 0;
 	var glBlendDst:Int = 0;
 	var glBlendSrcAlpha:Int = 0;
 	var glBlendDstAlpha:Int = 0;
 	var glBlendFunc:Int = 0;
 	var glBlendFuncAlpha:Int = 0;
-	
+
 	var useBlendColor:Bool = false;
 	var useBlendColorSeparate:Bool = false;
-	
+
+	/**
+		Constant `Color` to use if into blendmode.
+	**/
 	public var blendColor(default, set):Color = 0x7F7F7F7F;
 	inline function set_blendColor(v:Color):Color {
 		glBlendR = v.r / 255.0;
@@ -105,21 +177,26 @@ class Program
 	var glBlendG:Float;
 	var glBlendB:Float;
 	var glBlendA:Float;
-	
-	// -----------------------
-	
-	public var zIndexEnabled:Bool;
-	public var mask:Mask = Mask.OFF;
-	public var clearMask:Bool = false;
-	
-	public var autoUpdateTextures:Bool = true;
-	
-	public var isVisible:Bool = true;
-	public inline function show() isVisible = true;	
-	public inline function hide() isVisible = false;
 
-	var displays = new Array<Display>();
-	var gl:PeoteGL = null;
+	/**
+		To enable or disable rendering into the depth-buffer.
+	**/
+	public var zIndexEnabled:Bool;
+
+	/**
+		To use (Mask.USE) the stencil-buffer for masking or to draw (Mask.DRAW) inside to use it afterwards by another program.
+	**/
+	public var mask:Mask = Mask.OFF;
+
+	/**
+		Clears the stencil-buffer.
+	**/
+	public var clearMask:Bool = false;
+
+	/**
+		Enable automatic shader generation for functioncalls what set, add or remove textures (also for snapToPixel, discardAtAlpha, shadercode-injection, formula and precision changes)
+	**/
+	public var autoUpdateTextures:Bool = true;
 
 	var glProgram:GLProgram = null;
 	var glProgramPicking:GLProgram = null;
@@ -127,9 +204,7 @@ class Program
 	var glFragmentShader:GLShader = null;
 	var glVertexShaderPicking:GLShader = null;
 	var glFragmentShaderPicking:GLShader = null;
-	
-	public var buffer(default, null):BufferInterface; // TODO: setter for bufferswitching
-	
+
 	var glShaderConfig = {
 		isPICKING: false,
 		isES3: false,
@@ -171,10 +246,10 @@ class Program
 		FORMULA_CONSTANTS : {},
 		FRAGMENT_EXTENSIONS: [],
 	};
-	
+
 	var textureList = new RenderList<ActiveTexture>(new Map<ActiveTexture,RenderListItem<ActiveTexture>>());
 	var textureListPicking = new RenderList<ActiveTexture>(new Map<ActiveTexture,RenderListItem<ActiveTexture>>());
-	
+
 	var textureLayers = new IntMap<Array<Texture>>();
 	var activeTextures = new Array<Texture>();
 	var activeUnits = new Array<Int>();
@@ -188,17 +263,21 @@ class Program
 	var textureID_Defaults = new Array<{layer:Int, value:String}>();
 	var used_by_ColorFormula:Int = 0;
 	var usedID_by_ColorFormula:Int = 0;
-		
+
 	var defaultFormulaVars:StringMap<Color>;
 	var defaultColorFormula:String;
 	var colorFormula = "";
 	var formula = new StringMap<String>();
 	var formulaHasChanged:Bool = false;
-	
+
 	var fragmentFloatPrecision:Null<String> = null;
-	
+
 	var hasFragmentInjection:Bool = false;
-	
+
+	/**
+		Creates a new `Program` instance.
+		@param buffer the `Buffer` what contains the graphical elements to render
+	**/
 	public function new(buffer:BufferInterface) 
 	{
 		this.buffer = buffer;
@@ -223,7 +302,7 @@ class Program
 		
 		//trace("formulas:"); for (f in formula.keys()) trace('  $f => ${formula.get(f)}');
 		//trace("attributes:"); for (f in buffer.getAttributes().keys()) trace('  $f => ${buffer.getAttributes().get(f)}');
-
+		
 		try Util.resolveFormulaCyclic(buffer.getFormulas()) catch(e:Dynamic) throw ('Error: cyclic reference of "${e.errVar}" inside @formula "${e.formula}" for "${e.errKey}"');
 		//trace("formula cyclic resolved:"); for (f in buffer.getFormulas().keys()) trace('  $f => ${buffer.getFormulas().get(f)}');
 		Util.resolveFormulaVars(buffer.getFormulas(), buffer.getAttributes());
@@ -235,9 +314,20 @@ class Program
 		#end
 		parseColorFormula();
 	}
-	
- 	public inline function isIn(display:Display):Bool return (displays.indexOf(display) >= 0);			
 
+	/**
+		Returns true is this program is inside the RenderList of a `Display` instance.
+		@param display Display instance
+	**/
+	public inline function isIn(display:Display):Bool return (displays.indexOf(display) >= 0);
+
+	/**
+		Adds this program to the RenderList of a `Display` instance.
+		Can be also used to change the order (relative to another program) if it is already added.
+		@param display Display instance
+		@param atProgram (optional) to add or move before or after another program in the RenderList (by default at start or at end)
+		@param addBefore (optional) if 'true' it's added before another program or at start of the Renderlist (by default it's added after atProgram or at end)
+	**/
 	public function addToDisplay(display:Display, ?atProgram:Program, addBefore:Bool=false)
 	{
 		if ( ! isIn(display) ) {
@@ -254,6 +344,10 @@ class Program
 		display.programList.add(this, atProgram, addBefore);
 	}
 
+	/**
+		Removes this program from the RenderList of a `Display` instance.
+		@param display Display instance
+	**/
 	public function removeFromDisplay(display:Display):Void
 	{
 		#if peoteview_debug_program
@@ -262,11 +356,11 @@ class Program
 		if (!displays.remove(display)) throw("Error, program is not inside display");
 		display.programList.remove(this);
 	}
-		
+
 	private inline function setNewGLContext(newGl:PeoteGL)
 	{
 		if (newGl != null && newGl != gl) // only if different GL - Context	
-		{			
+		{
 			// check gl-context of all parents
 			for (d in displays)
 				if (d.gl != null && d.gl != newGl) throw("Error, program can not used inside different gl-contexts");
@@ -277,16 +371,16 @@ class Program
 			trace("Program setNewGLContext");
 			#end
 			gl = newGl;
-
+			
 			updateBlendGLValues();
-
+			
 			if (PeoteGL.Version.isES3) {
 				glShaderConfig.isES3 = true;
 				glShaderConfig.IN = "in";
 				glShaderConfig.VARIN = "in";
 				glShaderConfig.VAROUT = "out";
 			}
-			if (PeoteGL.Version.isUBO)       glShaderConfig.isUBO = true;
+			if (PeoteGL.Version.isUBO) glShaderConfig.isUBO = true;
 			if (PeoteGL.Version.isINSTANCED) glShaderConfig.isINSTANCED = true;
 			
 			// gl-extensions for fragment-shader
@@ -299,7 +393,7 @@ class Program
 				glShaderConfig.FRAGMENT_EXTENSIONS.push({EXTENSION:"EXT_color_buffer_float"});
 			else if (gl.getExtension("OES_texture_float") != null)
 				glShaderConfig.FRAGMENT_EXTENSIONS.push({EXTENSION:"OES_texture_float"});
-
+			
 			buffer.setNewGLContext(gl);
 			createProgram();
 			
@@ -323,11 +417,11 @@ class Program
 		deleteProgram();
 		createProgram();
 	}
-	
+
 	private inline function hasPicking() return buffer.hasPicking();
-	
+
 	private inline function deleteProgram()
-	{	
+	{
 		gl.deleteShader(glVertexShader);
 		gl.deleteShader(glFragmentShader);
 		gl.deleteProgram(glProgram);
@@ -337,12 +431,12 @@ class Program
 			gl.deleteProgram(glProgramPicking);	
 		}
 	}
-	
+
 	private inline function createProgram() {
 		createProg();
 		if (hasPicking()) createProg(true);		
 	}
-	
+
 	private function createProg(isPicking:Bool = false):Void
 	{
 		#if peoteview_debug_program
@@ -362,9 +456,9 @@ class Program
 				
 		var glVShader = GLTool.compileGLShader(gl, gl.VERTEX_SHADER,   GLTool.parseShader(buffer.getVertexShader(),   glShaderConfig), true );
 		var glFShader = GLTool.compileGLShader(gl, gl.FRAGMENT_SHADER, GLTool.parseShader(buffer.getFragmentShader(), glShaderConfig), true );
-
+		
 		var glProg = gl.createProgram();
-
+		
 		gl.attachShader(glProg, glVShader);
 		gl.attachShader(glProg, glFShader);
 		
@@ -424,7 +518,7 @@ class Program
 		}
 		ready = true;
 	}
-	
+
 	var uRESOLUTION:GLUniformLocation;
 	var uZOOM:GLUniformLocation;
 	var uOFFSET:GLUniformLocation;
@@ -434,14 +528,14 @@ class Program
 	var uZOOM_PICK:GLUniformLocation;
 	var uOFFSET_PICK:GLUniformLocation;
 	var uTIME_PICK:GLUniformLocation;
-	
+
 	var uniformFloatsVertex:Array<UniformFloat> = null;
 	var uniformFloatsFragment:Array<UniformFloat> = null;
 	// TODO: target-optimization for faster access
 	var uniformFloats:Array<UniformFloat> = new Array<UniformFloat>();
 	var uniformFloatLocations:Array<GLUniformLocation>;
 	var uniformFloatPickLocations:Array<GLUniformLocation>;
-	
+
 	private function parseColorFormula():Void {
 		var formula:String = "";
 		
@@ -469,7 +563,7 @@ class Program
 				// if more colors than textures add/multiply the Rest
 				while (col.length > 0) {
 					formula += ((formula != "") ? "*": "") + col.shift();
-					if (col.length > 0) formula = '($formula + ${col.shift()})';					
+					if (col.length > 0) formula = '($formula + ${col.shift()})';
 				}				
 			}
 			
@@ -492,37 +586,32 @@ class Program
 		used_by_ColorFormula = 0;
 		usedID_by_ColorFormula = 0;
 		
-		for (i in 0...textureIdentifiers.length) 
-		{			
+		for (i in 0...textureIdentifiers.length) {
 			var regexp = Util.regexpIdentifier(textureIdentifiers[i]);
 			if (regexp.match(formula)) {
 				if (textureLayers.exists(i)) formula = regexp.replace( formula, '$1' + "t" + i );
 				used_by_ColorFormula |= 1 << i;
-			} 
-			
+			}			
 			regexp = Util.regexpIdentifier(textureIdentifiers[i]+"_ID");
 			if (regexp.match(formula)) {
 				formula = regexp.replace( formula, '$1' + i );
 				usedID_by_ColorFormula |= 1 << i;
 				if (!textureLayers.exists(i)) textureID_Defaults.push({layer:i, value:defaultFormulaVars.get(textureIdentifiers[i]).toGLSL()});
-			}			
+			}
 		}
 		
-		for (i in 0...customTextureIdentifiers.length)
-		{
+		for (i in 0...customTextureIdentifiers.length) {
 			var regexp = Util.regexpIdentifier(customTextureIdentifiers[i]);
 			if (regexp.match(formula)) {
 				if (textureLayers.exists(textureIdentifiers.length + i)) formula = regexp.replace( formula, '$1' + "t" + (textureIdentifiers.length + i) );					
 				used_by_ColorFormula |= 1 << (textureIdentifiers.length + i);
-			}
-				
+			}				
 			regexp = Util.regexpIdentifier(customTextureIdentifiers[i]+"_ID");
 			if (regexp.match(formula)) {
 				formula = regexp.replace( formula, '$1' + (textureIdentifiers.length + i) );
 				usedID_by_ColorFormula |= 1 << (textureIdentifiers.length + i);
 				if(!textureLayers.exists(textureIdentifiers.length + i)) textureID_Defaults.push({layer:(textureIdentifiers.length + i), value:defaultFormulaVars.get(textureIdentifiers[textureIdentifiers.length + i]).toGLSL()});
-			}
-				
+			}				
 		}
 		
 		// fill the REST with default values:
@@ -536,7 +625,13 @@ class Program
 		
 		glShaderConfig.FRAGMENT_CALC_LAYER = formula;
 	}
-	
+
+	/**
+		Set a formula to combine the colors of `@texUnit`s together with the `@color` attributes of an element.
+		@param formula a String what contains the color formula
+		@param varDefaults defines the default colors by a Map with the `@texUnit`-identifiers as keys
+		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
+	**/
 	public function setColorFormula(formula:String="", varDefaults:StringMap<Color>=null, ?autoUpdateTextures:Null<Bool>):Void {
 		colorFormula = formula;
 		if (varDefaults != null)
@@ -547,16 +642,28 @@ class Program
 		if (autoUpdateTextures != null) { if (autoUpdateTextures) updateTextures(); }
 		else if (this.autoUpdateTextures) updateTextures();
 	}
-	
-	// inject custom defines or functions into vertexshader
+
+	/**
+		Inject custom glsl code into the vertexshader of a program.
+		@param glslCode a String what contains the glsl code
+		@param uTimeUniformEnabled if `true` you can use the global `time` uiform
+		@param uniformFloats an Array of custom `UniformFloat`s
+		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
+	**/
 	public function injectIntoVertexShader(glslCode:String = "", uTimeUniformEnabled = false, uniformFloats:Array<UniformFloat> = null, ?autoUpdateTextures:Null<Bool>):Void {
 		uniformFloatsVertex = uniformFloats;
 		glShaderConfig.VERTEX_INJECTION = ((uTimeUniformEnabled && !buffer.hasTime()) ? "uniform float uTime;" : "") + generateUniformFloatsGLSL(uniformFloats) + glslCode;
 		accumulateUniformsFloat();
 		checkAutoUpdate(autoUpdateTextures);
 	}
-	
-	// inject custom defines or functions into fragmentshader
+
+	/**
+		Inject custom glsl code into the fragmentshader of a program.
+		@param glslCode a String what contains the glsl code
+		@param uTimeUniformEnabled if `true` you can use the global `time` uiform
+		@param uniformFloats an Array of custom `UniformFloat`s
+		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
+	**/
 	public function injectIntoFragmentShader(glslCode:String = "", uTimeUniformEnabled = false, uniformFloats:Array<UniformFloat> = null, ?autoUpdateTextures:Null<Bool>):Void {
 		hasFragmentInjection = (glslCode == "") ? false : true;
 		uniformFloatsFragment = uniformFloats;
@@ -564,14 +671,14 @@ class Program
 		accumulateUniformsFloat();
 		checkAutoUpdate(autoUpdateTextures);
 	}
-	
+
 	private function generateUniformFloatsGLSL(uniformFloats:Array<UniformFloat>):String {
 		var out:String = "";
 		if (uniformFloats != null)
 			for (u in uniformFloats) out += "uniform float " + u.name + ";";
 		return out;
 	}
-	
+
 	private function accumulateUniformsFloat() {
 		if (uniformFloatsVertex == null) {
 			if (uniformFloatsFragment != null) uniformFloats = uniformFloatsFragment;
@@ -588,8 +695,13 @@ class Program
 			}
 		}
 	}
-	
-	// set formulas for attributes manual at runtime
+
+	/**
+		Define formulas to change the calculation for element attributes at runtime
+		@param name a String with the attribute identifier
+		@param newFormula a String what contains the formula
+		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
+	**/
 	public function setFormula(name:String, newFormula:String, ?autoUpdateTextures:Null<Bool>):Void {
 		
 		var formulaName = buffer.getFormulaNames().get(name); // TODO: better with 2 Arrays here
@@ -620,10 +732,9 @@ class Program
 		formulaHasChanged = true;
 		checkAutoUpdate(autoUpdateTextures);
 	}
-	
-	// invoked via createProg()
-	function parseAndResolveFormulas():Void {
 
+	// invoked via createProg()
+	private function parseAndResolveFormulas():Void {
 		if (formulaHasChanged)
 		{
 			var formulaResolved:StringMap<String> = [for (k in formula.keys()) k => formula.get(k) ];
@@ -641,10 +752,10 @@ class Program
 				var ny = buffer.getFormulaNames().get(y);
 				//if (ny == null) ny = y;
 				if (ny == null) ny = "";
-
+				
 				var fx = formulaResolved.get(nx);
 				var fy = formulaResolved.get(ny);
-
+				
 				if ( fx != buffer.getFormulas().get(nx) || fy != buffer.getFormulas().get(ny) ) {
 					if (fx == null) fx = buffer.getAttributes().get(nx);
 					if (fx == null) fx = dx;
@@ -688,10 +799,8 @@ class Program
 			}
 		}
 	}
-	
-	// -------------------------------------------------
-	
-	function getTextureIndexByIdentifier(identifier:String, addNew:Bool = true):Int {
+
+	private function getTextureIndexByIdentifier(identifier:String, addNew:Bool = true):Int {
 		var layer = textureIdentifiers.indexOf(identifier);
 		if (layer < 0) {
 			layer = customTextureIdentifiers.indexOf(identifier);
@@ -708,8 +817,8 @@ class Program
 		}
 		return layer;
 	}
-		
-	function validatePrecision(precision:Null<String>):Null<String> {
+
+	private function validatePrecision(precision:Null<String>):Null<String> {
 		if (precision != null) {
 			if (["low", "medium", "high"].indexOf(precision.toLowerCase()) < 0) {
 				if (["lowp", "mediump", "highp"].indexOf(precision.toLowerCase()) < 0)
@@ -718,39 +827,73 @@ class Program
 			else precision += "p";
 		}
 		return precision;
-	}	
-	// set float precision for fragmentShader 
+	}
+
+	/**
+		Set the float precision for the fragmentshader
+		@param precision a String what can be "low", "medium" or "high"
+		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
+	**/
 	public function setFragmentFloatPrecision(?precision:Null<String>, ?autoUpdateTextures:Null<Bool>) {
 		fragmentFloatPrecision =  PeoteGL.Precision.availFragmentFloat(validatePrecision(precision)); // template is set in createProgram
 		checkAutoUpdate(autoUpdateTextures);
 	}
-	// set int precision for fragmentShader 
+
+	/**
+		Set the integer precision for the fragmentshader
+		@param precision a String what can be "low", "medium" or "high"
+		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
+	**/
 	public function setFragmentIntPrecision(?precision:Null<String>, ?autoUpdateTextures:Null<Bool>) {
 		glShaderConfig.FRAGMENT_INT_PRECISION =  PeoteGL.Precision.availFragmentInt(validatePrecision(precision));
 		checkAutoUpdate(autoUpdateTextures);
 	}
-	// set sampler2D precision for fragmentShader 
+
+	/**
+		Set the sampler2D precision for the fragmentshader
+		@param precision a String what can be "low", "medium" or "high"
+		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
+	**/
 	public function setFragmentSamplerPrecision(?precision:Null<String>, ?autoUpdateTextures:Null<Bool>) {
 		glShaderConfig.FRAGMENT_SAMPLER_PRECISION =  PeoteGL.Precision.availFragmentSampler(validatePrecision(precision));
 		checkAutoUpdate(autoUpdateTextures);
 	}
-	// set float precision for vertexShader 
+
+	/**
+		Set the float precision for the vertexShader
+		@param precision a String what can be "low", "medium" or "high"
+		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
+	**/
 	public function setVertexFloatPrecision(?precision:Null<String>, ?autoUpdateTextures:Null<Bool>) {
 		glShaderConfig.VERTEX_FLOAT_PRECISION =  PeoteGL.Precision.availVertexFloat(validatePrecision(precision));
 		checkAutoUpdate(autoUpdateTextures);
 	}
-	// set int precision for vertexShader 
+
+	/**
+		Set the integer precision for the vertexShader
+		@param precision a String what can be "low", "medium" or "high"
+		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
+	**/
 	public function setVertexIntPrecision(?precision:Null<String>, ?autoUpdateTextures:Null<Bool>) {
 		glShaderConfig.VERTEX_INT_PRECISION = PeoteGL.Precision.availVertexInt(validatePrecision(precision));
 		checkAutoUpdate(autoUpdateTextures);
 	}
-	// set sampler precision for vertexShader 
+
+	/**
+		Set the sampler2D precision for the vertexShader
+		@param precision a String what can be "low", "medium" or "high"
+		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
+	**/
 	public function setVertexSamplerPrecision(?precision:Null<String>, ?autoUpdateTextures:Null<Bool>) {
 		glShaderConfig.VERTEX_SAMPLER_PRECISION = PeoteGL.Precision.availVertexSampler(validatePrecision(precision));
 		checkAutoUpdate(autoUpdateTextures);
 	}
-	
-	// enable pixelsnapping 
+
+	/**
+		Activate pixelsnapping
+		@param pixelDivisor a Float multiplicator at which snapping is to take place, set it to `null` to disable pixelsnapping
+		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
+	**/
 	public function snapToPixel(?pixelDivisor:Null<Float>, ?autoUpdateTextures:Null<Bool>) {
 		if (pixelDivisor == null) {
 			glShaderConfig.isPIXELSNAPPING = false;
@@ -761,8 +904,12 @@ class Program
 		}
 		checkAutoUpdate(autoUpdateTextures);
 	}
-	
-	// discard pixels with alpha lower then 
+
+	/**
+		From which alpha value the pixels are discarded.
+		@param atAlphaValue a Float value for the alpha limit (`0.0` to `1.0`), set it to `null` to disable discarding
+		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
+	**/
 	public function discardAtAlpha(?atAlphaValue:Null<Float>, ?autoUpdateTextures:Null<Bool>) {
 		if (atAlphaValue == null) {
 			glShaderConfig.isDISCARD = false;
@@ -773,8 +920,13 @@ class Program
 		}
 		checkAutoUpdate(autoUpdateTextures);
 	}
-	
-	// set a texture-layer
+
+	/**
+		Assign a `Texture` instance to a texture-layer.
+		@param texture Texture instance
+		@param identifier texture-layer identifier
+		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
+	**/
 	public function setTexture(texture:Texture, identifier:String, ?autoUpdateTextures:Null<Bool>):Void {
 		#if peoteview_debug_program
 		trace("(re)set texture of a layer");
@@ -783,8 +935,13 @@ class Program
 		textureLayers.set(layer, [texture]);
 		checkAutoUpdate(autoUpdateTextures);
 	}
-	
-	// multiple textures per layer (to switch between them via unit-attribute)
+
+	/**
+		Assign multiple `Texture` instances to a texture-layer. Can switch between them by using an `@texUnit` integer attribute inside the Element.
+		@param textureUnits an Array of Texture instances
+		@param identifier texture-layer identifier
+		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
+	**/
 	public function setMultiTexture(textureUnits:Array<Texture>, identifier:String, ?autoUpdateTextures:Null<Bool>):Void {
 		#if peoteview_debug_program
 		trace("(re)set texture-units of a layer");
@@ -795,12 +952,17 @@ class Program
 		var i = textureUnits.length;
 		while (i-- > 0)
 			if (textureUnits[i] == null) throw("Error, texture is null.");
-			else if (textureUnits.indexOf(textureUnits[i]) != i) throw("Error, textureLayer can not contain same texture twice.");		
+			else if (textureUnits.indexOf(textureUnits[i]) != i) throw("Error, textureLayer can not contain same texture twice.");
 		textureLayers.set(layer, textureUnits);
 		checkAutoUpdate(autoUpdateTextures);
 	}
-	
-	// add a texture to textuer-units
+
+	/**
+		Adds a `Texture` to a texture-layer. Can switch between them by using an `@texUnit` integer attribute inside the Element.
+		@param texture Texture instance
+		@param identifier texture-layer identifier
+		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
+	**/
 	public function addTexture(texture:Texture, identifier:String, ?autoUpdateTextures:Null<Bool>):Void {
 		#if peoteview_debug_program
 		trace("add texture into units of " + identifier);
@@ -818,7 +980,13 @@ class Program
 		else textureLayers.set(layer, [texture]);
 		checkAutoUpdate(autoUpdateTextures);
 	}
-	
+
+	/**
+		Removes a `Texture` from a texture-layer.
+		@param texture Texture instance
+		@param identifier texture-layer identifier
+		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
+	**/
 	public function removeTexture(texture:Texture, identifier:String, ?autoUpdateTextures:Null<Bool>):Void {
 		#if peoteview_debug_program
 		trace("remove texture from textureUnits of a layer");
@@ -833,7 +1001,12 @@ class Program
 		}
 		checkAutoUpdate(autoUpdateTextures);
 	}
-	
+
+	/**
+		Removes all `Texture`s of a texture-layer.
+		@param identifier texture-layer identifier
+		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
+	**/
 	public function removeAllTexture(identifier:String, ?autoUpdateTextures:Null<Bool>):Void {
 		#if peoteview_debug_program
 		trace("remove all textures from a layer");
@@ -844,15 +1017,21 @@ class Program
 		customTextureIdentifiers.remove(identifier);
 		checkAutoUpdate(autoUpdateTextures);
 	}
-	
-	inline function checkAutoUpdate(autoUpdateTextures:Null<Bool>) {
+
+	private inline function checkAutoUpdate(autoUpdateTextures:Null<Bool>) {
 		if (autoUpdateTextures != null) { if (autoUpdateTextures) updateTextures(); }
 		else if (this.autoUpdateTextures) updateTextures();
 	}
-	
+
 	// TODO: replaceTexture(textureToReplace:Texture, newTexture:Texture)
-	
- 	public function hasTexture(texture:Texture, identifier:Null<String>=null):Bool
+
+	/**
+		Returns `true` if the program or a specific texture-layer contains a texture.
+		@param texture Texture instance
+		@param identifier texture-layer identifier, if set to `null` it searches into all texture-layers
+		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
+	**/
+	public function hasTexture(texture:Texture, identifier:Null<String>=null):Bool
 	{
 		if (texture == null) throw("Error, texture is null.");
 		if (identifier == null) {
@@ -865,9 +1044,10 @@ class Program
 		}
 		return false;
 	}
-	
-	// ------------------------------------
-	
+
+	/**
+		Updates all texture changes and recompiles the shader.
+	**/
 	public function updateTextures():Void {
 		#if peoteview_debug_program
 		trace("update Textures");
@@ -903,8 +1083,7 @@ class Program
 				t.addToProgram(this);
 			}
 		}
-				
-		// -----------
+		
 		#if peoteview_debug_program
 		trace("textureLayers", [for (layer in textureLayers.keys()) layer]);
 		#end
@@ -964,9 +1143,7 @@ class Program
 					USED: used,
 					USED_ID: usedID					
 				});
-			}
-			
-			
+			}			
 		}
 		
 		// fill template for non-added textures to fetch default values
@@ -975,12 +1152,15 @@ class Program
 			glShaderConfig.TEXTURE_DEFAULTS.push({LAYER:defaults.layer, DEFAULT_VALUE:defaults.value});
 		}
 		glShaderConfig.hasTEXTURE_FUNCTIONS = (usedID_by_ColorFormula == 0 && textureID_Defaults.length == 0) ? false : true;
-		
-		
-		if (gl != null) reCreateProgram(); // recompile shaders			
+				
+		if (gl != null) reCreateProgram(); // recompile shaders
 	}
-	
-	
+
+	/**
+		To set the opengl index manually if using multiple textures.
+		@param texture Texture instance
+		@param index Integer value for the index (starts by `0`)
+	**/
 	public function setActiveTextureGlIndex(texture:Texture, index:Int):Void {
 		#if peoteview_debug_program
 		trace("set texture index to " + index);
@@ -1001,10 +1181,12 @@ class Program
 		j = 0; for (t in textureList) t.unit = activeUnits[j++];
 		if (hasPicking()) j = 0; for (t in textureListPicking) t.unit = activeUnits[j++];
 	}
-	
+
+
 	// ------------------------------------------------------------------------------
 	// ----------------------------- Render -----------------------------------------
 	// ------------------------------------------------------------------------------
+
 	var textureListItem:RenderListItem<ActiveTexture>; // TODO: check if this can be problem while shared with picking
 
 	private inline function render_activeTextureUnits(peoteView:PeoteView, textureList:RenderList<ActiveTexture>):Void {
@@ -1031,7 +1213,7 @@ class Program
 			textureListItem = textureListItem.next;
 		}
 	}
-	
+
 	private inline function render(peoteView:PeoteView, display:Display)
 	{
 		if (isVisible)
@@ -1076,10 +1258,12 @@ class Program
 			gl.useProgram (null);
 		}
 	}
-	
+
+
 	// ------------------------------------------------------------------------------
-	// ------------------------ RENDER TO TEXTURE ----------------------------------- 
+	// ------------------------ RENDER TO TEXTURE -----------------------------------
 	// ------------------------------------------------------------------------------
+
 	private inline function renderFramebuffer(peoteView:PeoteView, display:Display)
 	{
 		gl.useProgram(glProgram);
@@ -1114,9 +1298,11 @@ class Program
 		gl.useProgram (null);
 	}
 
+
 	// ------------------------------------------------------------------------------
-	// ------------------------ OPENGL PICKING -------------------------------------- 
+	// ------------------------ OPENGL PICKING --------------------------------------
 	// ------------------------------------------------------------------------------
+
 	private inline function pick( xOff:Float, yOff:Float, peoteView:PeoteView, display:Display, toElement:Int):Void
 	{
 		gl.useProgram(glProgramPicking);
@@ -1136,19 +1322,17 @@ class Program
 		
 		//peoteView.setGLAlpha(false);
 		peoteView.setGLBlend(false, blendSeparate, glBlendSrc, glBlendDst, glBlendSrcAlpha, glBlendDstAlpha, blendFuncSeparate, glBlendFunc, glBlendFuncAlpha, blendColor, useBlendColor, useBlendColorSeparate, glBlendR, glBlendG, glBlendB, glBlendA);
-		
-		
+				
 		buffer.pick(peoteView, display, this, toElement);
 		gl.useProgram (null);		
 	}
-	
+
 }
 
 
 
 // helper type
-
-class ActiveTexture
+private class ActiveTexture
 {
 	public var unit:Int;
 	public var texture:Texture;

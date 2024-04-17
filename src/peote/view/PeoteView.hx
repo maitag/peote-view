@@ -55,7 +55,7 @@ class PeoteView
 		Should always correspond to the height of the window
 	**/
 	public var height(default, null):Int;
-	
+
 	/**
 		Background color.
 	**/
@@ -71,7 +71,7 @@ class PeoteView
 	var green:Float = 0.0;
 	var blue:Float = 0.0;
 	var alpha:Float = 1.0;
-	
+
 	var maxTextureImageUnits:Int;
 	var glStateTexture:Vector<GLTexture>;
 	private function isTextureStateChange(activeTextureUnit:Int, texture:Texture):Bool {
@@ -86,6 +86,24 @@ class PeoteView
 			glStateTexture.set(activeTextureUnit, texture.glTexture);
 			return true;
 		} else return false;
+	}
+
+	/**
+		To shift the render content horizontal.
+	**/
+	public var xOffset(default, set):Float = 0;
+	inline function set_xOffset(xo:Float):Float {
+		if (PeoteGL.Version.isUBO) uniformBuffer.updateXOffset(gl, xo);
+		return xOffset = xo;
+	}
+
+	/**
+		To shift the render content vertical.
+	**/
+	public var yOffset(default, set):Float = 0;
+	inline function set_yOffset(yo:Float):Float {
+		if (PeoteGL.Version.isUBO) uniformBuffer.updateYOffset(gl, yo);
+		return yOffset = yo;
 	}
 	
 	/**
@@ -129,31 +147,13 @@ class PeoteView
 		return yZoom = z;
 	}
 
-	/**
-		To shift the render content horizontal.
-	**/
-	public var xOffset(default, set):Float = 0;
-	inline function set_xOffset(xo:Float):Float {
-		if (PeoteGL.Version.isUBO) uniformBuffer.updateXOffset(gl, xo);
-		return xOffset = xo;
-	}
-
-	/**
-		To shift the render content vertical.
-	**/
-	public var yOffset(default, set):Float = 0;
-	inline function set_yOffset(yo:Float):Float {
-		if (PeoteGL.Version.isUBO) uniformBuffer.updateYOffset(gl, yo);
-		return yOffset = yo;
-	}
-	
 	var displayList:RenderList<Display>;
 	var framebufferDisplayList:RenderList<Display>;
-	
+
 	var background:Background;
-	
+
 	var uniformBuffer:UniformBufferView;
-	
+
 	/**
 		Returns `true` if the `time` is started (for `@anim` tagged attributes into Elements).
 	**/
@@ -215,28 +215,28 @@ class PeoteView
 		width = window.width;
 		height = window.height;
 		this.color = color;
-				
+		
 		if (PeoteGL.Version.isUBO) {
-            #if peoteview_debug_view
+			#if peoteview_debug_view
 			trace("OpenGL Uniform Buffer Objects enabled.");
 			trace("GL.UNIFORM_BUFFER_OFFSET_ALIGNMENT:" + gl.getParameter(gl.UNIFORM_BUFFER_OFFSET_ALIGNMENT));
 			trace("GL.MAX_UNIFORM_BLOCK_SIZE:" + gl.getParameter(gl.MAX_UNIFORM_BLOCK_SIZE));
 			#end
 			uniformBuffer = new UniformBufferView();
 			uniformBuffer.createGLBuffer(gl, width, height, xOffset, yOffset, xz, yz);			
-        }
-        else {
+		}
+		else {
 			#if peoteview_debug_view
-            trace("OpenGL Uniform Buffer Objects disabled.");
+			trace("OpenGL Uniform Buffer Objects disabled.");
 			#end
-        }
+		}
 		#if peoteview_debug_view
 		if (PeoteGL.Version.isINSTANCED) {
-            trace("OpenGL InstanceDrawing enabled.");
-        }
-        else {
-            trace("OpenGL InstanceDrawing disabled.");
-        }
+			trace("OpenGL InstanceDrawing enabled.");
+		}
+		else {
+			trace("OpenGL InstanceDrawing disabled.");
+		}
 		#end
 		maxTextureImageUnits = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS);
 		glStateTexture = new Vector<GLTexture>(maxTextureImageUnits);
@@ -269,18 +269,17 @@ class PeoteView
 			window.onResize.add(resize);
 		}
 	}
-	
 
 	/**
-		Returns true if the display is added to the RenderList already.
-		@param display `Display` instance
+		Returns true if the `Display` instance is added to the RenderList already.
+		@param display Display instance
 	**/
 	public inline function hasDisplay(display:Display):Bool return display.isIn(this);
-			
+
 	/**
-		Adds a display to the RenderList.
+		Adds a `Display` instance to the RenderList.
 		Can be also used to change the order (relative to another display) if it's already added.
-		@param  display the `Display` instance to add into the RenderList or to change it's order
+		@param  display Display instance to add into the RenderList or to change it's order
 		@param  atDisplay (optional) to add or move the display before or after another display in the Renderlist (by default it adds at start or end)
 		@param  addBefore (optional) set to `true` to add the display before another display or at start of the Renderlist (by default it adds after atDisplay or at end of the list)
 	**/
@@ -290,8 +289,8 @@ class PeoteView
 	}
 	
 	/**
-        Removes a display from the RenderList.
-		@param  display `Display` instance to remove
+		Removes a `Display` instance from the RenderList.
+		@param  display Display instance
 	**/
 	public function removeDisplay(display:Display):Void
 	{
@@ -299,9 +298,9 @@ class PeoteView
 	}
 
 	/**
-        Swaps two displays inside the RenderList.
-		@param  display1 first `Display` instance
-		@param  display2 second `Display` instance
+		Swaps the order of two `Display` instances inside the RenderList.
+		@param  display1 first display instance
+		@param  display2 second display instance
 	**/
 	public function swapDisplays(display1:Display, display2:Display):Void
 	{
@@ -309,9 +308,9 @@ class PeoteView
 	}
 
 	/**
-		Adds an display to the hidden framebuffer RenderList (what only render to textures).
+		Adds an `Display` instance to the hidden framebuffer RenderList (what only render to textures).
 		Can be also used to change the order (relative to another display) if it's already added.
-		@param  display the `Display` instance to add into the RenderList or to change it's order
+		@param  display Display instance to add into the RenderList or to change it's order
 		@param  atDisplay (optional) to add or move the display before or after another display in the Renderlist (by default it adds at start or end)
 		@param  addBefore (optional) set to `true` to add the display before another display or at start of the Renderlist (by default it adds after atDisplay or at end of the list)
 	**/
@@ -319,10 +318,10 @@ class PeoteView
 	{
 		display.addToPeoteViewFramebuffer(this, atDisplay, addBefore);
 	}
-	
+
 	/**
-        Removes a display from the hidden framebuffer RenderList (what only render to textures).
-		@param  display `Display` instance to remove
+		Removes a `Display` instance from the hidden framebuffer RenderList (what only render to textures).
+		@param  display Display instance
 	**/
 	public function removeFramebufferDisplay(display:Display):Void
 	{
@@ -360,7 +359,7 @@ class PeoteView
 		To add a custom `onResize` eventhandler
 	**/
 	public var onResize:Int->Int->Void;
-	
+
 	/**
 		This function is need to call if the window-size is changed (automatically by `registerEvents` parameter into constructor)
 		@param width new window width
@@ -375,7 +374,7 @@ class PeoteView
 	}
 
 	// ----------------------------- Helpers ----------------------------------------
-	
+
 	/**
 		Converts a local x-position from view-coordinates to the correspondending global screen ones.
 		@param localX x-position inside of the view
@@ -401,15 +400,17 @@ class PeoteView
 	public inline function localY(globalY:Float):Float return (globalY - yOffset) / yz;
 	
 
+
 	// ------------------------------------------------------------------------------
 	// ----------------------------- GL-Picking -------------------------------------
 	// ------------------------------------------------------------------------------
+
 	var pickFB:GLFramebuffer;
 	var pickTexture:GLTexture;
 	var pickDepthBuffer:GLRenderbuffer;
 	var pickInt32:Int32Array;
 	var pickUInt8:UInt8Array;
-	
+
 	private inline function initGlPicking()
 	{
 		if (PeoteGL.Version.isINSTANCED) {
@@ -422,7 +423,7 @@ class PeoteView
 		pickDepthBuffer = gl.createRenderbuffer();
 		pickFB = GLTool.createFramebuffer(gl, pickTexture, pickDepthBuffer, 1, 1); 
 	}
-	
+
 	/**
 		Gets the Element-Index at a defined position on screen
 		@param  posX x position in pixel
@@ -457,7 +458,7 @@ class PeoteView
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		return elements;
 	}
-	
+
 	private function pick(posX:Float, posY:Float, display:Display, program:Program, toElement:Int):Int
 	{
 		if (! program.hasPicking()) throw("Error: OpenGL-Picking - type of buffer/element is not pickable !");
@@ -498,11 +499,12 @@ class PeoteView
 		else throw("Error: OpenGL-Picking - Framebuffer not complete!");
 		return -2;
 	}
-	
-	
+
+
 	// ------------------------------------------------------------------------------
 	// -------------------------- Render to Texture ---------------------------------
 	// ------------------------------------------------------------------------------
+
 	/**
 		Bind a texture to a display to use as a framebuffer for `renderToTexture()`
 		@param display the `Display` instance
@@ -512,7 +514,7 @@ class PeoteView
 	public function setFramebuffer(display:Display, texture:Texture, ?textureSlot:Null<Int>):Void {
 		display.setFramebuffer(texture, textureSlot, this);
 	}
-	
+
 	/**
 		Renders the content of a display into a texture.
 		@param display the `Display` instance
@@ -522,7 +524,7 @@ class PeoteView
 	{
 		if (display.fbTexture != null) _renderToTexture(display, (textureSlot != null) ? textureSlot : display.framebufferTextureSlot);
 	}
-	
+
 	private inline function _renderToTexture(display:Display, ?textureSlot:Null<Int>)
 	{
 		if (textureSlot == null) textureSlot = display.framebufferTextureSlot;
@@ -575,10 +577,12 @@ class PeoteView
 			display.fbTexture.updated = true;
 		}
 	}
-		
+
+
 	// ------------------------------------------------------------------------------
 	// ---------- Color, Depth, Stencil Mask and Blendmode states -------------------
 	// ------------------------------------------------------------------------------
+
 	var colorState:Bool = true;
 	private inline function setColor(enabled:Bool):Void
 	{	
@@ -599,7 +603,7 @@ class PeoteView
 			gl.disable(gl.DEPTH_TEST);
 		}
 	}
-	
+
 	var maskState:Mask = Mask.OFF;	
 	private inline function setMask(mask:Mask, clearMask:Bool):Void
 	{
@@ -628,26 +632,26 @@ class PeoteView
 			maskState = mask;
 		}
 	}
-	
+
 	var blendState:Bool = false;
 	var blendStateSeparate:Bool = false;
 	var blendStateSrc:Int = 0;
 	var blendStateDst:Int = 0;
 	var blendStateSrcAlpha:Int = 0;
 	var blendStateDstAlpha:Int = 0;
-	
+
 	var blendStateFuncSeparate:Bool = false;
 	var blendStateFunc:Int = 0;
 	var blendStateFuncAlpha:Int = 0;
-	
+
 	var blendStateColor:Int = 0;
-	
+
 	private inline function setGLBlend(blendEnabled:Bool, blendSeparate:Bool = false,
 		blendSrc:Int = 0, blendDst:Int = 0, blendSrcAlpha:Int = 0, blendDstAlpha:Int = 0,
 		funcSeparate:Bool = false, func:Int = 0, funcAlpha:Int = 0,
 		color:Color = 0, useColor:Bool = false, useColorSeparate:Bool = false, r:Float = 0.0, g:Float = 0.0, b:Float = 0.0, a:Float = 0.0
 	):Void
-	{	
+	{
 		if (blendEnabled) {
 			if (!blendState) { blendState = true; gl.enable(gl.BLEND); }
 			
@@ -685,11 +689,12 @@ class PeoteView
 			gl.disable(gl.BLEND);
 		}
 	}
-	
-	// ------------------------------------------------------------------------------
+
+
 	// ------------------------------------------------------------------------------
 	// ----------------------------- Render -----------------------------------------
 	// ------------------------------------------------------------------------------
+
 	private inline function initGLViewport(w:Int, h:Int):Void
 	{
 		gl.viewport (0, 0, w, h);
@@ -713,11 +718,11 @@ class PeoteView
 				
 		gl.depthFunc(gl.LEQUAL);
 	}
-	
+
 	var displayListItem:RenderListItem<Display>;
 
 	private inline function renderFramebuffer(context:RenderContext = null):Void
-	{	
+	{
 		displayListItem = framebufferDisplayList.first;
 		while (displayListItem != null)
 		{
@@ -739,7 +744,7 @@ class PeoteView
 		@param context limes OpenGL [RenderContext](https://www.openfl.org/learn/npm/api/pages/lime/graphics/RenderContext.html) instance
 	**/
 	public function render(context:RenderContext = null):Void
-	{	
+	{
 		//trace("===peoteView.render===");
 		renderFramebuffer(context);
 		initGLViewport(width, height);		
@@ -750,7 +755,7 @@ class PeoteView
 		To render a single Frame without clearing the OpenGL viewport (e.g. to use it inside other frameworks).
 	**/
 	public inline function renderPart():Void
-	{	
+	{
 		//trace("===peoteView.renderPart===");
 
 		displayListItem = displayList.first;
@@ -761,7 +766,5 @@ class PeoteView
 		}
 		
 	}
-	
-
 
 }

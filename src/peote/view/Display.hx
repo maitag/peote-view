@@ -15,95 +15,16 @@ o      o-o    /|\     o    o-o
 
 */
 
+/**
+A Display represents an rectangular area inside the `PeoteView` what contains a `Program` list for rendering.  
+All the inner content can be shifted and zoomed.
+**/
 @:allow(peote.view)
 class Display 
 {
-	public var width:Int = 0;
-	public var height:Int = 0;
-		
-	public var x(default, set):Int = 0;
-	inline function set_x(_x:Int):Int {
-		if (PeoteGL.Version.isUBO && gl != null) uniformBuffer.updateXOffset(gl, _x + xOffset);
-		return x = _x;
-	}
-	public var y(default, set):Int = 0;
-	inline function set_y(_y:Int):Int {
-		if (PeoteGL.Version.isUBO && gl != null) uniformBuffer.updateYOffset(gl, _y + yOffset);
-		return y = _y;
-	}
-	public var xOffset(default, set):Float = 0;
-	inline function set_xOffset(xo:Float):Float {
-		if (PeoteGL.Version.isUBO && gl != null) {
-			uniformBuffer.updateXOffset(gl, x + xo);
-			uniformBufferFB.updateXOffset(gl, xo);
-		}
-		return xOffset = xo;
-	}
-	public var yOffset(default, set):Float = 0;
-	inline function set_yOffset(yo:Float):Float {
-		if (PeoteGL.Version.isUBO && gl != null) {
-			uniformBuffer.updateYOffset(gl, y + yo);
-			uniformBufferFB.updateYOffset(gl, yo - height);
-		}
-		return yOffset = yo;
-	}
-
-	public var xz(default, null):Float = 1.0;
-	public var yz(default, null):Float = 1.0;
-	
-	public var zoom(default, set):Float = 1.0;
-	inline function set_zoom(z:Float):Float {
-		xz = xZoom * z;
-		yz = yZoom * z;
-		if (PeoteGL.Version.isUBO && gl != null) {
-			uniformBuffer.updateZoom(gl, xz, yz);
-			uniformBufferFB.updateZoom(gl, xz, yz);
-		}
-		return zoom = z;
-	}
-	public var xZoom(default, set):Float = 1.0;
-	inline function set_xZoom(z:Float):Float {
-		xz = zoom * z;
-		if (PeoteGL.Version.isUBO && gl != null) {
-			uniformBuffer.updateXZoom(gl, xz);
-			uniformBufferFB.updateXZoom(gl, xz);
-		}
-		return xZoom = z;
-	}
-	public var yZoom(default, set):Float = 1.0;
-	inline function set_yZoom(z:Float):Float {
-		yz = zoom * z;
-		if (PeoteGL.Version.isUBO && gl != null) {
-			uniformBuffer.updateYZoom(gl, yz);
-			uniformBufferFB.updateYZoom(gl, yz);
-		}
-		return yZoom = z;
-	}
-	
-	public var color(default, set):Color = 0x00000000;
-	inline function set_color(c:Color):Color {
-		red   = c.red   / 255.0;
-		green = c.green / 255.0;
-		blue  = c.blue  / 255.0;
-		alpha = c.alpha / 255.0;
-		backgroundEnabled = (alpha > 0.0) ? true : false;
-		backgroundAlpha   = (alpha < 1.0) ? true : false;
-		return c;
-	}
-	
-	public var isVisible:Bool = true;
-	public function show() isVisible = true;	
-	public function hide() isVisible = false;
-
-	public var backgroundAlpha:Bool = false;
-	public var backgroundDepth:Bool = false;
-	public var backgroundEnabled:Bool = false;
-	
-	var red:Float = 0.0;
-	var green:Float = 0.0;
-	var blue:Float = 0.0;
-	var alpha:Float = 1.0;
-	
+	/**
+		The `PeoteView` instance in which the display is contained.
+	**/
 	public var peoteView(default, null):PeoteView = null;
 
 	var gl:PeoteGL = null;
@@ -116,14 +37,163 @@ class Display
 	
 	var fbTexture:Texture = null;
 	
-   /**
-		A Display is an rectangular area inside of PeoteView where display objects can be zoomed and shifted inside of.
-		It can contain one or more Programs to render.
+	/**
+		Horizontal position in pixels (distance to left edge of the view).
+	**/
+	public var x(default, set):Int = 0;
+	inline function set_x(_x:Int):Int {
+		if (PeoteGL.Version.isUBO && gl != null) uniformBuffer.updateXOffset(gl, _x + xOffset);
+		return x = _x;
+	}
+
+	/**
+		Vertical position in pixels (distance to upper edge of the view).
+	**/
+	public var y(default, set):Int = 0;
+	inline function set_y(_y:Int):Int {
+		if (PeoteGL.Version.isUBO && gl != null) uniformBuffer.updateYOffset(gl, _y + yOffset);
+		return y = _y;
+	}
+
+	/**
+		Horizontal size in pixels.
+	**/
+	public var width:Int = 0;
+
+	/**
+		Vertical size in pixels.
+	**/
+	public var height:Int = 0;
+	
+	/**
+		Background color.
+	**/
+	public var color(default, set):Color = 0x00000000;
+	inline function set_color(c:Color):Color {
+		red   = c.red   / 255.0;
+		green = c.green / 255.0;
+		blue  = c.blue  / 255.0;
+		alpha = c.alpha / 255.0;
+		backgroundEnabled = (alpha > 0.0) ? true : false;
+		backgroundAlpha   = (alpha < 1.0) ? true : false;
+		return c;
+	}
+	var red:Float = 0.0;
+	var green:Float = 0.0;
+	var blue:Float = 0.0;
+	var alpha:Float = 1.0;
+		
+	/**
+		Background use transparency.
+	**/
+	public var backgroundAlpha:Bool = false;
+
+	/**
+		Background use depth value.
+	**/
+	public var backgroundDepth:Bool = false;
+
+	/**
+		To turn the background rendering on/off.
+	**/
+	public var backgroundEnabled:Bool = false;
+	
+	/**
+		To shift the render content horizontal.
+	**/
+	public var xOffset(default, set):Float = 0;
+	inline function set_xOffset(xo:Float):Float {
+		if (PeoteGL.Version.isUBO && gl != null) {
+			uniformBuffer.updateXOffset(gl, x + xo);
+			uniformBufferFB.updateXOffset(gl, xo);
+		}
+		return xOffset = xo;
+	}
+
+	/**
+		To shift the render content vertical.
+	**/
+	public var yOffset(default, set):Float = 0;
+	inline function set_yOffset(yo:Float):Float {
+		if (PeoteGL.Version.isUBO && gl != null) {
+			uniformBuffer.updateYOffset(gl, y + yo);
+			uniformBufferFB.updateYOffset(gl, yo - height);
+		}
+		return yOffset = yo;
+	}
+
+	/**
+		Total horizontal zoom factor, calculated by `zoom * xZoom`.
+	**/
+	public var xz(default, null):Float = 1.0;
+
+	/**
+		Total vertical zoom factor, calculated by `zoom * yZoom`.
+	**/
+	public var yz(default, null):Float = 1.0;
+	
+	/**
+		To zoom the render content (value `> 1.0` to expand and `< 1.0` to shrink).
+	**/
+	public var zoom(default, set):Float = 1.0;
+	inline function set_zoom(z:Float):Float {
+		xz = xZoom * z;
+		yz = yZoom * z;
+		if (PeoteGL.Version.isUBO && gl != null) {
+			uniformBuffer.updateZoom(gl, xz, yz);
+			uniformBufferFB.updateZoom(gl, xz, yz);
+		}
+		return zoom = z;
+	}
+
+	/**
+		Multiplicator for horizontal zoom.
+	**/
+	public var xZoom(default, set):Float = 1.0;
+	inline function set_xZoom(z:Float):Float {
+		xz = zoom * z;
+		if (PeoteGL.Version.isUBO && gl != null) {
+			uniformBuffer.updateXZoom(gl, xz);
+			uniformBufferFB.updateXZoom(gl, xz);
+		}
+		return xZoom = z;
+	}
+
+	/**
+		Multiplicator for vertical zoom.
+	**/
+	public var yZoom(default, set):Float = 1.0;
+	inline function set_yZoom(z:Float):Float {
+		yz = zoom * z;
+		if (PeoteGL.Version.isUBO && gl != null) {
+			uniformBuffer.updateYZoom(gl, yz);
+			uniformBufferFB.updateYZoom(gl, yz);
+		}
+		return yZoom = z;
+	}
+	
+	/**
+		Shows or hides the display during rendering.
+	**/
+	public var isVisible:Bool = true;
+
+	/**
+		Shows the display during rendering.
+	**/
+	public function show() isVisible = true;	
+
+	/**
+		Hides the display during rendering.
+	**/
+	public function hide() isVisible = false;
+
+	/**
+		Creates a new `Display` instance.
 		@param x x-position of the upper left corner
 		@param y y-position of the upper left corner
 		@param width horizontal size of the display
 		@param height vertical size of the display
-		@param color background color (no background by default or if it's transparency is 0)
+		@param color background color (by default the alpha value is fully transparent and so also no background is rendered)
 	**/
 	public function new(x:Int, y:Int, width:Int, height:Int, color:Color = 0x00000000) 
 	{
@@ -143,14 +213,14 @@ class Display
 	}
 
 	/**
-		Returns true is this display is inside the RenderList of a PeoteView instance.
+		Returns true is this display is inside the RenderList of a `PeoteView` instance.
 		@param peoteView PeoteView instance
 	**/
 	public inline function isIn(peoteView:PeoteView):Bool return (this.peoteView == peoteView);			
 
 	/**
-		Adds this display to the RenderList of a PeoteView.
-		Can be also used to change the order (relative to another display)if it's already added.
+		Adds this display to the RenderList of a `PeoteView` instance.
+		Can be also used to change the order (relative to another display) if it is already added.
 		@param peoteView PeoteView instance
 		@param atDisplay (optional) to add or move before or after another display in the RenderList (by default at start or at end)
 		@param addBefore (optional) if 'true' it's added before another display or at start of the Renderlist (by default it's added after atDisplay or at end)
@@ -169,9 +239,9 @@ class Display
 		#end
 		peoteView.displayList.add(this, atDisplay, addBefore);
 	}
-	
+
 	/**
-		Removes this display from the RenderList of a PeoteView instance.
+		Removes this display from the RenderList of a `PeoteView` instance.
 		@param peoteView PeoteView instance
 	**/
 	public function removeFromPeoteView(peoteView:PeoteView)
@@ -183,10 +253,10 @@ class Display
 		if ( !peoteView.framebufferDisplayList.has(this) ) this.peoteView = null;
 		peoteView.displayList.remove(this);
 	}
-	
+
 	/**
-		Adds this display to the hidden framebuffer RenderList (what only render to textures) of a PeoteView.
-		Can be also used to change the order (relative to another display) if it's already added.
+		Adds this display to the hidden framebuffer RenderList (what only render to textures) of a `PeoteView` instance.
+		Can be also used to change the order (relative to another display) if it is already added.
 		@param peoteView PeoteView instance
 		@param atDisplay (optional) to add or move before or after another display in the framebuffer RenderList (by default at start or at end)
 		@param addBefore (optional) if 'true' it's added before another display or at start of the framebuffer Renderlist (by default it's added after atDisplay or at end)
@@ -205,7 +275,7 @@ class Display
 		#end
 		peoteView.framebufferDisplayList.add(this, atDisplay, addBefore);
 	}
-	
+
 	/**
 		Removes this display from the hidden framebuffer RenderList (what only render to textures) of a peoteView.
 		@param peoteView PeoteView instance
@@ -219,9 +289,9 @@ class Display
 		if ( !peoteView.displayList.has(this) ) this.peoteView = null;
 		peoteView.framebufferDisplayList.remove(this);
 	}
-	
+
 	/**
-        Swaps the order of this Display instances with another one inside the RenderList.
+		Swaps the order of this Display instances with another one inside the RenderList.
 		@param  display Display instance
 	**/
 	public function swapDisplay(display:Display):Void
@@ -229,9 +299,9 @@ class Display
 		if (peoteView != null && display.peoteView != null) peoteView.displayList.swap(this, display);
 		else throw("Error, display is not added to peoteView");
 	}
-	
+
 	/**
-        Swaps the order of two Programs inside the RenderList.
+		Swaps the order of two `Program`s inside the RenderList.
 		@param  program Program instance
 		@param  programToSwapWith Program instance to swap with
 	**/
@@ -239,7 +309,7 @@ class Display
 	{
 		programList.swap(program, programToSwapWith);
 	}
-	
+
 	private function setNewGLContext(newGl:PeoteGL)
 	{
 		if (newGl != null && newGl != gl) // only if different GL - Context	
@@ -276,13 +346,13 @@ class Display
 
 	
 	/**
-		Checks if a Program is added to the RenderList of this Display.
-		@param program Program instance to check for
+		Returns true if the program is added to the RenderList already.
+		@param program Program instance
 	**/
 	public inline function hasProgram(program:Program):Bool return program.isIn(this);
-			
+	
 	/**
-		Adds a Program to the RenderList of this Display.
+		Adds a `Program` instance to the RenderList of this Display.
 		Can be also used to change the order relative to another program if it's already added.
 		@param program Program instance to add into the RenderList or to change it's order
 		@param atProgram (optional) to add or move the program before or after another program in the Renderlist (by default it's added at start or end)
@@ -294,8 +364,8 @@ class Display
 	}
 	
 	/**
-		Removes a Program instance from the RenderList.
-		@param program Program instance to remove
+		Removes a `Program` instance from the RenderList.
+		@param program Program instance
 	**/
 	public function removeProgram(program:Program):Void
 	{
@@ -306,7 +376,7 @@ class Display
 	// -------------------- set Framebuffer Texture ------------------------------
 
 	/**
-		Set a Texture to use as a framebuffer for renderToTexture()
+		Set a `Texture` instance to use as a framebuffer for renderToTexture()
 		@param texture Texture instance to render into
 		@param textureSlot number of texture-slot to render into (can be changed by set the 'framebufferTextureSlot' property)
 		@param peoteView optional parameter that is need if the display not already added to a RenderList
@@ -341,8 +411,14 @@ class Display
 		framebufferTextureSlot = 0;
 	}
 	
+	/**
+		The texture-slot where to render into by renderToTexture().
+	**/
 	public var framebufferTextureSlot:Int = 0;
 
+	/**
+		Enable or disable texture-rendering if the display is inside the framebuffer chain.
+	**/
 	public var renderFramebufferEnabled(default, set):Bool = true;
 	inline function set_renderFramebufferEnabled(b:Bool):Bool {
 		if (b && fbTexture != null) _renderFramebufferEnabled = true;
@@ -351,12 +427,15 @@ class Display
 	}
 	var _renderFramebufferEnabled:Bool = false;
 	
+	/**
+		If the display is inside the framebuffer chain, this defines how many frames are skipped before it renders into the texture again.
+	**/
 	public var renderFramebufferSkipFrames:Int = 0;
 	var renderFramebufferFrame:Int = 0;
-		
-	
+
+
 	// ----------------------------- Helpers ----------------------------------------
-	
+
 	/**
 		Gives true if a point at global screenposition px and py is inside the Display-area.
 		@param px global x-position
@@ -458,7 +537,7 @@ class Display
 			renderProgram(peoteView);
 		}		
 	}
-	
+
 	// -- let write custom GL code inside a Childclass by overriding this --
 	#if !peoteview_customdisplay inline #end
 	private function renderProgram(peoteView:PeoteView):Void
@@ -470,11 +549,11 @@ class Display
 			programListItem = programListItem.next;
 		}
 	}
-	
+
 	// ------------------------------------------------------------------------------
 	// ------------------------ RENDER TO TEXTURE ----------------------------------- 
 	// ------------------------------------------------------------------------------
-	
+
 	/**
 		Renders the content of this Display into a texture.
 		@param peoteView PeoteView instance
@@ -492,7 +571,7 @@ class Display
 		}		
 		renderFramebufferProgram(peoteView);
 	}
-	
+
 	// -- let write custom GL code inside a Childclass by overriding this --
 	#if !peoteview_customdisplay inline #end
 	private function renderFramebufferProgram(peoteView:PeoteView):Void
@@ -504,7 +583,7 @@ class Display
 			programListItem = programListItem.next;
 		}
 	}
-	
+
 	// ------------------------------------------------------------------------------
 	// ------------------------ OPENGL PICKING -------------------------------------- 
 	// ------------------------------------------------------------------------------
@@ -513,6 +592,5 @@ class Display
 		glScissor(peoteView.gl, 1, 1, xOff, yOff, peoteView.xz, peoteView.yz);
 		program.pick( xOff, yOff, peoteView, this, toElement);
 	}
-	
-	
+
 }
