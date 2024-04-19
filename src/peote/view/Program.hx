@@ -29,9 +29,9 @@ o      o-o     |\     o    o-o
 */
 
 /**
-The Program is rendering the graphical elements of a `Buffer` with the corresponding shader and assigned `Texture`s.  
-The shader code can be modified at runtime by formulas or also by `glsl` code-injection and custom `uniforms`.  
-It supports different modes for `color blending`, `stencil masks` or `depth-buffer`.
+	The Program is rendering the graphical elements of a `Buffer` with the corresponding shader and assigned `Texture`s.  
+	The shader code can be modified at runtime by formulas or also by `glsl` code-injection and custom `uniforms`.  
+	It supports different modes for `color blending`, `stencil masks` or `depth-buffer`.
 **/
 @:allow(peote.view,peote.ui)
 class Program 
@@ -39,7 +39,7 @@ class Program
 	/**
 		The `Display` instances in which the program is contained.
 	**/
-	public var displays(default, null) = new Array<Display>();
+	public var displays(default, null):Array<Display>;
 
 	var gl:PeoteGL = null;
 
@@ -282,6 +282,8 @@ class Program
 	{
 		this.buffer = buffer;
 		
+		displays = new Array<Display>();
+
 		setDefaultBlendValues();
 		blendEnabled = buffer.hasBlend();
 		
@@ -629,7 +631,7 @@ class Program
 	/**
 		Set a formula to combine the colors of `@texUnit`s together with the `@color` attributes of an element.
 		@param formula a String what contains the color formula
-		@param varDefaults defines the default colors by a Map with the `@texUnit`-identifiers as keys
+		@param varDefaults defines the default colors by a Map with the `texUnit` identifiers as keys
 		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
 	**/
 	public function setColorFormula(formula:String="", varDefaults:StringMap<Color>=null, ?autoUpdateTextures:Null<Bool>):Void {

@@ -16,8 +16,8 @@ o      o-o    /|\     o    o-o
 */
 
 /**
-A Display represents an rectangular area inside the `PeoteView` what contains a `Program` list for rendering.  
-All the inner content can be shifted and zoomed.
+	A Display represents an rectangular area inside the `PeoteView` what contains a `Program` list for rendering.  
+	All the inner content can be shifted and zoomed.
 **/
 @:allow(peote.view)
 class Display 
@@ -25,7 +25,7 @@ class Display
 	/**
 		The `PeoteView` instance in which the display is contained.
 	**/
-	public var peoteView(default, null):PeoteView = null;
+	public var peoteView(default, null):PeoteView;
 
 	var gl:PeoteGL = null;
 
@@ -40,7 +40,7 @@ class Display
 	/**
 		Horizontal position in pixels (distance to left edge of the view).
 	**/
-	public var x(default, set):Int = 0;
+	public var x(default, set):Int;
 	inline function set_x(_x:Int):Int {
 		if (PeoteGL.Version.isUBO && gl != null) uniformBuffer.updateXOffset(gl, _x + xOffset);
 		return x = _x;
@@ -49,7 +49,7 @@ class Display
 	/**
 		Vertical position in pixels (distance to upper edge of the view).
 	**/
-	public var y(default, set):Int = 0;
+	public var y(default, set):Int;
 	inline function set_y(_y:Int):Int {
 		if (PeoteGL.Version.isUBO && gl != null) uniformBuffer.updateYOffset(gl, _y + yOffset);
 		return y = _y;
@@ -58,12 +58,12 @@ class Display
 	/**
 		Horizontal size in pixels.
 	**/
-	public var width:Int = 0;
+	public var width:Int;
 
 	/**
 		Vertical size in pixels.
 	**/
-	public var height:Int = 0;
+	public var height:Int;
 	
 	/**
 		Background color.
@@ -383,7 +383,7 @@ class Display
 	**/
 	public function setFramebuffer(texture:Texture, ?textureSlot:Null<Int>, ?peoteView:PeoteView) {
 		if (fbTexture == texture) throw("Error, texture is already in use as Framebuffer for Display");
-		if (textureSlot >= texture.maxSlots) throw("Error, maximum texture slot of framebufferTexture is" + (texture.maxSlots - 1));
+		if (textureSlot >= texture.slots) throw("Error, maximum texture slot of framebufferTexture is" + (texture.slots - 1));
 		
 		if (peoteView == null) {
 			if (gl == null) throw("Error, if the display is not added it needs the gl-context of a peoteView to set a framebuffer texture");

@@ -13,33 +13,86 @@ import peote.view.intern.GLTool;
 import peote.view.intern.TexUtils;
 import peote.view.intern.IntUtil;
 
+/**
+	A `Texture` can be used inside of `Program`s to render image data.  
+	It can store multiple `TextureData` in slots that can be divided into tiles for texture atlases.  
+	The precision (int/float) and amount of colorchannels can be defined by `TextureFormat`, mipmapping and filtering is supported.
+**/
 @:allow(peote.view)
-class Texture 
+class Texture
 {
-	var gl:PeoteGL = null;
-
-	public var glTexture(default, null):GLTexture = null;	
-	
-	var framebuffer:GLFramebuffer = null;
-	var glDepthBuffer:GLRenderbuffer = null;
-	
-	public var clearOnRenderInto = true;
-	
+	var gl:PeoteGL;
+	var framebuffer:GLFramebuffer;
+	var glDepthBuffer:GLRenderbuffer;
+	var programs = new Array<Program>();
+	var displays = new Array<Display>();
+	var mipmapIsCreated:Bool = false;
+	var updated:Bool = false;	
+		
+	/**
+		The used `TextureFormat`.
+	**/
 	public var format(default, null):TextureFormat;
-	public var smoothExpand(default, set):Bool = false; // while pixels are expanding (zoom in)
-	inline function set_smoothExpand(b:Bool):Bool {
-		if (gl != null) TexUtils.setMinMagFilter(gl, smoothExpand, null, null, glTexture);
-		return smoothExpand = b;
-	}
-	public var smoothShrink(default, set):Bool = false; // while pixels are shrinking (zoom out)
-	inline function set_smoothShrink(b:Bool):Bool {
-		if (gl != null) TexUtils.setMinMagFilter(gl, null, smoothShrink, (mipmap) ? smoothMipmap : null, glTexture);
-		return smoothShrink = b;
-	}
 
-	private var mipmapIsCreated:Bool = false;
+	/**
+		The OpenGL representation of the texture.
+	**/
+	public var glTexture(default, null):GLTexture;
 
-	public var mipmap(default, null):Bool = false; // enable to generate mipmap levels
+	/**
+		Maps a slot number to the used `TextureData`.
+	**/
+	public var textureDataSlots(default, null):IntMap<TextureData>;
+		
+	/**
+		The total horizontal texturesize in pixels.
+	**/
+	public var width(default, null):Int;
+
+	/**
+		The total vertical texturesize in pixels.
+	**/
+	public var height(default, null):Int;
+	
+	/**
+		The total number of slots in which the texture can store texture data.
+	**/
+	public var slots(default, null):Int;
+	
+	/**
+		The horizontal number of slots into which the texture is divided.
+	**/
+	public var slotsX(default, null):Int;
+
+	/**
+		The vertical number of slots into which the texture is divided.
+	**/
+	public var slotsY(default, null):Int;
+
+	/**
+		Horizontal slot size in pixels.
+	**/
+	public var slotWidth(default, null):Int;
+
+	/**
+		Vertical slot size in pixels.
+	**/
+	public var slotHeight(default, null):Int;
+
+	/**
+		Horizontal tiling, the program needs "updateTextures()" if changing this while in use
+	**/
+	public var tilesX:Int;
+
+	/**
+		Vertical tiling, the program needs "updateTextures()" if changing this while in use
+	**/
+	public var tilesY:Int;
+	
+	/**
+		If the texture have to generate mipmaps for filtering.
+	**/
+	public var mipmap(default, set):Bool = false;
 	inline function set_mipmap(b:Bool):Bool {
 		if (gl != null && b && !mipmapIsCreated) {
 			TexUtils.createMipmap(gl, glTexture);
@@ -48,36 +101,52 @@ class Texture
 		return mipmap = b;
 	}
 
+	/**
+		Use smooth interpolation between the mipmap-levels for texture filtering.
+	**/
 	public var smoothMipmap(default, set):Bool = false;
 	inline function set_smoothMipmap(b:Bool):Bool {
 		if (gl != null) TexUtils.setMinMagFilter(gl, null, smoothShrink, (mipmap) ? smoothMipmap : null, glTexture);
 		return smoothMipmap = b;
 	}
 
-	
-	public var width(default, null):Int = 0;
-	public var height(default, null):Int = 0;
-	
-	public var maxSlots(default, null):Int = 1;
-	
-	public var slotsX(default, null):Int = 1;
-	public var slotsY(default, null):Int = 1;
-	public var slotWidth(default, null):Int;
-	public var slotHeight(default, null):Int;
+	/**
+		Use smooth filtering if the texture is displayed at a enlarged size.
+	**/
+	public var smoothExpand(default, set):Bool = false;
+	inline function set_smoothExpand(b:Bool):Bool {
+		if (gl != null) TexUtils.setMinMagFilter(gl, smoothExpand, null, null, glTexture);
+		return smoothExpand = b;
+	}
 
-	public var tilesX:Int = 1;
-	public var tilesY:Int = 1;
+	/**
+		Use smooth filtering if the texture is displayed at a reduced size.
+	**/
+	public var smoothShrink(default, set):Bool = false;
+	inline function set_smoothShrink(b:Bool):Bool {
+		if (gl != null) TexUtils.setMinMagFilter(gl, null, smoothShrink, (mipmap) ? smoothMipmap : null, glTexture);
+		return smoothShrink = b;
+	}
+
+	/**
+		The texture will be cleared before a `Display` is rendering into it.
+	**/
+	public var clearOnRenderInto = true;
 	
-	public var usedSlots = new IntMap<TextureData>();
-	
-	var updated:Bool = false;
-	
-	var programs = new Array<Program>();
-	var displays = new Array<Display>();
-	
+
 	// TODO: return error if not fit into maxTextureSize!
+
+	/**
+		Creates a new `Texture` instance.
+		@param slotWidth width of each slot in pixels
+		@param slotHeight height of each slot in pixels
+		@param slots number of slots
+		@param textureConfig options by `TextureConfig`
+	**/
 	public function new(slotWidth:Int, slotHeight:Int, ?slots:Null<Int>, ?textureConfig:TextureConfig)
 	{
+		textureDataSlots = new IntMap<TextureData>();
+
 		if (textureConfig == null) textureConfig = {};
 
 		this.slotWidth = slotWidth;
@@ -112,13 +181,17 @@ class Texture
 			slotsY = p.slotsY;
 		}
 
-		maxSlots = slotsX * slotsY;
+		slots = slotsX * slotsY;
 
 		#if peoteview_debug_texture
-		trace('${maxSlots} slots ($slotsX * $slotsY) on a ${width} x ${height} Texture');
+		trace('${slots} slots ($slotsX * $slotsY) on a ${width} x ${height} Texture');
 		#end
 	}
 	
+	/**
+		Returns `true` if a `Program` instance is using this texture.
+		@param program Program instance
+	**/
  	public inline function usedByProgram(program:Program):Bool return (programs.indexOf(program) >= 0);
 	
 	private inline function addToProgram(program:Program)
@@ -131,8 +204,6 @@ class Texture
 		programs.push(program);
 	}
 	
- 	public inline function usedByDisplay(display:Display):Bool return (displays.indexOf(display) >= 0);
-
 	private inline function removeFromProgram(program:Program) 
 	{
 		#if peoteview_debug_texture
@@ -141,6 +212,12 @@ class Texture
 		if (!programs.remove(program)) throw("Error, this texture is not used by program anymore");
 	}
 	
+	/**
+		Returns `true` if a `Display` instance is using this texture to render into.
+		@param display Display instance
+	**/
+	public inline function usedByDisplay(display:Display):Bool return (displays.indexOf(display) >= 0);
+
 	private inline function addToDisplay(display:Display) {
 		#if peoteview_debug_texture
 		trace("Add Display to Texture");
@@ -204,7 +281,7 @@ class Texture
 			createFramebuffer();
 			// all slot data to gpu
 			gl.bindTexture(gl.TEXTURE_2D, glTexture);
-			for (slot => textureData in usedSlots) 
+			for (slot => textureData in textureDataSlots) 
 				TexUtils.dataToTexture(gl, slotWidth * (slot % slotsX), slotHeight * Std.int(slot / slotsX), format, textureData, false);
 			if (mipmap) {
 				TexUtils.createMipmap(gl);
@@ -234,7 +311,16 @@ class Texture
 		glTexture = TexUtils.createEmptyTexture(gl, width, height, format, smoothExpand, smoothShrink, mipmap, smoothMipmap);
 	}
 
-	public function readPixelsUInt8(x:Int, y:Int, w:Int, h:Int, data:UInt8Array = null):UInt8Array {
+	/**
+		Reads the data of a rectangular area from the texture inside an `UInt8Array`. The `TextureFormat` have to be of type integer.
+		@param x left position of the area
+		@param y top position of the area
+		@param w area width
+		@param h area height
+		@param data an UInt8Array to store the data, if it is `null` a new one will be created
+	**/
+	public function readPixelsUInt8(x:Int, y:Int, w:Int, h:Int, ?data:UInt8Array):UInt8Array {
+		if (format.isFloat) throw ('Error, for float textureformat you have to use "readPixelsFloat32()".');
 		if (data == null) data = new UInt8Array(w * h * 4);
 		// read pixels
 		gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
@@ -246,7 +332,16 @@ class Texture
 		return data;
 	}
 	
-	public function readPixelsFloat32(x:Int, y:Int, w:Int, h:Int, data:Float32Array = null):Float32Array {
+	/**
+		Reads the data of a rectangular area from the texture inside a `Float32Array`. The `TextureFormat` have to be of type float.
+		@param x left position of the area
+		@param y top position of the area
+		@param w area width
+		@param h area height
+		@param data a Float32Array to store the data, if it is `null` a new one will be created
+	**/
+	public function readPixelsFloat32(x:Int, y:Int, w:Int, h:Int, ?data:Float32Array):Float32Array {
+		if (!format.isFloat) throw ('Error, for integer textureformat you have to use "readPixelsUInt8()".');
 		if (data == null) data = new Float32Array(w * h * 4);
 		// read pixels
 		gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
@@ -264,6 +359,12 @@ class Texture
 	public function writePixelsFloat32(x:Int, y:Int, w:Int, h:Int, data:Float32Array = null) {		
 	}
 */
+
+	/**
+		Specifies a `TextureData` instance to use inside a texture slot.
+		@param textureData TextureData instance
+		@param slot slot number in wich the texturedata is to be used
+	**/
 	public function setData(textureData:TextureData, slot:Int = 0) {
 		if (format.isFloat != textureData.format.isFloat)
 			throw('Error: Can not use ${(textureData.format.isFloat) ? "float" : "integer"} TextureData for ${(format.isFloat) ? "float" : "integer"} Texture');
@@ -275,7 +376,7 @@ class Texture
 		if (format != textureData.format) trace("Warning: Textureformat of Texture and TextureData don't match");
 		#end
 		
-		usedSlots.set(slot, textureData);
+		textureDataSlots.set(slot, textureData);
 
 		if (gl != null) {
 			// TODO: optimize here to also setData while creation if there is only 1 slot and textureData already set
@@ -288,13 +389,16 @@ class Texture
 	
 	// TODO: clear with color, save what need to clear if get gl-context later!
 	
-	// frees a Texture-Slot from linked TextureData
+	/**
+		Frees a texture slot from the linked `TextureData`.
+		@param slot slot number in wich the texturedata is used
+	**/
 	public function clearSlot(slot:Int) {
 		#if peoteview_debug_texture
 		trace("Clear Texture slot");
 		#end
-		var textureData = usedSlots.get(slot);
-		usedSlots.remove(slot);
+		var textureData = textureDataSlots.get(slot);
+		textureDataSlots.remove(slot);
 
 		// TODO: test it into sample!
 		if (gl != null) {			
@@ -305,6 +409,12 @@ class Texture
 		}
 	}
 
+	/**
+		Changes the texture filtering at runtime.
+		@param smoothExpand to enable smooth filtering if the texture is displayed at a enlarged size
+		@param smoothShrink to enable smooth filtering if the texture is displayed at a reduced size
+		@param smoothMipmap to enable smooth interpolation between mipmap-levels (if the texture have mipmaps)
+	**/
 	public function setSmooth(smoothExpand:Bool, smoothShrink:Bool, smoothMipmap:Null<Bool> = null) {
 		this.smoothExpand = smoothExpand;
 		this.smoothShrink = smoothShrink;
@@ -312,6 +422,10 @@ class Texture
 		if (gl != null) TexUtils.setMinMagFilter(gl, smoothExpand, smoothShrink, (mipmap) ? this.smoothMipmap : null, glTexture);
 	}
 
+	/**
+		Creates a new texture with one slot directly from a `TextureData` instance.
+		@param textureData TextureData instance
+	**/
 	public static function fromData(textureData:TextureData):Texture {
 		var texture = new Texture(textureData.width, textureData.height, 1, {format:textureData.format} );
 		texture.setData(textureData);

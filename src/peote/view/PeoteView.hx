@@ -30,8 +30,8 @@ o      o-o            o    o-o
 */
 
 /**
-PeoteView represents the main "view" that must be called in a [Lime](https://www.openfl.org/learn/npm/api/pages/lime/app/Application.html) application at startup to initialize the OpenGL-context and the `onRender` and `onResize` events.  
-It contains a list of `Display` areas and the entire view can be moved and zoomed.
+	PeoteView represents the main "view" that must be called in a [Lime](https://www.openfl.org/learn/npm/api/pages/lime/app/Application.html) application at startup to initialize the OpenGL-context and the `onRender` and `onResize` events.  
+	It contains a list of `Display` areas and the entire view can be moved and zoomed.
 **/
 @:allow(peote.view)
 class PeoteView 
@@ -39,7 +39,7 @@ class PeoteView
 	/**
 		Correspond to the [window](https://www.openfl.org/learn/npm/api/pages/lime/app/Application.html#window) property of the Lime Application
 	**/
-	public var window(default, null):Window = null;
+	public var window(default, null):Window;
 
 	/**
 		Wrapper around the OpenGL-context (ES2/3) of the Lime Application

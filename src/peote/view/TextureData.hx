@@ -21,18 +21,42 @@ FLOAT_R            4
 
 */	
 
+/**
+	Stores image data into different `TextureFormat`s to use it for `Texture`s.  
+	It supports basic converting functions and a low level api to edit pixels.
+**/
 #if (!doc_gen) private #end
 class TextureDataImpl
 {
-	public var width:Int = 0;
-	public var height:Int = 0;
+	/**
+		the used `TextureFormat`
+	**/
 	public var format:TextureFormat = TextureFormat.RGBA;
 	
-	public var slot(default, null):Int = 0;
+	/**
+		horizontal image size
+	**/
+	public var width:Int;
+
+	/**
+		vertical image size
+	**/
+	public var height:Int;
 	
-	public var bytes:Bytes = null;
+	/**
+		represents the bytes data of an image
+	**/
+	public var bytes:Bytes;
 	
-	public function new(width:Int, height:Int, format:TextureFormat, color:Color=0, ?bytes:Bytes)
+	/**
+		Creates a new `TextureData` instance.
+		@param width horizontal size
+		@param height vertical size
+		@param format the used `TextureFormat` (RGBA by default)
+		@param color background color
+		@param bytes to create from existing `Bytes` data
+	**/
+	public function new(width:Int, height:Int, format:TextureFormat = TextureFormat.RGBA, color:Color = 0, ?bytes:Bytes)
 	{
 		this.width = width;
 		this.height = height;
@@ -44,6 +68,10 @@ class TextureDataImpl
 		else this.bytes = bytes;
 	}
 		
+	/**
+		Fills the whole image with a color.
+		@param color a `Color` value
+	**/
 	public function clear(color:Color = 0)
 	{
 		if ( format.isFloat ) clearFloat(color.redF, color.greenF, color.blueF, color.alphaF);
@@ -81,7 +109,7 @@ class TextureDataImpl
 		}
 	}
 
-	public function clearFloat(red:Float=0.0, green:Float=0.0, blue:Float=0.0, alpha:Float=0.0)
+	private function clearFloat(red:Float=0.0, green:Float=0.0, blue:Float=0.0, alpha:Float=0.0)
 	{
 		if ( !format.isFloat ) throw("error, use clear() for INTEGER textureformats");
 		var pos:Int = 0;
@@ -114,6 +142,12 @@ class TextureDataImpl
 	// ------- getPixel and setPixel for Integer textureformat -------
 	// ---------------------------------------------------------------
 
+	/**
+		Sets the `Color` of a pixel.
+		@param x horizontal position
+		@param y vertical position
+		@param color color value
+	**/
 	public function setColor(x:Int, y:Int, color:Color)
 	{
 		if ( format.isFloat ) throw("error, use setPixelFloat() for FLOAT textureformats");		
@@ -211,6 +245,11 @@ class TextureDataImpl
 
 	// get Pixels for integer textureformat
 
+	/**
+		Gets the `Color` of a pixel.
+		@param x horizontal position
+		@param y vertical position
+	**/
 	public function getColor(x:Int, y:Int):Color
 	{
 		if ( format.isFloat ) throw("error, use getPixelFloat() for FLOAT textureformats");		
@@ -619,17 +658,17 @@ class TextureDataImpl
 	}
 	
 }
+// ---------------------------------------------------------------------
+// ------------------------- TextureData -------------------------------
+// ---------------------------------------------------------------------
 
-// -------------------- TextureData -------------------
-
-@:forward
-abstract TextureData(TextureDataImpl) to TextureDataImpl 
+/**
+	Stores image data into different `TextureFormat`s to use it for `Texture`s.  
+	It supports basic converting functions and a low level api to edit pixels.
+**/
+@:forward @:forward.new
+abstract TextureData(TextureDataImpl) to TextureDataImpl
 {
-	public inline function new(width:Int, height:Int, format:TextureFormat = TextureFormat.RGBA, color:Color = 0, ?bytes:Bytes) {
-		this = new TextureDataImpl(width, height, format, color, bytes);
-	}
-
-
 	// ----------- from basic haxe array-types -------
 
 	@:to
@@ -641,9 +680,6 @@ abstract TextureData(TextureDataImpl) to TextureDataImpl
 	public inline function toFloat32Array():Float32Array {
 		return Float32Array.fromBytes(this.bytes);
 	}
-
-	// TODO: --------- clone textureData -----------
-
 
 
 	// --------- static functions to create and convert from other TextureFormats ---------
