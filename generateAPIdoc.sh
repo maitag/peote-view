@@ -1,5 +1,5 @@
 haxe -xml doc/api/doc.xml \
-	-cp src -lib lime -lib format -D doc-gen \
+	-cp src -lib lime -lib format -lib vision -D doc-gen \
 	--no-output -neko dummy.n \
 	peote.view.PeoteView peote.view.Buffer peote.view.TextureCache
 

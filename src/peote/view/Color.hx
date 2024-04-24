@@ -98,7 +98,7 @@ abstract Color(Int) from Int to Int from UInt to UInt
 	public inline function setBlue (b:Int):Color return this = (this & 0xffff00ff)|(b<<8);
 	public inline function setAlpha(a:Int):Color return this = (this & 0xffffff00)|a;
 	public inline function setLuminance(lum:Int):Color return setRGB(lum, lum, lum);
-	
+
 	// set multiple color channels by Float values and also returns it
 	public inline function setFloatARGB (a:Float, r:Float, g:Float, b:Float):Color return this = FloatARGB(a, r, g, b);
 	public inline function setFloatRGBA (r:Float, g:Float, b:Float, a:Float):Color return this = FloatRGBA(r, g, b, a);
@@ -110,7 +110,7 @@ abstract Color(Int) from Int to Int from UInt to UInt
 	public inline function setFloatBlue (b:Float):Color return this = (this & 0xffff00ff) | (Std.int(b*0xFF)<<8);
 	public inline function setFloatAlpha(a:Float):Color return this = (this & 0xffffff00) | Std.int(a*0xFF);
 	public inline function setFloatLuminance(lum:Float):Color return setFloatRGB(lum, lum, lum);
-	
+
 
 	// ------------ static functions to create new Colors ------------
 
@@ -145,7 +145,7 @@ abstract Color(Int) from Int to Int from UInt to UInt
 	public static inline function random():Color {
 		return (Std.int(Math.random()*256) << 24) | Std.random(0x1000000);
 	}
-	
+
 	public inline function randomize() {
 		this = random();
 	}
@@ -156,22 +156,26 @@ abstract Color(Int) from Int to Int from UInt to UInt
 		return 'vec4(${Util.toFloatString(r/255)}, ${Util.toFloatString(g/255)},' + 
 		           ' ${Util.toFloatString(b/255)}, ${Util.toFloatString(a/255)})';
 	}
-	
-	
-	public static inline var BLACK   :Color = 0x000000ff;
-    public static inline var RED     :Color = 0xff0000ff;
-    public static inline var GREEN   :Color = 0x00ff00ff;
-    public static inline var YELLOW  :Color = 0xffff00ff;
-    public static inline var BLUE    :Color = 0x0000ffff;
-    public static inline var LIME    :Color = 0xccff00ff; // https://en.wikipedia.org/wiki/Lime_(color)
-    public static inline var MAGENTA :Color = 0xff00ffff;
-    public static inline var CYAN    :Color = 0x00ffffff;
-    public static inline var WHITE   :Color = 0xffffffff;
-    public static inline var GREY1   :Color = 0x222222ff;
-    public static inline var GREY2   :Color = 0x444444ff;
-    public static inline var GREY3   :Color = 0x666666ff;
-    public static inline var GREY4   :Color = 0x888888ff;
-    public static inline var GREY5   :Color = 0xaaaaaaff;
-    public static inline var GREY6   :Color = 0xccccccff;
-    public static inline var GREY7   :Color = 0xeeeeeeff;
+
+
+	public static inline var BLACK:Color = 0x000000ff;
+	public static inline var WHITE:Color = 0xffffffff;
+
+	public static inline var RED  :Color = 0xff0000ff;
+	public static inline var GREEN:Color = 0x00ff00ff;
+	public static inline var BLUE :Color = 0x0000ffff;
+
+	public static inline var YELLOW :Color = 0xffff00ff;
+	public static inline var MAGENTA:Color = 0xff00ffff;
+	public static inline var CYAN   :Color = 0x00ffffff;
+
+	public static inline var GREY1:Color = 0x222222ff;
+	public static inline var GREY2:Color = 0x444444ff;
+	public static inline var GREY3:Color = 0x666666ff;
+	public static inline var GREY4:Color = 0x888888ff;
+	public static inline var GREY5:Color = 0xaaaaaaff;
+	public static inline var GREY6:Color = 0xccccccff;
+	public static inline var GREY7:Color = 0xeeeeeeff;
+
+	public static inline var LIME:Color = 0xccff00ff; // https://en.wikipedia.org/wiki/Lime_(color)
 }

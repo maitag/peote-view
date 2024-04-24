@@ -29,7 +29,7 @@ You can test some of them also [here](http://maitag.de/semmi/haxelime/peote-view
 
 ## API
 
-is still [work in progress](http://maitag.de/semmi/haxelime/peote-view-api/peote/view/PeoteView.html)
+is still [work in progress](http://maitag.de/semmi/haxelime/peote-view-api/)
 (can be generated locally by [Dox](https://lib.haxe.org/p/dox/) and [generateAPIdoc.sh](https://github.com/maitag/peote-view/blob/master/generateAPIdoc.sh))
 
 

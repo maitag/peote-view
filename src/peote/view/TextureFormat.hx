@@ -43,6 +43,7 @@ abstract TextureFormat(Int) from Int to Int
 
 	inline function isGreaterR():Bool return this > R;
 	inline function isGreaterRG():Bool return this > RG;
+	inline function isInRGBA():Bool return this < LUMINANCE;
 
 	inline function isGreaterFloatR():Bool return this > FLOAT_R;
 	inline function isGreaterFloatRG():Bool return this > FLOAT_RG;
