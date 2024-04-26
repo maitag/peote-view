@@ -1,5 +1,8 @@
 package peote.view;
 
+/**
+	The set up the "blend" functions if a `Program` have `.blendEnabled`. 
+**/
 @:allow(peote.view.Program)
 abstract BlendFunc(Int) from Int to Int
 {
@@ -9,7 +12,7 @@ abstract BlendFunc(Int) from Int to Int
 	public static inline var MIN             :Int = 3;
 	public static inline var MAX             :Int = 4;
 	
-	public function toGL(gl:PeoteGL):Int {
+	function toGL(gl:PeoteGL):Int {
 		return switch (this) {
 			case ADD: gl.FUNC_ADD;
 			case SUBTRACT: gl.FUNC_SUBTRACT;

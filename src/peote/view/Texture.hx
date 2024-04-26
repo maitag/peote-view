@@ -137,10 +137,10 @@ class Texture
 	// TODO: return error if not fit into maxTextureSize!
 
 	/**
-		Creates a new `Texture` instance.
+		Creates a new `Texture` instance. Slot-tiling and texturesize is automatic calculated if you give the `slots` parameter a number.		
 		@param slotWidth width of each slot in pixels
 		@param slotHeight height of each slot in pixels
-		@param slots number of slots
+		@param slots number of slots, leave it at `null` to use `slotX` and `slotY` tiling by textureConfig
 		@param textureConfig options by `TextureConfig`
 	**/
 	public function new(slotWidth:Int, slotHeight:Int, ?slots:Null<Int>, ?textureConfig:TextureConfig)

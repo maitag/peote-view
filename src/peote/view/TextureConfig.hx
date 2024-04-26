@@ -1,48 +1,66 @@
 package peote.view;
 
-
+/**
+	This struct is to configure the properties of a new `Texture`.
+**/
 @:structInit
 class TextureConfig
-{
-	// if you set a number of "slots" while creating a new Texture, e.g. "new Texture(slotWidth, slotHeight, slots, textureConfig)"
-	// it will automatic calculate the texturesize and how to tile it into multiple slots (the Element can chose it by @slot)
-
-	// to finetune this you can set a maximum size for width or height (should be set lesser or equal to the maximum available OpenGL texturesize)
-	// (if you are use greater values, take also care that your device is have enough floatprecision for "glsl-modulo"!)
+{	
+	/**
+		Maximum width or height for the texture if its size is automatic calculated for multiple slots.  
+		Should be set lesser or equal to the maximum available OpenGL texturesize.  
+		(Avoid large values if your device have limited floatpoint precision for glsl "modulo")
+	**/
 	public var maxTextureSize:Int = 16384;
 
-	// manual Slot-Tiling for texturesize-calculation
-	// is only used if the optional "slots"-parameter is "null" while creating a new Texture
+	/**
+		How many slots the texture is horizontally divided into. Only applies when the `slots` parameter into `Texture` constructor is `null`.
+	**/
 	public var slotsX:Int = 1; // how much slots horizontaly
+
+	/**
+		How many slots the texture is vertically divided into. Only applies when the `slots` parameter into `Texture` constructor is `null`.
+	**/
 	public var slotsY:Int = 1; // how much slots verticaly
 
-
-	// allways keep this "true" for mipmapping or to be opengl-backwardcompatible
-	// it will use the nearest upper "power of two" number for the whole texturesize
+	/**
+		Round the texture width or height up to the next "power of two" number.  
+		This should be "true" for mipmapping or older OpenGl devices.
+	**/
 	public var powerOfTwo:Bool = true;
 
-
-
-	// Tile-Resolution for all slots (if the Element have @tile):
+	/**
+		How many tiles each slot is horizontally divided into for tilemapping (if the Element use @tile).
+	**/
 	public var tilesX:Int = 1;
+
+	/**
+		How many tiles each slot is vertically divided into for tilemapping (if the Element use @tile).
+	**/
 	public var tilesY:Int = 1;
 	
-
-
-	// ----- Textureformat (int/float and what colorchannels) -----
-
+	/**
+		Specifies the used `TextureFormat`.
+	**/
 	public var format:TextureFormat = TextureFormat.RGBA;
 
+	/**
+		Use smooth filtering if the texture is displayed at a enlarged size.
+	**/
+	public var smoothExpand:Bool = false;
 
+	/**
+		Use smooth filtering if the texture is displayed at a reduced size.
+	**/
+	public var smoothShrink:Bool = false;
 
-	// ---- Texture-Filtering -----
-
-	// smooth Interpolation between Pixels
-	public var smoothExpand:Bool = false; // while pixels are expanding (zoom in)
-	public var smoothShrink:Bool = false; // while pixels are shrinking (zoom out)
-
+	/**
+		If the texture have to generate mipmaps for filtering.
+	**/
 	public var mipmap:Bool = false; // enable to generate mipmap levels
 
-	// smooth Interpolation between mipmap levels (if mipmapping is enabled)
+	/**
+		Use smooth interpolation between the mipmap-levels for texture filtering.
+	**/
 	public var smoothMipmap:Bool = false;
 }

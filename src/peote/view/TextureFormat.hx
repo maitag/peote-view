@@ -1,13 +1,18 @@
 package peote.view;
 
+/**
+	Specifies the colorchannels and precision for storing imagedata and provides the `format` for `TextureData` and `Texture`s by `TextureConfig`.  
+	The value of a color/alpha channel of a pixel can have 8 bit integer or alternatively 32 bit floatpoint precision.
+**/
 @:allow(peote.view.intern.TexUtils, peote.view.Texture, peote.view.TextureData, peote.view.TextureDataImpl)
 #if (haxe_ver >= 4.0) enum #else @:enum#end
 abstract TextureFormat(Int) from Int to Int  
 {
-	// ES 2.0: https://docs.gl/es2/glTexImage2D
+	// ES 3.0: https://docs.gl/es3/glTexImage2D
+	public static inline var R:Int = 1; 
+	public static inline var RG:Int = 2;
 
-	public static inline var R:Int = 1; // ES 3.0: https://docs.gl/es3/glTexImage2D
-	public static inline var RG:Int = 2; // ES 3.0
+	// ES 2.0: https://docs.gl/es2/glTexImage2D
 	public static inline var RGB:Int = 3;
 	public static inline var RGBA:Int = 4;
 
@@ -21,6 +26,9 @@ abstract TextureFormat(Int) from Int to Int
 	public static inline var FLOAT_RGB:Int = 10;
 	public static inline var FLOAT_RGBA:Int = 11;
 
+	/**
+		Returns the enum-identifier as a `String`.
+	**/
 	@:to public function toString():String {
 		return switch (this) {
 			case R: "R";
@@ -38,8 +46,11 @@ abstract TextureFormat(Int) from Int to Int
 		}
 	}
 
+	/**
+		Is `true` if using floatpoint precision.
+	**/
 	public var isFloat(get, never):Bool;
-	public inline function get_isFloat():Bool return (this > LUMINANCE_ALPHA);
+	inline function get_isFloat():Bool return (this > LUMINANCE_ALPHA);
 
 	inline function isGreaterR():Bool return this > R;
 	inline function isGreaterRG():Bool return this > RG;
@@ -49,22 +60,28 @@ abstract TextureFormat(Int) from Int to Int
 	inline function isGreaterFloatRG():Bool return this > FLOAT_RG;
 	inline function isGreaterFloatRGB():Bool return this > FLOAT_RGB;
 
+	/**
+		The number of Bytes what is used per pixel.
+	**/
 	public var bytesPerPixel(get, never):Int;
 	inline function get_bytesPerPixel():Int {
 		if ( isFloat ) return get_bytesPerPixelFloat();
 		else return get_bytesPerPixelInt();
 	}
 
-	public var bytesPerPixelInt(get, never):Int;
+	var bytesPerPixelInt(get, never):Int;
 	inline function get_bytesPerPixelInt():Int {
 		if (this < LUMINANCE) return this;
 		else if (this < LUMINANCE_ALPHA) return 1;
 		else return 2;
 	}
 
-	public var bytesPerPixelFloat(get, never):Int;
+	var bytesPerPixelFloat(get, never):Int;
 	inline function get_bytesPerPixelFloat():Int return (this - LUMINANCE_ALPHA) * 4;
 
+	/**
+		The amount of used colorchannels (including alpha).
+	**/
 	public var channels(get, never):Int;
 	inline function get_channels():Int {
 		if ( isFloat ) return this - LUMINANCE_ALPHA;

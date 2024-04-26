@@ -1,7 +1,8 @@
 package peote.view;
 
-import peote.view.PeoteGL;
-
+/**
+	The set up the "blend" factors if a `Program` have `.blendEnabled`. 
+**/
 @:allow(peote.view.Program)
 abstract BlendFactor(Int) from Int to Int
 {
@@ -21,7 +22,7 @@ abstract BlendFactor(Int) from Int to Int
 	public static inline var CONSTANT_ALPHA          :Int = 13;
 	public static inline var ONE_MINUS_CONSTANT_ALPHA:Int = 14;
 	
-	public function toGL(gl:PeoteGL):Int {
+	function toGL(gl:PeoteGL):Int {
 		return switch (this) {
 			case ZERO: gl.ZERO;
 			case ONE: gl.ONE;

@@ -7,7 +7,7 @@ It's written in [Haxe](http://haxe.org) and runs multiplatform with [Lime](https
 
 
 ## Installation
-by [haxelib](https://lib.haxe.org): [peote-view](https://lib.haxe.org/p/peote-view/)
+by [haxelib](https://lib.haxe.org) -> [peote-view](https://lib.haxe.org/p/peote-view/)
 ```
 haxelib install peote-view
 ```
@@ -21,8 +21,7 @@ haxelib git peote-view https://github.com/maitag/peote-view
 ## Samples
 
 start here: [peote-view-samples](https://github.com/maitag/peote-view-samples) to test out some core features  
-or play around into: [peote-playground](https://github.com/maitag/peote-playground)
-  
+or [play](http://maitag.de/~half/peote-playground/) around into: [peote-playground](https://github.com/maitag/peote-playground)  
   
 You can test some of them also [here](http://maitag.de/semmi/haxelime/peote-view-remaster/?C=M;O=D).  
   
@@ -92,7 +91,7 @@ is still [work in progress](http://maitag.de/semmi/haxelime/peote-view-api/)
 - supports multiple amount of colorchannels (by `TextureFormat`) and can be filled by `TextureData`
 - can be splitted into Slots to store many texture data at once
 - can calculates best size for gl-texture (also into power-of-two size)
-- Slots can be parted into tiles for textureatlases
+- slots can be parted into tiles for textureatlases
 - supports mipmapping and min/mag filtering
 
 
@@ -111,6 +110,5 @@ is still [work in progress](http://maitag.de/semmi/haxelime/peote-view-api/)
 
 
 ## Todo
-- complete the inline documentation (Dox!)
 - better documentation (more readmes for each part)
 - multiwindows (did not work with textures yet)

@@ -184,7 +184,7 @@ class Program
 	public var zIndexEnabled:Bool;
 
 	/**
-		To use (Mask.USE) the stencil-buffer for masking or to draw (Mask.DRAW) inside to use it afterwards by another program.
+		To use the stencil-buffer for masking or to draw into it to use it afterwards by another program.
 	**/
 	public var mask:Mask = Mask.OFF;
 
