@@ -48,7 +48,7 @@ class TextureDataImpl
 	public var bytes:Bytes;
 
 	/**
-		Creates a new `TextureData` instance.
+		Creates a new `TextureDataImpl` instance.
 		@param width horizontal size
 		@param height vertical size
 		@param format the used `TextureFormat` (RGBA by default)
@@ -1302,9 +1302,21 @@ class TextureDataImpl
 	Stores image data into different `TextureFormat`s to use it for `Texture`s.  
 	It supports basic converting functions and a low level api to edit pixels.
 **/
-@:forward @:forward.new
+@:forward //@:forward.new
 abstract TextureData(TextureDataImpl) to TextureDataImpl
 {
+	/**
+		Creates a new `TextureData` instance.
+		@param width horizontal size
+		@param height vertical size
+		@param format the used `TextureFormat` (RGBA by default)
+		@param color background color
+		@param bytes to create from existing `Bytes` data
+	**/
+	public function new(width:Int, height:Int, format:TextureFormat = TextureFormat.RGBA, color:Color = 0, ?bytes:Bytes) {
+		this = new TextureDataImpl(width, height, format, color, bytes);
+	}
+
 	/**
 		Creates a new Texture with 1 slot what is using the texturedata.
 	**/
