@@ -68,7 +68,7 @@ class TextureDataImpl
 	}
 
 	/**
-		Fills the whole image with a color.
+		Fills the entire texturedata with a color.
 		@param color a `Color` value
 	**/
 	public function clear(color:Color = 0)
@@ -108,7 +108,14 @@ class TextureDataImpl
 		}
 	}
 
-	private function clearFloat(red:Float=0.0, green:Float=0.0, blue:Float=0.0, alpha:Float=0.0)
+	/**
+		Fills the entire texturedata with a color if using float `TextureFormat`.
+		@param red value (0.0 to 1.0) for red color channel
+		@param green value (0.0 to 1.0) for green color channel
+		@param blue value (0.0 to 1.0) for blue color channel
+		@param alpha value (0.0 to 1.0) for alpha channel
+	**/
+	public function clearFloat(red:Float=0.0, green:Float=0.0, blue:Float=0.0, alpha:Float=0.0)
 	{
 		if ( !format.isFloat ) throw("error, use clear() for INTEGER textureformats");
 		var pos:Int = 0;

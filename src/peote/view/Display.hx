@@ -383,7 +383,7 @@ class Display
 	**/
 	public function setFramebuffer(texture:Texture, ?textureSlot:Null<Int>, ?peoteView:PeoteView) {
 		if (fbTexture == texture) throw("Error, texture is already in use as Framebuffer for Display");
-		if (textureSlot >= texture.slots) throw("Error, maximum texture slot of framebufferTexture is" + (texture.slots - 1));
+		if (textureSlot != null && textureSlot >= texture.slots) throw("Error, maximum texture slot of framebufferTexture is" + (texture.slots - 1));
 		
 		if (peoteView == null) {
 			if (gl == null) throw("Error, if the display is not added it needs the gl-context of a peoteView to set a framebuffer texture");
