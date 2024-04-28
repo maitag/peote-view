@@ -1320,7 +1320,7 @@ abstract TextureData(TextureDataImpl) to TextureDataImpl
 		@param color background color
 		@param bytes to create from existing `Bytes` data
 	**/
-	public function new(width:Int, height:Int, format:TextureFormat = TextureFormat.RGBA, color:Color = 0, ?bytes:Bytes) {
+	public inline function new(width:Int, height:Int, format:TextureFormat = TextureFormat.RGBA, color:Color = 0, ?bytes:Bytes) {
 		this = new TextureDataImpl(width, height, format, color, bytes);
 	}
 
