@@ -16,7 +16,7 @@ import peote.view.intern.IntUtil;
 /**
 	A `Texture` can be used inside of `Program`s to render image data.  
 	It can store multiple `TextureData` in slots that can be divided into tiles for texture atlases.  
-	The precision (int/float) and amount of colorchannels can be defined by `TextureFormat`, mipmapping and filtering is supported.
+	The precision (int/float) and amount of colorchannels can be defined by `TextureFormat`. Mipmapping and filtering is supported.
 **/
 @:allow(peote.view)
 class Texture
@@ -57,8 +57,9 @@ class Texture
 	/**
 		The total number of slots in which the texture can store texture data.
 	**/
-	public var slots(default, null):Int;
-	
+	public var slots(get, never):Int;
+	inline function get_slots():Int return slotsX*slotsY;
+
 	/**
 		The horizontal number of slots into which the texture is divided.
 	**/
@@ -171,7 +172,7 @@ class Texture
 				width = IntUtil.nextPowerOfTwo(width);
 				height = IntUtil.nextPowerOfTwo(height);
 			}
-			if (width > textureConfig.maxTextureSize || height > textureConfig.maxTextureSize) throw('Error: max texture-size (${textureConfig.maxTextureSize}) is to small for $slots images ($slotWidth x $slotHeight)');
+			if (width > textureConfig.maxTextureSize || height > textureConfig.maxTextureSize) throw('Error: max texture-size (${textureConfig.maxTextureSize}) is to small for ${this.slots} images ($slotWidth x $slotHeight)');
 		}
 		else {
 			var p = TexUtils.optimalTextureSize(slots, slotWidth, slotHeight, textureConfig.maxTextureSize, textureConfig.powerOfTwo);
@@ -181,10 +182,8 @@ class Texture
 			slotsY = p.slotsY;
 		}
 
-		slots = slotsX * slotsY;
-
 		#if peoteview_debug_texture
-		trace('${slots} slots ($slotsX * $slotsY) on a ${width} x ${height} Texture');
+		trace('${this.slots} slots ($slotsX * $slotsY) on a ${width} x ${height} Texture');
 		#end
 	}
 	
