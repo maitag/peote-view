@@ -1,7 +1,7 @@
 package peote.view;
 
 /**
-	The set up the "blend" factors if a `Program` have `.blendEnabled`. 
+	To set up the "blend" factors if a `Program` has `.blendEnabled`. 
 **/
 @:allow(peote.view.Program)
 abstract BlendFactor(Int) from Int to Int

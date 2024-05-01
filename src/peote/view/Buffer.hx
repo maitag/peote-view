@@ -75,7 +75,7 @@ class BufferMacro
 // -------------------------------------------------------------------------------------------
 
 /**
-A Buffer stores all graphic elements and handles the data for an OpenGL-`vertex buffer`, for `<T>` it have to use a macro generated `Element` type.  
+A Buffer stores all graphic elements and handles the data for an OpenGL-`vertex buffer`, for `<T>` it has to use a macro generated `Element` type.  
 Used by a `Program` all contained elements will be rendered by the corresponding shaders/textures and the same buffer can also be shared by several programs.
 **/
 class $className implements peote.view.intern.BufferInterface
@@ -586,7 +586,7 @@ class $className implements peote.view.intern.BufferInterface
 // ----------------------------------------------------------------
 
 /**
-A Buffer stores all graphic elements and handles the data for an OpenGL-`vertex buffer`, for `<T>` it have to use a macro generated `Element` type.  
+A Buffer stores all graphic elements and handles the data for an OpenGL-`vertex buffer`, for `<T>` it has to use a macro generated `Element` type.  
 Used by a `Program` all contained elements will be rendered by the corresponding shaders/textures and the same buffer can also be shared by several programs.
 **/
 class Buffer<T>
