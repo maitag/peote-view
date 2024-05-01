@@ -153,8 +153,8 @@ class Texture
 		this.slotWidth = slotWidth;
 		this.slotHeight = slotHeight;
 
-		this.tilesX = textureConfig.tilesX;
-		this.tilesY = textureConfig.tilesY;
+		tilesX = textureConfig.tilesX;
+		tilesY = textureConfig.tilesY;
 		
 		format = textureConfig.format;
 
