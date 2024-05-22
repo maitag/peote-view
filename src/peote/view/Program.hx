@@ -387,6 +387,7 @@ class Program
 			
 			// gl-extensions for fragment-shader
 			// TODO: let enable custom extensions for shaders like "GL_OES_fragment_precision_high"
+			// TODO: optimize to not check every time!
 			glShaderConfig.FRAGMENT_EXTENSIONS = [];
 			if (gl.getExtension("OES_standard_derivatives") != null)
 				glShaderConfig.FRAGMENT_EXTENSIONS.push({EXTENSION:"GL_OES_standard_derivatives"});

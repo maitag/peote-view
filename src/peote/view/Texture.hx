@@ -240,6 +240,14 @@ class Texture
 			#if peoteview_debug_texture 
 			trace("Create Framebuffer");
 			#end
+
+			// TODO: optimize to not check every time!
+			// enables the extension (needs ONLY for ES 3)
+			if (PeoteGL.Version.isES3 && format.isFloat) {
+				if (gl.getExtension("EXT_color_buffer_float") != null) {}
+				else if (gl.getExtension("OES_texture_float") != null) {}
+			}
+
 			glDepthBuffer = gl.createRenderbuffer();
 			framebuffer = GLTool.createFramebuffer(gl, glTexture, glDepthBuffer, width, height);
 			updated = true;

@@ -23,6 +23,12 @@ class TexUtils
 		if (format.isFloat) {
 			// sometimes 32 float is essential for multipass-rendering,
 			// needs EXT_color_buffer_float or OES_texture_float extension
+
+			// CHECK: ( at now only in Texture.hx -> createFramebuffer()  
+			// if (gl.getExtension("EXT_color_buffer_float") != null) {}
+			// else if (gl.getExtension("OES_texture_float") != null) {}
+
+
 			gl.texImage2D(gl.TEXTURE_2D, 0, format.float32(gl), width, height, 0, format.formatFloat(gl), gl.FLOAT, 0);
 			if (GLTool.getLastGlError(gl) == gl.INVALID_VALUE) {
 				#if peoteview_debug_texture
