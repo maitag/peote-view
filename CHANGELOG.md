@@ -1,6 +1,9 @@
 Changelog
 =========
 
+* Added `public` for the `.fbTexture` to make it read-access for Framebuffer-`Display`s
+* Fixed `FBO/float-Texture` glitch where gl-EXT_color_buffer_float/OES_texture_float-extension was not set in time
+
 
 1.01 (05/01/2024)
 -----------------

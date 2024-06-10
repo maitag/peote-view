@@ -35,8 +35,6 @@ class Display
 	var uniformBufferFB:UniformBufferDisplay;
 	var uniformBufferViewFB:UniformBufferView;
 	
-	var fbTexture:Texture = null;
-	
 	/**
 		Horizontal position in pixels (distance to left edge of the view).
 	**/
@@ -410,6 +408,11 @@ class Display
 		fbTexture = null;
 		framebufferTextureSlot = 0;
 	}
+	
+	/**
+		The texture to render the display content inside if using into framebuffer-mode.
+	**/
+	public var fbTexture(default, null):Texture = null;
 	
 	/**
 		The texture-slot where to render into by renderToTexture().
