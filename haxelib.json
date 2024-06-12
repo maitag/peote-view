@@ -4,9 +4,9 @@
 	"license": "MIT",
 	"tags": ["peote", "opengl", "2d", "shader", "glsl"],
 	"description": "2D Render Library (lime/opengl)",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"classPath": "src/",
-	"releasenote": "refactoring, codecleaning, complete inline doxing",
+	"releasenote": "fix for loading fbo gl-extension, give .fbTexure read-access in Display",
 	"contributors": ["maitag"],
 	"dependencies": {
 		"lime": ""
