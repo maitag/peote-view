@@ -42,12 +42,21 @@ class BufferMacro
 		return null;
 	}
 	
+	static public function typeNotGenerated(fullyQualifiedName:String):Bool {
+		try {
+            if(Context.getType(fullyQualifiedName) != null) return false;
+        } catch(_) {}
+        return true;
+	}
+
 	static public function buildClass(className:String, elementPack:Array<String>, elementModule:String, elementName:String, superModule:String, superName:String, elementType:ComplexType):ComplexType
 	{		
 		className += "_" + elementName;
 		var classPackage = Context.getLocalClass().get().pack;
 		
-		if (!cache.exists(className))
+		var fullyQualifiedName:String = classPackage.concat([className]).join('.');
+		if ( typeNotGenerated(fullyQualifiedName) )
+		// if (!cache.exists(className))
 		{
 			cache[className] = true;
 			
@@ -56,7 +65,7 @@ class BufferMacro
 			else elemField = superModule.split(".").concat([superName]);
 			
 			#if peoteview_debug_macro
-			trace('generating Class: '+classPackage.concat([className]).join('.'));	
+			trace('generating Class: ' + fullyQualifiedName);	
 			/*
 			trace("ClassName:"+className);           // Buffer_ElementSimple
 			trace("classPackage:" + classPackage);   // [peote,view]	
@@ -568,8 +577,9 @@ class $className implements peote.view.intern.BufferInterface
 // -------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------			
 			//Context.defineModule(classPackage.concat([className]).join('.'),[c],Context.getLocalImports());
-			Context.defineModule(classPackage.concat([className]).join('.'),[c]);
 			//Context.defineType(c);
+			// Context.defineModule(classPackage.concat([className]).join('.'),[c]);
+			Context.defineModule(fullyQualifiedName,[c]);
 		}
 		return TPath({ pack:classPackage, name:className, params:[] });
 	}
