@@ -930,7 +930,7 @@ class Program
 		@param identifier texture-layer identifier (optional) - without it, the first available or "default" is used
 		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
 	**/
-	public function setTexture(texture:Texture, identifier:String, ?autoUpdateTextures:Null<Bool>):Void {
+	public function setTexture(texture:Texture, ?identifier:String, ?autoUpdateTextures:Null<Bool>):Void {
 		if (texture == null) throw("Error, texture is null.");
 		if (texture.programs == null) throw("Error, texture is disposed.");
 		if (identifier == null) {
@@ -952,7 +952,7 @@ class Program
 		@param identifier texture-layer identifier (optional) - without it, the first available or "default" is used
 		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
 	**/
-	public function setMultiTexture(textureUnits:Array<Texture>, identifier:String, ?autoUpdateTextures:Null<Bool>):Void {
+	public function setMultiTexture(textureUnits:Array<Texture>, ?identifier:String, ?autoUpdateTextures:Null<Bool>):Void {
 		if (identifier == null) {
 			if (textureIdentifiers.length > 0) identifier = textureIdentifiers[0];
 			else if (customTextureIdentifiers.length > 0) identifier = customTextureIdentifiers[0];
