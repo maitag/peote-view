@@ -1,6 +1,14 @@
 Changelog
 =========
 
+
+1.03 (28/09/2024)
+-----------------
+* Added `dispose()` for 'Texture' to free opengl-ram
+* Added feature that the texture-layer identifier can be optional now while set, add or remove textures to a `Program`
+* Fixed (partial) old glitch with lanugage-server cache and macros, where into this case the Buffer-macro checks that the type was not already generated
+
+
 1.02 (06/12/2024)
 -----------------
 * Added `public` for the `.fbTexture` to make it read-access for Framebuffer-`Display`s

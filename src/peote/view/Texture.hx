@@ -27,7 +27,7 @@ class Texture
 	var programs = new Array<Program>();
 	var displays = new Array<Display>();
 	var mipmapIsCreated:Bool = false;
-	var updated:Bool = false;	
+	var updated:Bool = false;
 		
 	/**
 		The used `TextureFormat`.
@@ -327,6 +327,8 @@ class Texture
 		@param data an UInt8Array to store the data, if it is `null` a new one will be created
 	**/
 	public function readPixelsUInt8(x:Int, y:Int, w:Int, h:Int, ?data:UInt8Array):UInt8Array {
+		if (programs == null) throw("Error, texture is disposed.");
+		if (gl == null) throw("Error, texture have no data yet.");
 		if (format.isFloat) throw ('Error, for float textureformat you have to use "readPixelsFloat32()".');
 		if (data == null) data = new UInt8Array(w * h * 4);
 		// read pixels
@@ -348,6 +350,8 @@ class Texture
 		@param data a Float32Array to store the data, if it is `null` a new one will be created
 	**/
 	public function readPixelsFloat32(x:Int, y:Int, w:Int, h:Int, ?data:Float32Array):Float32Array {
+		if (programs == null) throw("Error, texture is disposed.");
+		if (gl == null) throw("Error, texture have no data yet.");
 		if (!format.isFloat) throw ('Error, for integer textureformat you have to use "readPixelsUInt8()".');
 		if (data == null) data = new Float32Array(w * h * 4);
 		// read pixels
@@ -373,6 +377,7 @@ class Texture
 		@param slot slot number in wich the texturedata is to be used
 	**/
 	public function setData(textureData:TextureData, slot:Int = 0) {
+		if (programs == null) throw("Error, texture is disposed.");
 		if (format.isFloat != textureData.format.isFloat)
 			throw('Error: Can not use ${(textureData.format.isFloat) ? "float" : "integer"} TextureData for ${(format.isFloat) ? "float" : "integer"} Texture');
 		else if (format.channels != textureData.format.channels) 
@@ -401,6 +406,7 @@ class Texture
 		@param slot slot number in wich the texturedata is used
 	**/
 	public function clearSlot(slot:Int) {
+		if (programs == null) throw("Error, texture is disposed.");
 		#if peoteview_debug_texture
 		trace("Clear Texture slot");
 		#end
@@ -428,7 +434,26 @@ class Texture
 		if (smoothMipmap != null) this.smoothMipmap = smoothMipmap;
 		if (gl != null) TexUtils.setMinMagFilter(gl, smoothExpand, smoothShrink, (mipmap) ? this.smoothMipmap : null, glTexture);
 	}
-
+	
+	/**
+		Removes the texture from all programs/display-framebuffers and frees texture-ram by OpenGL. It can not be used again.
+	**/
+	public function dispose() {
+		if (programs == null) throw("Error, texture is already disposed.");
+		#if peoteview_debug_texture
+		trace("Texture is disposed");
+		#end
+		// remove from all Programs
+		for (p in programs) p.removeTexture(this);
+		// remove from all Displays
+		for (d in displays) d.removeFramebuffer();
+		gl.deleteTexture(glTexture);
+		glTexture = null;
+		programs = null;
+		displays = null;
+		gl = null;
+	}
+	
 	/**
 		Creates a new texture with one slot directly from a `TextureData` instance.
 		@param textureData TextureData instance

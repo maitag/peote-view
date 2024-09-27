@@ -13,7 +13,7 @@ import haxe.macro.TypeTools;
 
 class BufferMacro
 {
-	public static var cache = new Map<String, Bool>();
+	// public static var cache = new Map<String, Bool>();
 	
 	static public function build()
 	{	
@@ -41,12 +41,18 @@ class BufferMacro
 		}
 		return null;
 	}
-	
+
+	/*
 	static public function typeNotGenerated(fullyQualifiedName:String):Bool {
 		try {
-            if(Context.getType(fullyQualifiedName) != null) return false;
-        } catch(_) {}
-        return true;
+			if(Context.getType(fullyQualifiedName) != null) return false;
+		} catch(_) {}
+		return true;
+	}
+	*/
+	
+	static public function typeExists(fullyQualifiedName:String):Bool {
+		return try { Context.getType(fullyQualifiedName); true; } catch(e:Dynamic) false;
 	}
 
 	static public function buildClass(className:String, elementPack:Array<String>, elementModule:String, elementName:String, superModule:String, superName:String, elementType:ComplexType):ComplexType
@@ -55,17 +61,18 @@ class BufferMacro
 		var classPackage = Context.getLocalClass().get().pack;
 		
 		var fullyQualifiedName:String = classPackage.concat([className]).join('.');
-		if ( typeNotGenerated(fullyQualifiedName) )
 		// if (!cache.exists(className))
+		// if ( typeNotGenerated(fullyQualifiedName) )
+		if ( !typeExists(fullyQualifiedName) )
 		{
-			cache[className] = true;
+			// cache[className] = true;
 			
 			var elemField:Array<String>;
 			if (superName == null) elemField = elementModule.split(".").concat([elementName]);
 			else elemField = superModule.split(".").concat([superName]);
 			
 			#if peoteview_debug_macro
-			trace('generating Class: ' + fullyQualifiedName);	
+			trace('generating Class: ' + fullyQualifiedName);
 			/*
 			trace("ClassName:"+className);           // Buffer_ElementSimple
 			trace("classPackage:" + classPackage);   // [peote,view]	
@@ -136,7 +143,7 @@ class $className implements peote.view.intern.BufferInterface
 		if (peote.view.PeoteGL.Version.isINSTANCED) // TODO can be missing if buffer created before peoteView
 		{
 			$p{elemField}.createInstanceBytes();
-		    _elemBuffSize = $p{elemField}.BUFF_SIZE_INSTANCED;
+			_elemBuffSize = $p{elemField}.BUFF_SIZE_INSTANCED;
 		}
 		else _elemBuffSize = $p{elemField}.BUFF_SIZE * $p{elemField}.VERTEX_COUNT;
 		
@@ -633,7 +640,7 @@ class Buffer<T>
 	public function update():Void {}
 
 	/**
-        Removes an element from the buffer, so it will not be rendered anymore.
+		Removes an element from the buffer, so it will not be rendered anymore.
 		@param  element Element instance
 	**/
 	public function removeElement(element:T):Void {}

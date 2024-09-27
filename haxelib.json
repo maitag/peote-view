@@ -4,9 +4,9 @@
 	"license": "MIT",
 	"tags": ["peote", "opengl", "2d", "shader", "glsl"],
 	"description": "2D Render Library (lime/opengl)",
-	"version": "1.0.2",
+	"version": "1.0.3",
 	"classPath": "src/",
-	"releasenote": "fix for loading fbo gl-extension, give .fbTexure read-access in Display",
+	"releasenote": "buffer macro fix, texturelayer-identifiers can be optional now, dispose() function for textures",
 	"contributors": ["maitag"],
 	"dependencies": {
 		"lime": ""

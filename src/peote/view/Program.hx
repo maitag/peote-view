@@ -925,14 +925,21 @@ class Program
 	}
 
 	/**
-		Assign a `Texture` instance to a texture-layer.
+		Assign a `Texture` instance to a texture-layer (by identifier).
 		@param texture Texture instance
-		@param identifier texture-layer identifier
+		@param identifier texture-layer identifier (optional) - without it, the first available or "default" is used
 		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
 	**/
 	public function setTexture(texture:Texture, identifier:String, ?autoUpdateTextures:Null<Bool>):Void {
+		if (texture == null) throw("Error, texture is null.");
+		if (texture.programs == null) throw("Error, texture is disposed.");
+		if (identifier == null) {
+			if (textureIdentifiers.length > 0) identifier = textureIdentifiers[0];
+			else if (customTextureIdentifiers.length > 0) identifier = customTextureIdentifiers[0];
+			else identifier = "default";
+		}
 		#if peoteview_debug_program
-		trace("(re)set texture of a layer");
+		trace('(re)set texture of layer: $identifier');
 		#end
 		var layer = getTextureIndexByIdentifier(identifier);
 		textureLayers.set(layer, [texture]);
@@ -940,38 +947,51 @@ class Program
 	}
 
 	/**
-		Assign multiple `Texture` instances to a texture-layer. Can switch between them by using an `@texUnit` integer attribute inside the Element.
+		Assign multiple `Texture` instances to a texture-layer (by identifier). Can switch between them by using an `@texUnit("identifier")` integer attribute inside the Element.
 		@param textureUnits an Array of Texture instances
-		@param identifier texture-layer identifier
+		@param identifier texture-layer identifier (optional) - without it, the first available or "default" is used
 		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
 	**/
 	public function setMultiTexture(textureUnits:Array<Texture>, identifier:String, ?autoUpdateTextures:Null<Bool>):Void {
+		if (identifier == null) {
+			if (textureIdentifiers.length > 0) identifier = textureIdentifiers[0];
+			else if (customTextureIdentifiers.length > 0) identifier = customTextureIdentifiers[0];
+			else identifier = "default";
+		}
 		#if peoteview_debug_program
-		trace("(re)set texture-units of a layer");
+		trace('(re)set texture-units of layer: $identifier');
 		#end
 		var layer = getTextureIndexByIdentifier(identifier);
 		if (textureUnits == null) throw("Error, textureUnits need to be an array of textures");
 		if (textureUnits.length == 0) throw("Error, textureUnits needs at least 1 texture");
 		var i = textureUnits.length;
-		while (i-- > 0)
-			if (textureUnits[i] == null) throw("Error, texture is null.");
-			else if (textureUnits.indexOf(textureUnits[i]) != i) throw("Error, textureLayer can not contain same texture twice.");
+		while (i-- > 0) {
+			if (textureUnits[i] == null) throw('Error, texture $i is null.');
+			if (textureUnits[i].programs == null) throw('Error, texture $i is disposed.');
+			if (textureUnits.indexOf(textureUnits[i]) != i) throw("Error, textureLayer can not contain same texture twice.");
+		}
 		textureLayers.set(layer, textureUnits);
 		checkAutoUpdate(autoUpdateTextures);
 	}
 
 	/**
-		Adds a `Texture` to a texture-layer. Can switch between them by using an `@texUnit` integer attribute inside the Element.
+		Adds a `Texture` to a texture-layer (by identifier). Can switch between them by using an `@texUnit("identifier")` integer attribute inside the Element.
 		@param texture Texture instance
-		@param identifier texture-layer identifier
+		@param identifier texture-layer identifier (optional) - without it, the first available or "default" is used
 		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
 	**/
-	public function addTexture(texture:Texture, identifier:String, ?autoUpdateTextures:Null<Bool>):Void {
+	public function addTexture(texture:Texture, ?identifier:String, ?autoUpdateTextures:Null<Bool>):Void {
+		if (texture == null) throw("Error, texture is null.");
+		if (texture.programs == null) throw("Error, texture is disposed.");
+		if (identifier == null) {
+			if (textureIdentifiers.length > 0) identifier = textureIdentifiers[0];
+			else if (customTextureIdentifiers.length > 0) identifier = customTextureIdentifiers[0];
+			else identifier = "default";
+		}
 		#if peoteview_debug_program
-		trace("add texture into units of " + identifier);
+		trace('add texture to the units of layer: $identifier');
 		#end
 		var layer = getTextureIndexByIdentifier(identifier);
-		if (texture == null) throw("Error, texture is null.");
 		var textures:Array<Texture> = textureLayers.get(layer);
 		if (textures != null) {
 			if (textures.indexOf(texture) >= 0) throw("Error, textureLayer already contains this texture.");
@@ -985,39 +1005,65 @@ class Program
 	}
 
 	/**
-		Removes a `Texture` from a texture-layer.
+		Removes a `Texture` from a texture-layer (by identifier) or from all layers where it is used.
 		@param texture Texture instance
-		@param identifier texture-layer identifier
+		@param identifier texture-layer identifier (optional)
 		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
 	**/
-	public function removeTexture(texture:Texture, identifier:String, ?autoUpdateTextures:Null<Bool>):Void {
-		#if peoteview_debug_program
-		trace("remove texture from textureUnits of a layer");
-		#end
-		var layer = getTextureIndexByIdentifier(identifier, false);
-		if (layer < 0) throw('Error, textureLayer "$identifier" did not exists.');
+	public function removeTexture(texture:Texture, ?identifier:String, ?autoUpdateTextures:Null<Bool>):Void {
 		if (texture == null) throw("Error, texture is null.");
-		textureLayers.get(layer).remove(texture);
-		if (textureLayers.get(layer).length == 0) {
-			textureLayers.remove(layer);
-			customTextureIdentifiers.remove(identifier);
+		if (texture.programs == null) throw("Error, texture is disposed.");
+		if (identifier == null) {
+			#if peoteview_debug_program
+			trace("remove texture from units of all layers");
+			#end
+			for (layer in textureLayers.keys()) {
+				textureLayers.get(layer).remove(texture);
+				if (textureLayers.get(layer).length == 0) {
+					textureLayers.remove(layer);
+					customTextureIdentifiers.remove(identifier);
+				}
+			}
+		}
+		else {
+			#if peoteview_debug_program
+			trace('remove texture from unit of layer: $identifier');
+			#end
+			var layer = getTextureIndexByIdentifier(identifier, false);
+			if (layer < 0) throw('Error, textureLayer "$identifier" did not exists.');
+			textureLayers.get(layer).remove(texture);
+			if (textureLayers.get(layer).length == 0) {
+				textureLayers.remove(layer);
+				customTextureIdentifiers.remove(identifier);
+			}
 		}
 		checkAutoUpdate(autoUpdateTextures);
 	}
 
 	/**
-		Removes all `Texture`s of a texture-layer.
-		@param identifier texture-layer identifier
+		Removes all `Texture`s of a texture-layer (by identifier) or removes all textures from all layers.
+		@param identifier texture-layer identifier (optional)
 		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
 	**/
-	public function removeAllTexture(identifier:String, ?autoUpdateTextures:Null<Bool>):Void {
-		#if peoteview_debug_program
-		trace("remove all textures from a layer");
-		#end
-		var layer = getTextureIndexByIdentifier(identifier, false);
-		if (layer < 0) throw('Error, textureLayer "$identifier" did not exists.');
-		textureLayers.remove(layer);
-		customTextureIdentifiers.remove(identifier);
+	public function removeAllTexture(?identifier:String, ?autoUpdateTextures:Null<Bool>):Void {
+		if (identifier == null) {
+			#if peoteview_debug_program
+			trace("remove all textures from all layers");
+			#end
+			for (layer in textureLayers.keys()) {
+				textureLayers.remove(layer);
+			}
+			customTextureIdentifiers = [];
+		}
+		else {
+			#if peoteview_debug_program
+			trace('remove all textures from layer $identifier');
+			#end
+			var layer = getTextureIndexByIdentifier(identifier, false);
+			if (layer < 0) throw('Error, textureLayer "$identifier" did not exists.');
+			textureLayers.remove(layer);
+			customTextureIdentifiers.remove(identifier);
+		}
 		checkAutoUpdate(autoUpdateTextures);
 	}
 
