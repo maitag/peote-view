@@ -13,8 +13,6 @@ import haxe.macro.TypeTools;
 
 class BufferMacro
 {
-	// public static var cache = new Map<String, Bool>();
-	
 	static public function build()
 	{	
 		switch (Context.getLocalType()) {
@@ -42,17 +40,14 @@ class BufferMacro
 		return null;
 	}
 
-	/*
-	static public function typeNotGenerated(fullyQualifiedName:String):Bool {
-		try {
-			if(Context.getType(fullyQualifiedName) != null) return false;
-		} catch(_) {}
-		return true;
-	}
-	*/
-	
-	static public function typeExists(fullyQualifiedName:String):Bool {
-		return try { Context.getType(fullyQualifiedName); true; } catch(e:Dynamic) false;
+	@:persistent static var generated = new Map<String, Bool>();
+
+	static function isAlive(name:String):Bool {
+		return try Context.getType(name) != null
+			catch(s:String) {
+				if (s != 'Type not found \'$name\'') throw(s);
+				false;
+			};
 	}
 
 	static public function buildClass(className:String, elementPack:Array<String>, elementModule:String, elementName:String, superModule:String, superName:String, elementType:ComplexType):ComplexType
@@ -61,34 +56,32 @@ class BufferMacro
 		var classPackage = Context.getLocalClass().get().pack;
 		
 		var fullyQualifiedName:String = classPackage.concat([className]).join('.');
-		// if (!cache.exists(className))
-		// if ( typeNotGenerated(fullyQualifiedName) )
-		if ( !typeExists(fullyQualifiedName) )
-		{
-			// cache[className] = true;
+		
+		var tp = TPath({ pack:classPackage, name:className, params:[] });
+		if ( generated.exists(fullyQualifiedName)  &&  isAlive(fullyQualifiedName) ) return tp;
+
+		generated.set(fullyQualifiedName, true);
 			
-			var elemField:Array<String>;
-			if (superName == null) elemField = elementModule.split(".").concat([elementName]);
-			else elemField = superModule.split(".").concat([superName]);
-			
-			#if peoteview_debug_macro
-			trace('generating Class: ' + fullyQualifiedName);
-			/*
-			trace("ClassName:"+className);           // Buffer_ElementSimple
-			trace("classPackage:" + classPackage);   // [peote,view]	
-			
-			trace("ElementPackage:" + elementPack);  // [elements]
-			trace("ElementModule:" + elementModule); // elements.ElementSimple
-			trace("ElementName:" + elementName);     // ElementSimple
-			
-			trace("ElementType:" + elementType);     // TPath({ name => ElementSimple, pack => [elements], params => [] })
-			trace("ElemField:" + elemField);
-			*/
-			#end
-			
-			var c = macro		
-// -------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------
+		var elemField:Array<String>;
+		if (superName == null) elemField = elementModule.split(".").concat([elementName]);
+		else elemField = superModule.split(".").concat([superName]);
+		
+		#if peoteview_debug_macro
+		trace('generating Class: ' + fullyQualifiedName);
+		/*
+		trace("ClassName:"+className);           // Buffer_ElementSimple
+		trace("classPackage:" + classPackage);   // [peote,view]	
+		
+		trace("ElementPackage:" + elementPack);  // [elements]
+		trace("ElementModule:" + elementModule); // elements.ElementSimple
+		trace("ElementName:" + elementName);     // ElementSimple
+		
+		trace("ElementType:" + elementType);     // TPath({ name => ElementSimple, pack => [elements], params => [] })
+		trace("ElemField:" + elemField);
+		*/
+		#end
+		
+		var c = macro // ---------------- Buffer -----------------------
 
 /**
 A Buffer stores all graphic elements and handles the data for an OpenGL-`vertex buffer`, for `<T>` it has to use a macro generated `Element` type.  
@@ -104,14 +97,14 @@ class $className implements peote.view.intern.BufferInterface
 	var _elements: haxe.ds.Vector<$elementType>; // var elements:Int; TAKE CARE if same name as package! -> TODO!!
 	var _maxElements:Int = 0; // amount of added elements (pos of last element)
 	var _elemBuffSize:Int;
-	
+
 	var _minSize:Int;
 	var _growSize:Int = 0;
 	var _shrinkAtSize:Int = 0;
-	
+
 	// local bytes-buffer
 	var _bytes: peote.view.intern.BufferBytes;
-	
+
 	#if peoteview_queueGLbuffering
 	var updateGLBufferElementQueue:Array<$elementType>;
 	var setNewGLContextQueue:Array<PeoteGL>;
@@ -153,7 +146,7 @@ class $className implements peote.view.intern.BufferInterface
 		_bytes = peote.view.intern.BufferBytes.alloc(_elemBuffSize * _minSize);
 		_bytes.fill(0, _elemBuffSize * _minSize, 0);		
 	}
-	
+
 	inline function setNewGLContext(newGl:PeoteGL)
 	{
 		#if peoteview_queueGLbuffering
@@ -252,7 +245,7 @@ class $className implements peote.view.intern.BufferInterface
 		
 		_gl.bindBuffer (_gl.ARRAY_BUFFER, null);
 	}
-	
+
 	inline function changeBufferSize(newSize:Int):Void
 	{
 		var _newBytes = peote.view.intern.BufferBytes.alloc(_elemBuffSize * newSize);
@@ -315,7 +308,7 @@ class $className implements peote.view.intern.BufferInterface
 
 		return element;
 	}
-	
+
 	/**
 		Updates the changes of an contained element to the rendering process.
 		@param  element Element instance
@@ -350,14 +343,14 @@ class $className implements peote.view.intern.BufferInterface
 		// TODO: peoteview_queueGLbuffering
 		updateGLBuffer();
 	}
-	
+
 	inline function _updateElement(element: $elementType):Void
 	{	
 		//trace("Buffer.updateElement at position" + element.bytePos);
 		if (element.bytePos == -1) throw ("Error, Element is not added to Buffer");		
 		if (_gl != null) element.updateGLBuffer(_gl, _glBuffer, _elemBuffSize);
 	}
-	
+
 	/**
 		Removes an element from the buffer, so it will not be rendered anymore.
 		@param  element Element instance
@@ -466,7 +459,7 @@ class $className implements peote.view.intern.BufferInterface
 		
 		// TODO: set buffIndex inside element if that is generated by macro
 	}
-	
+
 	// ---------------------------
 
 	private function getElementWithHighestZindex(elementIndices:Array<Int>): Int
@@ -488,7 +481,7 @@ class $className implements peote.view.intern.BufferInterface
 	/*public function sortTransparency():Void
 	{
 	}*/
-	
+
 	inline function getVertexShader():String return $p{elemField}.vertexShader;
 	inline function getFragmentShader():String return $p{elemField}.fragmentShader;
 	inline function getTextureIdentifiers():Array<String> return ($p{elemField}.IDENTIFIERS_TEXTURE == "") ? [] : $p{elemField}.IDENTIFIERS_TEXTURE.split(",");
@@ -497,15 +490,15 @@ class $className implements peote.view.intern.BufferInterface
 	inline function getCustomVaryings():Array<String> return ($p{elemField}.VARYINGS_CUSTOM == "") ? [] :  $p{elemField}.VARYINGS_CUSTOM.split(",");
 	inline function getDefaultColorFormula():String return $p{elemField}.DEFAULT_COLOR_FORMULA;
 	inline function getDefaultFormulaVars():haxe.ds.StringMap<peote.view.Color> return $p{elemField}.DEFAULT_FORMULA_VARS;
-	
+
 	inline function getFormulas():haxe.ds.StringMap<String> return $p{elemField}.FORMULAS;
 	inline function getAttributes():haxe.ds.StringMap<String> return $p{elemField}.ATTRIBUTES;
 	inline function getFormulaNames():haxe.ds.StringMap<String> return $p{elemField}.FORMULA_NAMES;
-	
+
 	inline function getFormulaVaryings():Array<String> return ($p{elemField}.FORMULA_VARYINGS == "") ? [] :  $p{elemField}.FORMULA_VARYINGS.split(",");
 	inline function getFormulaConstants():Array<String> return ($p{elemField}.FORMULA_CONSTANTS == "") ? [] :  $p{elemField}.FORMULA_CONSTANTS.split(",");
 	inline function getFormulaCustoms():Array<String> return ($p{elemField}.FORMULA_CUSTOMS == "") ? [] :  $p{elemField}.FORMULA_CUSTOMS.split(",");
-	
+
 	inline function getMaxZindex():Int return $p{elemField}.MAX_ZINDEX;
 	inline function hasBlend():Bool return $p{elemField}.BLEND_ENABLED;
 	inline function hasZindex():Bool return $p{elemField}.ZINDEX_ENABLED;
@@ -519,17 +512,17 @@ class $className implements peote.view.intern.BufferInterface
 			$p{elemField}.bindAttribLocationsInstanced(gl, glProgram);
 		else $p{elemField}.bindAttribLocations(gl, glProgram);
 	}
-	
+
 	inline function render(peoteView:peote.view.PeoteView, display:peote.view.Display, program:peote.view.Program)
 	{
 		renderFromTo( peoteView, display, program, _maxElements );
 	}
-	
+
 	inline function pick(peoteView:peote.view.PeoteView, display:peote.view.Display, program:peote.view.Program, toElement:Int)
 	{
 		renderFromTo( peoteView, display, program, (toElement < 0) ? _maxElements : toElement );
 	}	
-	
+
 	inline function renderFromTo(peoteView:peote.view.PeoteView, display:peote.view.Display, program:peote.view.Program, toElement:Int)
 	{		
 		//trace("        ---buffer.render---");
@@ -576,19 +569,14 @@ class $className implements peote.view.intern.BufferInterface
 		}
 		//trace("render time:"+(haxe.Timer.stamp()-t));
 	}
-
 };
 
 
 
-// -------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------			
-			//Context.defineModule(classPackage.concat([className]).join('.'),[c],Context.getLocalImports());
-			//Context.defineType(c);
-			// Context.defineModule(classPackage.concat([className]).join('.'),[c]);
-			Context.defineModule(fullyQualifiedName,[c]);
-		}
-		return TPath({ pack:classPackage, name:className, params:[] });
+// ---------------- end Buffer --------
+
+		Context.defineModule(fullyQualifiedName,[c]);
+		return tp;
 	}
 }
 #end
