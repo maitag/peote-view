@@ -1579,9 +1579,9 @@ abstract TextureData(TextureDataImpl) from TextureDataImpl to TextureDataImpl
 // dummy image datatypes if not have vision or pi_xy lib installed
 
 #if !vision
-class Visionimage_ {}
+private class Visionimage_ {}
 #end
 
 #if !pi_xy
-class Pixelimage_ {}
+private class Pixelimage_ {}
 #end
