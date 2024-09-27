@@ -1310,7 +1310,7 @@ class TextureDataImpl
 	It supports basic converting functions and a low level api to edit pixels.
 **/
 @:forward //@:forward.new
-abstract TextureData(TextureDataImpl) to TextureDataImpl
+abstract TextureData(TextureDataImpl) from TextureDataImpl to TextureDataImpl
 {
 	/**
 		Creates a new `TextureData` instance.
@@ -1549,7 +1549,7 @@ abstract TextureData(TextureDataImpl) to TextureDataImpl
 		Creates new texturedata from a `Image` of the [Vision](https://lib.haxe.org/p/vision) library.
 		@param image `Image` instance
 	**/
-	@:from static public inline function fromVisionImage(image #if vision :vision.ds.Image #end):TextureData {
+	@:from static public inline function fromVisionImage(image:#if vision vision.ds.Image #else Visionimage_ #end):TextureData {
 		#if vision
 		return new TextureData( image.width, image.height, TextureFormat.RGBA, image.toBytes(vision.ds.PixelFormat.RGBA) );
 		#else
@@ -1562,7 +1562,7 @@ abstract TextureData(TextureDataImpl) to TextureDataImpl
 		Creates new texturedata from a `Pixelimage` of the [pi_xy](https://github.com/nanjizal/pi_xy) library.
 		@param pixelImage `Pixelimage` instance
 	**/
-	@:from static public inline function fromPixelImage(pixelImage #if pi_xy :pi_xy.Pixelimage #end):TextureData {
+	@:from static public inline function fromPixelImage(pixelImage:#if pi_xy pi_xy.Pixelimage #else Pixelimage_ #end):TextureData {
 		#if pi_xy
 		// return pixelImage.peoteTexture.toTextureData();
 		// return new TextureData( pixelImage.width, pixelImage.height, TextureFormat.RGBA, pixelImage.peoteTexture.toPeotePixels(pixelImage) );
@@ -1575,3 +1575,13 @@ abstract TextureData(TextureDataImpl) to TextureDataImpl
 	
 
 }
+
+// dummy image datatypes if not have vision or pi_xy lib installed
+
+#if !vision
+class Visionimage_ {}
+#end
+
+#if !pi_xy
+class Pixelimage_ {}
+#end
