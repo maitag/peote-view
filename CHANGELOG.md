@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-1.03 (28/09/2024)
+1.03 (09/28/2024)
 -----------------
 * Added `dispose()` for 'Texture' to free opengl-ram
 * Added feature that the texture-layer identifier can be optional now while set, add or remove textures to a `Program`
