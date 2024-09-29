@@ -94,7 +94,7 @@ class $className implements peote.view.intern.BufferInterface
 	var _glInstanceBuffer: peote.view.PeoteGL.GLBuffer = null;
 	var _glVAO: peote.view.PeoteGL.GLVertexArrayObject = null;
 
-	var _elements: haxe.ds.Vector<$elementType>; // var elements:Int; TAKE CARE if same name as package! -> TODO!!
+	var _elements: haxe.ds.Vector<$elementType>;
 	var _maxElements:Int = 0; // amount of added elements (pos of last element)
 	var _elemBuffSize:Int;
 
@@ -159,7 +159,7 @@ class $className implements peote.view.intern.BufferInterface
 	{
 		if (newGl != null && newGl != _gl) // only if different GL - Context	
 		{
-			if (_gl != null) deleteGLBuffer(); // < ------- TODO BUGGY with different-context (see multiwindow sample)
+			if (_gl != null) deleteGLBuffer(); // < ------- TODO BUGGY with different gl-context (see multiwindow sample)
 			
 			#if peoteview_debug_buffer
 			trace("Buffer setNewGLContext");
