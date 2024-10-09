@@ -1542,9 +1542,9 @@ class ElementImpl
 		var buff_size_instanced:Int = Std.int(
 			timers.length * 8
 			+ 4 * (conf.rotation.n + conf.zIndex.n)
-			+ ((conf.posX.isAltType) ? 4:2) * (conf.posX.n  + conf.posY.n)
-			+ ((conf.sizeX.isAltType) ? 4:2) * (conf.sizeX.n + conf.sizeY.n)
-			+ ((conf.pivotX.isAltType) ? 4:2) * (conf.pivotX.n + conf.pivotY.n)
+			+ ((conf.posX.isAltType || conf.posY.isAltType) ? 4:2) * (conf.posX.n  + conf.posY.n)
+			+ ((conf.sizeX.isAltType || conf.sizeY.isAltType) ? 4:2) * (conf.sizeX.n + conf.sizeY.n)
+			+ ((conf.pivotX.isAltType || conf.pivotY.isAltType) ? 4:2) * (conf.pivotX.n + conf.pivotY.n)
 		);
 		for (c in conf.color)   buff_size_instanced += c.n * 4;
 		
