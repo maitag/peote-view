@@ -740,30 +740,35 @@ class Program
 	private function parseAndResolveFormulas():Void {
 		if (formulaHasChanged)
 		{
+			// Minor thing for better readability and performance (sgwl)
+			var formulaNames = buffer.getFormulaNames();
+			var formulas = buffer.getFormulas();
+			var attributes = buffer.getAttributes();
+
 			var formulaResolved:StringMap<String> = [for (k in formula.keys()) k => formula.get(k) ];
 			try Util.resolveFormulaCyclic(formulaResolved) catch(e:Dynamic) throw ('Error: cyclic reference of "${e.errVar}" inside formula "${e.formula}" for "${e.errKey}"');
 			//trace("formula cyclic resolved:"); for (f in formulaResolved.keys()) trace('  $f => ${formulaResolved.get(f)}');
-			Util.resolveFormulaVars(formulaResolved, buffer.getAttributes());
+			Util.resolveFormulaVars(formulaResolved, attributes);
 			//trace("formula resolved new:"); for (f in formulaResolved.keys()) trace('  $f => ${formulaResolved.get(f)}');
 			
 			function formulaTemplateValue(x:String, y:String, dx:String, dy:String):String
 			{
-				var nx = buffer.getFormulaNames().get(x);
+				var nx = formulaNames.get(x);
 				//if (nx == null) nx = x;
 				if (nx == null) nx = "";
 				
-				var ny = buffer.getFormulaNames().get(y);
+				var ny = formulaNames.get(y);
 				//if (ny == null) ny = y;
 				if (ny == null) ny = "";
 				
 				var fx = formulaResolved.get(nx);
 				var fy = formulaResolved.get(ny);
 				
-				if ( fx != buffer.getFormulas().get(nx) || fy != buffer.getFormulas().get(ny) ) {
-					if (fx == null) fx = buffer.getAttributes().get(nx);
+				if ( fx != formulas.get(nx) || fy != formulas.get(ny) ) {
+					if (fx == null) fx = attributes.get(nx);
 					if (fx == null) fx = dx;
 					
-					if (fy == null) fy = buffer.getAttributes().get(ny);
+					if (fy == null) fy = attributes.get(ny);
 					if (fy == null) fy = dy;
 					
 					if (x == "rotation" && fx != "0.0") fx = '($fx*0.0055555555555556)*${Math.PI}';
@@ -784,7 +789,7 @@ class Program
 				var f = formulaResolved.get(n);
 				if ( f != buffer.getFormulas().get(n) )
 				{
-					if (f == null) f = buffer.getAttributes().get(n);
+					if (f == null) f = attributes.get(n);
 					Reflect.setField(glShaderConfig.FORMULA_VARYINGS, n, f);
 					trace(' -- replacing Formula $n => $f');
 				}
@@ -793,7 +798,7 @@ class Program
 			// formulas for constants
 			for (n in buffer.getFormulaConstants()) {				
 				var f = formulaResolved.get(n);
-				if ( f != null && f != buffer.getAttributes().get(n) )
+				if ( f != null && f != attributes.get(n) )
 				{
 					Reflect.setField(glShaderConfig.FORMULA_CONSTANTS, n, f);
 					trace(' -- replacing Formula $n => $f');
