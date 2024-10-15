@@ -706,15 +706,16 @@ class Program
 		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
 	**/
 	public function setFormula(name:String, newFormula:String, ?autoUpdateTextures:Null<Bool>):Void {
-		
-		var formulaName = buffer.getFormulaNames().get(name); // TODO: better with 2 Arrays here
+		// Minor optimization to improve readability and performance (sgwl)
+		var formulaNames = buffer.getFormulaNames();
+		var formulaName = formulaNames.get(name); // TODO: better with 2 Arrays here
 		
 		if (formulaName != null) {
 			trace('  set formula: $formulaName = $newFormula' );
 			formula.set(formulaName, newFormula);
 		}
 		else {
-			if ([ for (k in buffer.getFormulaNames().keys()) buffer.getFormulaNames().get(k) ].indexOf(name) >= 0) {
+			if ([ for (k in formulaNames.keys()) formulaNames.get(k) ].indexOf(name) >= 0) {
 				formula.set(name, newFormula);
 			}
 			else if (buffer.getFormulaVaryings().indexOf(name) >= 0) {
