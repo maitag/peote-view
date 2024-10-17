@@ -63,7 +63,7 @@ abstract GLUniformLocations(Array<GLUniformLocation>) {
   }
 
   public function new() {
-    this = [null, null, null, null];
+	this = [-1, -1, -1, -1];
   }
 }
 
