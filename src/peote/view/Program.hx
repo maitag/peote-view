@@ -29,12 +29,12 @@ o      o-o     |\     o    o-o
 */
 
 /**
-	The Program is rendering the graphical elements of a `Buffer` with the corresponding shader and assigned `Texture`s.  
-	The shader code can be modified at runtime by formulas or also by `glsl` code-injection and custom `uniforms`.  
+	The Program is rendering the graphical elements of a `Buffer` with the corresponding shader and assigned `Texture`s.
+	The shader code can be modified at runtime by formulas or also by `glsl` code-injection and custom `uniforms`.
 	It supports different modes for `color blending`, `stencil masks` or `depth-buffer`.
 **/
 @:allow(peote.view,peote.ui)
-class Program 
+class Program
 {
 	/**
 		The `Display` instances in which the program is contained.
@@ -49,7 +49,7 @@ class Program
 		Gets the used `Buffer`.
 	**/
 	public var buffer(default, null):BufferInterface;
-	
+
 	/**
 		Shows or hides the program during rendering.
 	**/
@@ -58,7 +58,7 @@ class Program
 	/**
 		Shows the program during rendering.
 	**/
-	public inline function show() isVisible = true;	
+	public inline function show() isVisible = true;
 
 	/**
 		Hides the program during rendering.
@@ -69,7 +69,7 @@ class Program
 		To enable or disable color rendering, e.g. disable to only render into the stencil-buffer by drawing a mask.
 	**/
 	public var colorEnabled:Bool = true;
-	
+
 	/**
 		To enable or disable the color/alpha blendmode.
 	**/
@@ -84,9 +84,9 @@ class Program
 		Separate blend-function for the alpha channel if blendSeparate is true.
 	**/
 	public var blendFuncSeparate:Bool = false;
-	
+
 	var blendValues:Int = 0; // stores all 6 following values into one Int here
-	
+
 	/**
 		`BlendFactor` for the source colors if into blendmode.
 	**/
@@ -127,7 +127,7 @@ class Program
 	public var blendFuncAlpha(get, set):BlendFunc;
 
 	inline function get_blendFunc():BlendFunc return BlendFunc.getFunc(blendValues);
-	inline function get_blendFuncAlpha():BlendFunc return BlendFunc.getFuncAlpha(blendValues);	
+	inline function get_blendFuncAlpha():BlendFunc return BlendFunc.getFuncAlpha(blendValues);
 	inline function set_blendFunc(v:BlendFunc):BlendFunc { if (gl != null) glBlendFunc = v.toGL(gl); blendValues = v.setFunc(blendValues); return v; }
 	inline function set_blendFuncAlpha(v:BlendFunc):BlendFunc { if (gl != null) glBlendFuncAlpha = v.toGL(gl); blendValues = v.setFuncAlpha(blendValues); return v; }
 
@@ -147,7 +147,7 @@ class Program
 		glBlendDst = BlendFactor.getDst(blendValues).toGL(gl);
 		glBlendSrcAlpha = BlendFactor.getSrcAlpha(blendValues).toGL(gl);
 		glBlendDstAlpha = BlendFactor.getDstAlpha(blendValues).toGL(gl);
-		
+
 		glBlendFunc = BlendFunc.getFunc(blendValues).toGL(gl);
 		glBlendFuncAlpha = BlendFunc.getFuncAlpha(blendValues).toGL(gl);
 	}
@@ -219,10 +219,10 @@ class Program
 		FRAGMENT_PROGRAM_UNIFORMS:"",
 		FRAGMENT_CALC_LAYER:"",
 		TEXTURES:[],
-		
+
 		// TODO:
 		TEXTURE_DEFAULTS:[],
-		
+
 		isDISCARD: true,
 		DISCARD: "0.0",
 		isPIXELSNAPPING: false,
@@ -278,38 +278,39 @@ class Program
 		Creates a new `Program` instance.
 		@param buffer the `Buffer` what contains the graphical elements to render
 	**/
-	public function new(buffer:BufferInterface) 
+	public function new(buffer:BufferInterface)
 	{
 		this.buffer = buffer;
-		
+
 		displays = new Array<Display>();
 
 		setDefaultBlendValues();
 		blendEnabled = buffer.hasBlend();
-		
+
 		zIndexEnabled = buffer.hasZindex();
-		
+
 		colorIdentifiers = buffer.getColorIdentifiers();
 		customIdentifiers = buffer.getCustomIdentifiers();
 		customVaryings = buffer.getCustomVaryings();
 		textureIdentifiers = buffer.getTextureIdentifiers();
-		
+
 		defaultColorFormula = buffer.getDefaultColorFormula();
 		defaultFormulaVars = buffer.getDefaultFormulaVars();
-		
+
 		//trace("formula Names:"); for (f in buffer.getFormulaNames().keys()) trace('  $f => ${buffer.getFormulaNames().get(f)}');
-		
+
 		// copy default formulas into new formula
-		for (k in buffer.getFormulas().keys()) formula.set(k, buffer.getFormulas().get(k) );
-		
+		var formulas = buffer.getFormulas();
+		for (k in formulas.keys()) formula.set(k, formulas.get(k) );
+
 		//trace("formulas:"); for (f in formula.keys()) trace('  $f => ${formula.get(f)}');
 		//trace("attributes:"); for (f in buffer.getAttributes().keys()) trace('  $f => ${buffer.getAttributes().get(f)}');
-		
-		try Util.resolveFormulaCyclic(buffer.getFormulas()) catch(e:Dynamic) throw ('Error: cyclic reference of "${e.errVar}" inside @formula "${e.formula}" for "${e.errKey}"');
-		//trace("formula cyclic resolved:"); for (f in buffer.getFormulas().keys()) trace('  $f => ${buffer.getFormulas().get(f)}');
-		Util.resolveFormulaVars(buffer.getFormulas(), buffer.getAttributes());
-		//trace("default formula resolved:"); for (f in buffer.getFormulas().keys()) trace('  $f => ${buffer.getFormulas().get(f)}');
-		
+
+		try Util.resolveFormulaCyclic(formulas) catch(e:Dynamic) throw ('Error: cyclic reference of "${e.errVar}" inside @formula "${e.formula}" for "${e.errKey}"');
+		//trace("formula cyclic resolved:"); for (f in formulas.keys()) trace('  $f => ${formulas.get(f)}');
+		Util.resolveFormulaVars(formulas, buffer.getAttributes());
+		//trace("default formula resolved:"); for (f in formulas.keys()) trace('  $f => ${formulas.get(f)}');
+
 		#if peoteview_debug_program
 		trace("defaultColorFormula = ", defaultColorFormula);
 		trace("defaultFormulaVars = ", defaultFormulaVars);
@@ -342,7 +343,7 @@ class Program
 		#if peoteview_debug_display
 		else trace("Change order of Program");
 		#end
-		
+
 		display.programList.add(this, atProgram, addBefore);
 	}
 
@@ -359,23 +360,23 @@ class Program
 		display.programList.remove(this);
 	}
 
-	private inline function setNewGLContext(newGl:PeoteGL)
+	private function setNewGLContext(newGl:PeoteGL)
 	{
-		if (newGl != null && newGl != gl) // only if different GL - Context	
+		if (newGl != null && newGl != gl) // only if different GL - Context
 		{
 			// check gl-context of all parents
 			for (d in displays)
 				if (d.gl != null && d.gl != newGl) throw("Error, program can not used inside different gl-contexts");
-			
+
 			// clear old gl-context if there is one
 			if (gl != null) clearOldGLContext();
 			#if peoteview_debug_program
 			trace("Program setNewGLContext");
 			#end
 			gl = newGl;
-			
+
 			updateBlendGLValues();
-			
+
 			if (PeoteGL.Version.isES3) {
 				glShaderConfig.isES3 = true;
 				glShaderConfig.IN = "in";
@@ -384,28 +385,28 @@ class Program
 			}
 			if (PeoteGL.Version.isUBO) glShaderConfig.isUBO = true;
 			if (PeoteGL.Version.isINSTANCED) glShaderConfig.isINSTANCED = true;
-			
+
 			// gl-extensions for fragment-shader
 			// TODO: let enable custom extensions for shaders like "GL_OES_fragment_precision_high"
 			// TODO: optimize to not check every time!
 			glShaderConfig.FRAGMENT_EXTENSIONS = [];
 			if (gl.getExtension("OES_standard_derivatives") != null)
 				glShaderConfig.FRAGMENT_EXTENSIONS.push({EXTENSION:"GL_OES_standard_derivatives"});
-				
+
 			if (gl.getExtension("EXT_color_buffer_float") != null)
 				glShaderConfig.FRAGMENT_EXTENSIONS.push({EXTENSION:"EXT_color_buffer_float"});
 			else if (gl.getExtension("OES_texture_float") != null)
 				glShaderConfig.FRAGMENT_EXTENSIONS.push({EXTENSION:"OES_texture_float"});
-			
+
 			buffer.setNewGLContext(gl);
 			createProgram();
-			
+
 			// setNewGLContext for all textures
-			for (t in activeTextures) t.setNewGLContext(gl);		
+			for (t in activeTextures) t.setNewGLContext(gl);
 		}
 	}
 
-	private inline function clearOldGLContext() 
+	private function clearOldGLContext()
 	{
 		#if peoteview_debug_program
 		trace("Program clearOldGLContext");
@@ -414,7 +415,7 @@ class Program
 	}
 
 	var ready:Bool = false; // TODO !!!
-	private inline function reCreateProgram():Void 
+	private function reCreateProgram():Void
 	{
 		ready = false; // TODO !!!
 		deleteProgram();
@@ -423,7 +424,7 @@ class Program
 
 	private inline function hasPicking() return buffer.hasPicking();
 
-	private inline function deleteProgram()
+	private function deleteProgram()
 	{
 		gl.deleteShader(glVertexShader);
 		gl.deleteShader(glFragmentShader);
@@ -431,13 +432,13 @@ class Program
 		if (hasPicking()) {
 			gl.deleteShader(glVertexShaderPicking);
 			gl.deleteShader(glFragmentShaderPicking);
-			gl.deleteProgram(glProgramPicking);	
+			gl.deleteProgram(glProgramPicking);
 		}
 	}
 
-	private inline function createProgram() {
+	private function createProgram() {
 		createProg();
-		if (hasPicking()) createProg(true);		
+		if (hasPicking()) createProg(true);
 	}
 
 	private function createProg(isPicking:Bool = false):Void
@@ -446,29 +447,29 @@ class Program
 		trace("create GL-Program" + ((isPicking) ? " for opengl-picking" : ""));
 		#end
 		glShaderConfig.isPICKING = (isPicking) ? true : false;
-		
+
 		if (fragmentFloatPrecision != null) glShaderConfig.FRAGMENT_FLOAT_PRECISION = fragmentFloatPrecision;
 		else {
 			if (buffer.needFragmentPrecision() && PeoteGL.Precision.FragmentFloat.medium < 23)
 				glShaderConfig.FRAGMENT_FLOAT_PRECISION = PeoteGL.Precision.availFragmentFloat("highp");
-			else 
+			else
 				glShaderConfig.FRAGMENT_FLOAT_PRECISION = PeoteGL.Precision.availFragmentFloat("mediump");
 		}
-		
+
 		parseAndResolveFormulas();
-				
+
 		var glVShader = GLTool.compileGLShader(gl, gl.VERTEX_SHADER,   GLTool.parseShader(buffer.getVertexShader(),   glShaderConfig), true );
 		var glFShader = GLTool.compileGLShader(gl, gl.FRAGMENT_SHADER, GLTool.parseShader(buffer.getFragmentShader(), glShaderConfig), true );
-		
+
 		var glProg = gl.createProgram();
-		
+
 		gl.attachShader(glProg, glVShader);
 		gl.attachShader(glProg, glFShader);
-		
+
 		buffer.bindAttribLocations(gl, glProg);
-		
+
 		GLTool.linkGLProgram(gl, glProg);
-		
+
 		if ( !isPicking && PeoteGL.Version.isUBO)
 		{
 			var index:Int = gl.getUniformBlockIndex(glProg, "uboView");
@@ -488,7 +489,7 @@ class Program
 				uOFFSET_PICK = gl.getUniformLocation(glProg, "uOffset");
 			}
 		}
-		
+
 		if ( !isPicking ) {
 			uTIME = gl.getUniformLocation(glProg, "uTime");
 			uniformFloatLocations = new Array<GLUniformLocation>();
@@ -499,13 +500,13 @@ class Program
 			uniformFloatPickLocations = new Array<GLUniformLocation>();
 			for (u in uniformFloats) uniformFloatPickLocations.push( gl.getUniformLocation(glProg, u.name) );
 		}
-		
+
 		if (!isPicking) {
 			// create new textureList with new unitormlocations
 			textureList.clear(); // maybe optimize later with own single-linked list here!
 			for (i in 0...activeTextures.length) {
 				textureList.add(new ActiveTexture(activeUnits[i], activeTextures[i], gl.getUniformLocation(glProg, "uTexture" + i)), null, false );
-			}	
+			}
 			glProgram = glProg;
 			glVertexShader = glVShader;
 			glFragmentShader  = glFShader;
@@ -541,17 +542,17 @@ class Program
 
 	private function parseColorFormula():Void {
 		var formula:String = "";
-		
+
 		if (colorFormula != "") formula = colorFormula;
 		else if (defaultColorFormula != "") formula = defaultColorFormula;
 		else {
 			var col = colorIdentifiers.copy();
 			var tex = new Array<String>();
-			for (i in 0...textureIdentifiers.length) 
+			for (i in 0...textureIdentifiers.length)
 				if (textureLayers.exists(i)) tex.push(textureIdentifiers[i]);
 			for (i in 0...customTextureIdentifiers.length)
 				if (textureLayers.exists(textureIdentifiers.length+i)) tex.push(customTextureIdentifiers[i]);
-			
+
 			// mix(mix(...))*restColor
 			if (col.length + tex.length == 0) formula = Color.RED.toGLSL();
 			else {
@@ -567,11 +568,11 @@ class Program
 				while (col.length > 0) {
 					formula += ((formula != "") ? "*": "") + col.shift();
 					if (col.length > 0) formula = '($formula + ${col.shift()})';
-				}				
+				}
 			}
-			
+
 		}
-		
+
 		for (i in 0...colorIdentifiers.length) {
 			var regexp = Util.regexpIdentifier(colorIdentifiers[i]);
 			if (regexp.match(formula))
@@ -584,17 +585,17 @@ class Program
 					formula = regexp.replace( formula, '$1' + customVaryings[i] );
 				else throw('Error while parsing ColorFormula: custom identifier ${customIdentifiers[i]} need @varying to access in fragmentshader');
 		}
-		
+
 		textureID_Defaults = new Array<{layer:Int, value:String}>();
 		used_by_ColorFormula = 0;
 		usedID_by_ColorFormula = 0;
-		
+
 		for (i in 0...textureIdentifiers.length) {
 			var regexp = Util.regexpIdentifier(textureIdentifiers[i]);
 			if (regexp.match(formula)) {
 				if (textureLayers.exists(i)) formula = regexp.replace( formula, '$1' + "t" + i );
 				used_by_ColorFormula |= 1 << i;
-			}			
+			}
 			regexp = Util.regexpIdentifier(textureIdentifiers[i]+"_ID");
 			if (regexp.match(formula)) {
 				formula = regexp.replace( formula, '$1' + i );
@@ -602,21 +603,21 @@ class Program
 				if (!textureLayers.exists(i)) textureID_Defaults.push({layer:i, value:defaultFormulaVars.get(textureIdentifiers[i]).toGLSL()});
 			}
 		}
-		
+
 		for (i in 0...customTextureIdentifiers.length) {
 			var regexp = Util.regexpIdentifier(customTextureIdentifiers[i]);
 			if (regexp.match(formula)) {
-				if (textureLayers.exists(textureIdentifiers.length + i)) formula = regexp.replace( formula, '$1' + "t" + (textureIdentifiers.length + i) );					
+				if (textureLayers.exists(textureIdentifiers.length + i)) formula = regexp.replace( formula, '$1' + "t" + (textureIdentifiers.length + i) );
 				used_by_ColorFormula |= 1 << (textureIdentifiers.length + i);
-			}				
+			}
 			regexp = Util.regexpIdentifier(customTextureIdentifiers[i]+"_ID");
 			if (regexp.match(formula)) {
 				formula = regexp.replace( formula, '$1' + (textureIdentifiers.length + i) );
 				usedID_by_ColorFormula |= 1 << (textureIdentifiers.length + i);
 				if(!textureLayers.exists(textureIdentifiers.length + i)) textureID_Defaults.push({layer:(textureIdentifiers.length + i), value:defaultFormulaVars.get(textureIdentifiers[textureIdentifiers.length + i]).toGLSL()});
-			}				
+			}
 		}
-		
+
 		// fill the REST with default values:
 		for (name in defaultFormulaVars.keys()) {
 			//var regexp = new EReg('(.*?\\b)${name}(.[rgbaxyz]+)?(\\b.*?)', "g");
@@ -625,7 +626,7 @@ class Program
 				formula = regexp.replace( formula, '$1' + defaultFormulaVars.get(name).toGLSL() );
 				//formula = regexp.replace( formula, '$1' + defaultFormulaVars.get(name).toGLSL('$2') + '$3' );
 		}
-		
+
 		glShaderConfig.FRAGMENT_CALC_LAYER = formula;
 	}
 
@@ -709,7 +710,7 @@ class Program
 		// Minor optimization to improve readability and performance (sgwl)
 		var formulaNames = buffer.getFormulaNames();
 		var formulaName = formulaNames.get(name); // TODO: better with 2 Arrays here
-		
+
 		if (formulaName != null) {
 			trace('  set formula: $formulaName = $newFormula' );
 			formula.set(formulaName, newFormula);
@@ -732,7 +733,7 @@ class Program
 			}
 			else throw('Error: can not set Formula for $name if there is no property defined for @$name inside Element');
 		}
-		
+
 		formulaHasChanged = true;
 		checkAutoUpdate(autoUpdateTextures);
 	}
@@ -751,30 +752,30 @@ class Program
 			//trace("formula cyclic resolved:"); for (f in formulaResolved.keys()) trace('  $f => ${formulaResolved.get(f)}');
 			Util.resolveFormulaVars(formulaResolved, attributes);
 			//trace("formula resolved new:"); for (f in formulaResolved.keys()) trace('  $f => ${formulaResolved.get(f)}');
-			
+
 			function formulaTemplateValue(x:String, y:String, dx:String, dy:String):String
 			{
 				var nx = formulaNames.get(x);
 				//if (nx == null) nx = x;
 				if (nx == null) nx = "";
-				
+
 				var ny = formulaNames.get(y);
 				//if (ny == null) ny = y;
 				if (ny == null) ny = "";
-				
+
 				var fx = formulaResolved.get(nx);
 				var fy = formulaResolved.get(ny);
-				
+
 				if ( fx != formulas.get(nx) || fy != formulas.get(ny) ) {
 					if (fx == null) fx = attributes.get(nx);
 					if (fx == null) fx = dx;
-					
+
 					if (fy == null) fy = attributes.get(ny);
 					if (fy == null) fy = dy;
-					
+
 					if (x == "rotation" && fx != "0.0") fx = '($fx*0.0055555555555556)*${Math.PI}';
 					if (y == "zIndex" && fy != "0.0") fy = 'clamp( $fy/${Util.toFloatString(buffer.getMaxZindex())}, -1.0, 1.0)';
-					
+
 					//trace(' -- replacing Formula $nx, $ny => vec2($fx, $fy)');
 					return('vec2($fx, $fy)');
 				}
@@ -784,9 +785,9 @@ class Program
 			glShaderConfig.POS_FORMULA   = formulaTemplateValue("posX"    , "posY"  ,  "0.0",   "0.0");
 			glShaderConfig.ROTZ_FORMULA  = formulaTemplateValue("rotation", "zIndex",  "0.0",   "0.0");
 			glShaderConfig.PIVOT_FORMULA = formulaTemplateValue("pivotX"  , "pivotY",  "0.0",   "0.0");
-			
+
 			// formulas for varyings
-			for (n in buffer.getFormulaVaryings()) {				
+			for (n in buffer.getFormulaVaryings()) {
 				var f = formulaResolved.get(n);
 				if ( f != buffer.getFormulas().get(n) )
 				{
@@ -797,14 +798,14 @@ class Program
 				else Reflect.setField(glShaderConfig.FORMULA_VARYINGS, n, null);
 			}
 			// formulas for constants
-			for (n in buffer.getFormulaConstants()) {				
+			for (n in buffer.getFormulaConstants()) {
 				var f = formulaResolved.get(n);
 				if ( f != null && f != attributes.get(n) )
 				{
 					Reflect.setField(glShaderConfig.FORMULA_CONSTANTS, n, f);
 					trace(' -- replacing Formula $n => $f');
 				}
-				else Reflect.setField(glShaderConfig.FORMULA_CONSTANTS, n, null);		
+				else Reflect.setField(glShaderConfig.FORMULA_CONSTANTS, n, null);
 			}
 		}
 	}
@@ -822,7 +823,7 @@ class Program
 					layer = textureIdentifiers.length + customTextureIdentifiers.length;
 					customTextureIdentifiers.push(identifier); // adds a custom identifier
 				}
-			}	
+			}
 		}
 		return layer;
 	}
@@ -1114,18 +1115,18 @@ class Program
 				if (newTextures.indexOf(t) < 0) newTextures.push(t);
 			}
 		}
-		
+
 		var i = activeTextures.length;
-		while (i-- > 0) 
+		while (i-- > 0)
 			if (newTextures.indexOf(activeTextures[i]) < 0) { // remove texture
-				#if peoteview_debug_program 
+				#if peoteview_debug_program
 				trace("REMOVE texture", i);
 				#end
 				activeTextures[i].removeFromProgram(this);
 				activeTextures.splice(i, 1);
 				activeUnits.splice(i, 1);
 			}
-		
+
 		for (t in newTextures) {
 			if (activeTextures.indexOf(t) < 0) { // add texture
 				#if peoteview_debug_program
@@ -1138,26 +1139,26 @@ class Program
 				t.addToProgram(this);
 			}
 		}
-		
+
 		#if peoteview_debug_program
 		trace("textureLayers", [for (layer in textureLayers.keys()) layer]);
 		#end
 		parseColorFormula();
-		
+
 		glShaderConfig.hasFRAGMENT_INJECTION = hasFragmentInjection;
-		
+
 		glShaderConfig.FRAGMENT_PROGRAM_UNIFORMS = "";
 		glShaderConfig.TEXTURES = [];
-		
+
 		if (activeTextures.length == 0) {
 			glShaderConfig.hasTEXTURES = false;
 		}
 		else {
 			glShaderConfig.hasTEXTURES = true;
-			
+
 			for (i in 0...activeTextures.length)
 				glShaderConfig.FRAGMENT_PROGRAM_UNIFORMS += 'uniform sampler2D uTexture$i;';
-			
+
 			// fill texture-layer in template
 			for (layer in textureLayers.keys())
 			{
@@ -1188,26 +1189,26 @@ class Program
 				#if peoteview_debug_program
 				trace("LAYER:", layer, units);
 				#end
-				
+
 				var used:Bool = ((used_by_ColorFormula & (1 << layer) ) > 0);
 				var usedID:Bool = ((usedID_by_ColorFormula & (1 << layer) ) > 0);
-				
+
 				glShaderConfig.TEXTURES.push({
 					LAYER:layer,
 					UNITS:units,
 					USED: used,
-					USED_ID: usedID					
+					USED_ID: usedID
 				});
-			}			
+			}
 		}
-		
+
 		// fill template for non-added textures to fetch default values
 		glShaderConfig.TEXTURE_DEFAULTS = [];
 		for (defaults in textureID_Defaults) {
 			glShaderConfig.TEXTURE_DEFAULTS.push({LAYER:defaults.layer, DEFAULT_VALUE:defaults.value});
 		}
 		glShaderConfig.hasTEXTURE_FUNCTIONS = (usedID_by_ColorFormula == 0 && textureID_Defaults.length == 0) ? false : true;
-				
+
 		if (gl != null) reCreateProgram(); // recompile shaders
 	}
 
@@ -1231,7 +1232,7 @@ class Program
 		}
 		if (oldUnit == -1) throw("Error, texture is not in use, try setTextureLayer(layer, [texture]) before setting unit-number manual");
 		if (j != -1) activeUnits[j] = oldUnit;
-		
+
 		// update textureList units
 		j = 0; for (t in textureList) t.unit = activeUnits[j++];
 		if (hasPicking()) j = 0; for (t in textureListPicking) t.unit = activeUnits[j++];
@@ -1252,7 +1253,7 @@ class Program
 			#if peoteview_debug_program
 			if (textureListItem.value.texture.glTexture == null) trace("=======PROBLEM========"); // TODO !!!
 			#end
-			
+
 			if ( peoteView.isTextureStateChange(textureListItem.value.unit, textureListItem.value.texture) )
 			{
 				gl.activeTexture (gl.TEXTURE0 + textureListItem.value.unit);
@@ -1260,7 +1261,7 @@ class Program
 				if (textureListItem.value.texture.framebuffer == null) trace("activate Texture", textureListItem.value.unit);
 				#end
 				gl.bindTexture (gl.TEXTURE_2D, textureListItem.value.texture.glTexture);
-				
+
 				//gl.bindSampler(textureListItem.value.unit, sampler); // only ES3.0
 				//gl.enable(gl.TEXTURE_2D); // is default ?
 			}
@@ -1274,17 +1275,17 @@ class Program
 		if (isVisible)
 		{
 			#if peoteview_debug_program
-			//trace("    ---program.render---");		
+			//trace("    ---program.render---");
 			if (!ready) trace("=======PROBLEM=====> not READY !!!!!!!!"); // TODO !!!
 			#end
 			gl.useProgram(glProgram);
-			
+
 			render_activeTextureUnits(peoteView, textureList);
-			
+
 			// TODO: custom uniforms per Program
-			
+
 			if (PeoteGL.Version.isUBO)
-			{	
+			{
 				// ------------- uniform block -------------
 				// for multiple ranges
 				//gl.bindBufferRange(gl.UNIFORM_BUFFER, peoteView.uniformBuffer.block, peoteView.uniformBuffer.uniformBuffer, 256, 3 * 4*4);
@@ -1297,18 +1298,18 @@ class Program
 				// ------------- simple uniform -------------
 				gl.uniform2f (uRESOLUTION, peoteView.width, peoteView.height);
 				gl.uniform2f (uZOOM, peoteView.xz * display.xz, peoteView.yz * display.yz);
-				gl.uniform2f (uOFFSET, (display.x + display.xOffset + peoteView.xOffset) / display.xz, 
+				gl.uniform2f (uOFFSET, (display.x + display.xOffset + peoteView.xOffset) / display.xz,
 									   (display.y + display.yOffset + peoteView.yOffset) / display.yz);
 			}
-			
+
 			gl.uniform1f (uTIME, peoteView.time);
 			for (i in 0...uniformFloats.length) gl.uniform1f (uniformFloatLocations[i], uniformFloats[i].value);
-			
+
 			peoteView.setColor(colorEnabled);
-			peoteView.setGLDepth(zIndexEnabled);			
-			peoteView.setGLBlend(blendEnabled, blendSeparate, glBlendSrc, glBlendDst, glBlendSrcAlpha, glBlendDstAlpha, blendFuncSeparate, glBlendFunc, glBlendFuncAlpha, blendColor, useBlendColor, useBlendColorSeparate, glBlendR, glBlendG, glBlendB, glBlendA);			
+			peoteView.setGLDepth(zIndexEnabled);
+			peoteView.setGLBlend(blendEnabled, blendSeparate, glBlendSrc, glBlendDst, glBlendSrcAlpha, glBlendDstAlpha, blendFuncSeparate, glBlendFunc, glBlendFuncAlpha, blendColor, useBlendColor, useBlendColorSeparate, glBlendR, glBlendG, glBlendB, glBlendA);
 			peoteView.setMask(mask, clearMask);
-			
+
 			buffer.render(peoteView, display, this);
 			gl.useProgram (null);
 		}
@@ -1323,9 +1324,9 @@ class Program
 	{
 		gl.useProgram(glProgram);
 		render_activeTextureUnits(peoteView, textureList);
-		
+
 		if (PeoteGL.Version.isUBO)
-		{	
+		{
 			// ------------- uniform block -------------
 			gl.bindBufferBase(gl.UNIFORM_BUFFER, UniformBufferView.block, display.uniformBufferViewFB.uniformBuffer);
 			gl.bindBufferBase(gl.UNIFORM_BUFFER, UniformBufferDisplay.block, display.uniformBufferFB.uniformBuffer);
@@ -1335,20 +1336,20 @@ class Program
 			// ------------- simple uniform -------------
 			gl.uniform2f (uRESOLUTION, display.width, -display.height);
 			gl.uniform2f (uZOOM, display.xz, display.yz);
-			
+
 			// TODO: check if peoteViews offset have to be here!
-			gl.uniform2f (uOFFSET, (display.xOffset + peoteView.xOffset) / display.xz, 
+			gl.uniform2f (uOFFSET, (display.xOffset + peoteView.xOffset) / display.xz,
 			                       (display.yOffset + peoteView.yOffset - display.height) / display.yz );
 		}
-		
+
 		gl.uniform1f (uTIME, peoteView.time);
 		for (i in 0...uniformFloats.length) gl.uniform1f (uniformFloatLocations[i], uniformFloats[i].value);
-		
+
 		peoteView.setColor(colorEnabled);
-		peoteView.setGLDepth(zIndexEnabled);		
-		peoteView.setGLBlend(blendEnabled, blendSeparate, glBlendSrc, glBlendDst, glBlendSrcAlpha, glBlendDstAlpha, blendFuncSeparate, glBlendFunc, glBlendFuncAlpha, blendColor, useBlendColor, useBlendColorSeparate, glBlendR, glBlendG, glBlendB, glBlendA);		
+		peoteView.setGLDepth(zIndexEnabled);
+		peoteView.setGLBlend(blendEnabled, blendSeparate, glBlendSrc, glBlendDst, glBlendSrcAlpha, glBlendDstAlpha, blendFuncSeparate, glBlendFunc, glBlendFuncAlpha, blendColor, useBlendColor, useBlendColorSeparate, glBlendR, glBlendG, glBlendB, glBlendA);
 		peoteView.setMask(mask, clearMask);
-		
+
 		buffer.render(peoteView, display, this);
 		gl.useProgram (null);
 	}
@@ -1361,25 +1362,25 @@ class Program
 	private inline function pick( xOff:Float, yOff:Float, peoteView:PeoteView, display:Display, toElement:Int):Void
 	{
 		gl.useProgram(glProgramPicking);
-		
+
 		render_activeTextureUnits(peoteView, textureListPicking);
-		
+
 		// No view/display UBOs for PICKING-SHADER!
 		gl.uniform2f (uRESOLUTION_PICK, 1, 1);
 		gl.uniform2f (uZOOM_PICK, peoteView.xz * display.xz, peoteView.yz * display.yz);
 		gl.uniform2f (uOFFSET_PICK, (display.x + display.xOffset + xOff) / display.xz,
 		                            (display.y + display.yOffset + yOff) / display.yz);
-		
+
 		gl.uniform1f (uTIME_PICK, peoteView.time);
 		for (i in 0...uniformFloats.length) gl.uniform1f (uniformFloatPickLocations[i], uniformFloats[i].value);
-		
+
 		peoteView.setGLDepth((toElement == -1) ? zIndexEnabled : false); // disable for getAllElementsAt() in peoteView
-		
+
 		//peoteView.setGLAlpha(false);
 		peoteView.setGLBlend(false, blendSeparate, glBlendSrc, glBlendDst, glBlendSrcAlpha, glBlendDstAlpha, blendFuncSeparate, glBlendFunc, glBlendFuncAlpha, blendColor, useBlendColor, useBlendColorSeparate, glBlendR, glBlendG, glBlendB, glBlendA);
-				
+
 		buffer.pick(peoteView, display, this, toElement);
-		gl.useProgram (null);		
+		gl.useProgram (null);
 	}
 
 }
@@ -1398,4 +1399,3 @@ private class ActiveTexture
 		this.uniformLoc = uniformLoc;
 	}
 }
-
