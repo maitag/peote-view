@@ -8,7 +8,7 @@ import peote.view.Mask;
 import peote.view.PeoteGL.GLProgram;
 import peote.view.PeoteGL.GLShader;
 import peote.view.PeoteGL.GLUniformLocation;
-import peote.view.PeoteGP.GLUniformLocations;
+import peote.view.PeoteGL.GLUniformLocations;
 import peote.view.BlendFactor;
 import peote.view.BlendFunc;
 
@@ -543,7 +543,7 @@ class Program
 			var col = colorIdentifiers.copy();
 			var tex = new Array<String>();
 			for (i in 0...textureIdentifiers.length)
-				textureLayers.exists(i)) tex.push(textureIdentifiers[i]);
+				if (textureLayers.exists(i)) tex.push(textureIdentifiers[i]);
 			for (i in 0...customTextureIdentifiers.length)
 				if (textureLayers.exists(textureIdentifiers.length+i)) tex.push(customTextureIdentifiers[i]);
 
