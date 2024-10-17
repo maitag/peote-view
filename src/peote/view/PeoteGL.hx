@@ -22,7 +22,7 @@ typedef GLRenderbuffer      = lime.graphics.opengl.GLRenderbuffer;
 
 @:publicFields
 abstract GLUniformLocations(Array<GLUniformLocation>) {
-  var rRESOLUTION(get, set):GLUniformLocation;
+  var uRESOLUTION(get, set):GLUniformLocation;
 
   inline function get_uRESOLUTION() {
     return this[0];
@@ -32,7 +32,7 @@ abstract GLUniformLocations(Array<GLUniformLocation>) {
     return this[0] = value;
   }
 
-  var rZOOM(get, set):GLUniformLocation;
+  var uZOOM(get, set):GLUniformLocation;
 
   inline function get_uZOOM() {
     return this[1];
@@ -42,7 +42,7 @@ abstract GLUniformLocations(Array<GLUniformLocation>) {
     return this[1] = value;
   }
 
-  var rOFFSET(get, set):GLUniformLocation;
+  var uOFFSET(get, set):GLUniformLocation;
 
   inline function get_uOFFSET() {
     return this[2];
@@ -52,7 +52,7 @@ abstract GLUniformLocations(Array<GLUniformLocation>) {
     return this[2] = value;
   }
 
-  var rTIME(get, set):GLUniformLocation;
+  var uTIME(get, set):GLUniformLocation;
 
   inline function get_uTIME() {
     return this[3];
