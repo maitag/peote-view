@@ -524,8 +524,8 @@ class Program
 		ready = true;
 	}
 
-        var baseUniformLocations:GLUniformLocations = new GLUniformLocations():
-        var pickUniformLocations:GLUniformLocations = new GLUniformLocations():
+	var baseUniformLocations:GLUniformLocations = new GLUniformLocations();
+	var pickUniformLocations:GLUniformLocations = new GLUniformLocations();
 
 	var uniformFloatsVertex:Array<UniformFloat> = null;
 	var uniformFloatsFragment:Array<UniformFloat> = null;
