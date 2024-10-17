@@ -1379,8 +1379,6 @@ class Program
 
 }
 
-
-
 // helper type
 private class ActiveTexture
 {
@@ -1393,4 +1391,3 @@ private class ActiveTexture
 		this.uniformLoc = uniformLoc;
 	}
 }
-
