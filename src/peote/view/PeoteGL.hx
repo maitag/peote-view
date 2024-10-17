@@ -18,6 +18,55 @@ typedef GLBuffer            = lime.graphics.opengl.GLBuffer;
 typedef GLVertexArrayObject = lime.graphics.opengl.GLVertexArrayObject;
 typedef GLRenderbuffer      = lime.graphics.opengl.GLRenderbuffer;
 
+// For Program
+
+@:publicFields
+abstract GLUniformLocations(Array<GLUniformLocation>) {
+  var rRESOLUTION(get, set):GLUniformLocation;
+
+  inline function get_uRESOLUTION() {
+    return this[0];
+  }
+
+  inline function set_uRESOLUTION(value:GLUniformLocation) {
+    return this[0] = value;
+  }
+
+  var rZOOM(get, set):GLUniformLocation;
+
+  inline function get_uZOOM() {
+    return this[1];
+  }
+
+  inline function set_uZOOM(value:GLUniformLocation) {
+    return this[1] = value;
+  }
+
+  var rOFFSET(get, set):GLUniformLocation;
+
+  inline function get_uOFFSET() {
+    return this[2];
+  }
+
+  inline function set_uOFFSET(value:GLUniformLocation) {
+    return this[2] = value;
+  }
+
+  var rTIME(get, set):GLUniformLocation;
+
+  inline function get_uTIME() {
+    return this[3];
+  }
+
+  inline function set_uTIME(value:GLUniformLocation) {
+    return this[3] = value;
+  }
+
+  function new() {
+    this = [null, null, null, null];
+  }
+}
+
 //typedef Image = lime.graphics.Image;
 
 /*
