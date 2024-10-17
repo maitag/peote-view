@@ -20,49 +20,49 @@ typedef GLRenderbuffer      = lime.graphics.opengl.GLRenderbuffer;
 
 // For Program
 
-@:publicFields
-abstract GLUniformLocations(Array<GLUniformLocation>) {
-  var uRESOLUTION(get, set):GLUniformLocation;
 
-  inline function get_uRESOLUTION() {
+abstract GLUniformLocations(Array<GLUniformLocation>) {
+  public var uRESOLUTION(get, set):GLUniformLocation;
+
+  public inline function get_uRESOLUTION() {
     return this[0];
   }
 
-  inline function set_uRESOLUTION(value:GLUniformLocation) {
+  public inline function set_uRESOLUTION(value:GLUniformLocation) {
     return this[0] = value;
   }
 
-  var uZOOM(get, set):GLUniformLocation;
+  public var uZOOM(get, set):GLUniformLocation;
 
-  inline function get_uZOOM() {
+  public inline function get_uZOOM() {
     return this[1];
   }
 
-  inline function set_uZOOM(value:GLUniformLocation) {
+  public inline function set_uZOOM(value:GLUniformLocation) {
     return this[1] = value;
   }
 
-  var uOFFSET(get, set):GLUniformLocation;
+  public var uOFFSET(get, set):GLUniformLocation;
 
-  inline function get_uOFFSET() {
+  public inline function get_uOFFSET() {
     return this[2];
   }
 
-  inline function set_uOFFSET(value:GLUniformLocation) {
+  public inline function set_uOFFSET(value:GLUniformLocation) {
     return this[2] = value;
   }
 
-  var uTIME(get, set):GLUniformLocation;
+  public var uTIME(get, set):GLUniformLocation;
 
-  inline function get_uTIME() {
+  public inline function get_uTIME() {
     return this[3];
   }
 
-  inline function set_uTIME(value:GLUniformLocation) {
+  public inline function set_uTIME(value:GLUniformLocation) {
     return this[3] = value;
   }
 
-  function new() {
+  public function new() {
     this = [null, null, null, null];
   }
 }
