@@ -20,51 +20,51 @@ typedef GLRenderbuffer      = lime.graphics.opengl.GLRenderbuffer;
 
 // For Program
 
-
 abstract GLUniformLocations(Array<GLUniformLocation>) {
-  public var uRESOLUTION(get, set):GLUniformLocation;
+	public var uRESOLUTION(get, set):GLUniformLocation;
 
-  public inline function get_uRESOLUTION() {
-    return this[0];
-  }
+	public inline function get_uRESOLUTION() {
+		return this[0];
+	}
 
-  public inline function set_uRESOLUTION(value:GLUniformLocation) {
-    return this[0] = value;
-  }
+	public inline function set_uRESOLUTION(value:GLUniformLocation) {
+		return this[0] = value;
+	}
 
-  public var uZOOM(get, set):GLUniformLocation;
+	public var uZOOM(get, set):GLUniformLocation;
 
-  public inline function get_uZOOM() {
-    return this[1];
-  }
+	public inline function get_uZOOM() {
+		return this[1];
+	}
 
-  public inline function set_uZOOM(value:GLUniformLocation) {
-    return this[1] = value;
-  }
+	public inline function set_uZOOM(value:GLUniformLocation) {
+		return this[1] = value;
+	}
 
-  public var uOFFSET(get, set):GLUniformLocation;
+	public var uOFFSET(get, set):GLUniformLocation;
 
-  public inline function get_uOFFSET() {
-    return this[2];
-  }
+	public inline function get_uOFFSET() {
+		return this[2];
+	}
 
-  public inline function set_uOFFSET(value:GLUniformLocation) {
-    return this[2] = value;
-  }
+	public inline function set_uOFFSET(value:GLUniformLocation) {
+		return this[2] = value;
+	}
 
-  public var uTIME(get, set):GLUniformLocation;
+	public var uTIME(get, set):GLUniformLocation;
 
-  public inline function get_uTIME() {
-    return this[3];
-  }
+	public inline function get_uTIME() {
+		return this[3];
+	}
 
-  public inline function set_uTIME(value:GLUniformLocation) {
-    return this[3] = value;
-  }
+	public inline function set_uTIME(value:GLUniformLocation) {
+		return this[3] = value;
+	}
 
-  public function new() {
-	this = [-1, -1, -1, -1];
-  }
+	public function new() {
+		this = [];
+		this.resize(4);
+	}
 }
 
 //typedef Image = lime.graphics.Image;
