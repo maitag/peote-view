@@ -8,6 +8,7 @@ import peote.view.Mask;
 import peote.view.PeoteGL.GLProgram;
 import peote.view.PeoteGL.GLShader;
 import peote.view.PeoteGL.GLUniformLocation;
+import peote.view.PeoteGP.GLUniformLocations;
 import peote.view.BlendFactor;
 import peote.view.BlendFunc;
 
@@ -480,23 +481,23 @@ class Program
 		else
 		{	// Try to optimize here to let use picking shader the same vars
 			if ( !isPicking ) {
-				uRESOLUTION = gl.getUniformLocation(glProg, "uResolution");
-				uZOOM = gl.getUniformLocation(glProg, "uZoom");
-				uOFFSET = gl.getUniformLocation(glProg, "uOffset");
+				baseUniformLocations.uRESOLUTION = gl.getUniformLocation(glProg, "uResolution");
+				baseUniformLocations.uZOOM = gl.getUniformLocation(glProg, "uZoom");
+				baseUniformLocations.uOFFSET = gl.getUniformLocation(glProg, "uOffset");
 			} else {
-				uRESOLUTION_PICK = gl.getUniformLocation(glProg, "uResolution");
-				uZOOM_PICK = gl.getUniformLocation(glProg, "uZoom");
-				uOFFSET_PICK = gl.getUniformLocation(glProg, "uOffset");
+				pickUniformLocations.uRESOLUTION = gl.getUniformLocation(glProg, "uResolution");
+				pickUniformLocations.uZOOM = gl.getUniformLocation(glProg, "uZoom");
+				pickUniformLocations.uOFFSET = gl.getUniformLocation(glProg, "uOffset");
 			}
 		}
 
 		if ( !isPicking ) {
-			uTIME = gl.getUniformLocation(glProg, "uTime");
+			baseUniformLocations.uTIME = gl.getUniformLocation(glProg, "uTime");
 			uniformFloatLocations = new Array<GLUniformLocation>();
 			for (u in uniformFloats) uniformFloatLocations.push( gl.getUniformLocation(glProg, u.name) );
 		}
 		else {
-			uTIME_PICK = gl.getUniformLocation(glProg, "uTime");
+			pickUniformLocations.uTIME = gl.getUniformLocation(glProg, "uTime");
 			uniformFloatPickLocations = new Array<GLUniformLocation>();
 			for (u in uniformFloats) uniformFloatPickLocations.push( gl.getUniformLocation(glProg, u.name) );
 		}
@@ -523,15 +524,8 @@ class Program
 		ready = true;
 	}
 
-	var uRESOLUTION:GLUniformLocation;
-	var uZOOM:GLUniformLocation;
-	var uOFFSET:GLUniformLocation;
-	var uTIME:GLUniformLocation;
-	// TODO: optimize here (or all with typedef {uRESOLUTION:GLUniformLocation ...} )
-	var uRESOLUTION_PICK:GLUniformLocation;
-	var uZOOM_PICK:GLUniformLocation;
-	var uOFFSET_PICK:GLUniformLocation;
-	var uTIME_PICK:GLUniformLocation;
+        var baseUniformLocations:GLUniformLocations = new GLUniformLocations():
+        var pickUniformLocations:GLUniformLocations = new GLUniformLocations():
 
 	var uniformFloatsVertex:Array<UniformFloat> = null;
 	var uniformFloatsFragment:Array<UniformFloat> = null;
@@ -549,7 +543,7 @@ class Program
 			var col = colorIdentifiers.copy();
 			var tex = new Array<String>();
 			for (i in 0...textureIdentifiers.length)
-				if (textureLayers.exists(i)) tex.push(textureIdentifiers[i]);
+				textureLayers.exists(i)) tex.push(textureIdentifiers[i]);
 			for (i in 0...customTextureIdentifiers.length)
 				if (textureLayers.exists(textureIdentifiers.length+i)) tex.push(customTextureIdentifiers[i]);
 
@@ -1296,13 +1290,13 @@ class Program
 			else
 			{
 				// ------------- simple uniform -------------
-				gl.uniform2f (uRESOLUTION, peoteView.width, peoteView.height);
-				gl.uniform2f (uZOOM, peoteView.xz * display.xz, peoteView.yz * display.yz);
-				gl.uniform2f (uOFFSET, (display.x + display.xOffset + peoteView.xOffset) / display.xz,
+				gl.uniform2f (baseUniformLocations.uRESOLUTION, peoteView.width, peoteView.height);
+				gl.uniform2f (baseUniformLocations.uZOOM, peoteView.xz * display.xz, peoteView.yz * display.yz);
+				gl.uniform2f (baseUniformLocations.uOFFSET, (display.x + display.xOffset + peoteView.xOffset) / display.xz,
 									   (display.y + display.yOffset + peoteView.yOffset) / display.yz);
 			}
 
-			gl.uniform1f (uTIME, peoteView.time);
+			gl.uniform1f (baseUniformLocations.uTIME, peoteView.time);
 			for (i in 0...uniformFloats.length) gl.uniform1f (uniformFloatLocations[i], uniformFloats[i].value);
 
 			peoteView.setColor(colorEnabled);
@@ -1334,15 +1328,15 @@ class Program
 		else
 		{
 			// ------------- simple uniform -------------
-			gl.uniform2f (uRESOLUTION, display.width, -display.height);
-			gl.uniform2f (uZOOM, display.xz, display.yz);
+			gl.uniform2f (baseUniformLocations.uRESOLUTION, display.width, -display.height);
+			gl.uniform2f (baseUniformLocations.uZOOM, display.xz, display.yz);
 
 			// TODO: check if peoteViews offset have to be here!
-			gl.uniform2f (uOFFSET, (display.xOffset + peoteView.xOffset) / display.xz,
+			gl.uniform2f (baseUniformLocations.uOFFSET, (display.xOffset + peoteView.xOffset) / display.xz,
 			                       (display.yOffset + peoteView.yOffset - display.height) / display.yz );
 		}
 
-		gl.uniform1f (uTIME, peoteView.time);
+		gl.uniform1f (baseUniformLocations.uTIME, peoteView.time);
 		for (i in 0...uniformFloats.length) gl.uniform1f (uniformFloatLocations[i], uniformFloats[i].value);
 
 		peoteView.setColor(colorEnabled);
@@ -1366,12 +1360,12 @@ class Program
 		render_activeTextureUnits(peoteView, textureListPicking);
 
 		// No view/display UBOs for PICKING-SHADER!
-		gl.uniform2f (uRESOLUTION_PICK, 1, 1);
-		gl.uniform2f (uZOOM_PICK, peoteView.xz * display.xz, peoteView.yz * display.yz);
-		gl.uniform2f (uOFFSET_PICK, (display.x + display.xOffset + xOff) / display.xz,
+		gl.uniform2f (pickUniformLocations.uRESOLUTION, 1, 1);
+		gl.uniform2f (pickUniformLocations.uZOOM, peoteView.xz * display.xz, peoteView.yz * display.yz);
+		gl.uniform2f (pickUniformLocations.uOFFSET, (display.x + display.xOffset + xOff) / display.xz,
 		                            (display.y + display.yOffset + yOff) / display.yz);
 
-		gl.uniform1f (uTIME_PICK, peoteView.time);
+		gl.uniform1f (pickUniformLocations.uTIME, peoteView.time);
 		for (i in 0...uniformFloats.length) gl.uniform1f (uniformFloatPickLocations[i], uniformFloats[i].value);
 
 		peoteView.setGLDepth((toElement == -1) ? zIndexEnabled : false); // disable for getAllElementsAt() in peoteView
