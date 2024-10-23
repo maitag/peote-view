@@ -436,7 +436,7 @@ class $className implements peote.view.intern.BufferInterface
 	public function swapElements(element1: $elementType, element2: $elementType):Void
 	{	
 		#if peoteview_debug_buffer
-		trace("Buffer.swapElements", element.bytePos);
+		trace("Buffer.swapElements", element1.bytePos);
 		#end
 		
 		if (element1.bytePos == -1) throw("Error: first Element is not inside a Buffer");
