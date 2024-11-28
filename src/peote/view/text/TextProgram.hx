@@ -5,17 +5,34 @@ import peote.view.Program;
 import peote.view.Buffer;
 import peote.view.Color;
 
+/**
+	The TextProgram extends a `Program` to handle text by using a 8x8 pixels monospace bitmapfonts.  
+	It automatically creates a `Buffer` and by default a `BMFontData` what is using the embedded data of `BMFont`.  
+**/
 @:access(peote.view.text.Text)
 class TextProgram extends Program {
 
 	static var defaultBmFontData:BMFontData = null;
+
+	/**
+		The assigned `BMFontData` instance.
+	**/
 	public var fontData(default, null):BMFontData;
 
+	/**
+		A helper to access the `Buffer` of the Program what contains all `TextElement`s.
+	**/
 	public var buff(get, never):Buffer<TextElement>;
 	inline function get_buff() return cast this.buffer;
 
+	/**
+		Contains all added `Text` instances.
+	**/
 	public var texts(default, null) = new Array<Text>();
 
+	/**
+		The defaults what is used if an options in a `Text` instance is not set.
+	**/
 	public var defaultOptions:TextOptions = {
 		fgColor: 0xf0f0f0ff,
 		bgColor: 0,
@@ -26,8 +43,14 @@ class TextProgram extends Program {
 		zIndex: 0
 	};
 
-	public function new(?fontData:BMFontData, ?textOptions:TextOptions, minBufferSize:Int = 1024 , growBufferSize:Int = 1024)
-	{
+	/**
+		Creates a new `TextProgram` instance.		
+		@param fontData the `BMFontData` what specifies the bitmap-font
+		@param textOptions the `TextOptions` what is used as defaults if not set inside of a `Text` instance
+		@param minBufferSize how many glyphes the buffer should contain as a minimum
+		@param growBufferSize the size by which the buffer should grow when it is full
+	**/
+	public function new(?fontData:BMFontData, ?textOptions:TextOptions, minBufferSize:Int = 1024 , growBufferSize:Int = 1024) {
 		if (fontData == null) {
 			if (defaultBmFontData == null) defaultBmFontData = new BMFontData(BMFont.data);
 			fontData = defaultBmFontData;
@@ -47,7 +70,12 @@ class TextProgram extends Program {
 		setColorFormula("( base.r > 0.0) ? fgColor : bgColor");
 	}
 
-	public function add(text:Text) {
+	/**
+		Adds a `Text` to the program.  
+		@param text the `Text` instance to add
+		@param updateDefaultOptions to force an update of the programs default options
+	**/
+	public function add(text:Text, updateDefaultOptions:Bool = false) {
 		if (texts.indexOf(text) >= 0) throw ("Error, text instance is already added");
 
 		if (text.elements == null) {
@@ -55,33 +83,39 @@ class TextProgram extends Program {
 			createAddUpdate(text, true, true, true);
 		}
 		else {
-			if (text.update == Text.POS) // only position changed
+			if (!updateDefaultOptions && text.update == 0) for (e in text.elements) buff.addElement(e); // only add it
+			else if (!updateDefaultOptions && text.update == Text.POS) // only position changed
 			{
 				if (text.elements.length > 0) {
 					var dx = text.x - text.elements[0].x;
 					var dy = text.y - text.elements[0].y;
-					for (e in text.elements) { e.x+=dx; e.y+=dy; e.z=text.zIndex; buff.addElement(e); }			
+					for (e in text.elements) { e.x+=dx; e.y+=dy; e.z=text.zIndex; buff.addElement(e); }
 				}
 			}
 			else if (text.update & Text.TXT > 0) createAddUpdate(text, false, true, true); // text changed
 			else createAddUpdate(text, false, true, false); // options changed
 		}
-		text.update = 0;
 
+		text.update = 0;
 		texts.push(text);
 	}
 
-	public function update(text:Text) {
+	/**
+		Updates the changes of a added `Text`.  
+		@param text the `Text` instance to update
+		@param updateDefaultOptions to force an update of the programs default options
+	**/
+	public function update(text:Text, updateDefaultOptions:Bool = false) {
 		if (texts.indexOf(text) < 0) throw ("Error, text instance is not added");
 
-		if (text.update == 0) return; // nothing to update
+		if (!updateDefaultOptions && text.update == 0) return; // nothing to update
 		
-		if (text.update == Text.POS) // only position changed
+		if (!updateDefaultOptions && text.update == Text.POS) // only position changed
 		{
 			if (text.elements.length > 0) {
 				var dx = text.x - text.elements[0].x;
 				var dy = text.y - text.elements[0].y;
-				for (e in text.elements) { e.x+=dx; e.y+=dy; e.z=text.zIndex; buff.updateElement(e); }			
+				for (e in text.elements) { e.x+=dx; e.y+=dy; e.z=text.zIndex; buff.updateElement(e); }
 			}
 		}
 		else if (text.update & Text.TXT > 0) createAddUpdate(text, false, false, true); // text changed
@@ -90,8 +124,16 @@ class TextProgram extends Program {
 		text.update = 0;
 	}
 
-	inline function createAddUpdate(text:Text, create:Bool, bufferAdd:Bool, changeTXT:Bool) 
-	{
+	/**
+		Updates the changes of all added `Text` instances.  
+		@param updateDefaultOptions to force an update of the programs default options
+	**/
+	public function updateAll(updateDefaultOptions:Bool = false) {
+		for (text in texts) update(text, updateDefaultOptions);
+	}
+
+
+	inline function createAddUpdate(text:Text, create:Bool, bufferAdd:Bool, changeTXT:Bool) {
 		var x:Int = text.x;
 		var y:Int = text.y;
 
@@ -154,14 +196,26 @@ class TextProgram extends Program {
 		}
 	}
 
-	// ----------------------------------
-
+	/**
+		Removes a `Text` from the program.  
+		@param text the `Text` instance to remove
+	**/
 	public function remove(text:Text) {
 		if (! texts.remove(text) ) throw ("Error, text instance not exists into TextProgram");
 		for (e in text.elements) buff.removeElement(e);
 	}
 
+	/**
+		Removes all `Text` instances from the program.  
+	**/
+	public function removeAll(text:Text) {
+		for (text in texts) remove(text);
+	}
 
+	/**
+		Create a new `Text` instance automatically by a defined text-string and adds it.  
+		@param text the `Text` instance to update
+	**/
 	public function create(x:Int, y:Int, textString:String, textOptions:TextOptions):Text {
 		var text = new Text(x, y, textString, textOptions);
 		add(text);

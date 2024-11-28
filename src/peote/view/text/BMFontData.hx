@@ -4,13 +4,28 @@ import haxe.io.Bytes;
 import peote.view.TextureData;
 import peote.view.TextureFormat;
 
+/**
+	BMFontData provides the `TextureData` for `TextProgram`s by using the data of a embedded 8x8 pixels monospace bitmapfont.  
+**/
 class BMFontData {
 
+	/**
+		The number of glyphes the font contains.
+	**/
 	public var length(default, null):Int;
+
+	/**
+		The generated `TextureData`.
+	**/
 	public var textureData(default, null):TextureData;
 
 	var ranges:Array<Int> = null;	
 
+	/**
+		Creates a new `BMFontData` instance and generates the x-tiled `TextureData` for all glyphes.		
+		@param fontData the data of `BMFont` or a custom class what defines the font-data.  
+		@param fontRanges is need if the custom font is limited by charcode-ranges
+	**/
 	public function new(fontData:Array<Int>, ?fontRanges:Array<Array<Int>>) {
 
 		if (fontRanges != null) {
@@ -47,6 +62,10 @@ class BMFontData {
 		textureData = new TextureData(width, height, TextureFormat.R, bytes);
 	}
 	
+	/**
+		Returns the tile-number of the `TextElement` to map the glyph to the charCode in depend of the ranges.  
+		@param charCode the ascii charcode
+	**/
 	public function getTile(charCode:UInt):Int
 	{
 		var tile:Int;
@@ -69,6 +88,5 @@ class BMFontData {
 
 		return tile;
 	}
-
 
 }
