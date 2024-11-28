@@ -5,13 +5,13 @@ import peote.view.Color;
 @:structInit
 @:publicFields
 class TextOptions {
-	@:optional var fgColor:Color;
-	@:optional var bgColor:Color;
-	@:optional var letterWidth:Int;
-	@:optional var letterHeight:Int;
-	@:optional var letterSpace:Int;
-	@:optional var lineSpace:Int;
-	@:optional var zIndex:Int;
+	var fgColor:Null<Color> = null;
+	var bgColor:Null<Color> = null;
+	var letterWidth:Null<Int> = null;
+	var letterHeight:Null<Int> = null;
+	var letterSpace:Null<Int> = null;
+	var lineSpace:Null<Int> = null;
+	var zIndex:Null<Int> = null;
 
 	public function copyNotNullValuesTo(options:TextOptions) {
 		if (fgColor != null) options.fgColor = fgColor;
