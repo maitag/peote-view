@@ -19,11 +19,11 @@ class Loader
 		trace ('Loading complete "$name"');
 	}
 
-	public static inline function image( name:String, debug=false, ?onProgress:Int->Int->Void, ?onError:String->Void, ?onLoad:Image->Void):Void {
+	public static function image( name:String, debug=false, ?onProgress:Int->Int->Void, ?onError:String->Void, ?onLoad:Image->Void):Void {
 		#if html5
 		if (corsServer != "" && ~/^https?:\/\//.match(name)) name = "//"+corsServer+"/"+name;
 		#end
-		var future = Image.loadFromFile(name);		
+		var future = Image.loadFromFile(name);
 		if (debug) {
 			trace('Start loading image "$name"');
 			future.onProgress( function(a:Int, b:Int) onProgressDebug(a, b, name) );
@@ -32,12 +32,12 @@ class Loader
 		}		
 		if (onProgress != null) future.onProgress( onProgress );
 		if (onError != null) future.onError( onError );
-		if (onLoad != null) future.onComplete( onLoad );		
+		if (onLoad != null) future.onComplete( onLoad );
 	}
 	
-	public static inline function imageArray( names:Array<String>, debug=false, ?onProgress:Int->Int->Int->Void, ?onProgressOverall:Int->Int->Void, ?onError:Int->String->Void, ?onLoad:Int->Image->Void, ?onLoadAll:Array<Image>->Void):Void {
+	public static function imageArray( names:Array<String>, debug=false, ?onProgress:Int->Int->Int->Void, ?onProgressOverall:Int->Int->Void, ?onError:Int->String->Void, ?onLoad:Int->Image->Void, ?onLoadAll:Array<Image>->Void):Void {
 		var images = new Array<Image>();
-		var loaded:Int = names.length;		
+		var loaded:Int = names.length;
 		var progressSumA = new Array<Int>(); // does not need to be initialized (only to avoid compiler-warning)
 		var progressSumB = new Array<Int>();
 		if (onProgressOverall != null) {
@@ -72,11 +72,11 @@ class Loader
 		}
 	}
 	
-	public static inline function bytes( name:String, debug=false, ?onProgress:Int->Int->Void, ?onError:String->Void, ?onLoad:Bytes->Void):Void {
+	public static function bytes( name:String, debug=false, ?onProgress:Int->Int->Void, ?onError:String->Void, ?onLoad:Bytes->Void):Void {
 		#if html5
 		if (corsServer != "" && ~/^https?:\/\//.match(name)) name = "//"+corsServer+"/"+name;
 		#end
-		var future = Bytes.loadFromFile(name);	
+		var future = Bytes.loadFromFile(name);
 		if (debug) {
 			trace('Start loading bytes "$name"');
 			future.onProgress( function(a:Int, b:Int) onProgressDebug(a, b, name) );
@@ -88,7 +88,7 @@ class Loader
 		if (onLoad != null) future.onComplete( onLoad );		
 	}
 
-	public static inline function text( name:String, debug=false, ?onProgress:Int->Int->Void, ?onError:String->Void, ?onLoad:String->Void):Void {
+	public static function text( name:String, debug=false, ?onProgress:Int->Int->Void, ?onError:String->Void, ?onLoad:String->Void):Void {
 		bytes( name, debug, onProgress,
 			(onLoad == null && onError == null) ? null : onError,  // helps parametermatching
 			(onLoad == null && onError == null) ? null : function(bytes:Bytes) {
@@ -99,7 +99,7 @@ class Loader
 		);
 	}
 	
-	public static inline function bytesArray( names:Array<String>, debug=false, ?onProgress:Int->Int->Int->Void, ?onProgressOverall:Int->Int->Void, ?onError:Int->String->Void, ?onLoad:Int->Bytes->Void, ?onLoadAll:Array<Bytes>->Void):Void {
+	public static function bytesArray( names:Array<String>, debug=false, ?onProgress:Int->Int->Int->Void, ?onProgressOverall:Int->Int->Void, ?onError:Int->String->Void, ?onLoad:Int->Bytes->Void, ?onLoadAll:Array<Bytes>->Void):Void {
 		var allBytes = new Array<Bytes>();
 		var loaded:Int = names.length;
 		var progressSumA = new Array<Int>(); // does not need to be initialized (only to avoid compiler-warning)
@@ -136,5 +136,4 @@ class Loader
 		}
 	}
 	
-
 }
