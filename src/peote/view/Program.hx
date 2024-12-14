@@ -625,6 +625,9 @@ class Program
 				formula = regexp.replace( formula, '$1' + defaultFormulaVars.get(name).toGLSL() );
 				//formula = regexp.replace( formula, '$1' + defaultFormulaVars.get(name).toGLSL('$2') + '$3' );
 		}
+
+		// check the existence of "vTexCoord":
+		if (Util.regexpIdentifier("vTexCoord").match(formula)) hasFragmentInjection = true;
 		
 		glShaderConfig.FRAGMENT_CALC_LAYER = formula;
 	}
