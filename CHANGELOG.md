@@ -2,6 +2,7 @@ Changelog
 =========
 
 * Added feature `peote.view.text.TextProgram` to easy create text by using embedded bitmap font
+* `vTexCoord` is also accessable now if its only used inside a programs ColorFormula 
 
 
 1.03 (09/28/2024)
