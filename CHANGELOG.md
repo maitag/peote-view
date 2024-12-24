@@ -1,6 +1,7 @@
 Changelog
 =========
 
+* Fixed bug in `Element` generation where getter/setter not work if no default value is set
 * Added feature `peote.view.text.TextProgram` to easy create text by using embedded bitmap font
 * `vTexCoord` is also accessable now if its only used inside a programs ColorFormula 
 
