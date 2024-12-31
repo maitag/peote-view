@@ -252,6 +252,9 @@ class $className implements peote.view.intern.BufferInterface
 		_newBytes.blit(0, _bytes, 0, _elemBuffSize * _maxElements);
 		_bytes = _newBytes;
 		
+		// TODO: optimization maybe can be here for cpp, hl, hlc by this:
+		// untyped _elements.resize(newSize);
+		// instead of:
 		var _newElements = new haxe.ds.Vector<$elementType>(newSize);
 		//haxe.ds.Vector.blit(_elements, 0, _newElements, 0, _maxElements);
 		for (i in 0..._maxElements) {
@@ -260,7 +263,8 @@ class $className implements peote.view.intern.BufferInterface
 			_newElements.set(i, element); 
 		}
 		_elements = _newElements;
-		
+
+
 		if (_gl != null) {
 			_gl.deleteBuffer(_glBuffer);
 			_glBuffer = _gl.createBuffer();

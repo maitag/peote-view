@@ -6,8 +6,8 @@ import peote.view.Buffer;
 import peote.view.Color;
 
 /**
-	The TextProgram extends a `Program` to handle text by using a 8x8 pixels monospace bitmapfonts.  
-	It automatically creates a `Buffer` and by default a `BMFontData` what is using the embedded data of `BMFont`.  
+	The TextProgram extends a `Program` to display text by using a 8x8 pixels monospace bitmapfont.  
+	It can handle multiple `Text`-instances and uses a `BMFontData` with `BMFont.data` by default.
 **/
 @:access(peote.view.text.Text)
 class TextProgram extends Program {
@@ -20,7 +20,7 @@ class TextProgram extends Program {
 	public var fontData(default, null):BMFontData;
 
 	/**
-		A helper to access the `Buffer` of the Program what contains all `TextElement`s.
+		A helper to access the `Buffer` of the Program.
 	**/
 	public var buff(get, never):Buffer<TextElement>;
 	inline function get_buff() return cast this.buffer;
@@ -31,7 +31,7 @@ class TextProgram extends Program {
 	public var texts(default, null) = new Array<Text>();
 
 	/**
-		The defaults what is used if an options in a `Text` instance is not set.
+		These are the default `TextOptions` values that are used if an option has not been defined within the `Text` instance.
 	**/
 	public var defaultOptions:TextOptions = {
 		fgColor: 0xf0f0f0ff,
@@ -59,7 +59,7 @@ class TextProgram extends Program {
 
 		if (textOptions != null) textOptions.copyNotNullValuesTo(defaultOptions);
 
-		super( new Buffer<TextElement>(minBufferSize , growBufferSize) );
+		super( #if doc_gen cast #end new Buffer<TextElement>(minBufferSize, growBufferSize) );
 
 		var texture = Texture.fromData(fontData.textureData);
 
@@ -71,11 +71,21 @@ class TextProgram extends Program {
 	}
 
 	/**
+		Create a new `Text` instance automatically by a defined text-string and adds it.  
+		@param text the `Text` instance to update
+	**/
+	public function create(x:Int, y:Int, textString:String, textOptions:TextOptions):Text {
+		var text = new Text(x, y, textString, textOptions);
+		add(text);
+		return text;
+	}
+
+	/**
 		Adds a `Text` to the program.  
 		@param text the `Text` instance to add
 		@param updateDefaultOptions to force an update of the programs default options
 	**/
-	public function add(text:Text, updateDefaultOptions:Bool = false) {
+	public function add(text:Text, updateDefaultOptions:Bool = false):Text {
 		if (texts.indexOf(text) >= 0) throw ("Error, text instance is already added");
 
 		if (text.elements == null) {
@@ -98,10 +108,11 @@ class TextProgram extends Program {
 
 		text.update = 0;
 		texts.push(text);
+		return text;
 	}
 
 	/**
-		Updates the changes of a added `Text`.  
+		Updates the changes of a `Text` isntance that have been added.  
 		@param text the `Text` instance to update
 		@param updateDefaultOptions to force an update of the programs default options
 	**/
@@ -125,7 +136,7 @@ class TextProgram extends Program {
 	}
 
 	/**
-		Updates the changes of all added `Text` instances.  
+		Updates the changes of all `Text` instances that have been added.  
 		@param updateDefaultOptions to force an update of the programs default options
 	**/
 	public function updateAll(updateDefaultOptions:Bool = false) {
@@ -206,20 +217,10 @@ class TextProgram extends Program {
 	}
 
 	/**
-		Removes all `Text` instances from the program.  
+		Removes all `Text` instances that have been added.  
 	**/
 	public function removeAll(text:Text) {
 		for (text in texts) remove(text);
-	}
-
-	/**
-		Create a new `Text` instance automatically by a defined text-string and adds it.  
-		@param text the `Text` instance to update
-	**/
-	public function create(x:Int, y:Int, textString:String, textOptions:TextOptions):Text {
-		var text = new Text(x, y, textString, textOptions);
-		add(text);
-		return text;
 	}
 
 }
