@@ -330,7 +330,7 @@ class Display
 		}
 	}
 
-	private inline function clearOldGLContext() 
+	private inline function clearOldGLContext()
 	{
 		#if peoteview_debug_display
 		trace("Display clearOldGLContext");

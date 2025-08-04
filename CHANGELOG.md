@@ -1,6 +1,8 @@
 Changelog
 =========
 
+* Added element iterator to `Buffer` to use loops like: `for (element in buffer)`
+
 1.04 (12/31/2024)
 -----------------
 * Fixed bug in `Element` generation where getter/setter not work if no default value is set

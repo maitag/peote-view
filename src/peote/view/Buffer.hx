@@ -124,7 +124,7 @@ class $className implements peote.view.intern.BufferInterface
 		if (minSize <= 0) throw("Error: Buffer need a minimum size of 1 to store an Element.");
 		_minSize = minSize;
 		_growSize = (growSize < 0) ? 0 : growSize;
-		if (autoShrink) _shrinkAtSize = growSize + Std.int(growSize/2);
+		if (autoShrink) _shrinkAtSize = _growSize + Std.int(_growSize/2);
 		
 		#if peoteview_queueGLbuffering
 		updateGLBufferElementQueue = new Array<$elementType>();
@@ -144,7 +144,7 @@ class $className implements peote.view.intern.BufferInterface
 		trace("create bytes for GLbuffer");
 		#end
 		_bytes = peote.view.intern.BufferBytes.alloc(_elemBuffSize * _minSize);
-		_bytes.fill(0, _elemBuffSize * _minSize, 0);		
+		_bytes.fill(0, _elemBuffSize * _minSize, 0);
 	}
 
 	inline function setNewGLContext(newGl:PeoteGL)
@@ -319,6 +319,8 @@ class $className implements peote.view.intern.BufferInterface
 	**/
 	public function updateElement(element: $elementType):Void
 	{
+		if (element.bytePos == -1) throw ("Error, Element is not added to Buffer");		
+
 		if (peote.view.PeoteGL.Version.isINSTANCED)
 			element.writeBytesInstanced(_bytes);
 		else 
@@ -351,7 +353,7 @@ class $className implements peote.view.intern.BufferInterface
 	inline function _updateElement(element: $elementType):Void
 	{	
 		//trace("Buffer.updateElement at position" + element.bytePos);
-		if (element.bytePos == -1) throw ("Error, Element is not added to Buffer");		
+		// if (element.bytePos == -1) throw ("Error, Element is not added to Buffer");		
 		if (_gl != null) element.updateGLBuffer(_gl, _glBuffer, _elemBuffSize);
 	}
 
@@ -415,7 +417,7 @@ class $className implements peote.view.intern.BufferInterface
 		Returns the element from buffer at index position.
 		@param  elementIndex index of the element inside the buffer
 	**/
-	public function getElement(elementIndex:Int): $elementType
+	public function getElement(elementIndex:Int):$elementType
 	{
 		return _elements.get(elementIndex);
 	}
@@ -466,7 +468,7 @@ class $className implements peote.view.intern.BufferInterface
 
 	// ---------------------------
 
-	private function getElementWithHighestZindex(elementIndices:Array<Int>): Int
+	private function getElementWithHighestZindex(elementIndices:Array<Int>):Int
 	{
 		var lastZindex:Int = - $p{elemField}.MAX_ZINDEX;
 		var highest:Int = -1;
@@ -485,6 +487,20 @@ class $className implements peote.view.intern.BufferInterface
 	/*public function sortTransparency():Void
 	{
 	}*/
+
+	// ------ Element Iterator -----------
+	var iter:Int = 0;
+	
+	public inline function next():$elementType return _elements.get(iter++);
+	public inline function hasNext():Bool {
+		if (iter < _maxElements) return true;
+		else {
+			iter = 0;
+			return false;
+		}
+	}
+	
+	// -----------------------------------
 
 	inline function getVertexShader():String return $p{elemField}.vertexShader;
 	inline function getFragmentShader():String return $p{elemField}.fragmentShader;

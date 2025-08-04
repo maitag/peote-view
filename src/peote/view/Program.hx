@@ -713,7 +713,9 @@ class Program
 		var formulaName = buffer.getFormulaNames().get(name); // TODO: better with 2 Arrays here
 		
 		if (formulaName != null) {
+			#if peoteview_debug_program
 			trace('  set formula: $formulaName = $newFormula' );
+			#end
 			formula.set(formulaName, newFormula);
 		}
 		else {
@@ -721,15 +723,21 @@ class Program
 				formula.set(name, newFormula);
 			}
 			else if (buffer.getFormulaVaryings().indexOf(name) >= 0) {
+				#if peoteview_debug_program
 				trace('  set formula for varying: $name = $newFormula' );
+				#end
 				formula.set(name, newFormula);
 			}
 			else if (buffer.getFormulaConstants().indexOf(name) >= 0) {
+				#if peoteview_debug_program
 				trace('  set formula for constant: $name = $newFormula' );
+				#end
 				formula.set(name, newFormula); // TODO: Error if newFormula contains other attributes
 			}
 			else if (buffer.getFormulaCustoms().indexOf(name) >= 0) {
+				#if peoteview_debug_program
 				trace('  set formula for custom: $name = $newFormula' );
+				#end
 				formula.set(name, newFormula);
 			}
 			else throw('Error: can not set Formula for $name if there is no property defined for @$name inside Element');
@@ -789,7 +797,7 @@ class Program
 				{
 					if (f == null) f = buffer.getAttributes().get(n);
 					Reflect.setField(glShaderConfig.FORMULA_VARYINGS, n, f);
-					trace(' -- replacing Formula $n => $f');
+					// trace(' -- replacing Formula $n => $f');
 				}
 				else Reflect.setField(glShaderConfig.FORMULA_VARYINGS, n, null);
 			}
@@ -799,7 +807,7 @@ class Program
 				if ( f != null && f != buffer.getAttributes().get(n) )
 				{
 					Reflect.setField(glShaderConfig.FORMULA_CONSTANTS, n, f);
-					trace(' -- replacing Formula $n => $f');
+					// trace(' -- replacing Formula $n => $f');
 				}
 				else Reflect.setField(glShaderConfig.FORMULA_CONSTANTS, n, null);		
 			}
