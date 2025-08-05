@@ -196,7 +196,9 @@ class Program
 	/**
 		Enable automatic shader generation for functioncalls what set, add or remove textures (also for snapToPixel, discardAtAlpha, shadercode-injection, formula and precision changes)
 	**/
-	public var autoUpdateTextures:Bool = true;
+	public var autoUpdate:Bool = true;
+
+	var _updateTexture:Bool = false;
 
 	var glProgram:GLProgram = null;
 	var glProgramPicking:GLProgram = null;
@@ -636,17 +638,16 @@ class Program
 		Set a formula to combine the colors of `@texUnit`s together with the `@color` attributes of an element.
 		@param formula a String what contains the color formula
 		@param varDefaults defines the default colors by a Map with the `texUnit` identifiers as keys
-		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
+		@param autoUpdate set it to `true` (update) or `false` (no update), otherwise the `.autoUpdate` property is used
 	**/
-	public function setColorFormula(formula:String="", varDefaults:StringMap<Color>=null, ?autoUpdateTextures:Null<Bool>):Void {
+	public function setColorFormula(formula:String="", varDefaults:StringMap<Color>=null, ?autoUpdate:Null<Bool>):Void {
 		colorFormula = formula;
 		if (varDefaults != null)
 			for (name in varDefaults.keys()) {
 				if (Util.isWrongIdentifier(name)) throw('Error: "$name" is not an identifier, please use only letters/numbers or "_" (starting with a letter)');
 				defaultFormulaVars.set(name, varDefaults.get(name));
 			}
-		if (autoUpdateTextures != null) { if (autoUpdateTextures) updateTextures(); }
-		else if (this.autoUpdateTextures) updateTextures();
+		checkAutoUpdate(autoUpdate, true);
 	}
 
 	/**
@@ -654,13 +655,13 @@ class Program
 		@param glslCode a String what contains the glsl code
 		@param uTimeUniformEnabled if `true` you can use the global `time` uiform
 		@param uniformFloats an Array of custom `UniformFloat`s
-		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
+		@param autoUpdate set it to `true` (update) or `false` (no update), otherwise the `.autoUpdate` property is used
 	**/
-	public function injectIntoVertexShader(glslCode:String = "", uTimeUniformEnabled = false, uniformFloats:Array<UniformFloat> = null, ?autoUpdateTextures:Null<Bool>):Void {
+	public function injectIntoVertexShader(glslCode:String = "", uTimeUniformEnabled = false, uniformFloats:Array<UniformFloat> = null, ?autoUpdate:Null<Bool>):Void {
 		uniformFloatsVertex = uniformFloats;
 		glShaderConfig.VERTEX_INJECTION = ((uTimeUniformEnabled && !buffer.hasTime()) ? "uniform float uTime;" : "") + generateUniformFloatsGLSL(uniformFloats) + glslCode;
 		accumulateUniformsFloat();
-		checkAutoUpdate(autoUpdateTextures);
+		checkAutoUpdate(autoUpdate);
 	}
 
 	/**
@@ -668,14 +669,14 @@ class Program
 		@param glslCode a String what contains the glsl code
 		@param uTimeUniformEnabled if `true` you can use the global `time` uiform
 		@param uniformFloats an Array of custom `UniformFloat`s
-		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
+		@param autoUpdate set it to `true` (update) or `false` (no update), otherwise the `.autoUpdate` property is used
 	**/
-	public function injectIntoFragmentShader(glslCode:String = "", uTimeUniformEnabled = false, uniformFloats:Array<UniformFloat> = null, ?autoUpdateTextures:Null<Bool>):Void {
+	public function injectIntoFragmentShader(glslCode:String = "", uTimeUniformEnabled = false, uniformFloats:Array<UniformFloat> = null, ?autoUpdate:Null<Bool>):Void {
 		hasFragmentInjection = (glslCode == "") ? false : true;
 		uniformFloatsFragment = uniformFloats;
 		glShaderConfig.FRAGMENT_INJECTION = ((uTimeUniformEnabled) ? "uniform float uTime;" : "") + generateUniformFloatsGLSL(uniformFloats) + glslCode;
 		accumulateUniformsFloat();
-		checkAutoUpdate(autoUpdateTextures);
+		checkAutoUpdate(autoUpdate);
 	}
 
 	private function generateUniformFloatsGLSL(uniformFloats:Array<UniformFloat>):String {
@@ -706,9 +707,9 @@ class Program
 		Define formulas to change the calculation for element attributes at runtime
 		@param name a String with the attribute identifier
 		@param newFormula a String what contains the formula
-		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
+		@param autoUpdate set it to `true` (update) or `false` (no update), otherwise the `.autoUpdate` property is used
 	**/
-	public function setFormula(name:String, newFormula:String, ?autoUpdateTextures:Null<Bool>):Void {
+	public function setFormula(name:String, newFormula:String, ?autoUpdate:Null<Bool>):Void {
 		
 		var formulaName = buffer.getFormulaNames().get(name); // TODO: better with 2 Arrays here
 		
@@ -744,7 +745,7 @@ class Program
 		}
 		
 		formulaHasChanged = true;
-		checkAutoUpdate(autoUpdateTextures);
+		checkAutoUpdate(autoUpdate);
 	}
 
 	// invoked via createProg()
@@ -846,69 +847,69 @@ class Program
 	/**
 		Set the float precision for the fragmentshader
 		@param precision a String what can be "low", "medium" or "high"
-		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
+		@param autoUpdate set it to `true` (update) or `false` (no update), otherwise the `.autoUpdate` property is used
 	**/
-	public function setFragmentFloatPrecision(?precision:Null<String>, ?autoUpdateTextures:Null<Bool>) {
+	public function setFragmentFloatPrecision(?precision:Null<String>, ?autoUpdate:Null<Bool>) {
 		fragmentFloatPrecision =  PeoteGL.Precision.availFragmentFloat(validatePrecision(precision)); // template is set in createProgram
-		checkAutoUpdate(autoUpdateTextures);
+		checkAutoUpdate(autoUpdate);
 	}
 
 	/**
 		Set the integer precision for the fragmentshader
 		@param precision a String what can be "low", "medium" or "high"
-		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
+		@param autoUpdate set it to `true` (update) or `false` (no update), otherwise the `.autoUpdate` property is used
 	**/
-	public function setFragmentIntPrecision(?precision:Null<String>, ?autoUpdateTextures:Null<Bool>) {
+	public function setFragmentIntPrecision(?precision:Null<String>, ?autoUpdate:Null<Bool>) {
 		glShaderConfig.FRAGMENT_INT_PRECISION =  PeoteGL.Precision.availFragmentInt(validatePrecision(precision));
-		checkAutoUpdate(autoUpdateTextures);
+		checkAutoUpdate(autoUpdate);
 	}
 
 	/**
 		Set the sampler2D precision for the fragmentshader
 		@param precision a String what can be "low", "medium" or "high"
-		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
+		@param autoUpdate set it to `true` (update) or `false` (no update), otherwise the `.autoUpdate` property is used
 	**/
-	public function setFragmentSamplerPrecision(?precision:Null<String>, ?autoUpdateTextures:Null<Bool>) {
+	public function setFragmentSamplerPrecision(?precision:Null<String>, ?autoUpdate:Null<Bool>) {
 		glShaderConfig.FRAGMENT_SAMPLER_PRECISION =  PeoteGL.Precision.availFragmentSampler(validatePrecision(precision));
-		checkAutoUpdate(autoUpdateTextures);
+		checkAutoUpdate(autoUpdate);
 	}
 
 	/**
 		Set the float precision for the vertexShader
 		@param precision a String what can be "low", "medium" or "high"
-		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
+		@param autoUpdate set it to `true` (update) or `false` (no update), otherwise the `.autoUpdate` property is used
 	**/
-	public function setVertexFloatPrecision(?precision:Null<String>, ?autoUpdateTextures:Null<Bool>) {
+	public function setVertexFloatPrecision(?precision:Null<String>, ?autoUpdate:Null<Bool>) {
 		glShaderConfig.VERTEX_FLOAT_PRECISION =  PeoteGL.Precision.availVertexFloat(validatePrecision(precision));
-		checkAutoUpdate(autoUpdateTextures);
+		checkAutoUpdate(autoUpdate);
 	}
 
 	/**
 		Set the integer precision for the vertexShader
 		@param precision a String what can be "low", "medium" or "high"
-		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
+		@param autoUpdate set it to `true` (update) or `false` (no update), otherwise the `.autoUpdate` property is used
 	**/
-	public function setVertexIntPrecision(?precision:Null<String>, ?autoUpdateTextures:Null<Bool>) {
+	public function setVertexIntPrecision(?precision:Null<String>, ?autoUpdate:Null<Bool>) {
 		glShaderConfig.VERTEX_INT_PRECISION = PeoteGL.Precision.availVertexInt(validatePrecision(precision));
-		checkAutoUpdate(autoUpdateTextures);
+		checkAutoUpdate(autoUpdate);
 	}
 
 	/**
 		Set the sampler2D precision for the vertexShader
 		@param precision a String what can be "low", "medium" or "high"
-		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
+		@param autoUpdate set it to `true` (update) or `false` (no update), otherwise the `.autoUpdate` property is used
 	**/
-	public function setVertexSamplerPrecision(?precision:Null<String>, ?autoUpdateTextures:Null<Bool>) {
+	public function setVertexSamplerPrecision(?precision:Null<String>, ?autoUpdate:Null<Bool>) {
 		glShaderConfig.VERTEX_SAMPLER_PRECISION = PeoteGL.Precision.availVertexSampler(validatePrecision(precision));
-		checkAutoUpdate(autoUpdateTextures);
+		checkAutoUpdate(autoUpdate);
 	}
 
 	/**
 		Activate pixelsnapping
 		@param pixelDivisor a Float multiplicator at which snapping is to take place, set it to `null` to disable pixelsnapping
-		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
+		@param autoUpdate set it to `true` (update) or `false` (no update), otherwise the `.autoUpdate` property is used
 	**/
-	public function snapToPixel(?pixelDivisor:Null<Float>, ?autoUpdateTextures:Null<Bool>) {
+	public function snapToPixel(?pixelDivisor:Null<Float>, ?autoUpdate:Null<Bool>) {
 		if (pixelDivisor == null) {
 			glShaderConfig.isPIXELSNAPPING = false;
 		}
@@ -916,15 +917,15 @@ class Program
 			glShaderConfig.isPIXELSNAPPING = true;
 			glShaderConfig.PIXELDIVISOR = Util.toFloatString(1/pixelDivisor);
 		}
-		checkAutoUpdate(autoUpdateTextures);
+		checkAutoUpdate(autoUpdate);
 	}
 
 	/**
 		From which alpha value the pixels are discarded.
 		@param atAlphaValue a Float value for the alpha limit (`0.0` to `1.0`), set it to `null` to disable discarding
-		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
+		@param autoUpdate set it to `true` (update) or `false` (no update), otherwise the `.autoUpdate` property is used
 	**/
-	public function discardAtAlpha(?atAlphaValue:Null<Float>, ?autoUpdateTextures:Null<Bool>) {
+	public function discardAtAlpha(?atAlphaValue:Null<Float>, ?autoUpdate:Null<Bool>) {
 		if (atAlphaValue == null) {
 			glShaderConfig.isDISCARD = false;
 		}
@@ -932,16 +933,16 @@ class Program
 			glShaderConfig.isDISCARD = true;
 			glShaderConfig.DISCARD = Util.toFloatString(atAlphaValue);
 		}
-		checkAutoUpdate(autoUpdateTextures);
+		checkAutoUpdate(autoUpdate);
 	}
 
 	/**
 		Assign a `Texture` instance to a texture-layer (by identifier).
 		@param texture Texture instance
 		@param identifier texture-layer identifier (optional) - without it, the first available or "default" is used
-		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
+		@param autoUpdate set it to `true` (update) or `false` (no update), otherwise the `.autoUpdate` property is used
 	**/
-	public function setTexture(texture:Texture, ?identifier:String, ?autoUpdateTextures:Null<Bool>):Void {
+	public function setTexture(texture:Texture, ?identifier:String, ?autoUpdate:Null<Bool>):Void {
 		if (texture == null) throw("Error, texture is null.");
 		if (texture.programs == null) throw("Error, texture is disposed.");
 		if (identifier == null) {
@@ -954,16 +955,16 @@ class Program
 		#end
 		var layer = getTextureIndexByIdentifier(identifier);
 		textureLayers.set(layer, [texture]);
-		checkAutoUpdate(autoUpdateTextures);
+		checkAutoUpdate(autoUpdate, true);
 	}
 
 	/**
 		Assign multiple `Texture` instances to a texture-layer (by identifier). Can switch between them by using an `@texUnit("identifier")` integer attribute inside the Element.
 		@param textureUnits an Array of Texture instances
 		@param identifier texture-layer identifier (optional) - without it, the first available or "default" is used
-		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
+		@param autoUpdate set it to `true` (update) or `false` (no update), otherwise the `.autoUpdate` property is used
 	**/
-	public function setMultiTexture(textureUnits:Array<Texture>, ?identifier:String, ?autoUpdateTextures:Null<Bool>):Void {
+	public function setMultiTexture(textureUnits:Array<Texture>, ?identifier:String, ?autoUpdate:Null<Bool>):Void {
 		if (identifier == null) {
 			if (textureIdentifiers.length > 0) identifier = textureIdentifiers[0];
 			else if (customTextureIdentifiers.length > 0) identifier = customTextureIdentifiers[0];
@@ -982,16 +983,16 @@ class Program
 			if (textureUnits.indexOf(textureUnits[i]) != i) throw("Error, textureLayer can not contain same texture twice.");
 		}
 		textureLayers.set(layer, textureUnits);
-		checkAutoUpdate(autoUpdateTextures);
+		checkAutoUpdate(autoUpdate, true);
 	}
 
 	/**
 		Adds a `Texture` to a texture-layer (by identifier). Can switch between them by using an `@texUnit("identifier")` integer attribute inside the Element.
 		@param texture Texture instance
 		@param identifier texture-layer identifier (optional) - without it, the first available or "default" is used
-		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
+		@param autoUpdate set it to `true` (update) or `false` (no update), otherwise the `.autoUpdate` property is used
 	**/
-	public function addTexture(texture:Texture, ?identifier:String, ?autoUpdateTextures:Null<Bool>):Void {
+	public function addTexture(texture:Texture, ?identifier:String, ?autoUpdate:Null<Bool>):Void {
 		if (texture == null) throw("Error, texture is null.");
 		if (texture.programs == null) throw("Error, texture is disposed.");
 		if (identifier == null) {
@@ -1012,16 +1013,16 @@ class Program
 			}
 		}
 		else textureLayers.set(layer, [texture]);
-		checkAutoUpdate(autoUpdateTextures);
+		checkAutoUpdate(autoUpdate, true);
 	}
 
 	/**
 		Removes a `Texture` from a texture-layer (by identifier) or from all layers where it is used.
 		@param texture Texture instance
 		@param identifier texture-layer identifier (optional)
-		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
+		@param autoUpdate set it to `true` (update) or `false` (no update), otherwise the `.autoUpdate` property is used
 	**/
-	public function removeTexture(texture:Texture, ?identifier:String, ?autoUpdateTextures:Null<Bool>):Void {
+	public function removeTexture(texture:Texture, ?identifier:String, ?autoUpdate:Null<Bool>):Void {
 		if (texture == null) throw("Error, texture is null.");
 		if (texture.programs == null) throw("Error, texture is disposed.");
 		if (identifier == null) {
@@ -1048,15 +1049,15 @@ class Program
 				customTextureIdentifiers.remove(identifier);
 			}
 		}
-		checkAutoUpdate(autoUpdateTextures);
+		checkAutoUpdate(autoUpdate, true);
 	}
 
 	/**
 		Removes all `Texture`s of a texture-layer (by identifier) or removes all textures from all layers.
 		@param identifier texture-layer identifier (optional)
-		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
+		@param autoUpdate set it to `true` (update) or `false` (no update), otherwise the `.autoUpdate` property is used
 	**/
-	public function removeAllTexture(?identifier:String, ?autoUpdateTextures:Null<Bool>):Void {
+	public function removeAllTexture(?identifier:String, ?autoUpdate:Null<Bool>):Void {
 		if (identifier == null) {
 			#if peoteview_debug_program
 			trace("remove all textures from all layers");
@@ -1075,12 +1076,13 @@ class Program
 			textureLayers.remove(layer);
 			customTextureIdentifiers.remove(identifier);
 		}
-		checkAutoUpdate(autoUpdateTextures);
+		checkAutoUpdate(autoUpdate, true);
 	}
 
-	private inline function checkAutoUpdate(autoUpdateTextures:Null<Bool>) {
-		if (autoUpdateTextures != null) { if (autoUpdateTextures) updateTextures(); }
-		else if (this.autoUpdateTextures) updateTextures();
+	private inline function checkAutoUpdate(autoUpdate:Null<Bool>, updateTexture = false) {
+		if (updateTexture) _updateTexture = true;
+		if (autoUpdate != null) { if (autoUpdate) update(); }
+		else if (this.autoUpdate) update();
 	}
 
 	// TODO: replaceTexture(textureToReplace:Texture, newTexture:Texture)
@@ -1089,7 +1091,7 @@ class Program
 		Returns `true` if the program or a specific texture-layer contains a texture.
 		@param texture Texture instance
 		@param identifier texture-layer identifier, if set to `null` it searches into all texture-layers
-		@param autoUpdateTextures set it to `true` (update) or `false` (no update), otherwise the `.autoupdateTexture` property is used
+		@param autoUpdate set it to `true` (update) or `false` (no update), otherwise the `.autoUpdate` property is used
 	**/
 	public function hasTexture(texture:Texture, identifier:Null<String>=null):Bool
 	{
@@ -1106,114 +1108,122 @@ class Program
 	}
 
 	/**
-		Updates all texture changes and recompiles the shader.
+		Updates the shader templates and recompiles the shader.
+		@param updateTexture force update/no-update of texture changes (optional)
 	**/
-	public function updateTextures():Void {
-		#if peoteview_debug_program
-		trace("update Textures");
-		#end
-		// collect new or removed old textures
-		var newTextures = new Array<Texture>();
-		for (layer in textureLayers.keys()) {
-			for (t in textureLayers.get(layer)) {
-				if (newTextures.indexOf(t) < 0) newTextures.push(t);
-			}
-		}
-		
-		var i = activeTextures.length;
-		while (i-- > 0) 
-			if (newTextures.indexOf(activeTextures[i]) < 0) { // remove texture
-				#if peoteview_debug_program 
-				trace("REMOVE texture", i);
-				#end
-				activeTextures[i].removeFromProgram(this);
-				activeTextures.splice(i, 1);
-				activeUnits.splice(i, 1);
-			}
-		
-		for (t in newTextures) {
-			if (activeTextures.indexOf(t) < 0) { // add texture
-				#if peoteview_debug_program
-				trace("ADD texture", activeTextures.length);
-				#end
-				activeTextures.push(t);
-				var unit = 0;
-				while (activeUnits.indexOf(unit) >= 0 ) unit++;
-				activeUnits.push(unit);
-				t.addToProgram(this);
-			}
-		}
-		
-		#if peoteview_debug_program
-		trace("textureLayers", [for (layer in textureLayers.keys()) layer]);
-		#end
-		parseColorFormula();
-		
+	public function update(?updateTexture:Null<Bool>):Void {
+		if (updateTexture != null) _updateTexture = updateTexture;
+
 		glShaderConfig.hasFRAGMENT_INJECTION = hasFragmentInjection;
-		
-		glShaderConfig.FRAGMENT_PROGRAM_UNIFORMS = "";
-		glShaderConfig.TEXTURES = [];
-		
-		if (activeTextures.length == 0) {
-			glShaderConfig.hasTEXTURES = false;
-		}
-		else {
-			glShaderConfig.hasTEXTURES = true;
 			
-			for (i in 0...activeTextures.length)
-				glShaderConfig.FRAGMENT_PROGRAM_UNIFORMS += 'uniform sampler2D uTexture$i;';
-			
-			// fill texture-layer in template
-			for (layer in textureLayers.keys())
-			{
-				var units = new Array < {UNIT_VALUE:String, TEXTURE:String,
-										SLOTS_X:String, SLOTS_Y:String, SLOT_WIDTH:String, SLOT_HEIGHT:String,
-										SLOTS_WIDTH:String, SLOTS_HEIGHT:String,
-										TILES_X:String, TILES_Y:String,
-										TEXTURE_WIDTH:String, TEXTURE_HEIGHT:String,
-										FIRST:Bool, LAST:Bool}>();
-				var textures = textureLayers.get(layer);
-				for (i in 0...textures.length) {
-					units.push({
-						UNIT_VALUE:(i + 1) + ".0",
-						TEXTURE:"uTexture" + activeTextures.indexOf(textures[i]),
-						SLOTS_X: textures[i].slotsX + ".0",
-						SLOTS_Y: textures[i].slotsY + ".0",
-						SLOT_WIDTH:  Util.toFloatString(textures[i].slotWidth  / textures[i].width),
-						SLOT_HEIGHT: Util.toFloatString(textures[i].slotHeight / textures[i].height),
-						SLOTS_WIDTH: Util.toFloatString(textures[i].slotsX * textures[i].slotWidth / textures[i].width ),
-						SLOTS_HEIGHT:Util.toFloatString(textures[i].slotsY * textures[i].slotHeight/ textures[i].height),
-						TILES_X: textures[i].tilesX + ".0",
-						TILES_Y: textures[i].tilesY + ".0",
-						TEXTURE_WIDTH: textures[i].width + ".0",
-						TEXTURE_HEIGHT:textures[i].height + ".0",
-						FIRST:((i == 0) ? true : false), LAST:((i == textures.length - 1) ? true : false)
-					});
+		if (_updateTexture) 
+		{
+			#if peoteview_debug_program
+			trace("update Textures");
+			#end
+			// collect new or removed old textures
+			var newTextures = new Array<Texture>();
+			for (layer in textureLayers.keys()) {
+				for (t in textureLayers.get(layer)) {
+					if (newTextures.indexOf(t) < 0) newTextures.push(t);
 				}
-				#if peoteview_debug_program
-				trace("LAYER:", layer, units);
-				#end
+			}
+			
+			var i = activeTextures.length;
+			while (i-- > 0) 
+				if (newTextures.indexOf(activeTextures[i]) < 0) { // remove texture
+					#if peoteview_debug_program 
+					trace("REMOVE texture", i);
+					#end
+					activeTextures[i].removeFromProgram(this);
+					activeTextures.splice(i, 1);
+					activeUnits.splice(i, 1);
+				}
+			
+			for (t in newTextures) {
+				if (activeTextures.indexOf(t) < 0) { // add texture
+					#if peoteview_debug_program
+					trace("ADD texture", activeTextures.length);
+					#end
+					activeTextures.push(t);
+					var unit = 0;
+					while (activeUnits.indexOf(unit) >= 0 ) unit++;
+					activeUnits.push(unit);
+					t.addToProgram(this);
+				}
+			}
+			
+			#if peoteview_debug_program
+			trace("textureLayers", [for (layer in textureLayers.keys()) layer]);
+			#end
+
+			parseColorFormula();
+			
+			glShaderConfig.FRAGMENT_PROGRAM_UNIFORMS = "";
+			glShaderConfig.TEXTURES = [];
+			
+			if (activeTextures.length == 0) {
+				glShaderConfig.hasTEXTURES = false;
+			}
+			else {
+				glShaderConfig.hasTEXTURES = true;
 				
-				var used:Bool = ((used_by_ColorFormula & (1 << layer) ) > 0);
-				var usedID:Bool = ((usedID_by_ColorFormula & (1 << layer) ) > 0);
+				for (i in 0...activeTextures.length)
+					glShaderConfig.FRAGMENT_PROGRAM_UNIFORMS += 'uniform sampler2D uTexture$i;';
 				
-				glShaderConfig.TEXTURES.push({
-					LAYER:layer,
-					UNITS:units,
-					USED: used,
-					USED_ID: usedID					
-				});
-			}			
+				// fill texture-layer in template
+				for (layer in textureLayers.keys())
+				{
+					var units = new Array < {UNIT_VALUE:String, TEXTURE:String,
+											SLOTS_X:String, SLOTS_Y:String, SLOT_WIDTH:String, SLOT_HEIGHT:String,
+											SLOTS_WIDTH:String, SLOTS_HEIGHT:String,
+											TILES_X:String, TILES_Y:String,
+											TEXTURE_WIDTH:String, TEXTURE_HEIGHT:String,
+											FIRST:Bool, LAST:Bool}>();
+					var textures = textureLayers.get(layer);
+					for (i in 0...textures.length) {
+						units.push({
+							UNIT_VALUE:(i + 1) + ".0",
+							TEXTURE:"uTexture" + activeTextures.indexOf(textures[i]),
+							SLOTS_X: textures[i].slotsX + ".0",
+							SLOTS_Y: textures[i].slotsY + ".0",
+							SLOT_WIDTH:  Util.toFloatString(textures[i].slotWidth  / textures[i].width),
+							SLOT_HEIGHT: Util.toFloatString(textures[i].slotHeight / textures[i].height),
+							SLOTS_WIDTH: Util.toFloatString(textures[i].slotsX * textures[i].slotWidth / textures[i].width ),
+							SLOTS_HEIGHT:Util.toFloatString(textures[i].slotsY * textures[i].slotHeight/ textures[i].height),
+							TILES_X: textures[i].tilesX + ".0",
+							TILES_Y: textures[i].tilesY + ".0",
+							TEXTURE_WIDTH: textures[i].width + ".0",
+							TEXTURE_HEIGHT:textures[i].height + ".0",
+							FIRST:((i == 0) ? true : false), LAST:((i == textures.length - 1) ? true : false)
+						});
+					}
+					#if peoteview_debug_program
+					trace("LAYER:", layer, units);
+					#end
+					
+					var used:Bool = ((used_by_ColorFormula & (1 << layer) ) > 0);
+					var usedID:Bool = ((usedID_by_ColorFormula & (1 << layer) ) > 0);
+					
+					glShaderConfig.TEXTURES.push({
+						LAYER:layer,
+						UNITS:units,
+						USED: used,
+						USED_ID: usedID					
+					});
+				}			
+			}
+			
+			// fill template for non-added textures to fetch default values
+			glShaderConfig.TEXTURE_DEFAULTS = [];
+			for (defaults in textureID_Defaults) {
+				glShaderConfig.TEXTURE_DEFAULTS.push({LAYER:defaults.layer, DEFAULT_VALUE:defaults.value});
+			}
+			glShaderConfig.hasTEXTURE_FUNCTIONS = (usedID_by_ColorFormula == 0 && textureID_Defaults.length == 0) ? false : true;
 		}
-		
-		// fill template for non-added textures to fetch default values
-		glShaderConfig.TEXTURE_DEFAULTS = [];
-		for (defaults in textureID_Defaults) {
-			glShaderConfig.TEXTURE_DEFAULTS.push({LAYER:defaults.layer, DEFAULT_VALUE:defaults.value});
-		}
-		glShaderConfig.hasTEXTURE_FUNCTIONS = (usedID_by_ColorFormula == 0 && textureID_Defaults.length == 0) ? false : true;
-				
+
 		if (gl != null) reCreateProgram(); // recompile shaders
+		_updateTexture = false;
 	}
 
 	/**
