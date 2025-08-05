@@ -112,11 +112,11 @@ class TextProgram extends Program {
 	}
 
 	/**
-		Updates the changes of a `Text` isntance that have been added.  
+		Updates the changes of a `Text` instance that have been added.  
 		@param text the `Text` instance to update
 		@param updateDefaultOptions to force an update of the programs default options
 	**/
-	public function update(text:Text, updateDefaultOptions:Bool = false) {
+	public function updateText(text:Text, updateDefaultOptions:Bool = false) {
 		if (texts.indexOf(text) < 0) throw ("Error, text instance is not added");
 
 		if (!updateDefaultOptions && text.update == 0) return; // nothing to update
@@ -140,7 +140,7 @@ class TextProgram extends Program {
 		@param updateDefaultOptions to force an update of the programs default options
 	**/
 	public function updateAll(updateDefaultOptions:Bool = false) {
-		for (text in texts) update(text, updateDefaultOptions);
+		for (text in texts) updateText(text, updateDefaultOptions);
 	}
 
 

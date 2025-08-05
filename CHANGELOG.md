@@ -1,6 +1,7 @@
 Changelog
 =========
 
+* Changed `Texture` function `updateTextures()` into `update()` (updates texture-changes automatic or by argument)  
 * Added element iterator to `Buffer` to use loops like: `for (element in buffer)`
 
 1.04 (12/31/2024)
