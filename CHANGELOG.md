@@ -1,14 +1,15 @@
 Changelog
 =========
 
-* Changed `Texture` function `updateTextures()` into `update()` (updates texture-changes automatic or by argument)  
+* Added `mix` and `rnd` function spice to Color.hx .) [for Laura;:]
+* Changed `Program`s function name `updateTextures()` into `update()` (updates texture-changes automatic or by argument)
 * Added element iterator to `Buffer` to use loops like: `for (element in buffer)`
 
 1.04 (12/31/2024)
 -----------------
 * Fixed bug in `Element` generation where getter/setter not work if no default value is set
 * Added feature `peote.view.text.TextProgram` to easy create text by using embedded bitmap font
-* `vTexCoord` is also accessable now if its only used inside a programs ColorFormula 
+* `vTexCoord` is also accessable now if its only used inside a programs ColorFormula
 
 
 1.03 (09/28/2024)
