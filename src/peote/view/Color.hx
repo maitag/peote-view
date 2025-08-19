@@ -408,7 +408,9 @@ abstract Color(Int) from Int to Int from UInt to UInt
 	public static inline function FloatLuminance(lum:Float):Color return FloatRGB(lum, lum, lum);
 
 
-	// -------- Helpers between 2 colors --------
+	// ----------------------------------------------------
+	// -------- Helpers and color transformations ---------
+	// ----------------------------------------------------
 	
 	/**
 		Returns a mix of 2 colors at a step between 0.0 and 1.0
@@ -427,7 +429,148 @@ abstract Color(Int) from Int to Int from UInt to UInt
 	static inline function _mix(a:Float, b:Float, step:Float) return a + (b-a) * step;
 
 
+	// --------------------------------------
+	// -------- HSV, HSL colorspace ---------
+	// --------------------------------------
+
+	/**
+		Create a new color in HSV colorspace.
+		@param hue Hue from 0.0 (0°) to 1.0 (360°)
+		@param saturation Saturation (from 0.0 to 1.0)
+		@param value Brightness (from 0.0 to 1.0)
+		@param alpha Alpha component from 0.0 (full transparent) to 1.0 (opaque)
+	**/
+	public static inline function HSV(hue:Float, saturation:Float, value:Float, alpha:Float = 1.0):Color {
+		if (hue < 0) hue = 1.0 + hue % 1.0;
+		else hue = hue % 1.0;
+
+		var h:Int = Std.int(hue * 6);
+		var f = hue * 6 - h;
+
+		/*
+		// https://de.wikipedia.org/wiki/HSV-Farbraum#Umrechnung_HSV_in_RGB
+		var p = value * (1-saturation);
+		var q = value * (1-saturation*f);
+		var t = value * (1-saturation*(1-f));
+		return switch (h) {
+			case 1: FloatRGBA(q, value, p, alpha);
+			case 2: FloatRGBA(p, value, t, alpha);
+			case 3: FloatRGBA(p, q, value, alpha);
+			case 4: FloatRGBA(t, p, value, alpha);
+			case 5: FloatRGBA(value, p, q, alpha);
+			default: FloatRGBA(value, t, p, alpha);
+		}*/
+		return switch (h)
+		{
+			case 1: FloatRGBA(value * (1-saturation*f), value, value * (1-saturation), alpha);
+			case 2: FloatRGBA(value * (1-saturation), value, value * (1-saturation*(1-f)), alpha);
+			case 3: FloatRGBA(value * (1-saturation), value * (1-saturation*f), value, alpha);
+			case 4: FloatRGBA(value * (1-saturation*(1-f)), value * (1-saturation), value, alpha);
+			case 5: FloatRGBA(value, value * (1-saturation), value * (1-saturation*f), alpha);
+			default: FloatRGBA(value, value * (1-saturation*(1-f)), value * (1-saturation), alpha);
+		}
+	} 
+	
+	/**
+		Create a new color in HSL colorspace.
+		@param hue Hue from 0.0 (0°) to 1.0 (360°)
+		@param saturation Saturation (from 0.0 to 1.0)
+		@param luminance Luminance (from 0.0 to 1.0)
+		@param alpha Alpha component from 0.0 (full transparent) to 1.0 (opaque)
+	**/
+	public static inline function HSL(hue:Float, saturation:Float, luminance:Float, alpha:Float = 1.0):Color {
+		var v:Float = luminance + saturation * Math.min(luminance, 1-luminance);
+		return HSV(hue, (v > 0.0) ? 2*(1-luminance/v) : 0.0, v, alpha);
+	}
+
+	/**
+		The maximum of red, green and blue color integer values (0 to 255).
+	**/
+	public var rgbMax(get, never):Int;
+	inline function get_rgbMax():Int return (b>r && b>g) ? b : ( (g>r) ? g : r );
+
+	/**
+		The minimum of red, green and blue color integer values (0 to 255).
+	**/
+	public var rgbMin(get, never):Int;
+	inline function get_rgbMin():Int return (b<r && b<g) ? b : ( (g<r) ? g : r );
+
+	/**
+		The maximum of red, green and blue color float values (0.0 to 1.0).
+	**/
+	public var rgbMaxF(get, never):Float;
+	inline function get_rgbMaxF():Float return Math.max(rF, Math.max(gF, bF));
+
+	/**
+		The minimum of red, green and blue color float values (0.0 to 1.0).
+	**/
+	public var rgbMinF(get, never):Float;
+	inline function get_rgbMinF():Float return Math.min(rF, Math.min(gF, bF));
+
+	
+	/**
+		The hue value inside HSV and HSL colorspace (0.0 to 1.0).
+	**/
+	public var hue(get, set):Float;
+	inline function get_hue():Float {
+		if (rgbMax == rgbMin) return 0.0;		
+		var h:Float = 
+			if (rgbMax == r) ((gF - bF) / (rgbMaxF - rgbMinF)) / 6;
+			else if (rgbMax == g) (2 + (bF - rF) / (rgbMaxF - rgbMinF)) / 6;
+			else (4 + (rF - gF) / (rgbMaxF - rgbMinF)) / 6;
+		
+		return (h < 0) ? h + 1 : h;
+	}
+	inline function set_hue(h:Float):Float {
+		return this = HSV(hue, saturationHSV, valueHSV, aF);
+	}
+
+	/**
+		The saturation value inside the HSV colorspace (0.0 to 1.0).
+	**/
+	public var saturationHSV(get, set):Float;
+	inline function get_saturationHSV():Float {
+		if (rgbMax == rgbMin) return 0.0;
+		else return 1 - rgbMinF/rgbMaxF;
+	}
+	inline function set_saturationHSV(s:Float):Float {
+		return this = HSV(hue, s, valueHSV, aF);
+	}
+
+	/**
+		The saturation inside the HSL colorspace (0.0 to 1.0).
+	**/
+	public var saturationHSL(get, set):Float;
+	inline function get_saturationHSL():Float {
+		if (rgbMax == rgbMin) return 0.0;
+		else return (rgbMaxF - rgbMinF)/(1 - Math.abs(rgbMaxF + rgbMinF - 1));
+	}
+	inline function set_saturationHSL(s:Float):Float {
+		return this = HSL(hue, s, luminanceHSL, aF);
+	}
+
+	/**
+		The value inside the HSV colorspace (0.0 to 1.0).
+	**/
+	public var valueHSV(get, set):Float;
+	inline function get_valueHSV():Float return rgbMaxF;
+	inline function set_valueHSV(v:Float):Float {
+		return this = HSV(hue, saturationHSV, v, aF);
+	}
+
+	/**
+		The luminance inside the HSL colorspace (0.0 to 1.0).
+	**/
+	public var luminanceHSL(get, set):Float;
+	inline function get_luminanceHSL():Float return (rgbMaxF + rgbMinF) / 2;
+	inline function set_luminanceHSL(l:Float):Float {
+		return this = HSL(hue, saturationHSL, l, aF);
+	}
+
+
+	// ----------------------------------------
 	// -------- create random colors ----------
+	// ----------------------------------------
 
 	/**
 		Create a random color into range (randomize between each compoments)

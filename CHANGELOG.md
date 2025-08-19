@@ -1,7 +1,8 @@
 Changelog
 =========
 
-* Added `mix` and `rnd` function spice to Color.hx .) [for Laura;:]
+* Added `HSV` and `HSL` colorspace functions to Color.hx
+* Added `mix` and `rnd` function spice to Color.hx
 * Changed `Program`s function name `updateTextures()` into `update()` (updates texture-changes automatic or by argument)
 * Added element iterator to `Buffer` to use loops like: `for (element in buffer)`
 
