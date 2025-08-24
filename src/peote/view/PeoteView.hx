@@ -95,7 +95,7 @@ class PeoteView
 
 	// ----- integrated FPS counter -------
 	#if peoteview_fps
-	public var FPS:FPS;
+	public var FPS(default, null):FPS;
 	#end
 
 	var maxTextureImageUnits:Int;
@@ -316,7 +316,11 @@ class PeoteView
 
 		// ----- integrated FPS counter -------
 		#if peoteview_fps
-		FPS = new FPS(gl);
+		FPS = new FPS(this
+			#if peoteview_fps_size
+			, Std.parseInt (haxe.macro.Compiler.getDefine ("peoteview_fps_size"))
+			#end
+		);
 		#end
 	}
 
@@ -816,8 +820,8 @@ class PeoteView
 		}
 		
 		#if peoteview_fps
-		FPS.step();
 		FPS.render(this);
+		FPS.step();
 		#end		
 	}
 
