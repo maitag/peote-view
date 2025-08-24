@@ -423,7 +423,7 @@ abstract Color(Int) from Int to Int from UInt to UInt
 			_mix(fromColor.rF, toColor.rF, step),
 			_mix(fromColor.gF, toColor.gF, step),
 			_mix(fromColor.bF, toColor.bF, step),
-			_mix(fromColor.aF, toColor.aF, step),
+			_mix(fromColor.aF, toColor.aF, step)
 		);	
 	}
 
@@ -584,7 +584,7 @@ abstract Color(Int) from Int to Int from UInt to UInt
 			_mix(fromColor.rF, toColor.rF, Math.random()),
 			_mix(fromColor.gF, toColor.gF, Math.random()),
 			_mix(fromColor.bF, toColor.bF, Math.random()),
-			_mix(fromColor.aF, toColor.aF, Math.random()),
+			_mix(fromColor.aF, toColor.aF, Math.random())
 		);	
 	}
 
