@@ -121,6 +121,7 @@ abstract Color(Int) from Int to Int from UInt to UInt
 		this = hexValue;
 	}
 
+
 	// ---------------------------------------------------------------
 	// --------------------- Helper functions ------------------------
 	// ---------------------------------------------------------------
@@ -522,7 +523,7 @@ abstract Color(Int) from Int to Int from UInt to UInt
 		return (h < 0) ? h + 1 : h;
 	}
 	inline function set_hue(h:Float):Float {
-		return this = HSV(hue, saturationHSV, valueHSV, aF);
+		return this = HSV(h, saturationHSV, valueHSV, aF);
 	}
 
 	/**

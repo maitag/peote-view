@@ -1,6 +1,8 @@
 Changelog
 =========
 
+* compiler define (`peoteview_fps`) option to enable visualization of the rendertime (per second .)
+* Fixing bug in View and Display while set up the colors, also each colorchannel is avail at now by Float
 * Added `HSV` and `HSL` colorspace functions to Color.hx
 * Added `mix` and `rnd` function spice to Color.hx
 * Changed `Program`s function name `updateTextures()` into `update()` (updates texture-changes automatic or by argument)

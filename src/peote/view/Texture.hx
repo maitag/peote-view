@@ -81,12 +81,12 @@ class Texture
 	public var slotHeight(default, null):Int;
 
 	/**
-		Horizontal tiling, the program needs "updateTextures()" if changing this while in use
+		Horizontal tiling, the program needs "update()" if changing this while in use
 	**/
 	public var tilesX:Int;
 
 	/**
-		Vertical tiling, the program needs "updateTextures()" if changing this while in use
+		Vertical tiling, the program needs "update()" if changing this while in use
 	**/
 	public var tilesY:Int;
 	
