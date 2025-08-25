@@ -4,9 +4,9 @@
 	"license": "MIT",
 	"tags": ["peote", "opengl", "2d", "shader", "glsl"],
 	"description": "2D Render Library (lime/opengl)",
-	"version": "1.0.4",
+	"version": "1.0.5",
 	"classPath": "src/",
-	"releasenote": "new feature to easy create text by using embedded bitmap font",
+	"releasenote": "bugfixes, buffer iterator, new color features, integrated FPS counter",
 	"contributors": ["maitag"],
 	"dependencies": {
 		"lime": ""
