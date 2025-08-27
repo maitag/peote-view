@@ -58,19 +58,27 @@ class BufferMacro
 		var fullyQualifiedName:String = classPackage.concat([className]).join('.');
 		
 		var tp = TPath({ pack:classPackage, name:className, params:[] });
+		
 		if ( generated.exists(fullyQualifiedName)  &&  isAlive(fullyQualifiedName) ) return tp;
 
 		generated.set(fullyQualifiedName, true);
-			
+		
 		var elemField:Array<String>;
 		if (superName == null) elemField = elementModule.split(".").concat([elementName]);
 		else elemField = superModule.split(".").concat([superName]);
-		
+
+		var imports:Array<ImportExpr> = [{
+			path:[ for (f in elemField) {pos:Context.currentPos(), name:f} ],
+			mode: INormal
+		}];
+		elemField = elemField.slice(elemField.length-1, elemField.length);
+
 		#if peoteview_debug_macro
 		trace('generating Class: ' + fullyQualifiedName);
 		/*
 		trace("ClassName:"+className);           // Buffer_ElementSimple
-		trace("classPackage:" + classPackage);   // [peote,view]	
+		trace("classPackage:" + classPackage);   // [peote,view]
+		trace("imports:" + imports);             // [elements,ElementSimple]
 		
 		trace("ElementPackage:" + elementPack);  // [elements]
 		trace("ElementModule:" + elementModule); // elements.ElementSimple
@@ -107,7 +115,7 @@ class $className implements peote.view.intern.BufferInterface
 
 	#if peoteview_queueGLbuffering
 	var updateGLBufferElementQueue:Array<$elementType>;
-	var setNewGLContextQueue:Array<PeoteGL>;
+	var setNewGLContextQueue:Array<peote.view.PeoteGL>;
 	/*var queueCreateGLBuffer:Bool = false;
 	var queueDeleteGLBuffer:Bool = false;
 	var queueUpdateGLBuffer:Bool = false;*/
@@ -128,7 +136,7 @@ class $className implements peote.view.intern.BufferInterface
 		
 		#if peoteview_queueGLbuffering
 		updateGLBufferElementQueue = new Array<$elementType>();
-		setNewGLContextQueue = new Array<PeoteGL>();
+		setNewGLContextQueue = new Array<peote.view.PeoteGL>();
 		#end
 		
 		_elements = new haxe.ds.Vector<$elementType>(_minSize);
@@ -147,7 +155,7 @@ class $className implements peote.view.intern.BufferInterface
 		_bytes.fill(0, _elemBuffSize * _minSize, 0);
 	}
 
-	inline function setNewGLContext(newGl:PeoteGL)
+	inline function setNewGLContext(newGl:peote.view.PeoteGL)
 	{
 		#if peoteview_queueGLbuffering
 		setNewGLContextQueue.push(newGl);
@@ -155,7 +163,7 @@ class $className implements peote.view.intern.BufferInterface
 		_setNewGLContext(newGl);
 		#end
 	}
-	inline function _setNewGLContext(newGl:PeoteGL)
+	inline function _setNewGLContext(newGl:peote.view.PeoteGL)
 	{
 		if (newGl != null && newGl != _gl) // only if different GL - Context	
 		{
@@ -292,6 +300,7 @@ class $className implements peote.view.intern.BufferInterface
 	**/
 	public var elements(get, never):haxe.ds.Vector<$elementType>;
 	inline function get_elements():haxe.ds.Vector<$elementType> return _elements;
+	// inline function getElements():haxe.ds.Vector<$elementType> return _elements;
 
 	/**
 		Adds an element to the buffer for rendering and returns it.
@@ -597,7 +606,8 @@ class $className implements peote.view.intern.BufferInterface
 
 // ---------------- end Buffer --------
 
-		Context.defineModule(fullyQualifiedName,[c]);
+		Context.defineModule(fullyQualifiedName,[c], imports);
+		
 		return tp;
 	}
 }
