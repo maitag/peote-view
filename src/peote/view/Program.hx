@@ -199,6 +199,7 @@ class Program
 	public var autoUpdate:Bool = true;
 
 	var _updateTexture:Bool = false;
+	var _updateColorFormula:Bool = false;
 
 	var glProgram:GLProgram = null;
 	var glProgramPicking:GLProgram = null;
@@ -273,8 +274,6 @@ class Program
 	var formulaHasChanged:Bool = false;
 
 	var fragmentFloatPrecision:Null<String> = null;
-
-	var hasFragmentInjection:Bool = false;
 
 	/**
 		Creates a new `Program` instance.
@@ -590,7 +589,6 @@ class Program
 		textureID_Defaults = new Array<{layer:Int, value:String}>();
 		used_by_ColorFormula = 0;
 		usedID_by_ColorFormula = 0;
-		
 		for (i in 0...textureIdentifiers.length) {
 			var regexp = Util.regexpIdentifier(textureIdentifiers[i]);
 			if (regexp.match(formula)) {
@@ -604,7 +602,7 @@ class Program
 				if (!textureLayers.exists(i)) textureID_Defaults.push({layer:i, value:defaultFormulaVars.get(textureIdentifiers[i]).toGLSL()});
 			}
 		}
-		
+
 		for (i in 0...customTextureIdentifiers.length) {
 			var regexp = Util.regexpIdentifier(customTextureIdentifiers[i]);
 			if (regexp.match(formula)) {
@@ -616,7 +614,7 @@ class Program
 				formula = regexp.replace( formula, '$1' + (textureIdentifiers.length + i) );
 				usedID_by_ColorFormula |= 1 << (textureIdentifiers.length + i);
 				if(!textureLayers.exists(textureIdentifiers.length + i)) textureID_Defaults.push({layer:(textureIdentifiers.length + i), value:defaultFormulaVars.get(textureIdentifiers[textureIdentifiers.length + i]).toGLSL()});
-			}				
+			}
 		}
 		
 		// fill the REST with default values:
@@ -628,9 +626,11 @@ class Program
 				//formula = regexp.replace( formula, '$1' + defaultFormulaVars.get(name).toGLSL('$2') + '$3' );
 		}
 
-		// check the existence of "vTexCoord":
-		if (Util.regexpIdentifier("vTexCoord").match(formula)) hasFragmentInjection = true;
-		
+		// check the existence of "vTexCoord": (TODO -> lets have some more simple for X and Y !)
+		if (Util.regexpIdentifier("vTexCoord").match(formula)) {
+			glShaderConfig.hasFRAGMENT_INJECTION = true;
+		}
+
 		glShaderConfig.FRAGMENT_CALC_LAYER = formula;
 	}
 
@@ -647,7 +647,8 @@ class Program
 				if (Util.isWrongIdentifier(name)) throw('Error: "$name" is not an identifier, please use only letters/numbers or "_" (starting with a letter)');
 				defaultFormulaVars.set(name, varDefaults.get(name));
 			}
-		checkAutoUpdate(autoUpdate, true);
+		_updateColorFormula = true;
+		checkAutoUpdate(autoUpdate);
 	}
 
 	/**
@@ -672,7 +673,7 @@ class Program
 		@param autoUpdate set it to `true` (update) or `false` (no update), otherwise the `.autoUpdate` property is used
 	**/
 	public function injectIntoFragmentShader(glslCode:String = "", uTimeUniformEnabled = false, uniformFloats:Array<UniformFloat> = null, ?autoUpdate:Null<Bool>):Void {
-		hasFragmentInjection = (glslCode == "") ? false : true;
+		glShaderConfig.hasFRAGMENT_INJECTION = (glslCode == "") ? false : true;
 		uniformFloatsFragment = uniformFloats;
 		glShaderConfig.FRAGMENT_INJECTION = ((uTimeUniformEnabled) ? "uniform float uTime;" : "") + generateUniformFloatsGLSL(uniformFloats) + glslCode;
 		accumulateUniformsFloat();
@@ -955,7 +956,8 @@ class Program
 		#end
 		var layer = getTextureIndexByIdentifier(identifier);
 		textureLayers.set(layer, [texture]);
-		checkAutoUpdate(autoUpdate, true);
+		_updateTexture = true;
+		checkAutoUpdate(autoUpdate);
 	}
 
 	/**
@@ -983,7 +985,8 @@ class Program
 			if (textureUnits.indexOf(textureUnits[i]) != i) throw("Error, textureLayer can not contain same texture twice.");
 		}
 		textureLayers.set(layer, textureUnits);
-		checkAutoUpdate(autoUpdate, true);
+		_updateTexture = true;
+		checkAutoUpdate(autoUpdate);
 	}
 
 	/**
@@ -1013,7 +1016,8 @@ class Program
 			}
 		}
 		else textureLayers.set(layer, [texture]);
-		checkAutoUpdate(autoUpdate, true);
+		_updateTexture = true;
+		checkAutoUpdate(autoUpdate);
 	}
 
 	/**
@@ -1033,6 +1037,7 @@ class Program
 				textureLayers.get(layer).remove(texture);
 				if (textureLayers.get(layer).length == 0) {
 					textureLayers.remove(layer);
+					// CHECK: this ever called here?
 					customTextureIdentifiers.remove(identifier);
 				}
 			}
@@ -1046,10 +1051,14 @@ class Program
 			textureLayers.get(layer).remove(texture);
 			if (textureLayers.get(layer).length == 0) {
 				textureLayers.remove(layer);
-				customTextureIdentifiers.remove(identifier);
+				// TO keep the textureLayers-MAP <-> ARRAY-customTextureIdentifiers
+				// this can not be removed here:
+				// customTextureIdentifiers.remove(identifier);
+				// TODO: better another removeTextureLayer() later!
 			}
 		}
-		checkAutoUpdate(autoUpdate, true);
+		_updateTexture = true;
+		checkAutoUpdate(autoUpdate);
 	}
 
 	/**
@@ -1076,11 +1085,11 @@ class Program
 			textureLayers.remove(layer);
 			customTextureIdentifiers.remove(identifier);
 		}
-		checkAutoUpdate(autoUpdate, true);
+		_updateTexture = true;
+		checkAutoUpdate(autoUpdate);
 	}
 
-	private inline function checkAutoUpdate(autoUpdate:Null<Bool>, updateTexture = false) {
-		if (updateTexture) _updateTexture = true;
+	private inline function checkAutoUpdate(autoUpdate:Null<Bool>) {
 		if (autoUpdate != null) { if (autoUpdate) update(); }
 		else if (this.autoUpdate) update();
 	}
@@ -1091,9 +1100,8 @@ class Program
 		Returns `true` if the program or a specific texture-layer contains a texture.
 		@param texture Texture instance
 		@param identifier texture-layer identifier, if set to `null` it searches into all texture-layers
-		@param autoUpdate set it to `true` (update) or `false` (no update), otherwise the `.autoUpdate` property is used
 	**/
-	public function hasTexture(texture:Texture, identifier:Null<String>=null):Bool
+	public function hasTexture(texture:Texture, ?identifier:String):Bool
 	{
 		if (texture == null) throw("Error, texture is null.");
 		if (identifier == null) {
@@ -1101,8 +1109,7 @@ class Program
 		}
 		else {
 			var textures = textureLayers.get(getTextureIndexByIdentifier(identifier, false));
-			if (textures != null)
-				if (textures.indexOf(texture) >= 0 ) return true;
+			if (textures != null && textures.indexOf(texture) >= 0 ) return true;
 		}
 		return false;
 	}
@@ -1111,11 +1118,8 @@ class Program
 		Updates the shader templates and recompiles the shader.
 		@param updateTexture force update/no-update of texture changes (optional)
 	**/
-	public function update(?updateTexture:Null<Bool>):Void {
-		if (updateTexture != null) _updateTexture = updateTexture;
+	public function update():Void {
 
-		glShaderConfig.hasFRAGMENT_INJECTION = hasFragmentInjection;
-			
 		if (_updateTexture) 
 		{
 			#if peoteview_debug_program
@@ -1156,7 +1160,10 @@ class Program
 			#if peoteview_debug_program
 			trace("textureLayers", [for (layer in textureLayers.keys()) layer]);
 			#end
+		}
 
+		if (_updateTexture || _updateColorFormula)
+		{	
 			parseColorFormula();
 			
 			glShaderConfig.FRAGMENT_PROGRAM_UNIFORMS = "";
@@ -1202,6 +1209,7 @@ class Program
 					trace("LAYER:", layer, units);
 					#end
 					
+					// TODO: issue here e.g. if layer key is 1 after remove the key 0
 					var used:Bool = ((used_by_ColorFormula & (1 << layer) ) > 0);
 					var usedID:Bool = ((usedID_by_ColorFormula & (1 << layer) ) > 0);
 					
