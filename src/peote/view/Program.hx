@@ -1232,6 +1232,7 @@ class Program
 
 		if (gl != null) reCreateProgram(); // recompile shaders
 		_updateTexture = false;
+		_updateColorFormula = false;
 	}
 
 	/**
