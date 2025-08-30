@@ -1116,7 +1116,6 @@ class Program
 
 	/**
 		Updates the shader templates and recompiles the shader.
-		@param updateTexture force update/no-update of texture changes (optional)
 	**/
 	public function update():Void {
 
