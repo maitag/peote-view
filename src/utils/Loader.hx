@@ -19,6 +19,7 @@ class Loader
 		trace ('Loading complete "$name"');
 	}
 
+
 	public static function image( name:String, debug=false, ?onProgress:Int->Int->Void, ?onError:String->Void, ?onLoad:Image->Void):Void {
 		#if html5
 		if (corsServer != "" && ~/^https?:\/\//.match(name)) name = "//"+corsServer+"/"+name;
@@ -36,10 +37,10 @@ class Loader
 	}
 	
 	public static function imageArray( names:Array<String>, debug=false, ?onProgress:Int->Int->Int->Void, ?onProgressOverall:Int->Int->Void, ?onError:Int->String->Void, ?onLoad:Int->Image->Void, ?onLoadAll:Array<Image>->Void):Void {
-		var images = new Array<Image>();
+		var images:Array<Image> = (onLoadAll == null) ? null : new Array<Image>();
 		var loaded:Int = names.length;
-		var progressSumA = new Array<Int>(); // does not need to be initialized (only to avoid compiler-warning)
-		var progressSumB = new Array<Int>();
+		var progressSumA:Array<Int> = null;
+		var progressSumB:Array<Int> = null;
 		if (onProgressOverall != null) {
 			progressSumA = [for (i in 0...names.length) 0];
 			progressSumB = [for (i in 0...names.length) 0];
@@ -63,14 +64,17 @@ class Loader
 					}
 				},
 				(onError == null) ? null : function(msg:String) onError(i, msg),
-				(onLoadAll == null) ? null : function(image:Image) {
-					images[i] = image;
+				(onLoad == null && onLoadAll == null) ? null : function(image:Image) {
 					if (onLoad != null) onLoad(i, image);
-					if (--loaded == 0) onLoadAll(images);
+					if (onLoadAll != null) {
+						images[i] = image;
+						if (--loaded == 0) onLoadAll(images);
+					}
 				}
 			);
 		}
 	}
+
 	
 	public static function bytes( name:String, debug=false, ?onProgress:Int->Int->Void, ?onError:String->Void, ?onLoad:Bytes->Void):Void {
 		#if html5
@@ -87,23 +91,12 @@ class Loader
 		if (onError != null) future.onError( onError );
 		if (onLoad != null) future.onComplete( onLoad );		
 	}
-
-	public static function text( name:String, debug=false, ?onProgress:Int->Int->Void, ?onError:String->Void, ?onLoad:String->Void):Void {
-		bytes( name, debug, onProgress,
-			(onLoad == null && onError == null) ? null : onError,  // helps parametermatching
-			(onLoad == null && onError == null) ? null : function(bytes:Bytes) {
-				if (onLoad != null && onError != null ) // helps parametermatching
-					onLoad(bytes.toString());
-				else onError(bytes.toString());
-			}
-		);
-	}
 	
 	public static function bytesArray( names:Array<String>, debug=false, ?onProgress:Int->Int->Int->Void, ?onProgressOverall:Int->Int->Void, ?onError:Int->String->Void, ?onLoad:Int->Bytes->Void, ?onLoadAll:Array<Bytes>->Void):Void {
-		var allBytes = new Array<Bytes>();
+		var allBytes:Array<Bytes> = (onLoadAll == null) ? null : new Array<Bytes>();
 		var loaded:Int = names.length;
-		var progressSumA = new Array<Int>(); // does not need to be initialized (only to avoid compiler-warning)
-		var progressSumB = new Array<Int>();
+		var progressSumA:Array<Int> = null;
+		var progressSumB:Array<Int> = null;
 		if (onProgressOverall != null) {
 			progressSumA = [for (i in 0...names.length) 0];
 			progressSumB = [for (i in 0...names.length) 0];
@@ -127,13 +120,27 @@ class Loader
 					}
 				},
 				(onError == null) ? null : function(msg:String) onError(i, msg),
-				(onLoadAll == null) ? null : function(bytes:Bytes) {
-					allBytes[i] = bytes;
+				(onLoad == null && onLoadAll == null) ? null : function(bytes:Bytes) {
 					if (onLoad != null) onLoad(i, bytes);
-					if (--loaded == 0) onLoadAll(allBytes);
+					if (onLoadAll != null) {
+						allBytes[i] = bytes;
+						if (--loaded == 0) onLoadAll(allBytes);
+					}
 				}
 			);
 		}
 	}
+
 	
+	public static function text( name:String, debug=false, ?onProgress:Int->Int->Void, ?onLoad:String->Void, ?onError:String->Void):Void {
+		bytes( name, debug, onProgress, onError, (onLoad == null) ? null : function(bytes:Bytes) onLoad(bytes.toString()) );
+	}
+
+	public static function textArray( names:Array<String>, debug=false, ?onProgress:Int->Int->Int->Void, ?onProgressOverall:Int->Int->Void, ?onLoad:Int->String->Void, ?onLoadAll:Array<String>->Void, ?onError:Int->String->Void):Void {
+		bytesArray( names, debug, onProgress, onProgressOverall, onError, 
+			(onLoad == null) ? null : function(i:Int, bytes:Bytes) onLoad(i, bytes.toString()),
+			(onLoadAll == null) ? null : function(bytesArray:Array<Bytes>) onLoadAll( [for (bytes in bytesArray) bytes.toString()] )
+		);
+	}
+
 }
