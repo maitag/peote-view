@@ -245,9 +245,9 @@ class PeoteView
 
 	/**
 		Creates a new `PeoteView` instance.
-		@param  window the [window](https://www.openfl.org/learn/npm/api/pages/lime/app/Application.html#window) property of the Lime Application
-		@param  color background color
-		@param  registerEvents automatically adds its `onRender` and `onResize` events to the Lime window 
+		@param window the [window](https://www.openfl.org/learn/npm/api/pages/lime/app/Application.html#window) property of the Lime Application
+		@param color background color
+		@param registerEvents automatically adds its `onRender` and `onResize` events to the Lime window 
 	**/
 	public function new(window:Window, color:Color = 0x000000FF, registerEvents = true)
 	{
@@ -333,9 +333,9 @@ class PeoteView
 	/**
 		Adds a `Display` instance to the RenderList.
 		Can be also used to change the order (relative to another display) if it's already added.
-		@param  display Display instance to add into the RenderList or to change it's order
-		@param  atDisplay (optional) to add or move the display before or after another display in the Renderlist (by default it adds at start or end)
-		@param  addBefore (optional) set to `true` to add the display before another display or at start of the Renderlist (by default it adds after atDisplay or at end of the list)
+		@param display Display instance to add into the RenderList or to change it's order
+		@param atDisplay (optional) to add or move the display before or after another display in the Renderlist (by default it adds at start or end)
+		@param addBefore (optional) set to `true` to add the display before another display or at start of the Renderlist (by default it adds after atDisplay or at end of the list)
 	**/
 	public function addDisplay(display:Display, ?atDisplay:Display, addBefore:Bool=false):Void
 	{
@@ -344,7 +344,7 @@ class PeoteView
 	
 	/**
 		Removes a `Display` instance from the RenderList.
-		@param  display Display instance
+		@param display Display instance
 	**/
 	public function removeDisplay(display:Display):Void
 	{
@@ -353,8 +353,8 @@ class PeoteView
 
 	/**
 		Swaps the order of two `Display` instances inside the RenderList.
-		@param  display1 first display instance
-		@param  display2 second display instance
+		@param display1 first display instance
+		@param display2 second display instance
 	**/
 	public function swapDisplays(display1:Display, display2:Display):Void
 	{
@@ -364,9 +364,9 @@ class PeoteView
 	/**
 		Adds an `Display` instance to the hidden framebuffer RenderList (what only render to textures).
 		Can be also used to change the order (relative to another display) if it's already added.
-		@param  display Display instance to add into the RenderList or to change it's order
-		@param  atDisplay (optional) to add or move the display before or after another display in the Renderlist (by default it adds at start or end)
-		@param  addBefore (optional) set to `true` to add the display before another display or at start of the Renderlist (by default it adds after atDisplay or at end of the list)
+		@param display Display instance to add into the RenderList or to change it's order
+		@param atDisplay (optional) to add or move the display before or after another display in the Renderlist (by default it adds at start or end)
+		@param addBefore (optional) set to `true` to add the display before another display or at start of the Renderlist (by default it adds after atDisplay or at end of the list)
 	**/
 	public function addFramebufferDisplay(display:Display, ?atDisplay:Display, addBefore:Bool=false):Void
 	{
@@ -375,7 +375,7 @@ class PeoteView
 
 	/**
 		Removes a `Display` instance from the hidden framebuffer RenderList (what only render to textures).
-		@param  display Display instance
+		@param display Display instance
 	**/
 	public function removeFramebufferDisplay(display:Display):Void
 	{
@@ -384,7 +384,7 @@ class PeoteView
 
 	/**
 		Changes the gl-context of the View and all contained Displays (only need if using multiple Lime windows).
-		@param  newGl new OpenGL context
+		@param newGl new OpenGL context
 	**/
 	public function setNewGLContext(newGl:PeoteGL):Void
 	{
@@ -480,10 +480,10 @@ class PeoteView
 
 	/**
 		Gets the Element-Index at a defined position on screen
-		@param  posX x position in pixel
-		@param  posY y position in pixel
-		@param  display the `Display` instance that contains the program
-		@param  program the `Program` instance that contains the `Buffer` of Elements
+		@param posX x position in pixel
+		@param posY y position in pixel
+		@param display the `Display` instance that contains the program
+		@param program the `Program` instance that contains the `Buffer` of Elements
 	**/
 	public function getElementAt(posX:Float, posY:Float, display:Display, program:Program):Int
 	{
@@ -495,10 +495,10 @@ class PeoteView
 
 	/**
 		Gets an array of Element-Indices at a defined position on screen.
-		@param  posX x position in pixel
-		@param  posY y position in pixel
-		@param  display the `Display` instance that contains the progam
-		@param  program the `Program` instance that contains the `Buffer` of Elements
+		@param posX x position in pixel
+		@param posY y position in pixel
+		@param display the `Display` instance that contains the progam
+		@param program the `Program` instance that contains the `Buffer` of Elements
 	**/
 	public function getAllElementsAt(posX:Float, posY:Float, display:Display, program:Program):Array<Int>
 	{

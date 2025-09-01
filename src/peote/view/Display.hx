@@ -310,7 +310,7 @@ class Display
 
 	/**
 		Swaps the order of this Display instances with another one inside the RenderList.
-		@param  display Display instance
+		@param display Display instance
 	**/
 	public function swapDisplay(display:Display):Void
 	{
@@ -320,8 +320,8 @@ class Display
 
 	/**
 		Swaps the order of two `Program`s inside the RenderList.
-		@param  program Program instance
-		@param  programToSwapWith Program instance to swap with
+		@param program Program instance
+		@param programToSwapWith Program instance to swap with
 	**/
 	public function swapPrograms(program:Program, programToSwapWith:Program):Void
 	{

@@ -1,7 +1,8 @@
 Changelog
 =========
 
-* Added `textArray()` into `Loader`, fix some bug where load-callback not gets trigerred if loadAll-callback param is null
+* Refactored `utils.Loader` into `peote.view.Load` to get better DOXiNation and more simple into future usage
+* Added `textArray()` into `Load`, fix some bug where load-callback not gets trigerred if loadAll-callback param is null
 * optimizing `Program` so update will be faster if only the color-formula is changed and not the textures
 * Fixing old bug into `Program` if multiple texture layers are set and removed
 * Fixed bug in Buffer macro, where some element package names gives sideeffects into access static fields
