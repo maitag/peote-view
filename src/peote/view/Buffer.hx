@@ -75,7 +75,7 @@ class BufferMacro
 
 		#if peoteview_debug_macro
 		trace('generating Class: ' + fullyQualifiedName);
-		
+		/*
 		trace("ClassName:"+className);           // Buffer_ElementSimple
 		trace("classPackage:" + classPackage);   // [peote,view]
 		trace("imports:" + imports);             // [elements,ElementSimple]
@@ -86,7 +86,7 @@ class BufferMacro
 		
 		trace("ElementType:" + elementType);     // TPath({ name => ElementSimple, pack => [elements], params => [] })
 		trace("ElemField:" + elemField);
-		
+		*/
 		#end
 		
 		var c = macro // ---------------- Buffer -----------------------
