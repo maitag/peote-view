@@ -1,6 +1,8 @@
 Changelog
 =========
 
+1.06 (09/03/2025)
+-----------------
 * Refactored `utils.Loader` into `peote.view.Load` to get better DOXiNation and more simple into future usage
 * Added `textArray()` into `Load`, fix some bug where load-callback not gets trigerred if loadAll-callback param is null
 * optimizing `Program` so update will be faster if only the color-formula is changed and not the textures
