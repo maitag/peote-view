@@ -58,19 +58,27 @@ class BufferMacro
 		var fullyQualifiedName:String = classPackage.concat([className]).join('.');
 		
 		var tp = TPath({ pack:classPackage, name:className, params:[] });
+		
 		if ( generated.exists(fullyQualifiedName)  &&  isAlive(fullyQualifiedName) ) return tp;
 
 		generated.set(fullyQualifiedName, true);
-			
+		
 		var elemField:Array<String>;
 		if (superName == null) elemField = elementModule.split(".").concat([elementName]);
 		else elemField = superModule.split(".").concat([superName]);
-		
+
+		var imports:Array<ImportExpr> = [{
+			path:[ for (f in elemField) {pos:Context.currentPos(), name:f} ],
+			mode: INormal
+		}];
+		elemField = elemField.slice(elemField.length-1, elemField.length);
+
 		#if peoteview_debug_macro
 		trace('generating Class: ' + fullyQualifiedName);
 		/*
 		trace("ClassName:"+className);           // Buffer_ElementSimple
-		trace("classPackage:" + classPackage);   // [peote,view]	
+		trace("classPackage:" + classPackage);   // [peote,view]
+		trace("imports:" + imports);             // [elements,ElementSimple]
 		
 		trace("ElementPackage:" + elementPack);  // [elements]
 		trace("ElementModule:" + elementModule); // elements.ElementSimple
@@ -107,7 +115,7 @@ class $className implements peote.view.intern.BufferInterface
 
 	#if peoteview_queueGLbuffering
 	var updateGLBufferElementQueue:Array<$elementType>;
-	var setNewGLContextQueue:Array<PeoteGL>;
+	var setNewGLContextQueue:Array<peote.view.PeoteGL>;
 	/*var queueCreateGLBuffer:Bool = false;
 	var queueDeleteGLBuffer:Bool = false;
 	var queueUpdateGLBuffer:Bool = false;*/
@@ -124,11 +132,11 @@ class $className implements peote.view.intern.BufferInterface
 		if (minSize <= 0) throw("Error: Buffer need a minimum size of 1 to store an Element.");
 		_minSize = minSize;
 		_growSize = (growSize < 0) ? 0 : growSize;
-		if (autoShrink) _shrinkAtSize = growSize + Std.int(growSize/2);
+		if (autoShrink) _shrinkAtSize = _growSize + Std.int(_growSize/2);
 		
 		#if peoteview_queueGLbuffering
 		updateGLBufferElementQueue = new Array<$elementType>();
-		setNewGLContextQueue = new Array<PeoteGL>();
+		setNewGLContextQueue = new Array<peote.view.PeoteGL>();
 		#end
 		
 		_elements = new haxe.ds.Vector<$elementType>(_minSize);
@@ -144,10 +152,10 @@ class $className implements peote.view.intern.BufferInterface
 		trace("create bytes for GLbuffer");
 		#end
 		_bytes = peote.view.intern.BufferBytes.alloc(_elemBuffSize * _minSize);
-		_bytes.fill(0, _elemBuffSize * _minSize, 0);		
+		_bytes.fill(0, _elemBuffSize * _minSize, 0);
 	}
 
-	inline function setNewGLContext(newGl:PeoteGL)
+	inline function setNewGLContext(newGl:peote.view.PeoteGL)
 	{
 		#if peoteview_queueGLbuffering
 		setNewGLContextQueue.push(newGl);
@@ -155,7 +163,7 @@ class $className implements peote.view.intern.BufferInterface
 		_setNewGLContext(newGl);
 		#end
 	}
-	inline function _setNewGLContext(newGl:PeoteGL)
+	inline function _setNewGLContext(newGl:peote.view.PeoteGL)
 	{
 		if (newGl != null && newGl != _gl) // only if different GL - Context	
 		{
@@ -252,6 +260,9 @@ class $className implements peote.view.intern.BufferInterface
 		_newBytes.blit(0, _bytes, 0, _elemBuffSize * _maxElements);
 		_bytes = _newBytes;
 		
+		// TODO: optimization maybe can be here for cpp, hl, hlc by this:
+		// untyped _elements.resize(newSize);
+		// instead of:
 		var _newElements = new haxe.ds.Vector<$elementType>(newSize);
 		//haxe.ds.Vector.blit(_elements, 0, _newElements, 0, _maxElements);
 		for (i in 0..._maxElements) {
@@ -260,7 +271,8 @@ class $className implements peote.view.intern.BufferInterface
 			_newElements.set(i, element); 
 		}
 		_elements = _newElements;
-		
+
+
 		if (_gl != null) {
 			_gl.deleteBuffer(_glBuffer);
 			_glBuffer = _gl.createBuffer();
@@ -282,7 +294,14 @@ class $className implements peote.view.intern.BufferInterface
 	**/
 	public var length(get, never):Int;
 	inline function get_length():Int return _maxElements;
-		
+
+	/**
+		The Vector of elements inside the buffer. Do not reorder, add or remove elements from this vector directly and use the equivalent buffer functions instead!
+	**/
+	public var elements(get, never):haxe.ds.Vector<$elementType>;
+	inline function get_elements():haxe.ds.Vector<$elementType> return _elements;
+	// inline function getElements():haxe.ds.Vector<$elementType> return _elements;
+
 	/**
 		Adds an element to the buffer for rendering and returns it.
 		@param  element Element instance
@@ -315,6 +334,8 @@ class $className implements peote.view.intern.BufferInterface
 	**/
 	public function updateElement(element: $elementType):Void
 	{
+		if (element.bytePos == -1) throw ("Error, Element is not added to Buffer");		
+
 		if (peote.view.PeoteGL.Version.isINSTANCED)
 			element.writeBytesInstanced(_bytes);
 		else 
@@ -347,7 +368,7 @@ class $className implements peote.view.intern.BufferInterface
 	inline function _updateElement(element: $elementType):Void
 	{	
 		//trace("Buffer.updateElement at position" + element.bytePos);
-		if (element.bytePos == -1) throw ("Error, Element is not added to Buffer");		
+		// if (element.bytePos == -1) throw ("Error, Element is not added to Buffer");		
 		if (_gl != null) element.updateGLBuffer(_gl, _glBuffer, _elemBuffSize);
 	}
 
@@ -411,7 +432,7 @@ class $className implements peote.view.intern.BufferInterface
 		Returns the element from buffer at index position.
 		@param  elementIndex index of the element inside the buffer
 	**/
-	public function getElement(elementIndex:Int): $elementType
+	public function getElement(elementIndex:Int):$elementType
 	{
 		return _elements.get(elementIndex);
 	}
@@ -460,9 +481,17 @@ class $className implements peote.view.intern.BufferInterface
 		// TODO: set buffIndex inside element if that is generated by macro
 	}
 
+	/**
+		Returns a new BufferIterator to use `for (element in buffer)` loops.
+	**/
+	public inline function iterator():peote.view.intern.BufferIterator<$elementType> {
+		return new peote.view.intern.BufferIterator<$elementType>(_elements, 0, _maxElements);
+	}	
+	
+
 	// ---------------------------
 
-	private function getElementWithHighestZindex(elementIndices:Array<Int>): Int
+	private function getElementWithHighestZindex(elementIndices:Array<Int>):Int
 	{
 		var lastZindex:Int = - $p{elemField}.MAX_ZINDEX;
 		var highest:Int = -1;
@@ -481,6 +510,8 @@ class $className implements peote.view.intern.BufferInterface
 	/*public function sortTransparency():Void
 	{
 	}*/
+
+	// -----------------------------------
 
 	inline function getVertexShader():String return $p{elemField}.vertexShader;
 	inline function getFragmentShader():String return $p{elemField}.fragmentShader;
@@ -575,7 +606,8 @@ class $className implements peote.view.intern.BufferInterface
 
 // ---------------- end Buffer --------
 
-		Context.defineModule(fullyQualifiedName,[c]);
+		Context.defineModule(fullyQualifiedName,[c], imports);
+		
 		return tp;
 	}
 }
@@ -590,6 +622,8 @@ class $className implements peote.view.intern.BufferInterface
 // -------------------- ONLY FOR DOX ------------------------------
 // ----------------------------------------------------------------
 
+import haxe.ds.Vector;
+
 /**
 A Buffer stores all graphic elements and handles the data for an OpenGL-`vertex buffer`, for `<T>` it has to use a macro generated `Element` type.  
 Used by a `Program` all contained elements will be rendered by the corresponding shaders/textures and the same buffer can also be shared by several programs.
@@ -603,6 +637,12 @@ class Buffer<T>
 	inline function get_length():Int return 0;
 
 	/**
+		The Vector of elements inside the buffer. Do not reorder, add or remove elements from this vector directly and use the equivalent buffer functions instead!
+	**/
+	public var elements(get, never):Vector<T>;
+	inline function get_elements():Vector<T> return null;
+
+	/**
 		Creates a new `Buffer` instance.
 		@param minSize how many elements a buffer should contain as a minimum
 		@param growSize the size by which the buffer should grow when it is full
@@ -614,7 +654,7 @@ class Buffer<T>
 		Adds an element to the buffer for rendering and returns it.
 		@param  element Element instance
 	**/
-	public function addElement(element:T):T { return null; }
+	public function addElement(element:T):T return null;
 
 	/**
 		Updates the changes of an contained element to the rendering process.

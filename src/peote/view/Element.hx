@@ -334,7 +334,8 @@ class ElementImpl
 			defaultVal = v;
 		} else {
 			defaultVal = confItem.vStart; debug('set default value of ${f.name} to ${(macro $v{defaultVal}).expr}');
-			f.kind = FieldType.FVar( type, macro $v{defaultVal} );
+			if (getter == null && setter == null) f.kind = FieldType.FVar( type, macro $v{defaultVal} );
+			else f.kind = FieldType.FProp( (getter == null) ? "default" : getter, (setter == null) ? "default" : setter, type, macro $v{defaultVal});
 		}
 		
 		var param:String;
@@ -2245,13 +2246,13 @@ class ElementImpl
 			kind: FieldType.FVar(macro:String, macro $v{parseShader(peote.view.intern.Shader.fragmentShader)}),
 			pos: Context.currentPos(),
 		});
-		
-/*		var elemSrc = "class "+Context.getLocalClass() + " {\n";
+		/*
+		var elemSrc = "class "+Context.getLocalClass() + " {\n";
 		var printer = new Printer();
 		for (f in fields) elemSrc += printer.printField(f) + "\n";
 		elemSrc += "}\n";
 		trace(elemSrc);
-*/		
+		*/
 		return fields; // <------ classgeneration complete !
 	}
 

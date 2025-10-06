@@ -66,20 +66,40 @@ class Display
 	/**
 		Background color.
 	**/
-	public var color(default, set):Color = 0x00000000;
+	public var color(get, set):Color;
+	inline function get_color():Color return Color.FloatRGBA(red, green, blue, alpha);
 	inline function set_color(c:Color):Color {
-		red   = c.red   / 255.0;
-		green = c.green / 255.0;
-		blue  = c.blue  / 255.0;
-		alpha = c.alpha / 255.0;
-		backgroundEnabled = (alpha > 0.0) ? true : false;
-		backgroundAlpha   = (alpha < 1.0) ? true : false;
+		red   = c.rF;
+		green = c.gF;
+		blue  = c.bF;
+		alpha = set_alpha(c.aF);
 		return c;
 	}
-	var red:Float = 0.0;
-	var green:Float = 0.0;
-	var blue:Float = 0.0;
-	var alpha:Float = 1.0;
+	
+	/**
+		Red component of background color as Float (0.0 to 1.0)
+	**/
+	public var red:Float = 0.0;
+
+	/**
+		Green component of background color as Float (0.0 to 1.0)
+	**/
+	public var green:Float = 0.0;
+
+	/**
+		Blue component of background color as Float (0.0 to 1.0)
+	**/
+	public var blue:Float = 0.0;
+
+	/**
+		Alpha component of background color as Float (0.0 to 1.0)
+	**/
+	public var alpha(default, set):Float = 1.0;
+	inline function set_alpha(a:Float):Float {
+		backgroundEnabled = (a > 0.0) ? true : false;
+		backgroundAlpha   = (a < 1.0) ? true : false;
+		return alpha = a;
+	}
 		
 	/**
 		Background use transparency.
@@ -290,7 +310,7 @@ class Display
 
 	/**
 		Swaps the order of this Display instances with another one inside the RenderList.
-		@param  display Display instance
+		@param display Display instance
 	**/
 	public function swapDisplay(display:Display):Void
 	{
@@ -300,8 +320,8 @@ class Display
 
 	/**
 		Swaps the order of two `Program`s inside the RenderList.
-		@param  program Program instance
-		@param  programToSwapWith Program instance to swap with
+		@param program Program instance
+		@param programToSwapWith Program instance to swap with
 	**/
 	public function swapPrograms(program:Program, programToSwapWith:Program):Void
 	{
@@ -330,7 +350,7 @@ class Display
 		}
 	}
 
-	private inline function clearOldGLContext() 
+	private inline function clearOldGLContext()
 	{
 		#if peoteview_debug_display
 		trace("Display clearOldGLContext");

@@ -29,6 +29,10 @@ o      o-o            o    o-o
 
 */
 
+#if peoteview_fps
+import peote.view.intern.FPS;
+#end
+
 /**
 	PeoteView represents the main "view" that must be called in a [Lime](https://www.openfl.org/learn/npm/api/pages/lime/app/Application.html) application at startup to initialize the OpenGL-context and the `onRender` and `onResize` events.  
 	It contains a list of `Display` areas and the entire view can be moved and zoomed.
@@ -59,18 +63,40 @@ class PeoteView
 	/**
 		Background color.
 	**/
-	public var color(default, set):Color = 0x000000FF;
+	public var color(get, set):Color;
+	inline function get_color():Color return Color.FloatRGBA(red, green, blue, alpha);
 	inline function set_color(c:Color):Color {
-		red   = c.red   / 255.0;			
-		green = c.green / 255.0;			
-		blue  = c.blue  / 255.0;
-		alpha = c.alpha / 255.0;
+		red   = c.rF;			
+		green = c.gF;			
+		blue  = c.bF;
+		alpha = c.aF;
 		return c;
 	}
-	var red:Float = 0.0;
-	var green:Float = 0.0;
-	var blue:Float = 0.0;
-	var alpha:Float = 1.0;
+
+	/**
+		Red component of background color as Float (0.0 to 1.0)
+	**/
+	public var red:Float = 0.0;
+
+	/**
+		Green component of background color as Float (0.0 to 1.0)
+	**/
+	public var green:Float = 0.0;
+
+	/**
+		Blue component of background color as Float (0.0 to 1.0)
+	**/
+	public var blue:Float = 0.0;
+
+	/**
+		Alpha component of background color as Float (0.0 to 1.0)
+	**/
+	public var alpha:Float = 1.0;
+
+	// ----- integrated FPS counter -------
+	#if peoteview_fps
+	public var FPS(default, null):FPS;
+	#end
 
 	var maxTextureImageUnits:Int;
 	var glStateTexture:Vector<GLTexture>;
@@ -94,6 +120,9 @@ class PeoteView
 	public var xOffset(default, set):Float = 0;
 	inline function set_xOffset(xo:Float):Float {
 		if (PeoteGL.Version.isUBO) uniformBuffer.updateXOffset(gl, xo);
+		#if peoteview_fps
+		FPS.x = Std.int(-xo);
+		#end		
 		return xOffset = xo;
 	}
 
@@ -103,6 +132,9 @@ class PeoteView
 	public var yOffset(default, set):Float = 0;
 	inline function set_yOffset(yo:Float):Float {
 		if (PeoteGL.Version.isUBO) uniformBuffer.updateYOffset(gl, yo);
+		#if peoteview_fps
+		FPS.y = Std.int(-yo);
+		#end		
 		return yOffset = yo;
 	}
 	
@@ -124,6 +156,11 @@ class PeoteView
 		xz = xZoom * z;
 		yz = yZoom * z;
 		if (PeoteGL.Version.isUBO) uniformBuffer.updateZoom(gl, xz, yz);
+		#if peoteview_fps
+		FPS.zoom = 1/z;
+		FPS.width = Std.int(FPS.w/xz);
+		FPS.height = Std.int(FPS.h/yz);
+		#end		
 		return zoom = z;
 	}
 
@@ -134,6 +171,10 @@ class PeoteView
 	inline function set_xZoom(z:Float):Float {
 		xz = zoom * z;
 		if (PeoteGL.Version.isUBO) uniformBuffer.updateXZoom(gl, xz);
+		#if peoteview_fps
+		FPS.xZoom = 1/xz;
+		FPS.width = Std.int(FPS.w/xz);
+		#end		
 		return xZoom = z;
 	}
 
@@ -144,6 +185,10 @@ class PeoteView
 	inline function set_yZoom(z:Float):Float {
 		yz = zoom * z;
 		if (PeoteGL.Version.isUBO) uniformBuffer.updateYZoom(gl, yz);
+		#if peoteview_fps
+		FPS.yZoom = 1/yz;
+		FPS.height = Std.int(FPS.h/yz);
+		#end		
 		return yZoom = z;
 	}
 
@@ -200,9 +245,9 @@ class PeoteView
 
 	/**
 		Creates a new `PeoteView` instance.
-		@param  window the [window](https://www.openfl.org/learn/npm/api/pages/lime/app/Application.html#window) property of the Lime Application
-		@param  color background color
-		@param  registerEvents automatically adds its `onRender` and `onResize` events to the Lime window 
+		@param window the [window](https://www.openfl.org/learn/npm/api/pages/lime/app/Application.html#window) property of the Lime Application
+		@param color background color
+		@param registerEvents automatically adds its `onRender` and `onResize` events to the Lime window 
 	**/
 	public function new(window:Window, color:Color = 0x000000FF, registerEvents = true)
 	{
@@ -268,6 +313,15 @@ class PeoteView
 			window.onRender.add(render);
 			window.onResize.add(resize);
 		}
+
+		// ----- integrated FPS counter -------
+		#if peoteview_fps
+		FPS = new FPS(this
+			#if peoteview_fps_size
+			, Std.parseInt (haxe.macro.Compiler.getDefine ("peoteview_fps_size"))
+			#end
+		);
+		#end
 	}
 
 	/**
@@ -279,9 +333,9 @@ class PeoteView
 	/**
 		Adds a `Display` instance to the RenderList.
 		Can be also used to change the order (relative to another display) if it's already added.
-		@param  display Display instance to add into the RenderList or to change it's order
-		@param  atDisplay (optional) to add or move the display before or after another display in the Renderlist (by default it adds at start or end)
-		@param  addBefore (optional) set to `true` to add the display before another display or at start of the Renderlist (by default it adds after atDisplay or at end of the list)
+		@param display Display instance to add into the RenderList or to change it's order
+		@param atDisplay (optional) to add or move the display before or after another display in the Renderlist (by default it adds at start or end)
+		@param addBefore (optional) set to `true` to add the display before another display or at start of the Renderlist (by default it adds after atDisplay or at end of the list)
 	**/
 	public function addDisplay(display:Display, ?atDisplay:Display, addBefore:Bool=false):Void
 	{
@@ -290,7 +344,7 @@ class PeoteView
 	
 	/**
 		Removes a `Display` instance from the RenderList.
-		@param  display Display instance
+		@param display Display instance
 	**/
 	public function removeDisplay(display:Display):Void
 	{
@@ -299,8 +353,8 @@ class PeoteView
 
 	/**
 		Swaps the order of two `Display` instances inside the RenderList.
-		@param  display1 first display instance
-		@param  display2 second display instance
+		@param display1 first display instance
+		@param display2 second display instance
 	**/
 	public function swapDisplays(display1:Display, display2:Display):Void
 	{
@@ -310,9 +364,9 @@ class PeoteView
 	/**
 		Adds an `Display` instance to the hidden framebuffer RenderList (what only render to textures).
 		Can be also used to change the order (relative to another display) if it's already added.
-		@param  display Display instance to add into the RenderList or to change it's order
-		@param  atDisplay (optional) to add or move the display before or after another display in the Renderlist (by default it adds at start or end)
-		@param  addBefore (optional) set to `true` to add the display before another display or at start of the Renderlist (by default it adds after atDisplay or at end of the list)
+		@param display Display instance to add into the RenderList or to change it's order
+		@param atDisplay (optional) to add or move the display before or after another display in the Renderlist (by default it adds at start or end)
+		@param addBefore (optional) set to `true` to add the display before another display or at start of the Renderlist (by default it adds after atDisplay or at end of the list)
 	**/
 	public function addFramebufferDisplay(display:Display, ?atDisplay:Display, addBefore:Bool=false):Void
 	{
@@ -321,7 +375,7 @@ class PeoteView
 
 	/**
 		Removes a `Display` instance from the hidden framebuffer RenderList (what only render to textures).
-		@param  display Display instance
+		@param display Display instance
 	**/
 	public function removeFramebufferDisplay(display:Display):Void
 	{
@@ -330,7 +384,7 @@ class PeoteView
 
 	/**
 		Changes the gl-context of the View and all contained Displays (only need if using multiple Lime windows).
-		@param  newGl new OpenGL context
+		@param newGl new OpenGL context
 	**/
 	public function setNewGLContext(newGl:PeoteGL):Void
 	{
@@ -426,10 +480,10 @@ class PeoteView
 
 	/**
 		Gets the Element-Index at a defined position on screen
-		@param  posX x position in pixel
-		@param  posY y position in pixel
-		@param  display the `Display` instance that contains the program
-		@param  program the `Program` instance that contains the `Buffer` of Elements
+		@param posX x position in pixel
+		@param posY y position in pixel
+		@param display the `Display` instance that contains the program
+		@param program the `Program` instance that contains the `Buffer` of Elements
 	**/
 	public function getElementAt(posX:Float, posY:Float, display:Display, program:Program):Int
 	{
@@ -441,10 +495,10 @@ class PeoteView
 
 	/**
 		Gets an array of Element-Indices at a defined position on screen.
-		@param  posX x position in pixel
-		@param  posY y position in pixel
-		@param  display the `Display` instance that contains the progam
-		@param  program the `Program` instance that contains the `Buffer` of Elements
+		@param posX x position in pixel
+		@param posY y position in pixel
+		@param display the `Display` instance that contains the progam
+		@param program the `Program` instance that contains the `Buffer` of Elements
 	**/
 	public function getAllElementsAt(posX:Float, posY:Float, display:Display, program:Program):Array<Int>
 	{
@@ -765,6 +819,10 @@ class PeoteView
 			displayListItem = displayListItem.next;
 		}
 		
+		#if peoteview_fps
+		FPS.render(this);
+		FPS.step();
+		#end		
 	}
 
 }

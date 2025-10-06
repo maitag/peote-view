@@ -4,9 +4,9 @@
 	"license": "MIT",
 	"tags": ["peote", "opengl", "2d", "shader", "glsl"],
 	"description": "2D Render Library (lime/opengl)",
-	"version": "1.0.3",
+	"version": "1.0.6",
 	"classPath": "src/",
-	"releasenote": "buffer macro fix, texturelayer-identifiers can be optional now, dispose() function for textures",
+	"releasenote": "some last bugfixes and optimizations, utils.Loader goes into peote.view.Loader now (cos of Save;)erLater!",
 	"contributors": ["maitag"],
 	"dependencies": {
 		"lime": ""
