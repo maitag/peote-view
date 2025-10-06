@@ -1421,4 +1421,3 @@ private class ActiveTexture
 		this.uniformLoc = uniformLoc;
 	}
 }
-
