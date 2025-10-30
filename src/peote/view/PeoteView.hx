@@ -383,6 +383,11 @@ class PeoteView
 	}
 
 	/**
+		Returns a new RenderListIterator to use in `for (display in peoteView)` loops.
+	**/
+	public inline function iterator():peote.view.intern.RenderList.RenderListIterator<Display> return displayList.iterator();
+
+	/**
 		Changes the gl-context of the View and all contained Displays (only need if using multiple Lime windows).
 		@param newGl new OpenGL context
 	**/

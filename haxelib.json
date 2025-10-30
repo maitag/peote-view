@@ -4,9 +4,9 @@
 	"license": "MIT",
 	"tags": ["peote", "opengl", "2d", "shader", "glsl"],
 	"description": "2D Render Library (lime/opengl)",
-	"version": "1.0.6",
+	"version": "1.0.7",
 	"classPath": "src/",
-	"releasenote": "some last bugfixes and optimizations, utils.Loader goes into peote.view.Loader now (cos of Save;)erLater!",
+	"releasenote": "adding iterators for PeoteView and Display, extending BufferInterface about update, length and clear fields",
 	"contributors": ["maitag"],
 	"dependencies": {
 		"lime": ""

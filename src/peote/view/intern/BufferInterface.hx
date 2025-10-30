@@ -39,4 +39,9 @@ interface BufferInterface
 	
 	private function render(peoteView:peote.view.PeoteView, display:peote.view.Display, program:peote.view.Program):Void;
 	private function pick(peoteView:peote.view.PeoteView, display:peote.view.Display, program:peote.view.Program, toElement:Int):Void;
+
+	// ------------ public fields what need no Type-params -----------
+	public var length(get, never):Int;
+	public function update():Void;
+	public function clear(clearElementsRefs:Bool = false, notUseElementsLater:Bool = false):Void;
 }

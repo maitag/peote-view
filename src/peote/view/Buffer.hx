@@ -482,7 +482,7 @@ class $className implements peote.view.intern.BufferInterface
 	}
 
 	/**
-		Returns a new BufferIterator to use `for (element in buffer)` loops.
+		Returns a new BufferIterator to use in `for (element in buffer)` loops.
 	**/
 	public inline function iterator():peote.view.intern.BufferIterator<$elementType> {
 		return new peote.view.intern.BufferIterator<$elementType>(_elements, 0, _maxElements);

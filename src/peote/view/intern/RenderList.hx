@@ -107,7 +107,7 @@ class RenderList<T>
 	/**
 		Returns an iterator on the elements of the list.
 	**/
-	public inline function iterator() : RenderListIterator<T> {
+	public inline function iterator():RenderListIterator<T> {
 		return new RenderListIterator<T>(first);
 	}
 
@@ -115,7 +115,7 @@ class RenderList<T>
 
 //#if !hl @:generic#end
 @:generic
-private class RenderListIterator<T> {
+class RenderListIterator<T> {
 	var item:RenderListItem<T>;
 	public inline function new(first:RenderListItem<T>) item = first;
 	public inline function hasNext():Bool return item != null;

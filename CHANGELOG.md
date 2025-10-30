@@ -1,6 +1,12 @@
 Changelog
 =========
 
+1.07 (../../2025)
+-----------------
+* Added iterators for `PeoteView` and `Display` to let iterate over content by for-in loops
+* Extending `BufferInterface` to allow access of `length`-property, `update()` and `clear()` methods
+
+
 1.06 (09/03/2025)
 -----------------
 * Refactored `utils.Loader` into `peote.view.Load` to get better DOXiNation and more simple into future usage

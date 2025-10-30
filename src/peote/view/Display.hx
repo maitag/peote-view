@@ -390,6 +390,11 @@ class Display
 		program.removeFromDisplay(this);
 	}
 	
+	/**
+		Returns a new RenderListIterator to use in `for (program in display)` loops.
+	**/
+	public inline function iterator():peote.view.intern.RenderList.RenderListIterator<Program> return programList.iterator();
+
 	
 	// -------------------- set Framebuffer Texture ------------------------------
 
@@ -522,6 +527,7 @@ class Display
 	// ------------------------------------------------------------------------------
 	// ----------------------------- Render -----------------------------------------
 	// ------------------------------------------------------------------------------
+
 	private inline function glScissor(gl:PeoteGL, w:Int, h:Int, xo:Float, yo:Float, xz:Float, yz:Float):Void
 	{	
 		var sx:Int = Math.floor((x + xo) * xz);
