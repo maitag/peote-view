@@ -528,6 +528,7 @@ class PeoteView
 		gl.enable(gl.SCISSOR_TEST);	
 		
 		// clear framebuffer
+		setColor(true);
 		if (PeoteGL.Version.isINSTANCED) {
 			gl.clearBufferiv(gl.COLOR, 0, [0, 0, 0, 0]); // only the first value is the UInt32 value that clears the texture
 			gl.clear(gl.DEPTH_BUFFER_BIT);
@@ -604,8 +605,9 @@ class PeoteView
 		
 		gl.enable(gl.SCISSOR_TEST);	
 		
-		gl.clearColor(0.0, 0.0, 0.0, 0.0);
 		if (display.fbTexture.clearOnRenderInto) {
+			setColor(true);
+			gl.clearColor(0.0, 0.0, 0.0, 0.0);
 			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
 		}
 		else gl.clear(gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
@@ -761,7 +763,7 @@ class PeoteView
 		gl.scissor(0, 0, w, h);
 		gl.enable(gl.SCISSOR_TEST);	
 		
-		if (!colorState) gl.colorMask(true, true, true, true);
+		setColor(true);
 		gl.clearColor(red, green, blue, alpha);
 		
 		// Optimize: only set depth and stencil bits here if used somewhere (hasDepth state und hasStencil)
