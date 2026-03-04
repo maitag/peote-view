@@ -184,6 +184,11 @@ class Program
 	public var zIndexEnabled:Bool;
 
 	/**
+		Clears the depth-buffer.
+	**/
+	public var clearDepth:Bool = false;
+
+	/**
 		To use the stencil-buffer for masking or to draw into it to use it afterwards by another program.
 	**/
 	public var mask:Mask = Mask.OFF;
@@ -1328,7 +1333,8 @@ class Program
 			for (i in 0...uniformFloats.length) gl.uniform1f (uniformFloatLocations[i], uniformFloats[i].value);
 			
 			peoteView.setColor(colorEnabled);
-			peoteView.setGLDepth(zIndexEnabled);			
+			peoteView.setGLDepth(zIndexEnabled);
+			if (clearDepth && zIndexEnabled) gl.clear(gl.DEPTH_BUFFER_BIT);
 			peoteView.setGLBlend(blendEnabled, blendSeparate, glBlendSrc, glBlendDst, glBlendSrcAlpha, glBlendDstAlpha, blendFuncSeparate, glBlendFunc, glBlendFuncAlpha, blendColor, useBlendColor, useBlendColorSeparate, glBlendR, glBlendG, glBlendB, glBlendA);			
 			peoteView.setMask(mask, clearMask);
 			
@@ -1369,6 +1375,7 @@ class Program
 		
 		peoteView.setColor(colorEnabled);
 		peoteView.setGLDepth(zIndexEnabled);		
+		if (clearDepth && zIndexEnabled) gl.clear(gl.DEPTH_BUFFER_BIT);
 		peoteView.setGLBlend(blendEnabled, blendSeparate, glBlendSrc, glBlendDst, glBlendSrcAlpha, glBlendDstAlpha, blendFuncSeparate, glBlendFunc, glBlendFuncAlpha, blendColor, useBlendColor, useBlendColorSeparate, glBlendR, glBlendG, glBlendB, glBlendA);		
 		peoteView.setMask(mask, clearMask);
 		
