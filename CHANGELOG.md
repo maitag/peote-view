@@ -6,6 +6,7 @@ Changelog
 * Added iterators for `PeoteView` and `Display` to let iterate over content by for-in loops
 * Extending `BufferInterface` to allow access of `length`-property, `update()` and `clear()` methods
 * Added `clearDepth` boolean property to let clear the depth-buffer before rendering
+* Fixed bug if `colorEnabled` is false at the last program into the renderlist
 
 
 1.06 (09/03/2025)

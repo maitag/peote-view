@@ -761,6 +761,7 @@ class PeoteView
 		gl.scissor(0, 0, w, h);
 		gl.enable(gl.SCISSOR_TEST);	
 		
+		if (!colorState) gl.colorMask(true, true, true, true);
 		gl.clearColor(red, green, blue, alpha);
 		
 		// Optimize: only set depth and stencil bits here if used somewhere (hasDepth state und hasStencil)
