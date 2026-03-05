@@ -528,7 +528,8 @@ class PeoteView
 		gl.enable(gl.SCISSOR_TEST);	
 		
 		// clear framebuffer
-		setColor(true);
+		setColorMask();
+		setDepthMask();
 		if (PeoteGL.Version.isINSTANCED) {
 			gl.clearBufferiv(gl.COLOR, 0, [0, 0, 0, 0]); // only the first value is the UInt32 value that clears the texture
 			gl.clear(gl.DEPTH_BUFFER_BIT);
@@ -566,10 +567,10 @@ class PeoteView
 	// ------------------------------------------------------------------------------
 
 	/**
-		Bind a texture to a display to use as a framebuffer for `renderToTexture()`
+		Bind a texture to a display to use as a framebuffer for [`renderToTexture()`](#renderToTexture)
 		@param display the `Display` instance
-		@param texture thr `Texture` instance to render into
-		@param textureSlot number of texture-slot to render into (can be changed by set the `framebufferTextureSlot` property)
+		@param texture the `Texture` instance to render to
+		@param textureSlot number of texture-slot to render to (can be changed by setting [`display.framebufferTextureSlot`](Display.html#framebufferTextureSlot))
 	**/
 	public function setFramebuffer(display:Display, texture:Texture, ?textureSlot:Null<Int>):Void {
 		display.setFramebuffer(texture, textureSlot, this);
@@ -578,7 +579,7 @@ class PeoteView
 	/**
 		Renders the content of a display into a texture.
 		@param display the `Display` instance
-		@param textureSlot number of texture-slot to render into (can be changed by set the `framebufferTextureSlot` display property)
+		@param textureSlot number of texture-slot to render to (can be changed by setting [`display.framebufferTextureSlot`](Display.html#framebufferTextureSlot))
 	**/
 	public function renderToTexture(display:Display, ?textureSlot:Null<Int>):Void
 	{
@@ -605,8 +606,9 @@ class PeoteView
 		
 		gl.enable(gl.SCISSOR_TEST);	
 		
+		setDepthMask();
 		if (display.fbTexture.clearOnRenderInto) {
-			setColor(true);
+			setColorMask();
 			gl.clearColor(0.0, 0.0, 0.0, 0.0);
 			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
 		}
@@ -643,13 +645,21 @@ class PeoteView
 	// ------------------------------------------------------------------------------
 	// ---------- Color, Depth, Stencil Mask and Blendmode states -------------------
 	// ------------------------------------------------------------------------------
-
-	var colorState:Bool = true;
-	private inline function setColor(enabled:Bool):Void
+	var colorMaskState:Int = 15;
+	private inline function setColorMask(colorMask:Int = 15):Void
 	{	
-		if (enabled != colorState) {
-			colorState = enabled;
-			gl.colorMask(enabled, enabled, enabled, enabled);
+		if (colorMask != colorMaskState) {
+			colorMaskState = colorMask;
+			gl.colorMask(colorMask & 8 != 0, colorMask & 4 != 0, colorMask & 2 != 0, colorMask & 1 != 0);
+		}
+	}
+
+	var depthMaskState:Bool = true;
+	private inline function setDepthMask(depthMask:Bool = true):Void
+	{	
+		if (depthMask != depthMaskState) {
+			depthMaskState = depthMask;
+			gl.depthMask(depthMask);
 		}
 	}
 
@@ -763,7 +773,9 @@ class PeoteView
 		gl.scissor(0, 0, w, h);
 		gl.enable(gl.SCISSOR_TEST);	
 		
-		setColor(true);
+		setColorMask();
+		setDepthMask();
+
 		gl.clearColor(red, green, blue, alpha);
 		
 		// Optimize: only set depth and stencil bits here if used somewhere (hasDepth state und hasStencil)
@@ -777,7 +789,6 @@ class PeoteView
 		
 		// Optimize: only set if is in use somewhere (stencilON state!)
 		gl.stencilMask(0xFF);
-				
 		gl.depthFunc(gl.LEQUAL);
 	}
 
@@ -801,7 +812,7 @@ class PeoteView
 	}
 
 	/**
-		To render a single Frame. This can be called manually inside Lime's `onRender`-eventhandler if the parameter `registerEvents` is false during instancing.
+		To render a single Frame. This can be called manually inside Lime's `onRender`-eventhandler if the parameter [`registerEvents`](#new) is false during instancing.
 		Can be also used to render only a single FramebufferDisplay.
 		@param context limes OpenGL [RenderContext](https://www.openfl.org/learn/npm/api/pages/lime/graphics/RenderContext.html) instance
 	**/

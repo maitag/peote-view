@@ -1,12 +1,14 @@
 Changelog
 =========
 
-1.07 (../../2025)
+1.07 (../../2026)
 -----------------
 * Added iterators for `PeoteView` and `Display` to let iterate over content by for-in loops
 * Extending `BufferInterface` to allow access of `length`-property, `update()` and `clear()` methods
 * Added `clearDepth` boolean property to let clear the depth-buffer before rendering
 * Fixed bug if `colorEnabled` is false at the last program into the renderlist
+* Added `enableColorChannel(r, g, b, a)` function for `Program`s to en/disable individual color channels
+* Added `depthMask` boolean for `Program`s to control writing into the depth-buffer
 
 
 1.06 (09/03/2025)

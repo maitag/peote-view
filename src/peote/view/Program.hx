@@ -66,11 +66,6 @@ class Program
 	public inline function hide() isVisible = false;
 
 	/**
-		To enable or disable color rendering, e.g. disable to only render into the stencil-buffer by drawing a mask.
-	**/
-	public var colorEnabled:Bool = true;
-	
-	/**
 		To enable or disable the color/alpha blendmode.
 	**/
 	public var blendEnabled:Bool;
@@ -179,14 +174,26 @@ class Program
 	var glBlendA:Float;
 
 	/**
-		To enable or disable rendering into the depth-buffer.
+		Enable or disable the use of the depth buffer and perform a depth test to write new pixels.
 	**/
 	public var zIndexEnabled:Bool;
+	
+	/**
+		If this value is true, new z-values can be written to the depth buffer. This only has an effect if `zIndexEnabled` is true.
+	**/
+	public var depthMask:Bool = true;
 
 	/**
 		Clears the depth-buffer.
 	**/
 	public var clearDepth:Bool = false;
+
+	/**
+		Enable or disable color rendering. If enabled, individual channels can be turned on or off using [`enableColorChannel()`](#enableColorChannel).
+		Can be disabled, for example, to render only in the stencil buffer for masking.
+	**/
+	public var colorEnabled:Bool = true;
+	var colorMask:Int = 15;
 
 	/**
 		To use the stencil-buffer for masking or to draw into it to use it afterwards by another program.
@@ -363,6 +370,18 @@ class Program
 		#end
 		if (!displays.remove(display)) throw("Error, program is not inside display");
 		display.programList.remove(this);
+	}
+
+	/**
+		Specifies whether the red, green, blue, and alpha channels are enabled for writing to the color buffer.
+		Only has an effect if [`colorEnabled`](#colorEnabled) is `true`.
+		@param enableRed true to enable red channel
+		@param enableGreen true to enable green channel
+		@param enableBlue true to enable blue channel
+		@param enableAlpha true to enable alpha channel
+	**/
+	public inline function enableColorChannel(enableRed:Bool, enableGreen:Bool, enableBlue:Bool, enableAlpha:Bool) {
+		colorMask = (enableRed ? 8:0) | (enableGreen ? 4:0) | (enableBlue ? 2:0) | (enableAlpha ? 1:0);
 	}
 
 	private inline function setNewGLContext(newGl:PeoteGL)
@@ -1332,9 +1351,10 @@ class Program
 			gl.uniform1f (uTIME, peoteView.time);
 			for (i in 0...uniformFloats.length) gl.uniform1f (uniformFloatLocations[i], uniformFloats[i].value);
 			
-			peoteView.setColor(colorEnabled);
+			peoteView.setColorMask(colorEnabled ? colorMask : 0);
 			peoteView.setGLDepth(zIndexEnabled);
 			if (clearDepth && zIndexEnabled) gl.clear(gl.DEPTH_BUFFER_BIT);
+			peoteView.setDepthMask(depthMask);
 			peoteView.setGLBlend(blendEnabled, blendSeparate, glBlendSrc, glBlendDst, glBlendSrcAlpha, glBlendDstAlpha, blendFuncSeparate, glBlendFunc, glBlendFuncAlpha, blendColor, useBlendColor, useBlendColorSeparate, glBlendR, glBlendG, glBlendB, glBlendA);			
 			peoteView.setMask(mask, clearMask);
 			
@@ -1373,9 +1393,10 @@ class Program
 		gl.uniform1f (uTIME, peoteView.time);
 		for (i in 0...uniformFloats.length) gl.uniform1f (uniformFloatLocations[i], uniformFloats[i].value);
 		
-		peoteView.setColor(colorEnabled);
+		peoteView.setColorMask(colorEnabled ? colorMask : 0);
 		peoteView.setGLDepth(zIndexEnabled);		
 		if (clearDepth && zIndexEnabled) gl.clear(gl.DEPTH_BUFFER_BIT);
+		peoteView.setDepthMask(depthMask);
 		peoteView.setGLBlend(blendEnabled, blendSeparate, glBlendSrc, glBlendDst, glBlendSrcAlpha, glBlendDstAlpha, blendFuncSeparate, glBlendFunc, glBlendFuncAlpha, blendColor, useBlendColor, useBlendColorSeparate, glBlendR, glBlendG, glBlendB, glBlendA);		
 		peoteView.setMask(mask, clearMask);
 		
@@ -1404,8 +1425,7 @@ class Program
 		for (i in 0...uniformFloats.length) gl.uniform1f (uniformFloatPickLocations[i], uniformFloats[i].value);
 		
 		peoteView.setGLDepth((toElement == -1) ? zIndexEnabled : false); // disable for getAllElementsAt() in peoteView
-		
-		//peoteView.setGLAlpha(false);
+		peoteView.setDepthMask(depthMask);
 		peoteView.setGLBlend(false, blendSeparate, glBlendSrc, glBlendDst, glBlendSrcAlpha, glBlendDstAlpha, blendFuncSeparate, glBlendFunc, glBlendFuncAlpha, blendColor, useBlendColor, useBlendColorSeparate, glBlendR, glBlendG, glBlendB, glBlendA);
 				
 		buffer.pick(peoteView, display, this, toElement);
