@@ -557,8 +557,11 @@ class Display
 			
 			if (backgroundEnabled) {
 				peoteView.setColorMask();
-				peoteView.setGLDepth(backgroundDepth);
-				peoteView.setDepthMask();
+
+				// peoteView.setGLDepth(backgroundDepth);
+				// peoteView.setDepthMask();
+				peoteView.setDepth(backgroundDepth, false, peoteView.clearDepthValState, true, peoteView.depthFuncState);
+				
 				peoteView.setGLBlend(backgroundAlpha, false, peoteView.gl.SRC_ALPHA, peoteView.gl.ONE_MINUS_SRC_ALPHA, 0, 0, false, peoteView.gl.FUNC_ADD, 0, 0, false, false, 0.0, 0.0, 0.0, 0.0);				
 				peoteView.setMask(Mask.OFF, false);
 				peoteView.background.render(red, green, blue, alpha);
@@ -595,8 +598,11 @@ class Display
 	{
 		if (backgroundEnabled) {
 			peoteView.setColorMask();
-			peoteView.setGLDepth(backgroundDepth);
-			peoteView.setDepthMask();
+			
+			// peoteView.setGLDepth(backgroundDepth);
+			// peoteView.setDepthMask();
+			peoteView.setDepth(backgroundDepth, false, peoteView.clearDepthValState, true, peoteView.depthFuncState);
+
 			peoteView.setGLBlend(backgroundAlpha, false, peoteView.gl.SRC_ALPHA, peoteView.gl.ONE_MINUS_SRC_ALPHA, 0, 0, false, peoteView.gl.FUNC_ADD, 0, 0, false, false, 0.0, 0.0, 0.0, 0.0);
 			peoteView.setMask(Mask.OFF, false);
 			peoteView.background.render(red, green, blue, alpha);

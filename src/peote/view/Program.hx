@@ -176,7 +176,7 @@ class Program
 	/**
 		Enable or disable the use of the depth buffer and perform a depth test to write new pixels.
 	**/
-	public var zIndexEnabled:Bool;
+	public var zIndexEnabled:Bool; // TODO: make this deprecated for 2.0 and replace by "depthEnabled"
 	
 	/**
 		If this value is true, new z-values can be written to the depth buffer. This only has an effect if `zIndexEnabled` is true.
@@ -184,9 +184,25 @@ class Program
 	public var depthMask:Bool = true;
 
 	/**
-		Clears the depth-buffer.
+		Clears the depth-buffer by `clearDepthIndex` value before rendering. This only has an effect if `zIndexEnabled` is true.
 	**/
 	public var clearDepth:Bool = false;
+
+	/**
+		zIndex value to fill the depth-buffer if `clearDepth` is enabled.
+	**/
+	public var clearDepthIndex(get,set):Int;
+	inline function get_clearDepthIndex():Int return Std.int( (clearDepthValue - 0.5) * 0x1FFFFF * 2.0);
+	inline function set_clearDepthIndex(v:Int):Int {
+		clearDepthValue = Math.min(1.0, Math.max(0.0, 0.5 + v / 0x1FFFFF / 2.0 ));
+		return v;
+	}
+	var clearDepthValue:Float = 1.0;
+
+	/**
+		To set the equivalent OpenGL `DepthFunc` for depth-testing. This only has an effect if `zIndexEnabled` is true.
+	**/
+	public var depthFunc:DepthFunc = DepthFunc.LESS_EQUAL;
 
 	/**
 		Enable or disable color rendering. If enabled, individual channels can be turned on or off using [`enableColorChannel()`](#enableColorChannel).
@@ -1352,9 +1368,11 @@ class Program
 			for (i in 0...uniformFloats.length) gl.uniform1f (uniformFloatLocations[i], uniformFloats[i].value);
 			
 			peoteView.setColorMask(colorEnabled ? colorMask : 0);
-			peoteView.setGLDepth(zIndexEnabled);
-			if (clearDepth && zIndexEnabled) gl.clear(gl.DEPTH_BUFFER_BIT);
-			peoteView.setDepthMask(depthMask);
+			// peoteView.setGLDepth(zIndexEnabled);
+			// if (clearDepth && zIndexEnabled) gl.clear(gl.DEPTH_BUFFER_BIT);
+			// peoteView.setDepthMask(depthMask);
+			peoteView.setDepth(zIndexEnabled, clearDepth, clearDepthValue, depthMask, depthFunc);
+
 			peoteView.setGLBlend(blendEnabled, blendSeparate, glBlendSrc, glBlendDst, glBlendSrcAlpha, glBlendDstAlpha, blendFuncSeparate, glBlendFunc, glBlendFuncAlpha, blendColor, useBlendColor, useBlendColorSeparate, glBlendR, glBlendG, glBlendB, glBlendA);			
 			peoteView.setMask(mask, clearMask);
 			
@@ -1394,9 +1412,12 @@ class Program
 		for (i in 0...uniformFloats.length) gl.uniform1f (uniformFloatLocations[i], uniformFloats[i].value);
 		
 		peoteView.setColorMask(colorEnabled ? colorMask : 0);
-		peoteView.setGLDepth(zIndexEnabled);		
-		if (clearDepth && zIndexEnabled) gl.clear(gl.DEPTH_BUFFER_BIT);
-		peoteView.setDepthMask(depthMask);
+		// peoteView.setGLDepth(zIndexEnabled);		
+		// if (clearDepth && zIndexEnabled) gl.clear(gl.DEPTH_BUFFER_BIT);
+		// peoteView.setDepthMask(depthMask);
+		peoteView.setDepth(zIndexEnabled, clearDepth, clearDepthValue, depthMask, depthFunc);
+
+
 		peoteView.setGLBlend(blendEnabled, blendSeparate, glBlendSrc, glBlendDst, glBlendSrcAlpha, glBlendDstAlpha, blendFuncSeparate, glBlendFunc, glBlendFuncAlpha, blendColor, useBlendColor, useBlendColorSeparate, glBlendR, glBlendG, glBlendB, glBlendA);		
 		peoteView.setMask(mask, clearMask);
 		
@@ -1424,8 +1445,11 @@ class Program
 		gl.uniform1f (uTIME_PICK, peoteView.time);
 		for (i in 0...uniformFloats.length) gl.uniform1f (uniformFloatPickLocations[i], uniformFloats[i].value);
 		
-		peoteView.setGLDepth((toElement == -1) ? zIndexEnabled : false); // disable for getAllElementsAt() in peoteView
-		peoteView.setDepthMask(depthMask);
+		// peoteView.setGLDepth((toElement == -1) ? zIndexEnabled : false); // disable for getAllElementsAt() in peoteView
+		// peoteView.setDepthMask(depthMask);
+		// TODO: -> have to CLEAR the DEPTHBUFF here ???????
+		peoteView.setDepth((toElement == -1) ? zIndexEnabled : false, false, 1.0, depthMask, depthFunc);
+
 		peoteView.setGLBlend(false, blendSeparate, glBlendSrc, glBlendDst, glBlendSrcAlpha, glBlendDstAlpha, blendFuncSeparate, glBlendFunc, glBlendFuncAlpha, blendColor, useBlendColor, useBlendColorSeparate, glBlendR, glBlendG, glBlendB, glBlendA);
 				
 		buffer.pick(peoteView, display, this, toElement);
