@@ -130,9 +130,25 @@ class Texture
 	}
 
 	/**
-		The texture will be cleared before a `Display` is rendering into it.
+		The texture color will be cleared before a `Display` is rendering into.
 	**/
 	public var clearOnRenderInto = true;
+
+	/**
+		The depth-buffer is cleared before a `Display` is rendering into this texture.
+	**/
+	public var clearDepthOnRenderInto = true;
+	
+	/**
+		zIndex value to fill the depth-buffer if `clearDepthOnRenderInto` is enabled.
+	**/
+	public var clearDepthIndex(get,set):Int;
+	inline function get_clearDepthIndex():Int return Std.int( (clearDepthValue - 0.5) * 0x1FFFFF * 2.0);
+	inline function set_clearDepthIndex(v:Int):Int {
+		clearDepthValue = Math.min(1.0, Math.max(0.0, 0.5 + v / 0x1FFFFF / 2.0 ));
+		return v;
+	}
+	var clearDepthValue:Float = 1.0;
 	
 
 	// TODO: return error if not fit into maxTextureSize!

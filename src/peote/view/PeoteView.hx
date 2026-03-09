@@ -192,6 +192,23 @@ class PeoteView
 		return yZoom = z;
 	}
 
+	/**
+		This cleans up the depth buffer before all is rendering. Can be used also per `Program`.
+	**/
+	public var clearDepth:Bool = true;
+
+	/**
+		zIndex value to fill the depth-buffer if `clearDepth` is enabled.
+	**/
+	public var clearDepthIndex(get,set):Int;
+	inline function get_clearDepthIndex():Int return Std.int( (clearDepthValue - 0.5) * 0x1FFFFF * 2.0);
+	inline function set_clearDepthIndex(v:Int):Int {
+		clearDepthValue = Math.min(1.0, Math.max(0.0, 0.5 + v / 0x1FFFFF / 2.0 ));
+		return v;
+	}
+	var clearDepthValue:Float = 1.0;
+
+
 	var displayList:RenderList<Display>;
 	var framebufferDisplayList:RenderList<Display>;
 
@@ -528,23 +545,24 @@ class PeoteView
 		gl.enable(gl.SCISSOR_TEST);	
 		
 		// clear framebuffer
-		setColorMask();  // <- CHECK if NEED at here
+		setColorMask(); // CHECK: is this done already inside display.pick() ?
 
+		// program did it by itself
+		/*
 		if (clearDepthValState != clearDepthValue) {
 			clearDepthValState = clearDepthValue;
 			gl.clearDepthf(clearDepthValue);
 		}
 		if (!depthMaskState) gl.depthMask(depthMaskState = true);
-		
+		*/
 		if (PeoteGL.Version.isINSTANCED) {
 			gl.clearBufferiv(gl.COLOR, 0, [0, 0, 0, 0]); // only the first value is the UInt32 value that clears the texture
-			gl.clear(gl.DEPTH_BUFFER_BIT);
-			// gl.depthFunc(gl.LEQUAL); // <- TODO
+			// gl.clear(gl.DEPTH_BUFFER_BIT);
 		}
 		else {
 			gl.clearColor(0.0, 0.0, 0.0, 0.0);
-			gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
-			// gl.depthFunc(gl.LEQUAL); // <- TODO
+			// gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
+			gl.clear( gl.COLOR_BUFFER_BIT );
 		}
 				
 		var xOff:Float = xOffset - (xOffset + posX - xOffset) / xz;
@@ -610,33 +628,29 @@ class PeoteView
 			display.fbTexture.slotWidth, display.fbTexture.slotHeight
 		);
 		
-		gl.enable(gl.SCISSOR_TEST);	
-		
-		// TODO:
-		// if (display.fbTexture.clearDepthOnRenderInto) {
-			// if (clearDepthValState != display.fbTexture.clearDepthValue) { // TODO: store clearDepthValue also inside fbTexture! 
-				// clearDepthValState = display.fbTexture.clearDepthValue;
-				// gl.clearDepthf(clearDepthValState);
-			// }
-			if (!depthMaskState) gl.depthMask(depthMaskState = true);
-		// }
-
-		// CHECK: clear stencil at start?
-		// gl.clearStencil(0);
+		gl.enable(gl.SCISSOR_TEST);			
 
 		if (display.fbTexture.clearOnRenderInto) {
 			setColorMask();
 			gl.clearColor(0.0, 0.0, 0.0, 0.0); // TODO: store this colors also inside fbTexture! 
-			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+			gl.clear(gl.COLOR_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
 		}
-		else gl.clear(gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
-		//else gl.clear(gl.STENCIL_BUFFER_BIT);
+		else gl.clear(gl.STENCIL_BUFFER_BIT);
+
+		// TODO:
+		if (display.fbTexture.clearDepthOnRenderInto) {
+			if (clearDepthValState != display.fbTexture.clearDepthValue) { // TODO: store clearDepthValue also inside fbTexture! 
+				clearDepthValState = display.fbTexture.clearDepthValue;
+				gl.clearDepthf(clearDepthValState);
+			}
+			if (!depthMaskState) gl.depthMask(depthMaskState = true);
+			gl.clear(gl.DEPTH_BUFFER_BIT);
+		}
 		
-		
+		// TODO: same for stencil buffer!
+		// gl.clearStencil(0);		
 		// Optimize: only set if is in use somewhere (stencilON state!)
 		gl.stencilMask(0xFF);
-
-		// gl.depthFunc(gl.LEQUAL);
 		
 		display.renderFramebuffer(this); // <-- render display
 		
@@ -668,44 +682,7 @@ class PeoteView
 	}
 
 	var depthMaskState:Bool = true;
-	/*
-	private inline function setDepthMask(depthMask:Bool = true):Void
-	{	
-		if (depthMask != depthMaskState) {
-			depthMaskState = depthMask;
-			gl.depthMask(depthMask);
-		}
-	}*/
-
 	var depthState:Bool = false;
-	/*private inline function setGLDepth(enabled:Bool):Void
-	{	
-		if (enabled && !depthState) {
-			depthState = true;
-			gl.enable(gl.DEPTH_TEST);
-		} else if (!enabled && depthState) {
-			depthState = false;
-			gl.disable(gl.DEPTH_TEST);
-		}
-	}*/
-
-	/**
-		This cleans up the depth buffer before all is rendering. Can be used also per `Program`.
-	**/
-	public var clearDepth:Bool = true;
-
-	/**
-		zIndex value to fill the depth-buffer if `clearDepth` is enabled.
-	**/
-	public var clearDepthIndex(get,set):Int;
-	inline function get_clearDepthIndex():Int return Std.int( (clearDepthValue - 0.5) * 0x1FFFFF * 2.0);
-	inline function set_clearDepthIndex(v:Int):Int {
-		clearDepthValue = Math.min(1.0, Math.max(0.0, 0.5 + v / 0x1FFFFF / 2.0 ));
-		return v;
-	}
-	var clearDepthValue:Float = 1.0;
-
-
 	var clearDepthValState:Float = 1.0;
 	var depthFuncState:DepthFunc = DepthFunc.LESS;
 	private inline function setDepth(enabled:Bool, clearDepth:Bool=false, clearDepthVal:Float=1.0, depthMask:Bool=true, depthFunc:DepthFunc=DepthFunc.LESS_EQUAL):Void

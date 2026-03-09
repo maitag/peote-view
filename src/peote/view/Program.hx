@@ -1368,11 +1368,7 @@ class Program
 			for (i in 0...uniformFloats.length) gl.uniform1f (uniformFloatLocations[i], uniformFloats[i].value);
 			
 			peoteView.setColorMask(colorEnabled ? colorMask : 0);
-			// peoteView.setGLDepth(zIndexEnabled);
-			// if (clearDepth && zIndexEnabled) gl.clear(gl.DEPTH_BUFFER_BIT);
-			// peoteView.setDepthMask(depthMask);
 			peoteView.setDepth(zIndexEnabled, clearDepth, clearDepthValue, depthMask, depthFunc);
-
 			peoteView.setGLBlend(blendEnabled, blendSeparate, glBlendSrc, glBlendDst, glBlendSrcAlpha, glBlendDstAlpha, blendFuncSeparate, glBlendFunc, glBlendFuncAlpha, blendColor, useBlendColor, useBlendColorSeparate, glBlendR, glBlendG, glBlendB, glBlendA);			
 			peoteView.setMask(mask, clearMask);
 			
@@ -1412,12 +1408,7 @@ class Program
 		for (i in 0...uniformFloats.length) gl.uniform1f (uniformFloatLocations[i], uniformFloats[i].value);
 		
 		peoteView.setColorMask(colorEnabled ? colorMask : 0);
-		// peoteView.setGLDepth(zIndexEnabled);		
-		// if (clearDepth && zIndexEnabled) gl.clear(gl.DEPTH_BUFFER_BIT);
-		// peoteView.setDepthMask(depthMask);
 		peoteView.setDepth(zIndexEnabled, clearDepth, clearDepthValue, depthMask, depthFunc);
-
-
 		peoteView.setGLBlend(blendEnabled, blendSeparate, glBlendSrc, glBlendDst, glBlendSrcAlpha, glBlendDstAlpha, blendFuncSeparate, glBlendFunc, glBlendFuncAlpha, blendColor, useBlendColor, useBlendColorSeparate, glBlendR, glBlendG, glBlendB, glBlendA);		
 		peoteView.setMask(mask, clearMask);
 		
@@ -1445,10 +1436,10 @@ class Program
 		gl.uniform1f (uTIME_PICK, peoteView.time);
 		for (i in 0...uniformFloats.length) gl.uniform1f (uniformFloatPickLocations[i], uniformFloats[i].value);
 		
-		// peoteView.setGLDepth((toElement == -1) ? zIndexEnabled : false); // disable for getAllElementsAt() in peoteView
-		// peoteView.setDepthMask(depthMask);
-		// TODO: -> have to CLEAR the DEPTHBUFF here ???????
-		peoteView.setDepth((toElement == -1) ? zIndexEnabled : false, false, 1.0, depthMask, depthFunc);
+		if (clearDepth)
+			peoteView.setDepth((toElement == -1) ? zIndexEnabled : false, true, clearDepthValue, depthMask, depthFunc);
+		else
+			peoteView.setDepth((toElement == -1) ? zIndexEnabled : false, true, peoteView.clearDepthValue);
 
 		peoteView.setGLBlend(false, blendSeparate, glBlendSrc, glBlendDst, glBlendSrcAlpha, glBlendDstAlpha, blendFuncSeparate, glBlendFunc, glBlendFuncAlpha, blendColor, useBlendColor, useBlendColorSeparate, glBlendR, glBlendG, glBlendB, glBlendA);
 				
