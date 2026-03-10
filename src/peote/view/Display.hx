@@ -92,7 +92,9 @@ class Display
 	public var blue:Float = 0.0;
 
 	/**
-		Alpha component of background color as Float (0.0 to 1.0)
+		Alpha component of background color as Float (0.0 to 1.0).
+		Enables `backgroundEnabled` if the value is > 0.0, otherwise it is disabled.
+		Enables `backgroundAlpha` if the value is < 1.0, otherwise it is disabled.
 	**/
 	public var alpha(default, set):Float = 1.0;
 	inline function set_alpha(a:Float):Float {
@@ -115,7 +117,42 @@ class Display
 		To turn the background rendering on/off.
 	**/
 	public var backgroundEnabled:Bool = false;
-	
+
+	/**
+		Clears the depth-buffer by `clearDepthIndex` value before rendering.
+	**/
+	public var clearDepth:Bool = false;
+
+	/**
+		Index for initializing the depth buffer when `clearDepth` is enabled.
+	**/
+	public var clearDepthIndex(get,set):Int;
+	inline function get_clearDepthIndex():Int return Std.int( (0.5 - clearDepthValue) * 0x1FFFFF * 2.0);
+	inline function set_clearDepthIndex(v:Int):Int {
+		clearDepthValue = Math.min(1.0, Math.max(0.0, 0.5 - v / 0x1FFFFF / 2.0 ));
+		return v;
+	}
+	var clearDepthValue:Float = 1.0;
+
+	/**
+		zIndex value for the background if `backgroundEnabled` and `backgroundDepth` is true.
+	**/
+	public var backgroundZ(get,set):Int;
+	inline function get_backgroundZ():Int {
+		// return Math.round( (0.5 - backgroundZValue) * 0x1FFFFF * 2.0);
+		return Math.round( - backgroundZValue * 0x1FFFFF );
+	}
+	inline function set_backgroundZ(v:Int):Int {
+		// backgroundZValue = Math.min(1.0, Math.max(0.0, 0.5 - v / 0x1FFFFF / 2.0 ));
+		backgroundZValue = Math.min(1.0, Math.max(-1.0, - v/0x1FFFFF ));
+		return v;
+	}
+	var backgroundZValue:Float = 1.0;
+	/**
+		If `backgroundEnabled` and `backgroundDepth` is true this sets the equivalent OpenGL `DepthFunc` before rendering the background.
+	**/
+	public var backgroundDepthFunc:DepthFunc = DepthFunc.LESS_EQUAL;
+
 	/**
 		To shift the render content horizontal.
 	**/
@@ -204,7 +241,7 @@ class Display
 		Hides the display during rendering.
 	**/
 	public function hide() isVisible = false;
-
+	
 	/**
 		Creates a new `Display` instance.
 		@param x x-position of the upper left corner
@@ -546,27 +583,39 @@ class Display
 		gl.scissor(sx, h - sh - sy, sw, sh);
 	}
 	
+	inline function renderBackground(peoteView:PeoteView)
+	{
+		peoteView.setColorMask();
+		peoteView.setMask(Mask.OFF, false);
+		if (backgroundDepth || backgroundAlpha) {
+			peoteView.setDepth(backgroundDepth, false, 1.0, true, backgroundDepthFunc); // <-not clears the depth-buffer!
+			peoteView.setGLBlend(backgroundAlpha, false, peoteView.gl.SRC_ALPHA, peoteView.gl.ONE_MINUS_SRC_ALPHA, 0, 0, false, peoteView.gl.FUNC_ADD, 0, 0, false, false, 0.0, 0.0, 0.0, 0.0);				
+			peoteView.background.render(red, green, blue, alpha, backgroundZValue);
+		}
+		else { // faster method if background have no depth or alpha
+			peoteView.gl.clearColor(red, green, blue, alpha);
+			peoteView.gl.clear( gl.COLOR_BUFFER_BIT );
+		}
+	}
+
 	var programListItem:RenderListItem<Program>;
 	
 	private inline function render(peoteView:PeoteView):Void
 	{
-		if (isVisible)
-		{
+		if (isVisible) {
 			//trace("  ---display.render---");
 			glScissor(peoteView.gl, peoteView.width, peoteView.height, peoteView.xOffset, peoteView.yOffset, peoteView.xz, peoteView.yz);
 			
-			if (backgroundEnabled) {
-				peoteView.setColorMask();
-
-				// peoteView.setGLDepth(backgroundDepth);
-				// peoteView.setDepthMask();
-				peoteView.setDepth(backgroundDepth, false, peoteView.clearDepthValState, true, peoteView.depthFuncState);
-				
-				peoteView.setGLBlend(backgroundAlpha, false, peoteView.gl.SRC_ALPHA, peoteView.gl.ONE_MINUS_SRC_ALPHA, 0, 0, false, peoteView.gl.FUNC_ADD, 0, 0, false, false, 0.0, 0.0, 0.0, 0.0);				
-				peoteView.setMask(Mask.OFF, false);
-				peoteView.background.render(red, green, blue, alpha);
+			if (clearDepth) {
+				if (peoteView.clearDepthValState != clearDepthValue) {
+					peoteView.clearDepthValState = clearDepthValue;
+					peoteView.gl.clearDepthf(clearDepthValue);
+				}
+				if (!peoteView.depthMaskState) peoteView.gl.depthMask(peoteView.depthMaskState = true);
+				peoteView.gl.clear(gl.DEPTH_BUFFER_BIT);
 			}
-			
+
+			if (backgroundEnabled) renderBackground(peoteView);			
 			renderProgram(peoteView);
 		}		
 	}
@@ -596,17 +645,7 @@ class Display
 	
 	private inline function renderFramebuffer(peoteView:PeoteView):Void
 	{
-		if (backgroundEnabled) {
-			peoteView.setColorMask();
-			
-			// peoteView.setGLDepth(backgroundDepth);
-			// peoteView.setDepthMask();
-			peoteView.setDepth(backgroundDepth, false, peoteView.clearDepthValState, true, peoteView.depthFuncState);
-
-			peoteView.setGLBlend(backgroundAlpha, false, peoteView.gl.SRC_ALPHA, peoteView.gl.ONE_MINUS_SRC_ALPHA, 0, 0, false, peoteView.gl.FUNC_ADD, 0, 0, false, false, 0.0, 0.0, 0.0, 0.0);
-			peoteView.setMask(Mask.OFF, false);
-			peoteView.background.render(red, green, blue, alpha);
-		}		
+		if (backgroundEnabled) renderBackground(peoteView);
 		renderFramebufferProgram(peoteView);
 	}
 

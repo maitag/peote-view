@@ -201,9 +201,9 @@ class PeoteView
 		zIndex value to fill the depth-buffer if `clearDepth` is enabled.
 	**/
 	public var clearDepthIndex(get,set):Int;
-	inline function get_clearDepthIndex():Int return Std.int( (clearDepthValue - 0.5) * 0x1FFFFF * 2.0);
+	inline function get_clearDepthIndex():Int return Math.round( (0.5 - clearDepthValue) * 0x1FFFFF * 2.0);
 	inline function set_clearDepthIndex(v:Int):Int {
-		clearDepthValue = Math.min(1.0, Math.max(0.0, 0.5 + v / 0x1FFFFF / 2.0 ));
+		clearDepthValue = Math.min(1.0, Math.max(0.0, 0.5 - v / 0x1FFFFF / 2.0 ));
 		return v;
 	}
 	var clearDepthValue:Float = 1.0;
@@ -545,23 +545,12 @@ class PeoteView
 		gl.enable(gl.SCISSOR_TEST);	
 		
 		// clear framebuffer
-		setColorMask(); // CHECK: is this done already inside display.pick() ?
-
-		// program did it by itself
-		/*
-		if (clearDepthValState != clearDepthValue) {
-			clearDepthValState = clearDepthValue;
-			gl.clearDepthf(clearDepthValue);
-		}
-		if (!depthMaskState) gl.depthMask(depthMaskState = true);
-		*/
+		setColorMask();
 		if (PeoteGL.Version.isINSTANCED) {
 			gl.clearBufferiv(gl.COLOR, 0, [0, 0, 0, 0]); // only the first value is the UInt32 value that clears the texture
-			// gl.clear(gl.DEPTH_BUFFER_BIT);
 		}
 		else {
 			gl.clearColor(0.0, 0.0, 0.0, 0.0);
-			// gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
 			gl.clear( gl.COLOR_BUFFER_BIT );
 		}
 				
@@ -637,9 +626,9 @@ class PeoteView
 		}
 		else gl.clear(gl.STENCIL_BUFFER_BIT);
 
-		// TODO:
+		// clear depthbuffer
 		if (display.fbTexture.clearDepthOnRenderInto) {
-			if (clearDepthValState != display.fbTexture.clearDepthValue) { // TODO: store clearDepthValue also inside fbTexture! 
+			if (clearDepthValState != display.fbTexture.clearDepthValue) {
 				clearDepthValState = display.fbTexture.clearDepthValue;
 				gl.clearDepthf(clearDepthValState);
 			}
@@ -649,7 +638,6 @@ class PeoteView
 		
 		// TODO: same for stencil buffer!
 		// gl.clearStencil(0);		
-		// Optimize: only set if is in use somewhere (stencilON state!)
 		gl.stencilMask(0xFF);
 		
 		display.renderFramebuffer(this); // <-- render display
@@ -723,20 +711,15 @@ class PeoteView
 		{
 			if (mask == Mask.OFF) {
 				gl.disable(gl.STENCIL_TEST);
-				maskState = mask;
 			}
-			else if (mask == Mask.DRAW)
-			{
+			else if (mask == Mask.DRAW) {
 				if (clearMask) gl.clear(gl.STENCIL_BUFFER_BIT);
 				if (maskState == Mask.OFF) gl.enable(gl.STENCIL_TEST);
 				
 				gl.stencilFunc(gl.ALWAYS, 1, 0xFF);
 				gl.stencilOp(gl.REPLACE, gl.REPLACE, gl.REPLACE);
-				maskState = mask;
-				
 			}
-			else
-			{
+			else { // Mask.USE
 				if (maskState == Mask.OFF) gl.enable(gl.STENCIL_TEST);
 				gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
 				gl.stencilFunc(gl.EQUAL, 1, 0xFF);
@@ -819,8 +802,11 @@ class PeoteView
 		
 		// CHECK: HTML5 -> preserveDrawingBuffer -> https://stackoverflow.com/questions/27746091/preservedrawingbuffer-false-is-it-worth-the-effort
 		
-		// by default NOW -> lets clean the depth-buff if program not do it at start byself
-		// Optimize: only clear stencil on need!
+		// TODO: clear the stencil simmiliar as how it is done with depth now (and customizable mask-value)
+		// gl.clearStencil(0);		
+		gl.stencilMask(0xFF);
+
+		// clear color and depthbuffer
 		if (clearDepth) {
 			if (clearDepthValState != clearDepthValue) {
 				clearDepthValState = clearDepthValue;
@@ -831,11 +817,6 @@ class PeoteView
 		}
 		else gl.clear(gl.COLOR_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
 	
-		// CHECK: clear stencil at start?
-		//gl.clearStencil(0);
-		
-		// Optimize: only set if is in use somewhere (stencilON state!)
-		gl.stencilMask(0xFF);
 	}
 
 	var displayListItem:RenderListItem<Display>;

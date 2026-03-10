@@ -16,6 +16,7 @@ class Background
 	var glProgram:GLProgram;
 	
 	static inline var aPOSITION:Int = 0;
+	var uDEPTH:GLUniformLocation;
 	var uRGBA:GLUniformLocation;
 
 	public function new(gl:PeoteGL) {
@@ -47,7 +48,8 @@ class Background
 		else if (Precision.availVertexFloat("mediump") != null) precision = "precision mediump float;";
 		
 		var glVertexShader:GLShader = GLTool.compileGLShader(gl, gl.VERTEX_SHADER,
-		precision + "	
+		/*
+		precision + "
 			attribute vec2 aPosition;
 			void main(void)
 			{
@@ -59,8 +61,23 @@ class Background
 				) * vec4 (aPosition, -1.0 ,1.0);
 			}
 		"
+		*/
+		// TODO: let change the z-value by uniform
+		precision + "
+			uniform float uDEPTH;
+			attribute vec2 aPosition;
+			void main(void)
+			{
+				gl_Position = vec4(
+					aPosition.x * 2.0 - 1.0, 
+					aPosition.y * -2.0 + 1.0, 
+					uDEPTH,
+					1.0
+				);
+			}
+		"
 		);
-		
+
 		if (Precision.availFragmentFloat("lowp") != null) precision = "precision lowp float;";
 		else if (Precision.availFragmentFloat("mediump") != null) precision = "precision mediump float;";
 		
@@ -89,10 +106,11 @@ class Background
 
 		GLTool.linkGLProgram(gl, glProgram);
 		
+		uDEPTH = gl.getUniformLocation (glProgram, "uDEPTH");		
 		uRGBA = gl.getUniformLocation (glProgram, "uRGBA");		
 	}
 	
-	public function render(r:Float, g:Float, b:Float, a:Float):Void
+	public function render(r:Float, g:Float, b:Float, a:Float, d:Float):Void
 	{
 		gl.bindBuffer (gl.ARRAY_BUFFER, buffer);
 		
@@ -100,6 +118,8 @@ class Background
 		gl.vertexAttribPointer (aPOSITION, 2, gl.FLOAT, false, 8, 0);
 		
 		gl.useProgram (glProgram);
+		// gl.uniform1f ( uDEPTH, d*2 - 1);
+		gl.uniform1f ( uDEPTH, d);
 		gl.uniform4f ( uRGBA, r,g,b,a);
 		
 		gl.drawArrays (gl.TRIANGLE_STRIP, 0, 4);
