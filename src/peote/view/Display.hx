@@ -102,56 +102,6 @@ class Display
 		backgroundAlpha   = (a < 1.0) ? true : false;
 		return alpha = a;
 	}
-		
-	/**
-		Background use transparency.
-	**/
-	public var backgroundAlpha:Bool = false;
-
-	/**
-		Background use depth value.
-	**/
-	public var backgroundDepth:Bool = false;
-
-	/**
-		To turn the background rendering on/off.
-	**/
-	public var backgroundEnabled:Bool = false;
-
-	/**
-		Clears the depth-buffer by `clearDepthIndex` value before rendering.
-	**/
-	public var clearDepth:Bool = false;
-
-	/**
-		Index for initializing the depth buffer when `clearDepth` is enabled.
-	**/
-	public var clearDepthIndex(get,set):Int;
-	inline function get_clearDepthIndex():Int return Std.int( (0.5 - clearDepthValue) * 0x1FFFFF * 2.0);
-	inline function set_clearDepthIndex(v:Int):Int {
-		clearDepthValue = Math.min(1.0, Math.max(0.0, 0.5 - v / 0x1FFFFF / 2.0 ));
-		return v;
-	}
-	var clearDepthValue:Float = 1.0;
-
-	/**
-		zIndex value for the background if `backgroundEnabled` and `backgroundDepth` is true.
-	**/
-	public var backgroundZ(get,set):Int;
-	inline function get_backgroundZ():Int {
-		// return Math.round( (0.5 - backgroundZValue) * 0x1FFFFF * 2.0);
-		return Math.round( - backgroundZValue * 0x1FFFFF );
-	}
-	inline function set_backgroundZ(v:Int):Int {
-		// backgroundZValue = Math.min(1.0, Math.max(0.0, 0.5 - v / 0x1FFFFF / 2.0 ));
-		backgroundZValue = Math.min(1.0, Math.max(-1.0, - v/0x1FFFFF ));
-		return v;
-	}
-	var backgroundZValue:Float = 1.0;
-	/**
-		If `backgroundEnabled` and `backgroundDepth` is true this sets the equivalent OpenGL `DepthFunc` before rendering the background.
-	**/
-	public var backgroundDepthFunc:DepthFunc = DepthFunc.LESS_EQUAL;
 
 	/**
 		To shift the render content horizontal.
@@ -233,15 +183,55 @@ class Display
 	public var isVisible:Bool = true;
 
 	/**
-		Shows the display during rendering.
+		To turn the background rendering on/off.
 	**/
-	public function show() isVisible = true;	
+	public var backgroundEnabled:Bool = false;
 
 	/**
-		Hides the display during rendering.
+		Background use transparency.
 	**/
-	public function hide() isVisible = false;
-	
+	public var backgroundAlpha:Bool = false;
+
+	/**
+		Background use depth value by [`backgroundZ`](#backgroundZ).
+	**/
+	public var backgroundDepth:Bool = false;
+
+	/**
+		zIndex value for the background if [`backgroundEnabled`](#backgroundEnabled) and [`backgroundDepth`](#backgroundDepth) is true.
+	**/
+	public var backgroundZ(get,set):Int;
+	inline function get_backgroundZ():Int {
+		// return Math.round( (0.5 - backgroundZValue) * 0x1FFFFF * 2.0);
+		return Math.round( - backgroundZValue * 0x1FFFFF );
+	}
+	inline function set_backgroundZ(v:Int):Int {
+		// backgroundZValue = Math.min(1.0, Math.max(0.0, 0.5 - v / 0x1FFFFF / 2.0 ));
+		backgroundZValue = Math.min(1.0, Math.max(-1.0, - v/0x1FFFFF ));
+		return v;
+	}
+	var backgroundZValue:Float = 1.0;
+	/**
+		If [`backgroundEnabled`](#backgroundEnabled) and [`backgroundDepth`](#backgroundDepth) is true this sets the equivalent OpenGL `DepthFunc` before rendering the background.
+	**/
+	public var backgroundDepthFunc:DepthFunc = DepthFunc.LESS_EQUAL;
+
+	/**
+		Clears the depth-buffer by [`clearDepthIndex`](#clearDepthIndex) value before rendering. Can be set also per [PeoteView](PeoteView.html#clearDepth) or [Program](Program.html#clearDepth).
+	**/
+	public var clearDepth:Bool = false;
+
+	/**
+		Index for initializing the depth buffer when [`clearDepth`](#clearDepth) is enabled.
+	**/
+	public var clearDepthIndex(get,set):Int;
+	inline function get_clearDepthIndex():Int return Std.int( (0.5 - clearDepthValue) * 0x1FFFFF * 2.0);
+	inline function set_clearDepthIndex(v:Int):Int {
+		clearDepthValue = Math.min(1.0, Math.max(0.0, 0.5 - v / 0x1FFFFF / 2.0 ));
+		return v;
+	}
+	var clearDepthValue:Float = 1.0;
+
 	/**
 		Creates a new `Display` instance.
 		@param x x-position of the upper left corner
@@ -267,6 +257,16 @@ class Display
 		}
 	}
 
+	/**
+		Shows the display during rendering.
+	**/
+	public function show() isVisible = true;	
+
+	/**
+		Hides the display during rendering.
+	**/
+	public function hide() isVisible = false;
+	
 	/**
 		Returns true is this display is inside the RenderList of a `PeoteView` instance.
 		@param peoteView PeoteView instance

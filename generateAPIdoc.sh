@@ -9,7 +9,7 @@ haxelib run dox \
 	--keep-field-order \
 	-o doc/api \
 	--toplevel-package peote.view \
-	-in "^peote\.view\.(PeoteView|Display|Program|Buffer|Texture|TextureData|TextureDataImpl|TextureFormat|TextureConfig|TextureCache|Color|Load|Mask|UniformFloat|BlendFactor|BlendFunc|text|text\.BMFont|text\.BMFontData|text\.Text|text\.TextProgram|text\.TextOptions)$" \
+	-in "^peote\.view\.(PeoteView|Display|Program|Buffer|Texture|TextureData|TextureDataImpl|TextureFormat|TextureConfig|TextureCache|Color|Load|Mask|UniformFloat|BlendFactor|BlendFunc|DepthFunc|text|text\.BMFont|text\.BMFontData|text\.Text|text\.TextProgram|text\.TextOptions)$" \
 
 rm doc/api/doc.xml
 

@@ -1,14 +1,14 @@
 Changelog
 =========
 
-1.07 (../../2026)
+1.07 (03/11/2026)
 -----------------
 * Added iterators for `PeoteView` and `Display` to let iterate over content by for-in loops
 * Extending `BufferInterface` to allow access of `length`-property, `update()` and `clear()` methods
 * Fixed bug if `colorEnabled` is false at the last program into the renderlist
 * Added `enableColorChannel(r, g, b, a)` function for `Program`s to en/disable individual color channels
 * Added `depthMask` boolean for `Program`s to control writing into the depth-buffer
-* Added `depthFunc` property and a new Type `DepthFunc` for `Program`s
+* Added `depthFunc` property and a new Type `DepthFunc` for `Display`s and `Program`s
 * Added `clearDepth` boolean property for `PeoteView`, `Display`s and `Program`s to let clear the depth-buffer before rendering
 * Added `clearDepthIndex` integer property for `PeoteView`, `Display`s and `Program`s to define the zIndex fpr clearing the depth-buffer
 * Added `backgroundZ` and `backgroundDepthFunc` for `Display`s

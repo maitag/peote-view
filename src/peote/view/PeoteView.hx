@@ -105,7 +105,7 @@ class PeoteView
 			texture.updated = false;
 			// TODO: textures can be unbind inside texture or for renderTotexture!
 			glStateTexture = new Vector<GLTexture>(maxTextureImageUnits); // clear full -> todo: optimize
-			glStateTexture.set(activeTextureUnit, texture.glTexture);			
+			glStateTexture.set(activeTextureUnit, texture.glTexture);
 			return true;
 		}
 		if (glStateTexture.get(activeTextureUnit) != texture.glTexture) {
@@ -122,7 +122,7 @@ class PeoteView
 		if (PeoteGL.Version.isUBO) uniformBuffer.updateXOffset(gl, xo);
 		#if peoteview_fps
 		FPS.x = Std.int(-xo);
-		#end		
+		#end
 		return xOffset = xo;
 	}
 
@@ -134,7 +134,7 @@ class PeoteView
 		if (PeoteGL.Version.isUBO) uniformBuffer.updateYOffset(gl, yo);
 		#if peoteview_fps
 		FPS.y = Std.int(-yo);
-		#end		
+		#end
 		return yOffset = yo;
 	}
 	
@@ -160,7 +160,7 @@ class PeoteView
 		FPS.zoom = 1/z;
 		FPS.width = Std.int(FPS.w/xz);
 		FPS.height = Std.int(FPS.h/yz);
-		#end		
+		#end
 		return zoom = z;
 	}
 
@@ -174,7 +174,7 @@ class PeoteView
 		#if peoteview_fps
 		FPS.xZoom = 1/xz;
 		FPS.width = Std.int(FPS.w/xz);
-		#end		
+		#end
 		return xZoom = z;
 	}
 
@@ -188,33 +188,9 @@ class PeoteView
 		#if peoteview_fps
 		FPS.yZoom = 1/yz;
 		FPS.height = Std.int(FPS.h/yz);
-		#end		
+		#end
 		return yZoom = z;
 	}
-
-	/**
-		This cleans up the depth buffer before all is rendering. Can be used also per `Program`.
-	**/
-	public var clearDepth:Bool = true;
-
-	/**
-		zIndex value to fill the depth-buffer if `clearDepth` is enabled.
-	**/
-	public var clearDepthIndex(get,set):Int;
-	inline function get_clearDepthIndex():Int return Math.round( (0.5 - clearDepthValue) * 0x1FFFFF * 2.0);
-	inline function set_clearDepthIndex(v:Int):Int {
-		clearDepthValue = Math.min(1.0, Math.max(0.0, 0.5 - v / 0x1FFFFF / 2.0 ));
-		return v;
-	}
-	var clearDepthValue:Float = 1.0;
-
-
-	var displayList:RenderList<Display>;
-	var framebufferDisplayList:RenderList<Display>;
-
-	var background:Background;
-
-	var uniformBuffer:UniformBufferView;
 
 	/**
 		Returns `true` if the `time` is started (for `@anim` tagged attributes into Elements).
@@ -259,6 +235,28 @@ class PeoteView
 			isRun = false;
 		}
 	}
+
+	/**
+		Clears the depth-buffer by [`clearDepthIndex`](#clearDepthIndex) value before rendering. Can be set also per [Display](Display.html#clearDepth) or [Program](Program.html#clearDepth).
+	**/
+	public var clearDepth:Bool = true;
+
+	/**
+		Index for initializing the depth buffer when [`clearDepth`](#clearDepth) is enabled.
+	**/
+	public var clearDepthIndex(get,set):Int;
+	inline function get_clearDepthIndex():Int return Math.round( (0.5 - clearDepthValue) * 0x1FFFFF * 2.0);
+	inline function set_clearDepthIndex(v:Int):Int {
+		clearDepthValue = Math.min(1.0, Math.max(0.0, 0.5 - v / 0x1FFFFF / 2.0 ));
+		return v;
+	}
+	var clearDepthValue:Float = 1.0;
+
+
+	var displayList:RenderList<Display>;
+	var framebufferDisplayList:RenderList<Display>;
+	var background:Background;
+	var uniformBuffer:UniformBufferView;
 
 	/**
 		Creates a new `PeoteView` instance.
@@ -315,8 +313,7 @@ class PeoteView
 		#end
 		// to use internal 32 bit float-textures for webgl enable: gl.getExtension("EXT_color_buffer_float");
 		// or look here https://stackoverflow.com/questions/45571488/webgl-2-readpixels-on-framebuffers-with-float-textures
-		
-		
+				
 		PeoteGL.Precision.init(gl); // init precision		
 		
 		initGlPicking();
@@ -682,8 +679,7 @@ class PeoteView
 		else if (!enabled && depthState) {
 			depthState = false;
 			gl.disable(gl.DEPTH_TEST);
-		}
-		
+		}		
 		if (enabled) {
 			if (clearDepth) {
 				if (clearDepthValState != clearDepthVal) {
@@ -700,7 +696,7 @@ class PeoteView
 			if (depthFunc != depthFuncState) {
 				depthFuncState = depthFunc;
 				gl.depthFunc( depthFunc.toGL(gl) );
-			}			
+			}
 		}
 	}
 
@@ -868,7 +864,7 @@ class PeoteView
 		#if peoteview_fps
 		FPS.render(this);
 		FPS.step();
-		#end		
+		#end
 	}
 
 }

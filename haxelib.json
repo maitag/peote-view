@@ -6,7 +6,7 @@
 	"description": "2D Render Library (lime/opengl)",
 	"version": "1.0.7",
 	"classPath": "src/",
-	"releasenote": "adding iterators for PeoteView and Display, extending BufferInterface about update, length and clear fields",
+	"releasenote": "adding iterators for PeoteView and Display, extending BufferInterface about update, length and clear fields, improved depth-buffer",
 	"contributors": ["maitag"],
 	"dependencies": {
 		"lime": ""

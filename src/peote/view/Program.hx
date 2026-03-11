@@ -174,6 +174,13 @@ class Program
 	var glBlendA:Float;
 
 	/**
+		Enable or disable color rendering. If enabled, individual channels can be turned on or off using [`enableColorChannel()`](#enableColorChannel).
+		Can be disabled, for example, to render only in the stencil buffer for masking.
+	**/
+	public var colorEnabled:Bool = true;
+	var colorMask:Int = 15;
+
+	/**
 		Enable or disable the use of the depth buffer and perform a depth test to write new pixels.
 	**/
 	public var zIndexEnabled:Bool; // TODO: make this deprecated for 2.0 and replace by "depthEnabled"
@@ -184,12 +191,12 @@ class Program
 	public var depthMask:Bool = true;
 
 	/**
-		Clears the depth-buffer by `clearDepthIndex` value before rendering. This only has an effect if `zIndexEnabled` is true.
+		Clears the depth-buffer by [`clearDepthIndex`](#clearDepthIndex) value before rendering. This only has an effect if `zIndexEnabled` is true. Can be set also per [PeoteView](PeoteView.html#clearDepth) or [Display](Display.html#clearDepth).
 	**/
 	public var clearDepth:Bool = false;
 
 	/**
-		Index for initializing the depth buffer when  `clearDepth` is enabled.
+		Index for initializing the depth buffer when [`clearDepth`](#clearDepth) is enabled.
 	**/
 	public var clearDepthIndex(get,set):Int;
 	inline function get_clearDepthIndex():Int return Math.round( (0.5 - clearDepthValue) * 0x1FFFFF * 2.0);
@@ -203,13 +210,6 @@ class Program
 		To set the equivalent OpenGL `DepthFunc` for depth-testing. This only has an effect if `zIndexEnabled` is true.
 	**/
 	public var depthFunc:DepthFunc = DepthFunc.LESS_EQUAL;
-
-	/**
-		Enable or disable color rendering. If enabled, individual channels can be turned on or off using [`enableColorChannel()`](#enableColorChannel).
-		Can be disabled, for example, to render only in the stencil buffer for masking.
-	**/
-	public var colorEnabled:Bool = true;
-	var colorMask:Int = 15;
 
 	/**
 		To use the stencil-buffer for masking or to draw into it to use it afterwards by another program.
@@ -1442,7 +1442,7 @@ class Program
 			peoteView.setDepth((toElement == -1) ? zIndexEnabled : false, true, peoteView.clearDepthValue);
 
 		peoteView.setGLBlend(false, blendSeparate, glBlendSrc, glBlendDst, glBlendSrcAlpha, glBlendDstAlpha, blendFuncSeparate, glBlendFunc, glBlendFuncAlpha, blendColor, useBlendColor, useBlendColorSeparate, glBlendR, glBlendG, glBlendB, glBlendA);
-				
+		
 		buffer.pick(peoteView, display, this, toElement);
 		gl.useProgram (null);		
 	}
