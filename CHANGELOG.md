@@ -1,6 +1,12 @@
 Changelog
 =========
 
+1.08 (../../2026)
+-----------------
+* Added a new `Uniform` to handle multiple types of glsl-uniforms
+* Changed the way how to add uniforms per `Program`-shaderinjection (StringMap now to have the uniform-identifiers more near to glsl-code)
+
+
 1.07 (03/11/2026)
 -----------------
 * Added iterators for `PeoteView` and `Display` to let iterate over content by for-in loops

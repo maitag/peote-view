@@ -1,7 +1,10 @@
 package utils;
 
+import peote.view.PeoteGL;
+import peote.view.PeoteGL.GLUniformLocation;
+
 @:structInit
-private class _Vec2 {
+private class _Vec2 implements peote.view.Uniform {
 	public var x:Float;
 	public var y:Float;
 	
@@ -11,7 +14,10 @@ private class _Vec2 {
 	}
 
 	// vector length
-	public inline function length():Float return ( Math.sqrt(x*x + y*y) );	
+	public inline function length():Float return ( Math.sqrt(x*x + y*y) );
+
+	inline function glslType():String return "vec2";
+	inline function updateGL(gl:PeoteGL, loc:GLUniformLocation) gl.uniform2f (loc, x, y);
 }
 
 @:forward
@@ -94,4 +100,5 @@ abstract Vec2(_Vec2) from _Vec2 to _Vec2 {
 		trace('( $b == $c.length() ) = ${ b == c.length() }');
 		trace('( $b.length() == $c ) = ${ b.length() == c }');
 	}
+
 }

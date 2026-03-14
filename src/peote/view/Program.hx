@@ -532,13 +532,15 @@ class Program
 		
 		if ( !isPicking ) {
 			uTIME = gl.getUniformLocation(glProg, "uTime");
-			uniformFloatLocations = new Array<GLUniformLocation>();
-			for (u in uniformFloats) uniformFloatLocations.push( gl.getUniformLocation(glProg, u.name) );
+			// uniformFloatLocations = new Array<GLUniformLocation>();
+			// for (u in uniformFloats) uniformFloatLocations.push( gl.getUniformLocation(glProg, u.name) );
+			uniformLocations = [ for (name in uniformNames) gl.getUniformLocation(glProg, name) ];
 		}
 		else {
 			uTIME_PICK = gl.getUniformLocation(glProg, "uTime");
-			uniformFloatPickLocations = new Array<GLUniformLocation>();
-			for (u in uniformFloats) uniformFloatPickLocations.push( gl.getUniformLocation(glProg, u.name) );
+			// uniformFloatPickLocations = new Array<GLUniformLocation>();
+			// for (u in uniformFloats) uniformFloatPickLocations.push( gl.getUniformLocation(glProg, u.name) );
+			uniformPickLocations = [ for (name in uniformNames) gl.getUniformLocation(glProg, name) ];
 		}
 		
 		if (!isPicking) {
@@ -567,18 +569,19 @@ class Program
 	var uZOOM:GLUniformLocation;
 	var uOFFSET:GLUniformLocation;
 	var uTIME:GLUniformLocation;
-	// TODO: optimize here (or all with typedef {uRESOLUTION:GLUniformLocation ...} )
 	var uRESOLUTION_PICK:GLUniformLocation;
 	var uZOOM_PICK:GLUniformLocation;
 	var uOFFSET_PICK:GLUniformLocation;
 	var uTIME_PICK:GLUniformLocation;
 
-	var uniformFloatsVertex:Array<UniformFloat> = null;
-	var uniformFloatsFragment:Array<UniformFloat> = null;
-	// TODO: target-optimization for faster access
-	var uniformFloats:Array<UniformFloat> = new Array<UniformFloat>();
-	var uniformFloatLocations:Array<GLUniformLocation>;
-	var uniformFloatPickLocations:Array<GLUniformLocation>;
+	var uniformsMapVertex:StringMap<Uniform> = null;
+	var uniformsMapFragment:StringMap<Uniform> = null;
+	
+	var uniformNames = new Array<String>();
+	var uniforms = new Array<Uniform>();
+
+	var uniformLocations:Array<GLUniformLocation>;
+	var uniformPickLocations:Array<GLUniformLocation>;
 
 	private function parseColorFormula():Void {
 		var formula:String = "";
@@ -695,13 +698,13 @@ class Program
 		Inject custom glsl code into the vertexshader of a program.
 		@param glslCode a String what contains the glsl code
 		@param uTimeUniformEnabled if `true` you can use the global `time` uiform
-		@param uniformFloats an Array of custom `UniformFloat`s
+		@param uniformsMap a StringMap of custom `Uniform`s where the key is the glsl identifier of that uniform
 		@param autoUpdate set it to `true` (update) or `false` (no update), otherwise the `.autoUpdate` property is used
 	**/
-	public function injectIntoVertexShader(glslCode:String = "", uTimeUniformEnabled = false, uniformFloats:Array<UniformFloat> = null, ?autoUpdate:Null<Bool>):Void {
-		uniformFloatsVertex = uniformFloats;
-		glShaderConfig.VERTEX_INJECTION = ((uTimeUniformEnabled && !buffer.hasTime()) ? "uniform float uTime;" : "") + generateUniformFloatsGLSL(uniformFloats) + glslCode;
-		accumulateUniformsFloat();
+	public function injectIntoVertexShader(glslCode:String = "", uTimeUniformEnabled = false, uniformsMap:StringMap<Uniform> = null, ?autoUpdate:Null<Bool>):Void {
+		uniformsMapVertex = uniformsMap;
+		glShaderConfig.VERTEX_INJECTION = ((uTimeUniformEnabled && !buffer.hasTime()) ? "uniform float uTime;" : "") + generateUniformGLSL(uniformsMap) + glslCode;
+		accumulateUniforms();
 		checkAutoUpdate(autoUpdate);
 	}
 
@@ -709,40 +712,55 @@ class Program
 		Inject custom glsl code into the fragmentshader of a program.
 		@param glslCode a String what contains the glsl code
 		@param uTimeUniformEnabled if `true` you can use the global `time` uiform
-		@param uniformFloats an Array of custom `UniformFloat`s
+		@param uniformsMap a StringMap of custom `Uniform`s where the key is the glsl identifier of that uniform
 		@param autoUpdate set it to `true` (update) or `false` (no update), otherwise the `.autoUpdate` property is used
 	**/
-	public function injectIntoFragmentShader(glslCode:String = "", uTimeUniformEnabled = false, uniformFloats:Array<UniformFloat> = null, ?autoUpdate:Null<Bool>):Void {
+	public function injectIntoFragmentShader(glslCode:String = "", uTimeUniformEnabled = false, uniformsMap:StringMap<Uniform> = null, ?autoUpdate:Null<Bool>):Void {
 		glShaderConfig.hasFRAGMENT_INJECTION = (glslCode == "") ? false : true;
-		uniformFloatsFragment = uniformFloats;
-		glShaderConfig.FRAGMENT_INJECTION = ((uTimeUniformEnabled) ? "uniform float uTime;" : "") + generateUniformFloatsGLSL(uniformFloats) + glslCode;
-		accumulateUniformsFloat();
+		uniformsMapFragment = uniformsMap;
+		glShaderConfig.FRAGMENT_INJECTION = ((uTimeUniformEnabled) ? "uniform float uTime;" : "") + generateUniformGLSL(uniformsMap) + glslCode;
+		accumulateUniforms();
 		checkAutoUpdate(autoUpdate);
 	}
 
-	private function generateUniformFloatsGLSL(uniformFloats:Array<UniformFloat>):String {
-		var out:String = "";
-		if (uniformFloats != null)
-			for (u in uniformFloats) out += "uniform float " + u.name + ";";
+	private function generateUniformGLSL(uniformsMap:Map<String, Uniform>):String {
+		// TODO: check for wrong identifiers and that u is not null !!!
+		if (uniformsMap == null) return "";
+		var out = "";
+		for (name => u in uniformsMap) out += 'uniform ${u.glslType()} $name;';
 		return out;
 	}
-
-	private function accumulateUniformsFloat() {
-		if (uniformFloatsVertex == null) {
-			if (uniformFloatsFragment != null) uniformFloats = uniformFloatsFragment;
+	
+	private function accumulateUniforms() {
+		uniforms = [];
+		uniformNames = [];
+		if (uniformsMapVertex == null) {
+			if (uniformsMapFragment != null)
+				for (n=>u in uniformsMapFragment) {
+					uniformNames.push(n);
+					uniforms.push(u);
+				}
 		}
-		else if (uniformFloatsFragment == null) {
-			uniformFloats = uniformFloatsVertex;
+		else if (uniformsMapFragment == null) {
+			for (n=>u in uniformsMapVertex) {
+				uniformNames.push(n);
+				uniforms.push(u);
+			}
 		}
 		else {
-			uniformFloats = uniformFloatsVertex;
-			for (u in uniformFloatsFragment) {
-				if (uniformFloats.indexOf(u) < 0) {
-					uniformFloats.push(u);
+			for (n=>u in uniformsMapVertex) {
+				uniformNames.push(n);
+				uniforms.push(u);
+			}
+			for (n => u in uniformsMapFragment) {
+				if (!uniformsMapVertex.exists(n)) {
+					uniformNames.push(n);
+					uniforms.push(u);
 				}
 			}
 		}
 	}
+	
 
 	/**
 		Define formulas to change the calculation for element attributes at runtime
@@ -1344,8 +1362,6 @@ class Program
 			
 			render_activeTextureUnits(peoteView, textureList);
 			
-			// TODO: custom uniforms per Program
-			
 			if (PeoteGL.Version.isUBO)
 			{	
 				// ------------- uniform block -------------
@@ -1365,7 +1381,7 @@ class Program
 			}
 			
 			gl.uniform1f (uTIME, peoteView.time);
-			for (i in 0...uniformFloats.length) gl.uniform1f (uniformFloatLocations[i], uniformFloats[i].value);
+			for (i in 0...uniforms.length) uniforms[i].updateGL(gl, uniformLocations[i]);
 			
 			peoteView.setColorMask(colorEnabled ? colorMask : 0);
 			peoteView.setDepth(zIndexEnabled, clearDepth, clearDepthValue, depthMask, depthFunc);
@@ -1405,7 +1421,7 @@ class Program
 		}
 		
 		gl.uniform1f (uTIME, peoteView.time);
-		for (i in 0...uniformFloats.length) gl.uniform1f (uniformFloatLocations[i], uniformFloats[i].value);
+		for (i in 0...uniforms.length) uniforms[i].updateGL(gl, uniformLocations[i]);
 		
 		peoteView.setColorMask(colorEnabled ? colorMask : 0);
 		peoteView.setDepth(zIndexEnabled, clearDepth, clearDepthValue, depthMask, depthFunc);
@@ -1434,7 +1450,7 @@ class Program
 		                            (display.y + display.yOffset + yOff) / display.yz);
 		
 		gl.uniform1f (uTIME_PICK, peoteView.time);
-		for (i in 0...uniformFloats.length) gl.uniform1f (uniformFloatPickLocations[i], uniformFloats[i].value);
+		for (i in 0...uniforms.length) uniforms[i].updateGL(gl, uniformPickLocations[i]);
 		
 		if (clearDepth)
 			peoteView.setDepth((toElement == -1) ? zIndexEnabled : false, true, clearDepthValue, depthMask, depthFunc);

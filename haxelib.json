@@ -4,9 +4,9 @@
 	"license": "MIT",
 	"tags": ["peote", "opengl", "2d", "shader", "glsl"],
 	"description": "2D Render Library (lime/opengl)",
-	"version": "1.0.7",
+	"version": "1.0.8",
 	"classPath": "src/",
-	"releasenote": "adding iterators for PeoteView and Display, extending BufferInterface about update, length and clear fields, improved depth-buffer",
+	"releasenote": "more types for glsl-uniforms",
 	"contributors": ["maitag"],
 	"dependencies": {
 		"lime": ""
