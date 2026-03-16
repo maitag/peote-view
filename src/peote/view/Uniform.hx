@@ -1,7 +1,7 @@
 package peote.view;
 
 import peote.view.PeoteGL.GLUniformLocation;
-import utils.Vec2;
+import peote.view.math.*;
 
 /**
 	Interface to handle multiple uniform types by an Array.
