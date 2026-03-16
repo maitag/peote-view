@@ -47,8 +47,8 @@ private class UniformT<T:Uniform> implements Uniform
 }
 
 typedef UniformVec2 = UniformT<Vec2>;
-// typedef UniformVec3 = UniformT<Vec3>;
-// typedef UniformVec4 = UniformT<Vec4>;
+typedef UniformVec3 = UniformT<Vec3>;
+typedef UniformVec4 = UniformT<Vec4>;
 
 // ok ... now we can --> S P A W N :
 // more here (^_^)

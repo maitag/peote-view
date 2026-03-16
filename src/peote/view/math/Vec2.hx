@@ -45,8 +45,8 @@ abstract Vec2(Vec2Impl) from Vec2Impl to Vec2Impl
 {
 	/**
 		Creates a new `Vec2` instance.
-		@param x `Float` 
-		@param y `Float` 
+		@param x `Float`
+		@param y `Float`
 	**/
 	public inline function new (x:Float, y:Float) this = new Vec2Impl(x, y);
 
@@ -70,27 +70,23 @@ abstract Vec2(Vec2Impl) from Vec2Impl to Vec2Impl
 	/**	Normalizes the values of this vector and returns its reference. **/
 	public inline function normalize():Vec2 { var m=length; x=x/m; y=y/m; return this; }
 
-	/**
-		Calculates the cross product.
-		@param v `Vec3` 
-	**/
-	// public inline function crossProduct(v:Vec3Impl):Vec3Impl return new Vec3Impl(y*v.z - z*v.y, z*v.x - x*v.z, x*v.y - y*v.x);
 
 	// operate directly on the vector values and returns its reference.
 
 	/** Adds the values of another vector to this vector. **/
-	public function add(v:Vec2):Vec2 { x+=v.x; y+=v.y; return this; }
+	public inline function add(v:Vec2):Vec2 { x+=v.x; y+=v.y; return this; }
 	/** Subtracts the values of another vector from this vector. **/
-	public function subtract(v:Vec2):Vec2 { x-=v.x; y-=v.y; return this; }
+	public inline function subtract(v:Vec2):Vec2 { x-=v.x; y-=v.y; return this; }
 	/** Multiplicates the values of this vector by a `Float` **/
-	public function mul(f:Float):Vec2 { x*=f; y*=f; return this; }
+	public inline function mul(f:Float):Vec2 { x*=f; y*=f; return this; }
 	/** Divides the values of this vector by a `Float` **/
-	public function div(f:Float):Vec2 { x/=f; y/=f; return this; }
+	public inline function div(f:Float):Vec2 { x/=f; y/=f; return this; }
+
 	
 	//  --------------- operator overloading -----------------
 
 	// adding and subtracting two vectors-> returns Vec2
-	@:op(A + B) inline function _add (v:Vec2):Vec2 return new Vec2(x+v.x, y+v.y);
+	@:op(A + B) inline function _add(v:Vec2):Vec2 return new Vec2(x+v.x, y+v.y);
 	@:op(A - B) inline function _subtract(v:Vec2):Vec2 return new Vec2(x-v.x, y-v.y);
 	
 	@:commutative // multiply and divide a vector by a float -> returns Vec2
