@@ -1,6 +1,6 @@
 package peote.view.intern;
 
-import utils.MultipassTemplate;
+import peote.view.intern.MultipassTemplate;
 
 import peote.view.PeoteGL.GLRenderbuffer;
 import peote.view.PeoteGL.GLFramebuffer;

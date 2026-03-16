@@ -94,7 +94,7 @@ class ElementImpl
 	static var rStartspaces:EReg = new EReg("^([ \t]*\r?\n)+", "g");
 	*/
 	static inline function parseShader(shader:String):String {
-		var template = new utils.MultipassTemplate(shader);
+		var template = new peote.view.intern.MultipassTemplate(shader);
 		//var s = rStartspaces.replace(rEmptylines.replace(rComments.replace(template.execute(glConf), ""), "\n"), "");
 		var s = template.execute(glConf);
 		return s;

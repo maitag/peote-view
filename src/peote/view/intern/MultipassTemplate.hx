@@ -19,7 +19,9 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-package utils;
+package peote.view.intern;
+// allows standard haxe Template to run into multiple passes
+
 
 private enum TemplateExpr {
 	OpVar( v : String );

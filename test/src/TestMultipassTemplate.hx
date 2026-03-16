@@ -1,6 +1,6 @@
 package;
 
-import utils.MultipassTemplate;
+import peote.view.intern.MultipassTemplate;
 
 /**
  * testing the Template.hx modifications
