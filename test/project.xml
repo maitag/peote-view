@@ -6,7 +6,8 @@
 	<android target-sdk-version="28" />
 
 	<!-- test -->
-	<app main="TestMultipassTemplate" path="bin" file="Main" />
+	<!-- <app main="TestMultipassTemplate" path="bin" file="TestMultipassTemplate" /> -->
+	<app main="TestVectorMath" path="bin" file="TestVectorMath" />
 
 	<window width="800" height="600" fps="61" />
 	<window if="html5||android" width="0" height="0" allowHighDPI="true" />
@@ -19,7 +20,7 @@
 	<haxedef name="peoteview_es2" if="android" /> <!-- android autodetect es3 but did not work, so force to es2 -->
 	
 	<haxeflag name="-dce" value="full" />
-	<haxedef name="message.reporting=pretty" />
+	<!-- <haxedef name="message.reporting=pretty" /> -->
 	<haxedef name="keep_inline_positions" />
 	
 	<setenv name="SHOW_CONSOLE" /> <!-- on windows it shows console if start by clicking on .exe -->
