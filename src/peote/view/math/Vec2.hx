@@ -40,13 +40,20 @@ private class Vec2Impl implements peote.view.Uniform
 	`>`, `<`, `>=`, `<=` results into comparing the lengths of the vectors.  
 	`a.isEqual(b)` can be used to compare two vectors `a` and `b` for value-equality.  
 **/
-@:forward @:forward.new
+@:forward
 abstract Vec2(Vec2Impl) from Vec2Impl to Vec2Impl
 {
+	/**
+		Creates a new `Vec2` instance.
+		@param x `Float` 
+		@param y `Float` 
+	**/
+	public inline function new (x:Float, y:Float) this = new Vec2Impl(x, y);
+
 	public var x(get,set):Float;  function get_x() return this.x; inline function set_x(v) return this.x=v;
 	public var y(get,set):Float;  function get_y() return this.y; inline function set_y(v) return this.y=v;
 
-	/**	gets the current vector-length **/
+	/**	Gets the current vector-length **/
 	public var length(get, never):Float; inline function get_length():Float return Math.sqrt(x*x + y*y);
 
 	/** Compare this to another vector of equality.
