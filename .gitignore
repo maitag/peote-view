@@ -1,2 +1,3 @@
-samples/bin/
+test/bin/
+test/.vscode
 doc/api/
