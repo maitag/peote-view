@@ -62,14 +62,9 @@ class UniformUInt implements Uniform
 	**/
 	public inline function new(value:UInt) this.value = value;
 
-	#if html5
-	inline function glslType() return "uint";
-	inline function updateGL(gl:PeoteGL, loc:GLUniformLocation) gl.uniform1ui(loc, value);
-	#else
-	// no idea why on native targets (es2) the unsigned variant not works
-	inline function glslType() return "int";
-	inline function updateGL(gl:PeoteGL, loc:GLUniformLocation) gl.uniform1i(loc, value);
-	#end
+	// opengl-ES2 not supports uniform1ui, so fallback to uniform1i
+	inline function glslType() return PeoteGL.Version.isES3 ? "uint" : "int";
+	inline function updateGL(gl:PeoteGL, loc:GLUniformLocation) if (PeoteGL.Version.isES3) gl.uniform1ui(loc, value) else gl.uniform1i(loc, value);
 }
 
 @:generic

@@ -2,9 +2,6 @@ package;
 
 import peote.view.math.*;
 
-/**
- * testing the Template.hx modifications
- */
 class TestVectorMath extends lime.app.Application
 {
 	public function new() {

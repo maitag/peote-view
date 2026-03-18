@@ -3,7 +3,7 @@ package;
 import peote.view.intern.MultipassTemplate;
 
 /**
- * testing the Template.hx modifications
+ * testing the Template.hx modifications of the original haxe-Template
  */
 class TestMultipassTemplate extends lime.app.Application
 {

@@ -8,6 +8,7 @@
 	<!-- test -->
 	<app main="TestMultipassTemplate" path="bin" file="TestMultipassTemplate" />
 	<!-- <app main="TestVectorMath" path="bin" file="TestVectorMath" /> -->
+	<app main="TestRandom" path="bin" file="TestRandom" />
 
 	<window width="800" height="600" fps="61" />
 	<window if="html5||android" width="0" height="0" allowHighDPI="true" />

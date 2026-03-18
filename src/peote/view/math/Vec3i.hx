@@ -75,6 +75,10 @@ abstract Vec3i(Vec3iImpl) from Vec3iImpl to Vec3iImpl
 
 	// operate directly on the vector values and returns its reference.
 
+	/** Calculates the cross product.
+		@param v `Vec3` **/
+	public inline function crossProduct(v:Vec3i):Vec3i return new Vec3i(y*v.z - z*v.y, z*v.x - x*v.z, x*v.y - y*v.x);
+
 	/** Adds the values of another vector to this vector. **/
 	public inline function add(v:Vec3i):Vec3i { x+=v.x; y+=v.y; z+=v.z; return this; }
 	/** Subtracts the values of another vector from this vector. **/
