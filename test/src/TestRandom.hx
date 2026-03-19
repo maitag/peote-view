@@ -12,12 +12,14 @@ class TestRandom extends lime.app.Application
 	public function testInt()
 	{
 
-		var r = new Random(0);
-		// Random.makeFromArray([4,5,6,7,8,9,10]);
-		for (i in 0...5)
-			trace( r.random(10) );
-			trace( r.randomUInt() );
-
+		var random = new Random(3);
+		
+		for (i in 0...55) {
+			// trace( random.randomFloat());
+			// trace( random.random(10) );
+			trace( random.randomUInt() );
+			// trace( random.randomInt() );
+		}
 	}
 
 }
