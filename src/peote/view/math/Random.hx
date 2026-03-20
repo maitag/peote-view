@@ -146,7 +146,7 @@ class Random {
 		@param minValue the minimal random value
 		@param maxValue the maximum random value
 	**/
-	public inline function limitUInt(minValue:UInt, maxValue:UInt):UInt {
+	public inline function uintLimit(minValue:UInt, maxValue:UInt):UInt {
 		return minValue + uint(maxValue - minValue + ((minValue>0 || maxValue<0xffffffff) ? 1 : 0)); 
 	}
 
@@ -166,7 +166,7 @@ class Random {
 		@param minValue the minimal random value
 		@param maxValue the maximum random value
 	**/
-	public inline function limitInt(minValue:Int, maxValue:Int):Int {
+	public inline function intLimit(minValue:Int, maxValue:Int):Int {
 		#if neko
 		return minValue + uint(maxValue - minValue + ((minValue>-2147483648 || maxValue<2147483647) ? 1 : 0) ); 
 		#else
@@ -188,7 +188,7 @@ class Random {
 		@param minValue the minimal random value
 		@param maxValue the maximum random value
 	**/
-	public inline function floatLow(rangeLength:Float = 1.0):Float {
+	public inline function float32(rangeLength:Float = 1.0):Float {
 		return randomUInt() * rangeLength / 4294967296.0; // 0x1 0000 0000
 	}
 
@@ -196,7 +196,7 @@ class Random {
 		@param minValue the minimal random value
 		@param maxValue the maximum random value
 	**/
-	public inline function limitFloat(minValue:Float, maxValue:Float):Float {
+	public inline function floatLimit(minValue:Float, maxValue:Float):Float {
 		return minValue + ((randomUInt() >> 5) * 67108864.0 + (randomUInt() >> 6)) * (maxValue-minValue) / 9007199254740991.0; // 0x1F FFFF FFFF FFFF
 	}
 
@@ -204,7 +204,7 @@ class Random {
 		@param minValue the minimal random value
 		@param maxValue the maximum random value
 	**/
-	public inline function limitFloatLow(minValue:Float, maxValue:Float):Float {
+	public inline function float32Limit(minValue:Float, maxValue:Float):Float {
 		return minValue + randomUInt() * (maxValue-minValue) / 4294967295.0; // 0x FFFF FFFF
 	}
 
