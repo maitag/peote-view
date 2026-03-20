@@ -23,18 +23,22 @@ import haxe.Int32;
 
 #if js
 import js.lib.Uint32Array;
-abstract MT_List(Uint32Array) {
+private abstract MT_List(Uint32Array) {
 	public inline function new(length:Int) this = new Uint32Array(length);
 	public inline function get(i:Int):UInt return this[i];
 	public inline function set(i:Int, v:UInt) this[i] = v;
 }
 #else
 import haxe.ds.Vector;
-@:forward(get, set) abstract MT_List(Vector<UInt>) {
+@:forward(get, set) private abstract MT_List(Vector<UInt>) {
 	public inline function new(length:Int) this = new Vector(length);
 }
 #end
 
+/** 
+	To generate pseydo random numbers by a [Mersenne Twister](https://www.math.sci.hiroshima-u.ac.jp/m-mat/MT/ewhat-is-mt.html).  
+	The same seed results in the same sequence of random numbers.
+**/
 class Random {
 	static inline var N:Int = 624;
 	static inline var M:Int = 397;
@@ -52,12 +56,18 @@ class Random {
 	var mt:MT_List;
 	var mti:Int = 0;
 
+	/** Creates a new `Random` instance.
+		@param seed (optional) the start-seed for the random sequence. If this value is `null` the seed will be `Std.random()`
+	**/
 	public function new( ?seed:UInt ) {
 		mt = new MT_List(N);
 		this.seed(seed);
 	}
 
-	public function seed(?seed:UInt) {
+	/** Sets the seed of this instance to start a new sequence.
+		@param seed (optional) the start-seed for the random sequence. If this value is `null` the seed will be `Std.random()`
+	**/
+		public function seed(?seed:UInt) {
 		if (seed == null) seed = (Std.int(Math.random()*256) << 24) | Std.random(0x1000000);
 
 		#if js
@@ -116,9 +126,10 @@ class Random {
 		return r;
 	}
 
+
 	// --------------------- UInt --------------------------
 
-	/** Returns a random unsigned integer number of type `UInt`.
+	/** Returns a random `UInt` unsigned integer number.
 		@param rangeLength if not null the random values will be into the range from 0 to (exclusive) rangeLength,
 	**/
 	public inline function uint(?rangeLength:UInt):UInt {
@@ -131,21 +142,18 @@ class Random {
 			#end
 	}
 
-	/** Returns a random `UInt` unsigned number whose value is limited by max and min
+	/** Returns a random `UInt` unsigned integer number whose value is limited by max and min
 		@param minValue the minimal random value
 		@param maxValue the maximum random value
 	**/
 	public inline function limitUInt(minValue:UInt, maxValue:UInt):UInt {
-		#if neko
-		return minValue + uint(maxValue - minValue + 1); 
-		#else
-		return (minValue:Int32) + uint(maxValue - minValue + ((minValue>0 || maxValue<0xffffffff) ? 1 : 0));
-		#end
+		return minValue + uint(maxValue - minValue + ((minValue>0 || maxValue<0xffffffff) ? 1 : 0)); 
 	}
+
 
 	// ----------------------- Int ---------------------------
 
-	/** Returns a random integer number of type `Int`.
+	/** Returns a random `Int` integer number.
 		@param rangeLength if not null the random values will be into the range from 0 to (exclusive) rangeLength,
 	**/
 	public inline function int(?rangeLength:Int):Int {
@@ -154,7 +162,7 @@ class Random {
 		else return randomUInt() % rangeLength;
 	}
 
-	/** Returns a random `Int` number whose value is limited by max and min
+	/** Returns a random `Int` integer number whose value is limited by max and min
 		@param minValue the minimal random value
 		@param maxValue the maximum random value
 	**/
@@ -166,6 +174,7 @@ class Random {
 		#end
 	}
 
+
 	// ---------------------- Float --------------------------
 
 	/** Returns a random `Float` number.
@@ -175,7 +184,7 @@ class Random {
 		return ((randomUInt() >> 5) * 67108864.0 + (randomUInt() >> 6)) * rangeLength / 9007199254740992.0; // 0x20 0000 0000 0000
 	}
 
-	/** Returns a random `Float` number . This is faster but only works at 32 bit precision.
+	/** Returns a random `Float` number. This is faster but only works at 32 bit precision.
 		@param minValue the minimal random value
 		@param maxValue the maximum random value
 	**/

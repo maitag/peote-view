@@ -13,12 +13,12 @@ class TestRandom extends lime.app.Application
 	public function test()
 	{
 
-		var random = new Random();
-		// var random = new Random(123);
+		// var random = new Random();
+		var random = new Random(123);
 
 		for (i in 0...30)
 		{
-			trace( StringTools.hex( random.uint(), 8 ) );
+			// trace( StringTools.hex( random.uint(), 8 ) );
 			// trace( StringTools.hex( random.uint(5), 8 ) );
 			// trace( StringTools.hex( random.uint(0xffffffff), 8 ) );
 			
@@ -32,7 +32,7 @@ class TestRandom extends lime.app.Application
 			
 			// trace( random.limitInt(-2147483648, 2147483647) );
 			// trace( random.limitInt(-2, 3) );
-			// trace( random.limitInt(-5, 5) );
+			trace( random.limitInt(-5, 5) );
 			// trace( random.limitInt(-5, -2) );
 			// trace( random.limitInt(100, 110) );
 
