@@ -36,7 +36,7 @@ import haxe.ds.Vector;
 #end
 
 /** 
-	To generate pseydo random numbers by a [Mersenne Twister](https://www.math.sci.hiroshima-u.ac.jp/m-mat/MT/ewhat-is-mt.html).  
+	To generate pseudo random numbers by a [Mersenne Twister](https://www.math.sci.hiroshima-u.ac.jp/m-mat/MT/ewhat-is-mt.html).  
 	The same seed results in the same sequence of random numbers.
 **/
 class Random {
@@ -184,20 +184,20 @@ class Random {
 		return ((randomUInt() >> 5) * 67108864.0 + (randomUInt() >> 6)) * rangeLength / 9007199254740992.0; // 0x20 0000 0000 0000
 	}
 
-	/** Returns a random `Float` number. This is faster but only works at 32 bit precision.
-		@param minValue the minimal random value
-		@param maxValue the maximum random value
-	**/
-	public inline function float32(rangeLength:Float = 1.0):Float {
-		return randomUInt() * rangeLength / 4294967296.0; // 0x1 0000 0000
-	}
-
 	/** Returns a random `Float` number whose value is limited by max and min.
 		@param minValue the minimal random value
 		@param maxValue the maximum random value
 	**/
 	public inline function floatLimit(minValue:Float, maxValue:Float):Float {
 		return minValue + ((randomUInt() >> 5) * 67108864.0 + (randomUInt() >> 6)) * (maxValue-minValue) / 9007199254740991.0; // 0x1F FFFF FFFF FFFF
+	}
+
+	/** Returns a random `Float` number. This is faster but only works at 32 bit precision.
+		@param minValue the minimal random value
+		@param maxValue the maximum random value
+	**/
+	public inline function float32(rangeLength:Float = 1.0):Float {
+		return randomUInt() * rangeLength / 4294967296.0; // 0x1 0000 0000
 	}
 
 	/** Returns a random `Float` number whose value is limited by max and min. This is faster but only works at 32 bit precision.
