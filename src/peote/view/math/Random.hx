@@ -19,6 +19,7 @@ email: m-mat @ math.sci.hiroshima-u.ac.jp (remove space)
 license: https://www.math.sci.hiroshima-u.ac.jp/m-mat/MT/MT2002/elicense.html
 */
 package peote.view.math;
+import haxe.Int32;
 
 #if js
 import js.lib.Uint32Array;
@@ -35,87 +36,30 @@ import haxe.ds.Vector;
 #end
 
 class Random {
-	public static inline var N:Int = 624;
-	public static inline var M:Int = 397;
-	public static inline var MATRIX_A:  UInt = 0x9908b0df;
-	public static inline var UPPER_MASK:UInt = 0x80000000;
-	public static inline var LOWER_MASK:UInt = 0x7fffffff;
-	public static inline var FF_MASK:   UInt = 0xffffffff;
-	public static inline var MULT:      UInt = 1812433253;
-	public static inline var TEMPER_1:  UInt = 0x9d2c5680;
-	public static inline var TEMPER_2:  UInt = 0xefc60000;
-	public static inline var AH_MASK:   UInt = 0xffff0000;
-	public static inline var AL_MASK:   UInt = 0x0000ffff;
-	
-	static inline function mag01(y) return (y & 1 == 0) ? 0 : MATRIX_A;
+	static inline var N:Int = 624;
+	static inline var M:Int = 397;
+	static inline var MATRIX_A:  UInt = 0x9908b0df;
+	static inline var UPPER_MASK:UInt = 0x80000000;
+	static inline var LOWER_MASK:UInt = 0x7fffffff;
+	static inline var FF_MASK:   UInt = 0xffffffff;
+	static inline var MULT:      UInt = 1812433253;
+	static inline var TEMPER_1:  UInt = 0x9d2c5680;
+	static inline var TEMPER_2:  UInt = 0xefc60000;
+	static inline var AH_MASK:   UInt = 0xffff0000;
+	static inline var AL_MASK:   UInt = 0x0000ffff;	
+	static inline function mag01(r):UInt return (r & 1 == 0) ? 0 : MATRIX_A;
 
-	public static inline var DEFAULT_SEED:UInt = 5489;
-
-	public static var instance(default,null) = new Random();
-
-	// public var mt(default,null): Array<UInt>;
-	public var mt(default,null):MT_List;
-	public var mti(default,null):Int = 0; // mt index
+	var mt:MT_List;
+	var mti:Int = 0;
 
 	public function new( ?seed:UInt ) {
-		// mt = new Array<UInt>();
 		mt = new MT_List(N);
-		// for ( i in 0...N ) mt[i] = 0;
-		// init( seed == null ? Std.int( haxe.Timer.stamp()) : seed );
-		init( seed == null ? (Std.int(Math.random()*256) << 24) | Std.random(0x1000000) : seed );
-	}
-/*
-	public function init( s: UInt ) {
-		#if js
-		mt[0] = s >>> 0;
-		#else
-		mt[0] = s & FF_MASK;
-		#end
-		for ( j in 1...N ) {
-			var s = (mt[j-1] ^ (mt[j-1] >> 30));
-			#if js
-			mt[j] = ((((((s & AH_MASK) >>> 16) * MULT) << 16) + (s & AL_MASK) * MULT) + j) >>> 0;
-			#else
-			mt[j] = (MULT * s + j) & FF_MASK;
-			#end
-		}
-		mti = N;
+		this.seed(seed);
 	}
 
-	public function randomUInt(): UInt {
-		var mt = this.mt;
-		var y: UInt;
+	public function seed(?seed:UInt) {
+		if (seed == null) seed = (Std.int(Math.random()*256) << 24) | Std.random(0x1000000);
 
-		if ( mti >= N ) { 		// generate N words at one time
-			if ( mti == N+1 )   // if init() has not been called
-				init( DEFAULT_SEED ); // a default initial seed is used
-
-			for ( kk in 0...N-M ) {
-				y = ( mt[kk] & UPPER_MASK ) | ( mt[kk+1] & LOWER_MASK );
-				mt[kk] = mt[kk+M] ^ (y >> 1) ^ mag01(y);
-			}
-			for ( kk in N-M...N-1 ) {
-				y = ( mt[kk] & UPPER_MASK ) | ( mt[kk+1] & LOWER_MASK );
-				mt[kk] = mt[kk+(M-N)] ^ (y >> 1) ^ mag01(y);
-			}
-			y = ( mt[N-1] & UPPER_MASK ) | ( mt[0] & LOWER_MASK );
-			mt[N-1] = mt[M-1] ^ (y >> 1) ^ mag01(y);
-
-			mti = 0;
-		}
-  
-		y = mt[mti++];
-
-		// Tempering
-		y ^= (y >> 11);
-		y ^= (y << 7) & TEMPER_1;
-		y ^= (y << 15) & TEMPER_2;
-		y ^= (y >> 18);
-
-		return y;
-	}
-*/
-	public function init( seed: UInt ) {
 		#if js
 		var m:UInt = seed >>> 0;
 		#else
@@ -125,83 +69,135 @@ class Random {
 		var s:UInt = (m ^ (m >> 30));
 		mt.set(0, m);
 		
-		for ( j in 1...N )
+		for ( i in 1...N )
 		{
 			#if js
-			m = ((((((s & AH_MASK) >>> 16) * MULT) << 16) + (s & AL_MASK) * MULT) + j) >>> 0;
+			m = ((((((s & AH_MASK) >>> 16) * MULT) << 16) + (s & AL_MASK) * MULT) + i) >>> 0;
 			#else
-			m = (MULT * s + j) & FF_MASK;
+			m = (MULT * s + i) & FF_MASK;
 			#end
 
 			s = (m ^ (m >> 30));			
-			mt.set(j, m);
+			mt.set(i, m);
 		}
+
 		mti = N;
 	}
 
 
-	public function randomUInt():UInt {
-		var y:UInt;
+	private function randomUInt():UInt {
+		var r:UInt;
 
-		if ( mti >= N ) // generate N words at one time
+		if ( mti >= N )
 		{	
-			// if init() has not been called
-			if ( mti == N+1 ) init( DEFAULT_SEED ); // a default initial seed is used <- TODO
-
-			for ( kk in 0...N-M ) {
-				y = ( mt.get(kk) & UPPER_MASK ) | ( mt.get(kk+1) & LOWER_MASK );
-				mt.set(kk, mt.get(kk+M) ^ (y >> 1) ^ mag01(y));
+			for ( i in 0...N-M ) {
+				r = ( mt.get(i) & UPPER_MASK ) | ( mt.get(i+1) & LOWER_MASK );
+				mt.set(i, mt.get(i+M) ^ (r >> 1) ^ mag01(r));
+			}
+			for ( i in N-M...N-1 ) {
+				r = ( mt.get(i) & UPPER_MASK ) | ( mt.get(i+1) & LOWER_MASK );
+				mt.set( i, mt.get(i+(M-N)) ^ (r >> 1) ^ mag01(r) );
 			}
 
-			for ( kk in N-M...N-1 ) {
-				y = ( mt.get(kk) & UPPER_MASK ) | ( mt.get(kk+1) & LOWER_MASK );
-				mt.set( kk, mt.get(kk+(M-N)) ^ (y >> 1) ^ mag01(y) );
-			}
-
-			y = ( mt.get(N-1) & UPPER_MASK ) | ( mt.get(0) & LOWER_MASK );
-			mt.set( N-1, mt.get(M-1) ^ (y >> 1) ^ mag01(y) );
+			r = ( mt.get(N-1) & UPPER_MASK ) | ( mt.get(0) & LOWER_MASK );
+			mt.set( N-1, mt.get(M-1) ^ (r >> 1) ^ mag01(r) );
 
 			mti = 0;
 		}
   
-		y = mt.get(mti++);
+		r = mt.get(mti++);
 
-		/* Tempering */
-		y ^= (y >> 11);
-		y ^= (y << 7) & TEMPER_1;
-		y ^= (y << 15) & TEMPER_2;
-		y ^= (y >> 18);
+		// Tempering
+		r ^= (r >> 11);
+		r ^= (r << 7) & TEMPER_1;
+		r ^= (r << 15) & TEMPER_2;
+		r ^= (r >> 18);
 
-		return y;
+		return r;
 	}
 
-	public inline function random(limit:Int):UInt {
-		return randomUInt() % limit;
+	// --------------------- UInt --------------------------
+
+	/** Returns a random unsigned integer number of type `UInt`.
+		@param rangeLength if not null the random values will be into the range from 0 to (exclusive) rangeLength,
+	**/
+	public inline function uint(?rangeLength:UInt):UInt {
+		if (rangeLength == null) return randomUInt();
+		else
+			#if neko 
+			return haxe.Int64.getLow( (haxe.Int64.fromFloat(randomUInt()) % haxe.Int64.fromFloat(rangeLength))  );
+			#else
+			return randomUInt() % rangeLength;
+			#end
 	}
 
-	public inline function randomInt():Int {
-		// var x: Int = randomUInt();
-		// return x;
-		return randomUInt();
+	/** Returns a random `UInt` unsigned number whose value is limited by max and min
+		@param minValue the minimal random value
+		@param maxValue the maximum random value
+	**/
+	public inline function limitUInt(minValue:UInt, maxValue:UInt):UInt {
+		#if neko
+		return minValue + uint(maxValue - minValue + 1); 
+		#else
+		return (minValue:Int32) + uint(maxValue - minValue + ((minValue>0 || maxValue<0xffffffff) ? 1 : 0));
+		#end
 	}
 
-	public inline function randomFloat():Float {
-		/*
-		var a = randomUInt() >> 5;
-		var b = randomUInt() >> 6;
-		var a_: Float = a;
-		var b_: Float = b;
-		return (a_ * 67108864.0 + b_) * (1.0 / 9007199254740992.0);
-		*/
-		return ((randomUInt() >> 5) * 67108864.0 + (randomUInt() >> 6)) / 9007199254740992.0;
+	// ----------------------- Int ---------------------------
+
+	/** Returns a random integer number of type `Int`.
+		@param rangeLength if not null the random values will be into the range from 0 to (exclusive) rangeLength,
+	**/
+	public inline function int(?rangeLength:Int):Int {
+		if (rangeLength == null) return randomUInt();
+		else if (rangeLength < 0) return -(randomUInt() % -rangeLength);
+		else return randomUInt() % rangeLength;
 	}
 
-	public inline function randomFloat32(): Float {
-		/*
-		var a = randomUInt();
-		var a_: Float = a;
-		return a_ / 4294967296.0;
-		*/
-		return randomUInt() / 4294967296.0;
+	/** Returns a random `Int` number whose value is limited by max and min
+		@param minValue the minimal random value
+		@param maxValue the maximum random value
+	**/
+	public inline function limitInt(minValue:Int, maxValue:Int):Int {
+		#if neko
+		return minValue + uint(maxValue - minValue + ((minValue>-2147483648 || maxValue<2147483647) ? 1 : 0) ); 
+		#else
+		return (minValue:Int32) + uint(maxValue - minValue + ((minValue>-2147483648 || maxValue<2147483647) ? 1 : 0) );
+		#end
 	}
+
+	// ---------------------- Float --------------------------
+
+	/** Returns a random `Float` number.
+		@param rangeLength if not null the random values will be into the range from 0 to (exclusive) rangeLength,
+	**/
+	public inline function float(rangeLength:Float = 1.0):Float {
+		return ((randomUInt() >> 5) * 67108864.0 + (randomUInt() >> 6)) * rangeLength / 9007199254740992.0; // 0x20 0000 0000 0000
+	}
+
+	/** Returns a random `Float` number . This is faster but only works at 32 bit precision.
+		@param minValue the minimal random value
+		@param maxValue the maximum random value
+	**/
+	public inline function floatLow(rangeLength:Float = 1.0):Float {
+		return randomUInt() * rangeLength / 4294967296.0; // 0x1 0000 0000
+	}
+
+	/** Returns a random `Float` number whose value is limited by max and min.
+		@param minValue the minimal random value
+		@param maxValue the maximum random value
+	**/
+	public inline function limitFloat(minValue:Float, maxValue:Float):Float {
+		return minValue + ((randomUInt() >> 5) * 67108864.0 + (randomUInt() >> 6)) * (maxValue-minValue) / 9007199254740991.0; // 0x1F FFFF FFFF FFFF
+	}
+
+	/** Returns a random `Float` number whose value is limited by max and min. This is faster but only works at 32 bit precision.
+		@param minValue the minimal random value
+		@param maxValue the maximum random value
+	**/
+	public inline function limitFloatLow(minValue:Float, maxValue:Float):Float {
+		return minValue + randomUInt() * (maxValue-minValue) / 4294967295.0; // 0x FFFF FFFF
+	}
+
+
 }
