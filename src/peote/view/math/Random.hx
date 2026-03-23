@@ -193,13 +193,13 @@ class Random {
 	}
 
 
-	// -------------------- FloatFast ------------------------
+	// -------------------- Fast Float ------------------------
 
 	/** Returns a random `Float` number. This is faster then [`.float()`](#float), but less accurate.
 		@param minValue the minimal random value
 		@param maxValue the maximum random value
 	**/
-	public inline function floatFast(rangeLength:Float = 1.0):Float {
+	public inline function fast(rangeLength:Float = 1.0):Float {
 		return rangeLength * randomUInt() / 4294967296.0; // 0x1 0000 0000
 	}
 
@@ -207,7 +207,7 @@ class Random {
 		@param minValue the minimal random value
 		@param maxValue the maximum random value
 	**/
-	public inline function floatFastLimit(minValue:Float, maxValue:Float):Float {
+	public inline function fastLimit(minValue:Float, maxValue:Float):Float {
 		return minValue + (maxValue-minValue) * randomUInt() / 4294967295.0; // 0x FFFF FFFF
 	}
 

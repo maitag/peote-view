@@ -17,7 +17,7 @@ class Rnd {
 	**/
 	public static inline function uint(?rangeLength:UInt):UInt {
 		if (rangeLength == null) return _random2();
-		#if html5
+		#if js
 		else if (rangeLength & 0x80000000 == 0) return Std.random(rangeLength); // uppest bit not set
 		#else
 		else if (rangeLength & 0xC0000000 == 0) return Std.random(rangeLength); // uppest 2 bits not set
@@ -81,13 +81,13 @@ class Rnd {
 	}
 
 	
-	// -------------------- FloatFast ------------------------
+	// -------------------- Fast Float ------------------------
 
-	private static inline function _floatFast(include:Bool) {
-		#if html5                               // 0x7FFF FFFE    0x7FFF FFFF
-		return Std.random(0x7FFFFFFF) / (include ? 2147483646.0 : 2147483647.0);
-		#else                                   // 0x3FFF FFFE    0x3FFF FFFF
-		return Std.random(0x3FFFFFFF) / (include ? 1073741822.0 : 1073741823.0); 
+	private static inline function _fast() {
+		#if (js || neko)
+		return Math.random();
+		#else
+		return Std.random(0x3FFFFFFF) / 1073741823.0; // 0x3FFF FFFF
 		#end
 	}
 
@@ -95,16 +95,24 @@ class Rnd {
 		@param minValue the minimal random value
 		@param maxValue the maximum random value
 	**/
-	public static inline function floatFast(rangeLength:Float = 1.0):Float {
-		return rangeLength * _floatFast(false);
+	public static inline function fast(rangeLength:Float = 1.0):Float {
+		return rangeLength * _fast();
+	}
+
+	private static inline function _fastLimit() {
+		#if js
+		return Std.random(0x7FFFFFFF) / 2147483646.0; // 0x7FFF FFFE
+		#else
+		return Std.random(0x3FFFFFFF) / 1073741822.0; // 0x3FFF FFFE
+		#end
 	}
 
 	/** Returns a random `Float` number whose value is limited by min and max (inclusive). This is faster then [`.floatLimit()`](#floatLimit), but less accurate.
 		@param minValue the minimal random value
 		@param maxValue the maximum random value
 	**/
-	public static inline function floatFastLimit(minValue:Float, maxValue:Float):Float {
-		return minValue + (maxValue-minValue) * _floatFast(true); 
+	public static inline function fastLimit(minValue:Float, maxValue:Float):Float {
+		return minValue + (maxValue-minValue) * _fastLimit(); 
 	}
 
 

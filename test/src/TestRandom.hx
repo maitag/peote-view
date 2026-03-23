@@ -1,5 +1,6 @@
 package;
 
+import haxe.Timer;
 import haxe.Int32;
 import peote.view.math.Rnd;
 import peote.view.math.Random;
@@ -10,8 +11,9 @@ class TestRandom extends lime.app.Application
 		super();
 		testRnd(10);
 		// testRndLimits();
+		// floatVersusFast(100000000);
 
-		// testRandom(10, 12345);
+		testRandom(10, 12345);
 		// testRandomLimits(12345);
 	}
 
@@ -41,14 +43,14 @@ class TestRandom extends lime.app.Application
 			// trace( Rnd.intLimit(100, 110) );
 
 			// trace( Rnd.float(2) );
-			// trace( Rnd.floatFast(5) );
+			// trace( Rnd.fast(5) );
 			
 			// trace( Rnd.floatLimit(0, 1) );
 			// trace( Rnd.floatLimit(-10, 10) );
 			// trace( Rnd.floatLimit(-10, -5) );
 
-			// trace( Rnd.floatFastLimit(0, 1) );
-			// trace( Rnd.floatFastLimit(2, 3) );
+			// trace( Rnd.fastLimit(0, 1) );
+			// trace( Rnd.fastLimit(2, 3) );
 		}
 	}
 
@@ -68,7 +70,7 @@ class TestRandom extends lime.app.Application
 			// if ( Rnd.intLimit(-2147483648, 2147483647) ==  2147483647 )
 			// if ( Rnd.floatLimit( 0.0, 1.0) >  0.99999999 )
 			// if ( Rnd.floatLimit( 0.0, 1.0) >=  1.0 ) // <- can take very long time
-			// if ( Rnd.floatFastLimit( 0.0, 1.0) >=  1.0 )
+			// if ( Rnd.fastLimit( 0.0, 1.0) >=  1.0 )
 			{
 				trace("found");
 				break;
@@ -76,6 +78,27 @@ class TestRandom extends lime.app.Application
 		}
 	}
 
+	public function floatVersusFast(n:Int) {
+		var r:Float = 0.0;
+		
+		var t = Timer.stamp();
+		for (i in 0...n) {
+			r += Rnd.fast();
+			r -= Rnd.fast();
+		}
+		t = Timer.stamp()-t;
+		trace("Rnd.fast()", t);
+
+		r = 0.0;
+		
+		t = Timer.stamp();
+		for (i in 0...n) {
+			r += Rnd.float();
+			r -= Rnd.float();
+		}
+		t = Timer.stamp()-t;
+		trace("Math.random()", t);
+	}
 
 	// ----------------------------------------------------------
 	// ----------------------- Random ---------------------------
@@ -104,10 +127,10 @@ class TestRandom extends lime.app.Application
 			// trace( random.intLimit(100, 110) );
 
 			// trace( random.float(2) );
-			// trace( random.floatFast(5) );
+			// trace( random.fast(5) );
 			
 			// trace( random.floatLimit(-10, 10) );		
-			// trace( random.floatFastLimit(2, 3) );			
+			// trace( random.fastLimit(2, 3) );			
 		}
 	}
 
@@ -128,8 +151,8 @@ class TestRandom extends lime.app.Application
 			// if ( random.intLimit(-2147483648, 2147483647) ==  2147483647 )
 			// if ( random.floatLimit( 0.0, 1.0) >  0.99999999 )
 			// if ( random.floatLimit( 0.0, 1.0) >=  1.0 )
-			// if ( random.floatFastLimit( 0.0, 1.0) >  0.999999999 )
-			// if ( random.floatFastLimit( 0.0, 1.0) >=  1.0 )
+			// if ( random.fastLimit( 0.0, 1.0) >  0.999999999 )
+			// if ( random.fastLimit( 0.0, 1.0) >=  1.0 )
 			{
 				trace("found");
 				break;

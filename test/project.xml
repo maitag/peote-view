@@ -22,7 +22,7 @@
 	
 	<haxeflag name="-dce" value="full" />
 	<!-- <haxedef name="message.reporting=pretty" /> -->
-	<haxedef name="keep_inline_positions" />
+	<!-- <haxedef name="keep_inline_positions" /> -->
 	
 	<setenv name="SHOW_CONSOLE" /> <!-- on windows it shows console if start by clicking on .exe -->
 	
