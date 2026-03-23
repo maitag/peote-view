@@ -195,7 +195,7 @@ class Random {
 
 	// -------------------- Fast Float ------------------------
 
-	/** Returns a random `Float` number. This is faster then [`.float()`](#float), but less accurate.
+	/** Returns a random `Float` number. This can faster then [`.float()`](#float), but is less accurate.
 		@param minValue the minimal random value
 		@param maxValue the maximum random value
 	**/
@@ -203,7 +203,7 @@ class Random {
 		return rangeLength * randomUInt() / 4294967296.0; // 0x1 0000 0000
 	}
 
-	/** Returns a random `Float` number whose value is limited by min and max (inclusive). This is faster then [`.floatLimit()`](#floatLimit), but less accurate.
+	/** Returns a random `Float` number whose value is limited by min and max (inclusive). This can be faster then [`.floatLimit()`](#floatLimit), but is less accurate.
 		@param minValue the minimal random value
 		@param maxValue the maximum random value
 	**/
