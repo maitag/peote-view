@@ -12,8 +12,8 @@ class Rnd {
 
 	private static inline function _random2():UInt return (Std.random(0x10000) << 16) | Std.random(0x10000);
 
-	/** Returns a random `UInt` unsigned integer number.
-		@param rangeLength if not null the random values will be into the range from 0 to rangeLength (exclusive)
+	/** Returns a random `UInt` unsigned integer number. By default, `rangeLength` is set to `null`, which results in values from `0` to inclusive `0xFFFFFFFF`.
+		@param rangeLength random values will be into the range from 0 to rangeLength (exclusive)
 	**/
 	public static inline function uint(?rangeLength:UInt):UInt {
 		if (rangeLength == null) return _random2();
@@ -41,8 +41,8 @@ class Rnd {
 
 	// ----------------------- Int ---------------------------
 
-	/** Returns a random `Int` integer number.
-		@param rangeLength if not null the random values will be into the range from 0 to rangeLength (exclusive)
+	/** Returns a random `Int` integer number. By default, `rangeLength` is set to `null`, which results in values from `-2147483648` to inclusive `2147483647`.
+		@param rangeLength random values will be into the range from 0 to rangeLength (exclusive)
 	**/
 	public static inline function int(?rangeLength:Int):Int {
 		if (rangeLength == null) return uint();

@@ -68,7 +68,8 @@ class Random {
 		@param seed (optional) the start-seed for the random sequence. If this value is `null` the seed will be `Std.random()`
 	**/
 		public function seed(?seed:UInt) {
-		if (seed == null) seed = (Std.int(Math.random()*256) << 24) | Std.random(0x1000000);
+		// if (seed == null) seed = (Std.int(Math.random()*256) << 24) | Std.random(0x1000000);
+		if (seed == null) seed = Rnd.uint();
 
 		#if js
 		var m:UInt = seed >>> 0;
@@ -129,8 +130,8 @@ class Random {
 
 	// --------------------- UInt --------------------------
 
-	/** Returns a random `UInt` unsigned integer number.
-		@param rangeLength if not null the random values will be into the range from 0 to rangeLength (exclusive)
+	/** Returns a random `UInt` unsigned integer number. By default, `rangeLength` is set to `null`, which results in values from `0` to inclusive `0xFFFFFFFF`.
+		@param rangeLength random values will be into the range from 0 to rangeLength (exclusive)
 	**/
 	public inline function uint(?rangeLength:UInt):UInt {
 		if (rangeLength == null) return randomUInt();
@@ -153,8 +154,8 @@ class Random {
 
 	// ----------------------- Int ---------------------------
 
-	/** Returns a random `Int` integer number.
-		@param rangeLength if not null the random values will be into the range from 0 to rangeLength (exclusive)
+	/** Returns a random `Int` integer number. By default, `rangeLength` is set to `null`, which results in values from `-2147483648` to inclusive `2147483647`.
+		@param rangeLength random values will be into the range from 0 to rangeLength (exclusive)
 	**/
 	public inline function int(?rangeLength:Int):Int {
 		if (rangeLength == null) return randomUInt();
