@@ -130,7 +130,7 @@ class Random {
 	// --------------------- UInt --------------------------
 
 	/** Returns a random `UInt` unsigned integer number.
-		@param rangeLength if not null the random values will be into the range from 0 to (exclusive) rangeLength,
+		@param rangeLength if not null the random values will be into the range from 0 to rangeLength (exclusive)
 	**/
 	public inline function uint(?rangeLength:UInt):UInt {
 		if (rangeLength == null) return randomUInt();
@@ -142,19 +142,19 @@ class Random {
 			#end
 	}
 
-	/** Returns a random `UInt` unsigned integer number whose value is limited by max and min
+	/** Returns a random `UInt` unsigned integer number whose value is limited by min and max (inclusive).
 		@param minValue the minimal random value
 		@param maxValue the maximum random value
 	**/
 	public inline function uintLimit(minValue:UInt, maxValue:UInt):UInt {
-		return minValue + uint(maxValue - minValue + ((minValue>0 || maxValue<0xffffffff) ? 1 : 0)); 
+		return minValue + ( (maxValue == 0xffffffff && minValue==0) ? uint() : uint(maxValue - minValue) );
 	}
 
 
 	// ----------------------- Int ---------------------------
 
 	/** Returns a random `Int` integer number.
-		@param rangeLength if not null the random values will be into the range from 0 to (exclusive) rangeLength,
+		@param rangeLength if not null the random values will be into the range from 0 to rangeLength (exclusive)
 	**/
 	public inline function int(?rangeLength:Int):Int {
 		if (rangeLength == null) return randomUInt();
@@ -162,15 +162,15 @@ class Random {
 		else return randomUInt() % rangeLength;
 	}
 
-	/** Returns a random `Int` integer number whose value is limited by max and min
+	/** Returns a random `Int` integer number whose value is limited by min and max (inclusive).
 		@param minValue the minimal random value
 		@param maxValue the maximum random value
 	**/
 	public inline function intLimit(minValue:Int, maxValue:Int):Int {
 		#if neko
-		return minValue + uint(maxValue - minValue + ((minValue>-2147483648 || maxValue<2147483647) ? 1 : 0) ); 
+		return minValue + ( (maxValue == 2147483647 && minValue==-2147483648) ? uint() : uint(maxValue - minValue) );
 		#else
-		return (minValue:Int32) + uint(maxValue - minValue + ((minValue>-2147483648 || maxValue<2147483647) ? 1 : 0) );
+		return (minValue:Int32) + ( (maxValue == 2147483647 && minValue==-2147483648) ? uint() : uint(maxValue - minValue) );
 		#end
 	}
 
@@ -178,35 +178,37 @@ class Random {
 	// ---------------------- Float --------------------------
 
 	/** Returns a random `Float` number.
-		@param rangeLength if not null the random values will be into the range from 0 to (exclusive) rangeLength,
+		@param rangeLength if not null the random values will be into the range from 0 to rangeLength (exclusive)
 	**/
 	public inline function float(rangeLength:Float = 1.0):Float {
-		return ((randomUInt() >> 5) * 67108864.0 + (randomUInt() >> 6)) * rangeLength / 9007199254740992.0; // 0x20 0000 0000 0000
+		return  rangeLength * ((randomUInt() >> 5) * 67108864.0 + (randomUInt() >> 6)) / 9007199254740992.0; // 0x20 0000 0000 0000
 	}
 
-	/** Returns a random `Float` number whose value is limited by max and min.
+	/** Returns a random `Float` number whose value is limited by min and max (inclusive).
 		@param minValue the minimal random value
 		@param maxValue the maximum random value
 	**/
 	public inline function floatLimit(minValue:Float, maxValue:Float):Float {
-		return minValue + ((randomUInt() >> 5) * 67108864.0 + (randomUInt() >> 6)) * (maxValue-minValue) / 9007199254740991.0; // 0x1F FFFF FFFF FFFF
+		return minValue + (maxValue-minValue) * ((randomUInt() >> 5) * 67108864.0 + (randomUInt() >> 6)) / 9007199254740991.0; // 0x1F FFFF FFFF FFFF
 	}
 
-	/** Returns a random `Float` number. This is faster but only works at 32 bit precision.
+
+	// -------------------- FloatFast ------------------------
+
+	/** Returns a random `Float` number. This is faster then [`.float()`](#float), but less accurate.
 		@param minValue the minimal random value
 		@param maxValue the maximum random value
 	**/
-	public inline function float32(rangeLength:Float = 1.0):Float {
-		return randomUInt() * rangeLength / 4294967296.0; // 0x1 0000 0000
+	public inline function floatFast(rangeLength:Float = 1.0):Float {
+		return rangeLength * randomUInt() / 4294967296.0; // 0x1 0000 0000
 	}
 
-	/** Returns a random `Float` number whose value is limited by max and min. This is faster but only works at 32 bit precision.
+	/** Returns a random `Float` number whose value is limited by min and max (inclusive). This is faster then [`.floatLimit()`](#floatLimit), but less accurate.
 		@param minValue the minimal random value
 		@param maxValue the maximum random value
 	**/
-	public inline function float32Limit(minValue:Float, maxValue:Float):Float {
-		return minValue + randomUInt() * (maxValue-minValue) / 4294967295.0; // 0x FFFF FFFF
+	public inline function floatFastLimit(minValue:Float, maxValue:Float):Float {
+		return minValue + (maxValue-minValue) * randomUInt() / 4294967295.0; // 0x FFFF FFFF
 	}
-
 
 }

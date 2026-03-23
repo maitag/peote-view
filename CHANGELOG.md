@@ -5,6 +5,10 @@ Changelog
 -----------------
 * Added a new `Uniform` to handle multiple types of glsl-uniforms
 * Changed the way how to add uniforms per `Program`-shaderinjection (StringMap now to have the uniform-identifiers more near to glsl-code)
+* Added `Vec2`, `Vec3`, `Vec4` for floats and `Vec2i`, `Vec3i`, `Vec4i` for integers
+* Added `UniformInt` and `UniformVec..` for all vector-types
+* Added `Random` mersenne twister implementation to generate random number sequences by a seed 
+* Added equivalent `Rnd` static helper class to wrap around `Std.random()` and `Math.random()`
 
 
 1.07 (03/11/2026)
