@@ -1,6 +1,7 @@
 package peote.view;
 
 import peote.view.intern.Util;
+import peote.view.math.Rnd;
 
 /**
 	Represents a color value what is stored inside a 32 bit integer.  
@@ -594,10 +595,8 @@ abstract Color(Int) from Int to Int from UInt to UInt
 	**/
 	public static inline function random(?alpha:Null<Int>):Color {
 		return
-			if (alpha == null) 
-				(Std.int(Math.random()*256) << 24) | Std.random(0x1000000);
-			else
-				(Std.int(Math.random()*256) << 24) | (Std.random(0x10000) << 8) | alpha;
+			if (alpha == null) Rnd.uint()
+			else ( Rnd.uint(0x1000000)<<8 ) | alpha;
 	}
 
 	/**
