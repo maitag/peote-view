@@ -67,9 +67,12 @@ class Random {
 	/** Sets the seed of this instance to start a new sequence.
 		@param seed (optional) the start-seed for the random sequence. If this value is `null` the seed will be `Std.random()`
 	**/
-		public function seed(?seed:UInt) {
-		// if (seed == null) seed = (Std.int(Math.random()*256) << 24) | Std.random(0x1000000);
+	public function seed(?seed:UInt) {
+		#if cpp
+		if ((seed:Null<Int>) == null) seed = Rnd.uint();
+		#else
 		if (seed == null) seed = Rnd.uint();
+		#end
 
 		#if js
 		var m:UInt = seed >>> 0;
@@ -134,13 +137,21 @@ class Random {
 		@param rangeLength random values will be into the range from 0 to rangeLength (exclusive)
 	**/
 	public inline function uint(?rangeLength:UInt):UInt {
+		#if cpp
+		if ((rangeLength:Null<Int>) == null) return randomUInt();
+		#else
 		if (rangeLength == null) return randomUInt();
+		#end
 		else
-			#if neko 
-			return haxe.Int64.getLow( (haxe.Int64.fromFloat(randomUInt()) % haxe.Int64.fromFloat(rangeLength))  );
+		#if neko 
+			#if (haxe_ver >= "4.2.5")
+				return (haxe.Int64.fromFloat(uint()) % haxe.Int64.fromFloat(rangeLength)).low;
 			#else
-			return randomUInt() % rangeLength;
+				return ((haxe.Int64.fromFloat(uint()) % haxe.Int64.fromFloat(rangeLength)).low:Int);
 			#end
+		#else
+			return randomUInt() % rangeLength;
+		#end
 	}
 
 	/** Returns a random `UInt` unsigned integer number whose value is limited by min and max (inclusive).
@@ -171,7 +182,7 @@ class Random {
 		#if neko
 		return minValue + ( (maxValue == 2147483647 && minValue==-2147483648) ? uint() : uint(maxValue - minValue) );
 		#else
-		return (minValue:Int32) + ( (maxValue == 2147483647 && minValue==-2147483648) ? uint() : uint(maxValue - minValue) );
+		return (minValue:haxe.Int32) + ( (maxValue == 2147483647 && minValue==-2147483648) ? uint() : uint(maxValue - minValue) );
 		#end
 	}
 

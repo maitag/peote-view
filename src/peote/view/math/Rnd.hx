@@ -16,15 +16,25 @@ class Rnd {
 		@param rangeLength random values will be into the range from 0 to rangeLength (exclusive)
 	**/
 	public static inline function uint(?rangeLength:UInt):UInt {
+		#if cpp
+		if ((rangeLength:Null<Int>) == null) return _random2();
+		#else
 		if (rangeLength == null) return _random2();
+		#end
+
 		#if js
 		else if (rangeLength & 0x80000000 == 0) return Std.random(rangeLength); // uppest bit not set
 		#else
 		else if (rangeLength & 0xC0000000 == 0) return Std.random(rangeLength); // uppest 2 bits not set
 		#end
+
 		else
 			#if neko 
-			return haxe.Int64.getLow( (haxe.Int64.fromFloat(uint()) % haxe.Int64.fromFloat(rangeLength))  );
+				#if (haxe_ver >= "4.2.5")
+				return (haxe.Int64.fromFloat(uint()) % haxe.Int64.fromFloat(rangeLength)).low;
+				#else
+				return ((haxe.Int64.fromFloat(uint()) % haxe.Int64.fromFloat(rangeLength)).low:Int);
+				#end
 			#else
 			return _random2() % rangeLength;
 			#end
