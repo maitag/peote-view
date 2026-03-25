@@ -19,7 +19,7 @@ private class Vec2iImpl implements peote.view.Uniform
 }
 
 /**
-	Vector of four `Int` values `x` and `y`.
+	Vector of two `Int` values `x` and `y`.
 	```
 	// constructing
 	var a = new Vec2i(1, 2);

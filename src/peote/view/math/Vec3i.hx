@@ -21,7 +21,7 @@ private class Vec3iImpl implements peote.view.Uniform
 }
 
 /**
-	Vector of four `Int` values `x`, `y` and `z`.
+	Vector of three `Int` values `x`, `y` and `z`.
 	```
 	// constructing
 	var a = new Vec3i(1, 2, 3);
