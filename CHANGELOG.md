@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.08 (04/25/2026)
+1.08 (04/26/2026)
 -----------------
 * Added a new `Uniform` to handle multiple types of glsl-uniforms
 * Changed the way how to add uniforms per `Program`-shaderinjection (StringMap now to have the uniform-identifiers more near to glsl-code)

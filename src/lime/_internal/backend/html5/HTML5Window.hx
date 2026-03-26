@@ -78,6 +78,8 @@ class HTML5Window
 
 	private var __focusPending:Bool;
 
+	private var __stopMousePropagation = false;
+
 	public function new(parent:Window)
 	{
 		this.parent = parent;
@@ -352,6 +354,7 @@ class HTML5Window
 				context.canvas2D = cast canvas.getContext("2d");
 				context.type = CANVAS;
 				context.version = "";
+				context.attributes.hardware = false;
 			}
 			else
 			{
@@ -373,6 +376,7 @@ class HTML5Window
 
 				context.type = WEBGL;
 				context.version = isWebGL2 ? "2" : "1";
+				context.attributes.hardware = true;
 			}
 		}
 
@@ -482,7 +486,8 @@ class HTML5Window
 		// FIX for peote-view to handle clipboard inside keyboard-handler
 		/*
 		var text = Clipboard.text;
-		if (text == null) {
+		if (text == null)
+		{
 			text = "";
 		}
 		event.clipboardData.setData("text/plain", text);
@@ -658,9 +663,21 @@ class HTML5Window
 				case "mousedown":
 					if (event.currentTarget == parent.element)
 					{
-						// Release outside browser window
+						// while the mouse button is down, and the mouse has
+						// moved outside the bounds of the parent element, we
+						// want both onMouseMove and onMouseUp to continue to be
+						// dispatched. otherwise, dragging objects around with
+						// the mouse will appear broken.
+						// however, if the mouse button isn't down, and the
+						// mouse is outside the bounds of the parent element,
+						// then onMouseMove and onMouseUp don't need to be
+						// dispatched.
+						// Flash embedded in HTML worked similarly.
 						Browser.window.addEventListener("mouseup", handleMouseEvent);
+						Browser.window.addEventListener("mousemove", handleMouseEvent);
 					}
+					// just to be safe, clear the flag on every mouse down
+					__stopMousePropagation = false;
 
 					parent.clickCount = event.detail;
 					parent.onMouseDown.dispatch(x, y, event.button);
@@ -694,12 +711,18 @@ class HTML5Window
 					}
 
 				case "mouseup":
-					Browser.window.removeEventListener("mouseup", handleMouseEvent);
-
-					if (event.currentTarget == parent.element)
+					// see comment below for mousemove for an explanation of
+					// what the __stopMousePropagation flag is used for.
+					if (__stopMousePropagation && event.currentTarget != parent.element)
 					{
-						event.stopPropagation();
+						__stopMousePropagation = false;
+						return;
 					}
+
+					Browser.window.removeEventListener("mouseup", handleMouseEvent);
+					Browser.window.removeEventListener("mousemove", handleMouseEvent);
+
+					__stopMousePropagation = event.currentTarget == parent.element;
 
 					parent.clickCount = event.detail;
 					parent.onMouseUp.dispatch(x, y, event.button);
@@ -711,6 +734,45 @@ class HTML5Window
 					}
 
 				case "mousemove":
+					// this same listener is added to the parent element and to
+					// the browser window for both the mousemove and the mouseup
+					// event types, if mousedown happens first. this allows both
+					// onMouseMove and onMouseUp to be dispatched if the mouse
+					// moves outside the bounds of the parent element.
+
+					// since browser mouse events bubble, this listener will be
+					// called for the parent element first, as long as the mouse
+					// is still over the parent element. in that case, when the
+					// listener is called for the browser window, it should
+					// return early so that onMouseMove or onMouseUp isn't
+					// dispatched twice. this is done by checking the
+					// __stopMousePropagation flag when the current target isn't
+					// the parent element.
+
+					// however, if the mouse isn't over the parent element, the
+					// listener will be called only for the browser window, and
+					// not the parent element. in that case, it can proceed to
+					// dispatch either onMouseMove or onMouseUp, since this
+					// listener was called only once.
+
+					// again, this applies only if the mouse button is down. if
+					// the mouse button isn't down, then the listener won't be
+					// added to the browser window, and event won't be
+					// dispatched outside the bounds of the parent element.
+
+					if (__stopMousePropagation && event.currentTarget != parent.element)
+					{
+						// why not call event.stopPropagation() here? well,
+						// other JS code in the page may still be interested in
+						// the event. listening for the same events on both the
+						// parent element and on the browser window is just an
+						// implementation detail and shouldn't affect other
+						// listeners.
+						__stopMousePropagation = false;
+						return;
+					}
+					__stopMousePropagation = event.currentTarget == parent.element;
+
 					if (x != cacheMouseX || y != cacheMouseY)
 					{
 						parent.onMouseMove.dispatch(x, y);
@@ -808,7 +870,11 @@ class HTML5Window
 			}
 		}
 
-		var touch, x, y, cacheX, cacheY;
+		var touch:Touch;
+		var x:Float;
+		var y:Float;
+		var cacheX:Float;
+		var cacheY:Float;
 
 		for (data in event.changedTouches)
 		{
@@ -991,10 +1057,6 @@ class HTML5Window
 			textArea.style.width = "0px";
 			Browser.document.body.appendChild(textArea);
 		}
-
-		// FIX for peote-view to handle clipboard inside keyboard-handler
-		var cacheElement = Browser.document.activeElement;
-
 		textArea.value = value;
 		textArea.focus();
 		textArea.select();
@@ -1003,12 +1065,10 @@ class HTML5Window
 		{
 			Browser.document.execCommand("copy");
 		}
-
 		// FIX for peote-view to handle clipboard inside keyboard-handler
-		if (cacheElement != null && cacheElement != textArea)
-		{
-			cacheElement.focus();
-		}
+		var cacheElement = Browser.document.activeElement;
+
+		if (cacheElement != null && cacheElement != textArea) cacheElement.focus();
 	}
 
 	public function setCursor(value:MouseCursor):MouseCursor
@@ -1248,7 +1308,6 @@ class HTML5Window
 				textInput.removeEventListener('paste', handlePasteEvent, true);
 				textInput.removeEventListener('compositionstart', handleCompositionstartEvent, true);
 				textInput.removeEventListener('compositionend', handleCompositionendEvent, true);
-
 			}
 		}
 
@@ -1292,7 +1351,8 @@ class HTML5Window
 	{
 		if (!parent.__resizable) return;
 
-		var elementWidth, elementHeight;
+		var elementWidth:Float;
+		var elementHeight:Float;
 
 		if (parent.element != null)
 		{
@@ -1318,8 +1378,8 @@ class HTML5Window
 				{
 					if (parent.__width != elementWidth || parent.__height != elementHeight)
 					{
-						parent.__width = elementWidth;
-						parent.__height = elementHeight;
+						parent.__width = Std.int(elementWidth);
+						parent.__height = Std.int(elementHeight);
 
 						if (canvas != null)
 						{
@@ -1338,7 +1398,7 @@ class HTML5Window
 							div.style.height = elementHeight + "px";
 						}
 
-						parent.onResize.dispatch(elementWidth, elementHeight);
+						parent.onResize.dispatch(Std.int(elementWidth), Std.int(elementHeight));
 					}
 				}
 				else
