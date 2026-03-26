@@ -28,23 +28,24 @@ You can test some of them also [here](http://maitag.de/semmi/haxelime/peote-view
 
 ## API
 
-is still [work in progress](http://maitag.de/semmi/haxelime/peote-view-api/)
-(can be generated locally by [Dox](https://lib.haxe.org/p/dox/) and [generateAPIdoc.sh](https://github.com/maitag/peote-view/blob/master/generateAPIdoc.sh))
+look at here: [peote-view API](http://maitag.de/semmi/haxelime/peote-view-api/)
+or generate it locally by [Dox](https://lib.haxe.org/p/dox/) and [generateAPIdoc.sh](https://github.com/maitag/peote-view/blob/master/generateAPIdoc.sh))
 
 
 ## Features
 
-- runs native on linux/bsd/windows/android, neko/hashlink-vm, javascript-webbrowser
-  (macOS and iOS should run but not much tested yet)  
-- can be compiled for a special OpenGL version (ES 2/3 - webgl 1/2) or with version-detection at runtime
+- runs native on linux/bsd/windows/android by hxcpp or hlc (macOS and iOS should run but not much tested),  
+  into neko/hashlink virtual machines or into webbrowser by javascript
+- can be compiled for a special OpenGL version (ES 2/3 - webgl 1/2) or using runtime version detection
 - optimized to draw many elements thats sharing the same shader and textures
 - simple usage of textureatlases (parted into slots and tiles)
 - multitexture usage per shader
 - supports shadertemplates and opengl-extensions
-- simple formula- and glslcode-injection
+- simple formula- and glslcode-injection, custom gl-uniforms
 - animation by gpu transition-rendering of vertexattributes
 - opengl-picking for fast detection of elements that hits a point at screen
 - renderToTextures (framebuffer)
+- control of depth buffer and blend-modes, stencil buffer can be used for masking
 - easy to interpolate element attributes over time (linear) e.g. for particleanimation
 
 
@@ -63,7 +64,7 @@ is still [work in progress](http://maitag.de/semmi/haxelime/peote-view-api/)
 - zoom- and scrollable
 - content can be rendered into a texture
 
-	  
+
 `Element`
 - rectangle graphics like Sprites
 - can have position, size and many other kind of attributes to render inside displayarea
