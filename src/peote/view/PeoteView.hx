@@ -841,6 +841,8 @@ class PeoteView
 	**/
 	public function render(context:RenderContext = null):Void
 	{
+		// TODO: is context need here ? (or only for multi-windows?)
+
 		//trace("===peoteView.render===");
 		renderFramebuffer(context);
 		initGLViewport(width, height);		

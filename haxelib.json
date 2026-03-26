@@ -6,7 +6,7 @@
 	"description": "2D Render Library (lime/opengl)",
 	"version": "1.0.8",
 	"classPath": "src/",
-	"releasenote": "more types for glsl-uniforms, more vectors and two random-generators",
+	"releasenote": "more vectors and equivalent types for glsl-uniforms, seeded Random generator (Mersenne Twister) and static Rnd helper class",
 	"contributors": ["maitag"],
 	"dependencies": {
 		"lime": ""

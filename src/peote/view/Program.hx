@@ -222,6 +222,11 @@ class Program
 	public var clearMask:Bool = false;
 
 	/**
+		Enable or disable rendering if the display wich contains this program is rendered into a texure.
+	**/
+	public var renderFramebufferEnabled = true;
+
+	/**
 		Enable automatic shader generation for functioncalls what set, add or remove textures (also for snapToPixel, discardAtAlpha, shadercode-injection, formula and precision changes)
 	**/
 	public var autoUpdate:Bool = true;
@@ -1400,36 +1405,39 @@ class Program
 
 	private inline function renderFramebuffer(peoteView:PeoteView, display:Display)
 	{
-		gl.useProgram(glProgram);
-		render_activeTextureUnits(peoteView, textureList);
-		
-		if (PeoteGL.Version.isUBO)
-		{	
-			// ------------- uniform block -------------
-			gl.bindBufferBase(gl.UNIFORM_BUFFER, UniformBufferView.block, display.uniformBufferViewFB.uniformBuffer);
-			gl.bindBufferBase(gl.UNIFORM_BUFFER, UniformBufferDisplay.block, display.uniformBufferFB.uniformBuffer);
-		}
-		else
+		if (renderFramebufferEnabled)
 		{
-			// ------------- simple uniform -------------
-			gl.uniform2f (uRESOLUTION, display.width, -display.height);
-			gl.uniform2f (uZOOM, display.xz, display.yz);
+			gl.useProgram(glProgram);
+			render_activeTextureUnits(peoteView, textureList);
 			
-			// TODO: check if peoteViews offset have to be here!
-			gl.uniform2f (uOFFSET, (display.xOffset + peoteView.xOffset) / display.xz, 
-			                       (display.yOffset + peoteView.yOffset - display.height) / display.yz );
+			if (PeoteGL.Version.isUBO)
+			{	
+				// ------------- uniform block -------------
+				gl.bindBufferBase(gl.UNIFORM_BUFFER, UniformBufferView.block, display.uniformBufferViewFB.uniformBuffer);
+				gl.bindBufferBase(gl.UNIFORM_BUFFER, UniformBufferDisplay.block, display.uniformBufferFB.uniformBuffer);
+			}
+			else
+			{
+				// ------------- simple uniform -------------
+				gl.uniform2f (uRESOLUTION, display.width, -display.height);
+				gl.uniform2f (uZOOM, display.xz, display.yz);
+				
+				// TODO: check if peoteViews offset have to be here!
+				gl.uniform2f (uOFFSET, (display.xOffset + peoteView.xOffset) / display.xz, 
+				             (display.yOffset + peoteView.yOffset - display.height) / display.yz );
+			}
+			
+			gl.uniform1f (uTIME, peoteView.time);
+			for (i in 0...uniforms.length) uniforms[i].updateGL(gl, uniformLocations[i]);
+			
+			peoteView.setColorMask(colorEnabled ? colorMask : 0);
+			peoteView.setDepth(zIndexEnabled, clearDepth, clearDepthValue, depthMask, depthFunc);
+			peoteView.setGLBlend(blendEnabled, blendSeparate, glBlendSrc, glBlendDst, glBlendSrcAlpha, glBlendDstAlpha, blendFuncSeparate, glBlendFunc, glBlendFuncAlpha, blendColor, useBlendColor, useBlendColorSeparate, glBlendR, glBlendG, glBlendB, glBlendA);		
+			peoteView.setMask(mask, clearMask);
+			
+			buffer.render(peoteView, display, this);
+			gl.useProgram (null);
 		}
-		
-		gl.uniform1f (uTIME, peoteView.time);
-		for (i in 0...uniforms.length) uniforms[i].updateGL(gl, uniformLocations[i]);
-		
-		peoteView.setColorMask(colorEnabled ? colorMask : 0);
-		peoteView.setDepth(zIndexEnabled, clearDepth, clearDepthValue, depthMask, depthFunc);
-		peoteView.setGLBlend(blendEnabled, blendSeparate, glBlendSrc, glBlendDst, glBlendSrcAlpha, glBlendDstAlpha, blendFuncSeparate, glBlendFunc, glBlendFuncAlpha, blendColor, useBlendColor, useBlendColorSeparate, glBlendR, glBlendG, glBlendB, glBlendA);		
-		peoteView.setMask(mask, clearMask);
-		
-		buffer.render(peoteView, display, this);
-		gl.useProgram (null);
 	}
 
 
