@@ -28,8 +28,8 @@ You can test some of them also [here](http://maitag.de/semmi/haxelime/peote-view
 
 ## API
 
-look at here: [peote-view API](http://maitag.de/semmi/haxelime/peote-view-api/)
-or generate it locally by [Dox](https://lib.haxe.org/p/dox/) and [generateAPIdoc.sh](https://github.com/maitag/peote-view/blob/master/generateAPIdoc.sh))
+look at here: [peote-view API](http://maitag.de/semmi/haxelime/peote-view-api/)  
+or generate it locally by [Dox](https://lib.haxe.org/p/dox/) and [generateAPIdoc.sh](https://github.com/maitag/peote-view/blob/master/generateAPIdoc.sh)
 
 
 ## Features
