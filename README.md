@@ -20,16 +20,16 @@ haxelib git peote-view https://github.com/maitag/peote-view
 
 ## Samples
 
-start here: [peote-view-samples](https://github.com/maitag/peote-view-samples) to test out some core features  
-or [play](http://maitag.de/~half/peote-playground/) around into: [peote-playground](https://github.com/maitag/peote-playground)  
+Start here: [peote-view-samples](https://github.com/maitag/peote-view-samples) to test out some core features  
+or [play](http://maitag.de/~half/peote-playground/) around into: [peote-playground](https://github.com/maitag/peote-playground).  
   
 You can test some of them also [here](http://maitag.de/semmi/haxelime/peote-view-remaster/?C=M;O=D).  
   
 
 ## API
 
-look at here: [peote-view API](http://maitag.de/semmi/haxelime/peote-view-api/)  
-or generate it locally by [Dox](https://lib.haxe.org/p/dox/) and [generateAPIdoc.sh](https://github.com/maitag/peote-view/blob/master/generateAPIdoc.sh)
+Look at here: [peote-view API](http://maitag.de/semmi/haxelime/peote-view-api/),  
+or generate it by yourself via [Dox](https://lib.haxe.org/p/dox/) by calling: [generateAPIdoc.sh](https://github.com/maitag/peote-view/blob/master/generateAPIdoc.sh).
 
 
 ## Features
