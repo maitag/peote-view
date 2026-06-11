@@ -188,7 +188,7 @@ class Texture
 				width = IntUtil.nextPowerOfTwo(width);
 				height = IntUtil.nextPowerOfTwo(height);
 			}
-			if (width > textureConfig.maxTextureSize || height > textureConfig.maxTextureSize) throw('Error: max texture-size (${textureConfig.maxTextureSize}) is to small for ${this.slots} images ($slotWidth x $slotHeight)');
+			if (width > textureConfig.maxTextureSize || height > textureConfig.maxTextureSize) throw('Error: max texture-size (${textureConfig.maxTextureSize}) is to small for ${this.slots} images ($width x $height)${(textureConfig.powerOfTwo)?"<-powerOfTwo!":""}');
 		}
 		else {
 			var p = TexUtils.optimalTextureSize(slots, slotWidth, slotHeight, textureConfig.maxTextureSize, textureConfig.powerOfTwo);

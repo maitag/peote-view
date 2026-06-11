@@ -303,8 +303,8 @@ class TexUtils
         }
         else
 		{
-			if (errorIfNotFit) throw('Error: max texture-size ($maxTextureSize) is to small for $slots images ($slotWidth x $slotHeight)');
-			if (slotWidth > maxTextureSize || slotHeight > maxTextureSize) throw('Error: max texture-size ($maxTextureSize) is to small for image ($slotWidth x $slotHeight)');
+			if (errorIfNotFit) throw('Error: max texture-size ($maxTextureSize) is to small for $slots images (a $slotWidth x $slotHeight) and powerOfTwo rounding up');
+			if (slotWidth > maxTextureSize || slotHeight > maxTextureSize) throw('Error: max texture-size ($maxTextureSize) is to small for image ($slotWidth x $slotHeight) and powerOfTwo rounding up');
 			w = h = maxTextureSize;
 		}
 				
