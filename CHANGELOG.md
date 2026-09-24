@@ -1,6 +1,8 @@
 Changelog
 =========
 
+* Fixed glitch in `Element.hx` macro where default values not was set if using @anim
+
 1.08 (04/26/2026)
 -----------------
 * Added a new `Uniform` to handle multiple types of glsl-uniforms

@@ -260,12 +260,12 @@ class ElementImpl
 			if (isAnimStart) {
 				var nameStart:String = f.name + "Start";
 				v.argsStart.push( {name:nameStart, type:type} );
-				v.exprStart.push( macro this.$nameStart   = $i{nameStart} );
+				v.exprStart.push( macro this.$nameStart = $i{nameStart} );
 			}
 			if (isAnimEnd) {
 				var nameEnd:String   = f.name + "End";
 				v.argsEnd.push( {name:nameEnd, type:type} );
-				v.exprEnd.push( macro this.$nameEnd   = $i{nameEnd} );
+				v.exprEnd.push( macro this.$nameEnd = $i{nameEnd} );
 			}
 		}		
 	}
@@ -349,12 +349,15 @@ class ElementImpl
 			} else if (timeparam[1] != "default") timerTypes[timers.indexOf(timeparam[0])] = timeparam[1];
 			confItem.time = timeparam[0];
 			
+			if (getMetaParam(f, "const") != null) throw Context.error('Error: @const can not be used inside @anim. Use @constStart and/or @constEnd instead', f.pos);
+
 			param = getMetaParam(f, "constStart");
 			if (param != null) {
 				if (param == "") confItem.vStart = defaultVal;
 				else confItem.vStart = (expType=="Int") ? Std.parseInt(param) : Std.parseFloat(param);
 			} else {
 				confItem.isStart = true;
+				confItem.vStart = defaultVal;
 				confItem.n++;
 			}
 			param = getMetaParam(f, "constEnd");
@@ -364,6 +367,7 @@ class ElementImpl
 				if (confItem.vStart == confItem.vEnd) throw Context.error('Error: it is senseless to animate if @constStart == @constEnd', f.pos);
 			} else {
 				confItem.isEnd = true;
+				confItem.vEnd = defaultVal;
 				confItem.n++;
 			}
 			if (confItem.isStart || confItem.isEnd) {
@@ -388,6 +392,9 @@ class ElementImpl
 			}
 		} 
 		else {
+			if (getMetaParam(f, "constStart") != null) throw Context.error('Error: @constStart can only be used inside @anim. Use @const instead!', f.pos);
+			if (getMetaParam(f, "constEnd") != null) throw Context.error('Error: @constEnd can only be used inside @anim. Use @const instead!', f.pos);
+
 			param = getMetaParam(f, "const");
 			if (param != null) {
 				if (param == "") confItem.vStart = defaultVal;
@@ -2246,13 +2253,14 @@ class ElementImpl
 			kind: FieldType.FVar(macro:String, macro $v{parseShader(peote.view.intern.Shader.fragmentShader)}),
 			pos: Context.currentPos(),
 		});
-		/*
+		
+		#if peoteview_debug_element
 		var elemSrc = "class "+Context.getLocalClass() + " {\n";
 		var printer = new Printer();
 		for (f in fields) elemSrc += printer.printField(f) + "\n";
 		elemSrc += "}\n";
 		trace(elemSrc);
-		*/
+		#end
 		return fields; // <------ classgeneration complete !
 	}
 
