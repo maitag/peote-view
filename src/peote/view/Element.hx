@@ -43,7 +43,7 @@ typedef ConfParam =
 }
 typedef ConfSubParam =
 {
-	formula:String, isVarying:Bool, isAltType:Bool, vStart:Dynamic, vEnd:Dynamic, n:Int, isAnim:Bool, name:String, isStart:Bool, isEnd:Bool, time:String, pos:Position
+	easeFormula:String, formula:String, isVarying:Bool, isAltType:Bool, vStart:Dynamic, vEnd:Dynamic, n:Int, isAnim:Bool, name:String, isStart:Bool, isEnd:Bool, time:String, pos:Position
 }
 
 typedef GLConfParam =
@@ -390,10 +390,19 @@ class ElementImpl
 					f.kind = FieldType.FProp("never", "never", type);
 				#end
 			}
+			// easeFormula
+			var fparam = getIdentifiersByMetaParams(f, "ease");
+			if (fparam != null) {
+				if (getMetaParam(f, "color") != null) throw Context.error('Error: @ease can be not used inside @color yet.', f.pos);
+				confItem.easeFormula = Util.replaceFormulaIdentifier(fparam[0], "t", "time"+(timers.length-1));
+				// trace("check metas @ease:",confItem.name, confItem.easeFormula);
+			}
+	
 		} 
 		else {
-			if (getMetaParam(f, "constStart") != null) throw Context.error('Error: @constStart can only be used inside @anim. Use @const instead!', f.pos);
-			if (getMetaParam(f, "constEnd") != null) throw Context.error('Error: @constEnd can only be used inside @anim. Use @const instead!', f.pos);
+			if (getMetaParam(f, "constStart") != null) throw Context.error('Error: @constStart can only be used for @anim. Use @const instead!', f.pos);
+			if (getMetaParam(f, "constEnd") != null) throw Context.error('Error: @constEnd can only be used for @anim. Use @const instead!', f.pos);
+			if (getMetaParam(f, "ease") != null) throw Context.error('Error: @ease function can only be used for @anim.', f.pos);
 
 			param = getMetaParam(f, "const");
 			if (param != null) {
@@ -423,6 +432,7 @@ class ElementImpl
 		}
 		var fparam = getIdentifiersByMetaParams(f, "formula");
 		if (fparam != null) {
+			if (getMetaParam(f, "color") != null) throw Context.error('Error: @formula can be not used inside @color yet.', f.pos);
 			confItem.formula = fparam[0];
 			//if (fparam.length>1) // TODO: options?
 		}
@@ -451,7 +461,7 @@ class ElementImpl
 				confTextureLayer.set(name, layer);
 			}
 		}
-		var c = { formula:d.formula, isVarying:d.isVarying, isAltType:d.isAltType, vStart:d.vStart, vEnd:d.vEnd, n:d.n, isAnim:d.isAnim, name:d.name, isStart:d.isStart, isEnd:d.isEnd, time:d.time, pos:d.pos };
+		var c = { easeFormula:d.easeFormula, formula:d.formula, isVarying:d.isVarying, isAltType:d.isAltType, vStart:d.vStart, vEnd:d.vEnd, n:d.n, isAnim:d.isAnim, name:d.name, isStart:d.isStart, isEnd:d.isEnd, time:d.time, pos:d.pos };
 		checkMetas(f, expectedType, alternativeType, type, val, c , getter, setter);
 		confItem.push(c);
 		return true;
@@ -468,7 +478,7 @@ class ElementImpl
 		if (colorIdentifiers.indexOf(name) >= 0) throw Context.error('Error: "$name" is already used for a @color identifier', f.pos);
 		if (confTextureLayer.exists(name)) throw Context.error('Error: "$name" is already used as identifier for a texture-layer', f.pos);
 		colorIdentifiers.push(name);
-		var c = { formula:d.formula, isVarying:d.isVarying, isAltType:d.isAltType, vStart:d.vStart, vEnd:d.vEnd, n:d.n, isAnim:d.isAnim, name:d.name, isStart:d.isStart, isEnd:d.isEnd, time:d.time, pos:d.pos };
+		var c = { easeFormula:d.easeFormula, formula:d.formula, isVarying:d.isVarying, isAltType:d.isAltType, vStart:d.vStart, vEnd:d.vEnd, n:d.n, isAnim:d.isAnim, name:d.name, isStart:d.isStart, isEnd:d.isEnd, time:d.time, pos:d.pos };
 		checkMetas(f, expectedType, alternativeType, type, val, c , getter, setter);
 		confItem.push(c);
 		return true;
@@ -484,7 +494,7 @@ class ElementImpl
 		if (Util.isWrongIdentifier(name)) throw Context.error('Error: "$name" is not an identifier, please use only letters/numbers or "_" (starting with a letter)', f.pos);
 		if (customIdentifiers.indexOf(name) >= 0) throw Context.error('Error: "$name" is already used for a @custom identifier', f.pos);
 		customIdentifiers.push(name);
-		var c = { formula:d.formula, isVarying:d.isVarying, isAltType:d.isAltType, vStart:d.vStart, vEnd:d.vEnd, n:d.n, isAnim:d.isAnim, name:d.name, isStart:d.isStart, isEnd:d.isEnd, time:d.time, pos:d.pos };
+		var c = { easeFormula:d.easeFormula, formula:d.formula, isVarying:d.isVarying, isAltType:d.isAltType, vStart:d.vStart, vEnd:d.vEnd, n:d.n, isAnim:d.isAnim, name:d.name, isStart:d.isStart, isEnd:d.isEnd, time:d.time, pos:d.pos };
 		checkMetas(f, expectedType, alternativeType, type, val, c , getter, setter);
 		confItem.push(c);
 		return true;
@@ -519,6 +529,7 @@ class ElementImpl
 		else if (checkTexLayerMetas("texTile", f, macro:Int, null, type, val, conf.texTileDefault, conf.texTile, getter, setter) ) {}
 	}
 
+	// OPTIMIZE: instantiate the maps here and only clear it at start!
 	static var setFun :StringMap<Dynamic>;
 	static var animFun:StringMap<Dynamic>;
 	
@@ -541,38 +552,41 @@ class ElementImpl
 	static var customIdentifiers:Array<String>;
 	
 	static var formula:StringMap<String>;
-	static var formulaErrPos:StringMap<Position>;		
+	static var formulaErrPos:StringMap<Position>;
 	static var attrib:StringMap<String>;
+	static var easeFormula:StringMap<String>;
+	static var easeFormulaErrPos:StringMap<Position>;
+	static var animTimer:StringMap<String>;
 
 	//static var isChild:Bool = false;
 	// -------------------------------------- BUILD -------------------------------------------------
 	public static function build()
 	{
 		conf = {
-			posX :          { formula:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },
-			posY :          { formula:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },		
-			sizeX:          { formula:"", isVarying:false, isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },
-			sizeY:          { formula:"", isVarying:false, isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },
-			pivotX:         { formula:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
-			pivotY:         { formula:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
-			rotation:       { formula:"", isVarying:false, isAltType:false, vStart:0.0, vEnd:0.0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
-			//zIndex:         { formula:"", isVarying:false, isAltType:false, vStart:0.0, vEnd:0.0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
-			zIndex:         { formula:"", isVarying:false, isAltType:false, vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
+			posX :          { easeFormula:"", formula:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },
+			posY :          { easeFormula:"", formula:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },		
+			sizeX:          { easeFormula:"", formula:"", isVarying:false, isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },
+			sizeY:          { easeFormula:"", formula:"", isVarying:false, isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },
+			pivotX:         { easeFormula:"", formula:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
+			pivotY:         { easeFormula:"", formula:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
+			rotation:       { easeFormula:"", formula:"", isVarying:false, isAltType:false, vStart:0.0, vEnd:0.0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
+			//zIndex:       { easeFormula:"", formula:"", isVarying:false, isAltType:false, vStart:0.0, vEnd:0.0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
+			zIndex:         { easeFormula:"", formula:"", isVarying:false, isAltType:false, vStart:0, vEnd:0, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null },			
 
-			colorDefault:   { formula:"", isVarying:false, isAltType:false, vStart:0xFF0000FF, vEnd:0xFF0000FF, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, color:[],
+			colorDefault:   { easeFormula:"", formula:"", isVarying:false, isAltType:false, vStart:0xFF0000FF, vEnd:0xFF0000FF, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, color:[],
 			
-			texUnitDefault: { formula:"", isVarying:true, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texUnit:[],
-			texSlotDefault: { formula:"", isVarying:true, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texSlot:[],
-			texTileDefault: { formula:"", isVarying:true, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texTile:[],
-			texXDefault:    { formula:"", isVarying:true, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texX:[],
-			texYDefault:    { formula:"", isVarying:true, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texY:[],
-			texWDefault:    { formula:"", isVarying:true, isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texW:[],
-			texHDefault:    { formula:"", isVarying:true, isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texH:[],
-			texPosXDefault: { formula:"", isVarying:true, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texPosX:[],
-			texPosYDefault: { formula:"", isVarying:true, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texPosY:[],
-			texSizeXDefault:{ formula:"", isVarying:true, isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texSizeX:[],
-			texSizeYDefault:{ formula:"", isVarying:true, isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texSizeY:[],
-			customDefault:  { formula:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,  n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, custom:[],
+			texUnitDefault: { easeFormula:"", formula:"", isVarying:true, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texUnit:[],
+			texSlotDefault: { easeFormula:"", formula:"", isVarying:true, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texSlot:[],
+			texTileDefault: { easeFormula:"", formula:"", isVarying:true, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texTile:[],
+			texXDefault:    { easeFormula:"", formula:"", isVarying:true, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texX:[],
+			texYDefault:    { easeFormula:"", formula:"", isVarying:true, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texY:[],
+			texWDefault:    { easeFormula:"", formula:"", isVarying:true, isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texW:[],
+			texHDefault:    { easeFormula:"", formula:"", isVarying:true, isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texH:[],
+			texPosXDefault: { easeFormula:"", formula:"", isVarying:true, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texPosX:[],
+			texPosYDefault: { easeFormula:"", formula:"", isVarying:true, isAltType:false, vStart:0,   vEnd:0,   n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texPosY:[],
+			texSizeXDefault:{ easeFormula:"", formula:"", isVarying:true, isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texSizeX:[],
+			texSizeYDefault:{ easeFormula:"", formula:"", isVarying:true, isAltType:false, vStart:100, vEnd:100, n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, texSizeY:[],
+			customDefault:  { easeFormula:"", formula:"", isVarying:false, isAltType:false, vStart:0,   vEnd:0,  n:0, isAnim:false, name:"", isStart:false, isEnd:false, time: "-", pos:null }, custom:[],
 		};
 		
 		glConf = {
@@ -615,8 +629,12 @@ class ElementImpl
 		customIdentifiers = new Array<String>();
 		
 		formula = new StringMap<String>();
-		formulaErrPos = new StringMap<Position>();		
+		formulaErrPos = new StringMap<Position>();
 		attrib = new StringMap<String>();
+
+		easeFormula = new StringMap<String>();
+		easeFormulaErrPos = new StringMap<Position>();
+		animTimer = new StringMap<String>();
 		
 		fields = Context.getBuildFields();
 
@@ -817,14 +835,29 @@ class ElementImpl
 					
 					// formulas for tex-attribs
 					if (conf[k].formula != "") {
-						formulaErrPos.set(conf[k].name, conf[k].pos);
 						formula.set(conf[k].name, conf[k].formula);
+						formulaErrPos.set(conf[k].name, conf[k].pos);
 					}
 					
 					if (conf[k].isAnim) {
 						var t = timers.indexOf(conf[k].time);
-						attrib.set(conf[k].name, '${attrib.get(conf[k].name+"Start")}+(${attrib.get(conf[k].name+"End")}-${attrib.get(conf[k].name+"Start")})*time$t');
-					} else attrib.set(conf[k].name, attrib.get(conf[k].name+"Start"));
+						// TODO for EASE:
+						/*if (conf[k].easeFormula != "") {
+							easeFormula.set('ease_time_'+conf[k].name, conf[k].easeFormula);
+							easeFormulaErrPos.set('ease_time_'+conf[k].name, conf[k].pos);
+							attrib.set(conf[k].name, '${attrib.get(conf[k].name+"Start")}+(${attrib.get(conf[k].name+"End")}-${attrib.get(conf[k].name+"Start")})*ease_time_${conf[k].name}');
+						} else attrib.set(conf[k].name, '${attrib.get(conf[k].name+"Start")}+(${attrib.get(conf[k].name+"End")}-${attrib.get(conf[k].name+"Start")})*time$t');
+						*/
+						if (conf[k].easeFormula != "") {
+							easeFormula.set('ease_time_'+conf[k].name, conf[k].easeFormula);
+							easeFormulaErrPos.set('ease_time_'+conf[k].name, conf[k].pos);
+						} 
+						else easeFormula.set('ease_time_'+conf[k].name, "time"+t);
+
+						animTimer.set(conf[k].name, 'time$t'); 
+						attrib.set(conf[k].name, '${attrib.get(conf[k].name+"Start")}+(${attrib.get(conf[k].name+"End")}-${attrib.get(conf[k].name+"Start")})*ease_time_${conf[k].name}');
+					}
+					else attrib.set(conf[k].name, attrib.get(conf[k].name+"Start"));
 				}
 			}
 		}		
@@ -854,11 +887,11 @@ class ElementImpl
 				glConf.CALC_TIME += 'float time$i = clamp( (uTime - aTime$t) / aTime$d, 0.0, 1.0); ';
 			
 			// to CALC ease in and out into @anim() also:
-			//var easeStart = "0.0";
-			//var easeEnd = "1.0";
-			//glConf.CALC_TIME += 'time$i = mix(mix(smoothstep(0.0, 1.0 + $easeEnd, time$i), time$i, $easeStart ),mix(smoothstep(0.0 - $easeStart, 1.0, time$i), time$i, $easeEnd ), time$i); ';
+			// var easeStart = "1.0"; // from 0-slowAtStart to 2-fastAtStart, 1-no easing
+			// var easeEnd = "0.0";
+			// glConf.CALC_TIME += 'time$i = mix(mix(smoothstep(0.0, 1.0 + $easeEnd, time$i), time$i, $easeStart ),mix(smoothstep(0.0 - $easeStart, 1.0, time$i), time$i, $easeEnd ), time$i); ';
 
-			// TODO: best would be to have a formula-string after "pingpong" what using "time" and @custom-attributes like what works now via templating
+			// TODO: two new metas @easeIn(Ease.QUAD, 1.0) and @easeOut(Ease.SINUS, 1.0) what modulate then the "time" at specific attribute (see at where it multiplicates the time!)
 		}
 		
 		if (timers.length > 0) glConf.UNIFORM_TIME = "uniform float uTime;";
@@ -871,8 +904,8 @@ class ElementImpl
 			
 			if (x.name != "") {
 				if (x.formula != "") {
-					formulaErrPos.set(x.name, x.pos);
 					formula.set(x.name, x.formula);
+					formulaErrPos.set(x.name, x.pos);
 				}				
 				if (x.isStart) {
 					attrib.set(x.name+"Start", name + ending[i++]);
@@ -896,9 +929,24 @@ class ElementImpl
 				else attrib.set(x.name+"End", attrib.get(x.name+"Start"));
 				
 				if (x.isAnim) {
-					var tx = timers.indexOf(x.time);
-					attrib.set(x.name, '${attrib.get(x.name+"Start")}+(${attrib.get(x.name+"End")}-${attrib.get(x.name+"Start")})*time$tx');
-				} else attrib.set(x.name, attrib.get(x.name+"Start"));
+					var t = timers.indexOf(x.time);
+					// TODO for EASE:
+					/*if (x.easeFormula != "") {
+						easeFormula.set('ease_time_'+x.name, x.easeFormula);
+						easeFormulaErrPos.set('ease_time_'+x.name, x.pos);
+						attrib.set(x.name, '${attrib.get(x.name+"Start")}+(${attrib.get(x.name+"End")}-${attrib.get(x.name+"Start")})*ease_time_${x.name}');
+					} else attrib.set(x.name, '${attrib.get(x.name+"Start")}+(${attrib.get(x.name+"End")}-${attrib.get(x.name+"Start")})*time$t');		
+					*/			
+					if (x.easeFormula != "") {
+						easeFormula.set('ease_time_'+x.name, x.easeFormula);
+						easeFormulaErrPos.set('ease_time_'+x.name, x.pos);
+					} 
+					else easeFormula.set('ease_time_'+x.name, "time"+t);
+
+					animTimer.set(x.name, 'time$t'); 
+					attrib.set(x.name, '${attrib.get(x.name+"Start")}+(${attrib.get(x.name+"End")}-${attrib.get(x.name+"Start")})*ease_time_${x.name}');
+				}
+				else attrib.set(x.name, attrib.get(x.name+"Start"));
 			}
 			
 			if (y.name != "") {
@@ -906,10 +954,25 @@ class ElementImpl
 				else if (y.isAnim) attrib.set(y.name+"End", Util.toFloatString(y.vEnd));
 				else attrib.set(y.name+"End", attrib.get(y.name+"Start"));
 
-				if (y .isAnim) {
-					var ty = timers.indexOf(y.time);
-					attrib.set(y.name, '${attrib.get(y.name+"Start")}+(${attrib.get(y.name+"End")}-${attrib.get(y.name+"Start")})*time$ty');					
-				} else attrib.set(y.name, attrib.get(y.name+"Start"));
+				if (y.isAnim) {
+					var t = timers.indexOf(y.time);
+					// TODO for EASE:
+					/*if (y.easeFormula != "") {
+						easeFormula.set('ease_time_'+y.name, y.easeFormula);
+						easeFormulaErrPos.set('ease_time_'+y.name, y.pos);
+						attrib.set(y.name, '${attrib.get(y.name+"Start")}+(${attrib.get(y.name+"End")}-${attrib.get(y.name+"Start")})*ease_time_${y.name}');
+					} else attrib.set(y.name, '${attrib.get(y.name+"Start")}+(${attrib.get(y.name+"End")}-${attrib.get(y.name+"Start")})*time$t');
+					*/
+					if (y.easeFormula != "") {
+						easeFormula.set('ease_time_'+y.name, y.easeFormula);
+						easeFormulaErrPos.set('ease_time_'+y.name, y.pos);
+					} 
+					else easeFormula.set('ease_time_'+y.name, "time"+t);
+
+					animTimer.set(y.name, 'time$t'); 
+					attrib.set(y.name, '${attrib.get(y.name+"Start")}+(${attrib.get(y.name+"End")}-${attrib.get(y.name+"Start")})*ease_time_${y.name}');			
+				}
+				else attrib.set(y.name, attrib.get(y.name+"Start"));
 			}
 				
 		}
@@ -923,6 +986,22 @@ class ElementImpl
 		var _map : Array<Expr> = [for (k in formula.keys()) macro $v{k} => $v{formula.get(k)}];
 		fields.push({
 			name:  "FORMULAS",
+			meta:  allowForBuffer,
+			access:  [Access.APrivate, Access.AStatic],
+			kind: FieldType.FVar(macro:haxe.ds.StringMap<String>, (_map.length != 0) ? macro $a{_map} : macro new haxe.ds.StringMap<String>()),
+			pos: Context.currentPos(),
+		});
+		_map = [for (k in easeFormula.keys()) macro $v{k} => $v{easeFormula.get(k)}];
+		fields.push({
+			name:  "EASE_FORMULAS",
+			meta:  allowForBuffer,
+			access:  [Access.APrivate, Access.AStatic],
+			kind: FieldType.FVar(macro:haxe.ds.StringMap<String>, (_map.length != 0) ? macro $a{_map} : macro new haxe.ds.StringMap<String>()),
+			pos: Context.currentPos(),
+		});
+		_map = [for (k in animTimer.keys()) macro $v{k} => $v{animTimer.get(k)}];
+		fields.push({
+			name:  "ANIM_TIMER",
 			meta:  allowForBuffer,
 			access:  [Access.APrivate, Access.AStatic],
 			kind: FieldType.FVar(macro:haxe.ds.StringMap<String>, (_map.length != 0) ? macro $a{_map} : macro new haxe.ds.StringMap<String>()),
@@ -956,17 +1035,22 @@ class ElementImpl
 			pos: Context.currentPos(),
 		});
 						
+		// resolve formulas
 		try Util.resolveFormulaCyclic(formula) catch(e:Dynamic) throw Context.error('Error: cyclic reference of "${e.errVar}" inside @formula "${e.formula}" for "${e.errKey}"', formulaErrPos.get(e.errKey));
-		//trace("formula cyclic resolved:"); for (f in formula.keys()) trace('  $f => ${formula.get(f)}');
 		Util.resolveFormulaVars(formula, attrib);
+		// ease
+		Util.resolveFormulaVars(easeFormula, formula);
+		try Util.resolveFormulaCyclic(easeFormula) catch(e:Dynamic) throw throw Context.error('Error: cyclic reference of "${e.errVar}" inside @ease "${e.formula}" for "${e.errKey}"', easeFormulaErrPos.get(e.errKey));
+		Util.resolveFormulaVars(formula, easeFormula);
+		Util.resolveFormulaVars(attrib, easeFormula);
+		#if peoteview_debug_element
+		trace("formula resolved:"); for (f in formula.keys()) trace('  $f => ${formula.get(f)}');
+		trace("easeFormula resolved:"); for (f in easeFormula.keys()) trace('  $f => ${easeFormula.get(f)}');
+		trace("attributes resolved:"); for (a in attrib.keys()) trace('  $a => ${attrib.get(a)}');
+		#end
 
-/*		trace("formula resolved:"); for (f in formula.keys()) trace('  $f => ${formula.get(f)}');
-		trace("attrib:"); for (a in attrib.keys()) trace('  $a => ${attrib.get(a)}');
-*/				
-		// TODO: resolve time-identifiers!
-		
+		// TODO: time-identifiers!
 		// TODO: generate getter for animated values by using formulas
-
 		
 		function pack2in1(name:String, x:ConfSubParam, y:ConfSubParam):String
 		{
@@ -994,11 +1078,17 @@ class ElementImpl
 					if      (end == name+".y") end += "z";
 					else if (end == name+".z") end += "w";
 				}
+
 				var tx = timers.indexOf(x.time);
 				var ty = timers.indexOf(y.time);
-				if (tx == -1)      start = '$start + ($end - $start) * vec2( 0.0, time$ty )';
-				else if (ty == -1) start = '$start + ($end - $start) * vec2( time$tx, 0.0 )';
-				else               start = '$start + ($end - $start) * vec2( time$tx, time$ty )';
+
+				// if (tx == -1)      start = '$start + ($end - $start) * vec2( 0.0, time$ty )';
+				// else if (ty == -1) start = '$start + ($end - $start) * vec2( time$tx, 0.0 )';
+				// else               start = '$start + ($end - $start) * vec2( time$tx, time$ty )';
+				// EASE:
+				var timeX = (tx == -1) ? "0.0" : ( (x.easeFormula == "") ? "time"+tx : easeFormula.get("ease_time_"+x.name) );
+				var timeY = (ty == -1) ? "0.0" : ( (y.easeFormula == "") ? "time"+ty : easeFormula.get("ease_time_"+y.name) );
+				start = '$start + ($end - $start) * vec2( $timeX, $timeY )';
 			}
 			return start;
 		}
@@ -1010,7 +1100,6 @@ class ElementImpl
 			if (x.formula == "" && y.formula == "" )
 				return '::if ${tmplvar}_FORMULA::::${tmplvar}_FORMULA::::else::'+pack2in1(name, x, y)+"::end::";
 			
-			
 			var fx = (x.name != "") ? formula.get(x.name) : Util.toFloatString(x.vStart);
 			if (fx == null) fx = attrib.get(x.name);
 			
@@ -1021,7 +1110,7 @@ class ElementImpl
 				if (x.formula != "") fx = '($fx)/180.0*${Math.PI}';
 				if (y.formula != "") fy = 'clamp( $fy/${Util.toFloatString(MAX_ZINDEX)}, -1.0, 1.0)';
 			}
-			
+
 			return '::if ${tmplvar}_FORMULA::::${tmplvar}_FORMULA::::else::vec2($fx, $fy)::end::';
 		}		
 		
@@ -1097,6 +1186,8 @@ class ElementImpl
 			if (conf.color[k].isAnim) {
 				var end = (conf.color[k].isEnd) ? 'aColorEnd${k}.wzyx' : Util.color2vec4(conf.color[k].vEnd);
 				start = '$start + ($end - $start) * time' + timers.indexOf(conf.color[k].time);
+				// TODO EASE (and formula!!!):
+				// start = '$start + ($end - $start) * ' + ( (conf.color[k].easeFormula == "") ? "time"+timers.indexOf(conf.color[k].time) : easeFormula.get("ease_time_"+conf.color[k].name) );
 			}
 			if (conf.color[k].n > 0 || conf.color[k].isAnim) {
 				glConf.CALC_COLOR += 'vColor${k} = $start; ';
@@ -1381,6 +1472,7 @@ class ElementImpl
 			name:  "VARYINGS_CUSTOM",
 			meta:  allowForBuffer,
 			access:  [Access.APrivate, Access.AStatic, Access.AInline],
+			// TODO: results in a "null" value sometimes if fetching from the map !
 			kind: FieldType.FVar(macro:String, macro $v{[for (i in 0...conf.custom.length) varyings.get(conf.custom[i].name) ].join(",")}), 
 			pos: Context.currentPos(),
 		});
@@ -2245,7 +2337,7 @@ class ElementImpl
 			kind: FieldType.FVar(macro:String, macro $v{parseShader(peote.view.intern.Shader.vertexShader)}), 
 			pos: Context.currentPos(),
 		});
-		// trace("ELEMENT ---------- \n"+parseShader(peote.view.intern.Shader.vertexShader));
+		
 		fields.push({
 			name:  "fragmentShader",
 			meta:  allowForBuffer,
@@ -2255,9 +2347,22 @@ class ElementImpl
 		});
 		
 		#if peoteview_debug_element
+		// trace("------- VERTEX SHADER TMPL ------- \n"+parseShader(peote.view.intern.Shader.vertexShader));
+		// trace("------ FRAGMENT SHADER TMPL ------ \n"+parseShader(peote.view.intern.Shader.fragmentShader));
 		var elemSrc = "class "+Context.getLocalClass() + " {\n";
 		var printer = new Printer();
-		for (f in fields) elemSrc += printer.printField(f) + "\n";
+		var filterOut = [
+			// "FORMULAS","EASE_FORMULAS","ANIM_TIMER","ATTRIBUTES","FORMULA_NAMES","FORMULA_VARYINGS","FORMULA_CONSTANTS","FORMULA_CUSTOMS",
+			"IDENTIFIERS_TEXTURE","IDENTIFIERS_COLOR","IDENTIFIERS_CUSTOM","VARYINGS_CUSTOM",
+			"DEFAULT_COLOR_FORMULA","DEFAULT_FORMULA_VARS",
+			"NEED_FRAGMENT_PRECISION","TIME_ENABLED","BLEND_ENABLED","ZINDEX_ENABLED","getZINDEX","PICKING_ENABLED",
+			"MAX_ZINDEX","VERTEX_COUNT","BUFF_SIZE","BUFF_SIZE_INSTANCED",
+			"bytePos","bufferPointer","aPOSITION","aPOS","aTIME0","aTIME1","aTIME2","aTIME3","aTIME4","aTIME5","aTIME6",
+			"instanceBytes","createInstanceBytes","updateInstanceGLBuffer","writeBytesInstanced","writeBytes","updateGLBuffer",
+			"bindAttribLocations","bindAttribLocationsInstanced",
+			"enableVertexAttribInstanced","enableVertexAttrib","disableVertexAttribInstanced","disableVertexAttrib",
+			"vertexShader","fragmentShader"];
+		for (f in fields) if (filterOut.indexOf(f.name) < 0) elemSrc += printer.printField(f) + "\n";
 		elemSrc += "}\n";
 		trace(elemSrc);
 		#end

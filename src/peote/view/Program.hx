@@ -303,9 +303,12 @@ class Program
 	var defaultFormulaVars:StringMap<Color>;
 	var defaultColorFormula:String;
 	var colorFormula = "";
-	var formula = new StringMap<String>();
-	var formulaHasChanged:Bool = false;
 
+	var formula:StringMap<String>;
+	var easeFormula:StringMap<String>;
+	var isFormulaChange:Bool = false;
+	var isFormulaNotInit:Bool = true;
+	
 	var fragmentFloatPrecision:Null<String> = null;
 
 	/**
@@ -330,23 +333,10 @@ class Program
 		
 		defaultColorFormula = buffer.getDefaultColorFormula();
 		defaultFormulaVars = buffer.getDefaultFormulaVars();
-		
-		//trace("formula Names:"); for (f in buffer.getFormulaNames().keys()) trace('  $f => ${buffer.getFormulaNames().get(f)}');
-		
-		// copy default formulas into new formula
-		for (k in buffer.getFormulas().keys()) formula.set(k, buffer.getFormulas().get(k) );
-		
-		//trace("formulas:"); for (f in formula.keys()) trace('  $f => ${formula.get(f)}');
-		//trace("attributes:"); for (f in buffer.getAttributes().keys()) trace('  $f => ${buffer.getAttributes().get(f)}');
-		
-		try Util.resolveFormulaCyclic(buffer.getFormulas()) catch(e:Dynamic) throw ('Error: cyclic reference of "${e.errVar}" inside @formula "${e.formula}" for "${e.errKey}"');
-		//trace("formula cyclic resolved:"); for (f in buffer.getFormulas().keys()) trace('  $f => ${buffer.getFormulas().get(f)}');
-		Util.resolveFormulaVars(buffer.getFormulas(), buffer.getAttributes());
-		//trace("default formula resolved:"); for (f in buffer.getFormulas().keys()) trace('  $f => ${buffer.getFormulas().get(f)}');
-		
+				
 		#if peoteview_debug_program
 		trace("defaultColorFormula = ", defaultColorFormula);
-		trace("defaultFormulaVars = ", defaultFormulaVars);
+		trace("defaultColorFormulaVars = ", defaultFormulaVars);
 		#end
 		parseColorFormula();
 	}
@@ -766,62 +756,136 @@ class Program
 		}
 	}
 	
+	private function initFormulas() {
+		isFormulaNotInit = false;
+
+		// copy default formulas into new formula
+		// formula = new StringMap<String>(); easeFormula = new StringMap<String>();
+		// for (k in buffer.getFormulas().keys()) formula.set(k, buffer.getFormulas().get(k) );
+		formula = buffer.getFormulas().copy();
+		easeFormula = buffer.getEaseFormulas().copy();
+		
+		// TODO: never resolve here ->problem if multiple programs using same buffer!
+		// try Util.resolveFormulaCyclic(buffer.getFormulas()) catch(e:Dynamic) throw ('Error: cyclic reference of "${e.errVar}" inside @formula "${e.formula}" for "${e.errKey}"');
+		// Util.resolveFormulaVars(buffer.getFormulas(), buffer.getAttributes());
+	}
 
 	/**
-		Define formulas to change the calculation for element attributes at runtime
-		@param name a String with the attribute identifier
+		Define the formula to change the calculation for an element attribute at runtime
+		@param name a String with the attribute identifier (or name of the assigned meta-tag)
 		@param newFormula a String what contains the formula
 		@param autoUpdate set it to `true` (update) or `false` (no update), otherwise the `.autoUpdate` property is used
 	**/
 	public function setFormula(name:String, newFormula:String, ?autoUpdate:Null<Bool>):Void {
-		
-		var formulaName = buffer.getFormulaNames().get(name); // TODO: better with 2 Arrays here
-		
+		_setFormula(name, newFormula, false, autoUpdate);
+	}
+
+	/**
+		Define the formula to change the calculation for the time of an @anim element attribute at runtime
+		@param name a String with the attribute identifier (or name of the assigned meta-tag)
+		@param newFormula a String what contains the formula
+		@param autoUpdate set it to `true` (update) or `false` (no update), otherwise the `.autoUpdate` property is used
+	**/
+	public function setEaseFormula(name:String, newFormula:String, ?autoUpdate:Null<Bool>):Void {
+		_setFormula(name, newFormula, true, autoUpdate);
+	}
+
+	private function parseEaseFormula(name:String, formula:String):String {
+		var timeID:String = buffer.getAnimTimer().get(name);
+		if (timeID==null) throw('Error: can not set ease formula for "$name" if there is no @anim for @$name inside Element');
+		return Util.replaceFormulaIdentifier(formula, "t", timeID);
+	}
+
+	private inline function _setFormula(name:String, newFormula:String, isEase:Bool, autoUpdate:Null<Bool>):Void {		
+		if (isFormulaNotInit) initFormulas();
+		var formulaName = buffer.getFormulaNames().get(name);		
 		if (formulaName != null) {
-			#if peoteview_debug_program
-			trace('  set formula: $formulaName = $newFormula' );
-			#end
-			formula.set(formulaName, newFormula);
+			#if peoteview_debug_program trace('  set ${(isEase) ? "ease " : ""}formula: $formulaName = $newFormula' );#end
+			if (isEase) easeFormula.set( "ease_time_" + formulaName, parseEaseFormula(formulaName, newFormula)) else formula.set(formulaName, newFormula);
 		}
 		else {
-			if ([ for (k in buffer.getFormulaNames().keys()) buffer.getFormulaNames().get(k) ].indexOf(name) >= 0) {
-				formula.set(name, newFormula);
+			// if ([ for (k in buffer.getFormulaNames().keys()) buffer.getFormulaNames().get(k) ].indexOf(name) >= 0) {
+			if (Lambda.has(buffer.getFormulaNames(), name)) {
+				#if peoteview_debug_program trace('  set ${(isEase) ? "ease " : ""}formula: $name = $newFormula' );#end
+				if (isEase) easeFormula.set( "ease_time_" + name, parseEaseFormula(name, newFormula)) else formula.set(name, newFormula);
 			}
 			else if (buffer.getFormulaVaryings().indexOf(name) >= 0) {
-				#if peoteview_debug_program
-				trace('  set formula for varying: $name = $newFormula' );
-				#end
-				formula.set(name, newFormula);
+				#if peoteview_debug_program trace('  set ${(isEase) ? "ease " : ""}formula for varying: $name = $newFormula' );#end
+				if (isEase) easeFormula.set( "ease_time_" + name, parseEaseFormula(name, newFormula)) else formula.set(name, newFormula);
 			}
 			else if (buffer.getFormulaConstants().indexOf(name) >= 0) {
-				#if peoteview_debug_program
-				trace('  set formula for constant: $name = $newFormula' );
-				#end
-				formula.set(name, newFormula); // TODO: Error if newFormula contains other attributes
+				#if peoteview_debug_program trace('  set ${(isEase) ? "ease " : ""}formula for constant: $name = $newFormula' );#end
+				if (isEase) easeFormula.set( "ease_time_" + name, parseEaseFormula(name, newFormula)) else formula.set(name, newFormula);
 			}
 			else if (buffer.getFormulaCustoms().indexOf(name) >= 0) {
-				#if peoteview_debug_program
-				trace('  set formula for custom: $name = $newFormula' );
-				#end
-				formula.set(name, newFormula);
+				#if peoteview_debug_program trace('  set ${(isEase) ? "ease " : ""}formula for custom: $name = $newFormula' );#end
+				if (isEase) easeFormula.set( "ease_time_" + name, parseEaseFormula(name, newFormula)) else formula.set(name, newFormula);
 			}
-			else throw('Error: can not set Formula for $name if there is no property defined for @$name inside Element');
+			else throw('Error: can not set ${(isEase) ? "ease " : ""}formula for "$name" if there is no property defined for @$name inside Element');
+		}		
+		isFormulaChange = true;
+		checkAutoUpdate(autoUpdate);
+	}
+
+	/**
+		Remove the formula that changes the calculation for an element attribute at runtime
+		@param name a String with the attribute identifier (or name of the assigned meta-tag)
+		@param autoUpdate set it to `true` (update) or `false` (no update), otherwise the `.autoUpdate` property is used
+	**/
+	public function removeFormula(name:String, ?autoUpdate:Null<Bool>):Void {
+		_removeFormula(name, false, autoUpdate);
+	}
+
+	/**
+		Remove the formula that changes the calculation for the time of an @anim element attributes at runtime
+		@param name a String with the attribute identifier (or name of the assigned meta-tag)
+		@param autoUpdate set it to `true` (update) or `false` (no update), otherwise the `.autoUpdate` property is used
+	**/
+	public function removeEaseFormula(name:String, ?autoUpdate:Null<Bool>):Void {
+		_removeFormula(name, true, autoUpdate);
+	}
+
+	private inline function _removeFormula(name:String, isEase:Bool, autoUpdate:Null<Bool>):Void {		
+		if (isFormulaNotInit) initFormulas();
+		var formulaName = buffer.getFormulaNames().get(name);		
+		if (formulaName != null) {
+			#if peoteview_debug_program trace('  remove ${(isEase) ? "ease " : ""}formula: $formulaName' ); #end
+			if (isEase) easeFormula.remove( "ease_time_" + formulaName) else formula.remove(formulaName);
+		}
+		else {
+			#if peoteview_debug_program trace('  remove ${(isEase) ? "ease " : ""}formula: $name' ); #end
+			if (isEase) easeFormula.remove( "ease_time_" + name) else formula.remove(name);
 		}
 		
-		formulaHasChanged = true;
+		isFormulaChange = true;
 		checkAutoUpdate(autoUpdate);
 	}
 
 	// invoked via createProg()
 	private function parseAndResolveFormulas():Void {
-		if (formulaHasChanged)
-		{
-			var formulaResolved:StringMap<String> = [for (k in formula.keys()) k => formula.get(k) ];
-			try Util.resolveFormulaCyclic(formulaResolved) catch(e:Dynamic) throw ('Error: cyclic reference of "${e.errVar}" inside formula "${e.formula}" for "${e.errKey}"');
-			//trace("formula cyclic resolved:"); for (f in formulaResolved.keys()) trace('  $f => ${formulaResolved.get(f)}');
-			Util.resolveFormulaVars(formulaResolved, buffer.getAttributes());
-			//trace("formula resolved new:"); for (f in formulaResolved.keys()) trace('  $f => ${formulaResolved.get(f)}');
+		if (isFormulaChange) {
+			isFormulaChange = false;
+
+			// copy into new formula map
+			// var formulaResolved:StringMap<String> = [for (k in formula.keys()) k => formula.get(k) ];
+			var formulaResolved:StringMap<String> = formula.copy();
+			var easeFormulaResolved:StringMap<String> = easeFormula.copy();
+			var attrib:StringMap<String> = buffer.getAttributes().copy();
 			
+			try Util.resolveFormulaCyclic(formulaResolved) catch(e:Dynamic) throw ('Error: cyclic reference of "${e.errVar}" inside formula "${e.formula}" for "${e.errKey}"');
+			Util.resolveFormulaVars(formulaResolved, attrib);			
+			// ease:
+			Util.resolveFormulaVars(easeFormulaResolved, formulaResolved);
+			try Util.resolveFormulaCyclic(easeFormulaResolved) catch(e:Dynamic) throw ('Error: cyclic reference of "${e.errVar}" inside ease formula "${e.formula}" for "${e.errKey}"');
+			Util.resolveFormulaVars(formulaResolved, easeFormulaResolved);
+			Util.resolveFormulaVars(attrib, easeFormulaResolved);	
+
+			#if peoteview_debug_program
+			trace("formula resolved:"); for (f in formulaResolved.keys()) trace('  $f => ${formulaResolved.get(f)}');
+			trace("easeFormula resolved:"); for (f in easeFormulaResolved.keys()) trace('  $f => ${easeFormulaResolved.get(f)}');
+			trace("attributes resolved:"); for (a in attrib.keys()) trace('  $a => ${attrib.get(a)}');
+			#end
+	
 			function formulaTemplateValue(x:String, y:String, dx:String, dy:String):String
 			{
 				var nx = buffer.getFormulaNames().get(x);
@@ -836,16 +900,21 @@ class Program
 				var fy = formulaResolved.get(ny);
 				
 				if ( fx != buffer.getFormulas().get(nx) || fy != buffer.getFormulas().get(ny) ) {
-					if (fx == null) fx = buffer.getAttributes().get(nx);
+					// if (fx == null) fx = buffer.getAttributes().get(nx);
+					if (fx == null) fx = attrib.get(nx);
 					if (fx == null) fx = dx;
 					
-					if (fy == null) fy = buffer.getAttributes().get(ny);
+					// if (fy == null) fy = buffer.getAttributes().get(ny);
+					if (fy == null) fy = attrib.get(ny);
 					if (fy == null) fy = dy;
 					
 					if (x == "rotation" && fx != "0.0") fx = '($fx)/180.0*${Math.PI}';
 					if (y == "zIndex" && fy != "0.0") fy = 'clamp( $fy/${Util.toFloatString(buffer.getMaxZindex())}, -1.0, 1.0)';
 					
 					//trace(' -- replacing Formula $nx, $ny => vec2($fx, $fy)');
+
+					// TODO for EASE: check if extra attrib for the time ("time_"+y.name) exists and then multiplicate it ???
+
 					return('vec2($fx, $fy)');
 				}
 				else return null;
@@ -860,7 +929,8 @@ class Program
 				var f = formulaResolved.get(n);
 				if ( f != buffer.getFormulas().get(n) )
 				{
-					if (f == null) f = buffer.getAttributes().get(n);
+					// if (f == null) f = buffer.getAttributes().get(n);
+					if (f == null) f = attrib.get(n);
 					Reflect.setField(glShaderConfig.FORMULA_VARYINGS, n, f);
 					// trace(' -- replacing Formula $n => $f');
 				}
@@ -869,7 +939,8 @@ class Program
 			// formulas for constants
 			for (n in buffer.getFormulaConstants()) {				
 				var f = formulaResolved.get(n);
-				if ( f != null && f != buffer.getAttributes().get(n) )
+				// if ( f != null && f != buffer.getAttributes().get(n) )
+				if ( f != null && f != attrib.get(n) )
 				{
 					Reflect.setField(glShaderConfig.FORMULA_CONSTANTS, n, f);
 					// trace(' -- replacing Formula $n => $f');

@@ -523,6 +523,8 @@ class $className implements peote.view.intern.BufferInterface
 	inline function getDefaultFormulaVars():haxe.ds.StringMap<peote.view.Color> return $p{elemField}.DEFAULT_FORMULA_VARS;
 
 	inline function getFormulas():haxe.ds.StringMap<String> return $p{elemField}.FORMULAS;
+	inline function getEaseFormulas():haxe.ds.StringMap<String> return $p{elemField}.EASE_FORMULAS;
+	inline function getAnimTimer():haxe.ds.StringMap<String> return $p{elemField}.ANIM_TIMER;
 	inline function getAttributes():haxe.ds.StringMap<String> return $p{elemField}.ATTRIBUTES;
 	inline function getFormulaNames():haxe.ds.StringMap<String> return $p{elemField}.FORMULA_NAMES;
 

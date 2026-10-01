@@ -190,7 +190,7 @@ class Random {
 	// ---------------------- Float --------------------------
 
 	/** Returns a random `Float` number.
-		@param rangeLength if not null the random values will be into the range from 0 to rangeLength (exclusive)
+		@param rangeLength random values will be into the range from 0 to rangeLength (exclusive), default value is 1.0
 	**/
 	public inline function float(rangeLength:Float = 1.0):Float {
 		return  rangeLength * ((randomUInt() >> 5) * 67108864.0 + (randomUInt() >> 6)) / 9007199254740992.0; // 0x20 0000 0000 0000
@@ -208,8 +208,7 @@ class Random {
 	// -------------------- Fast Float ------------------------
 
 	/** Returns a random `Float` number. This can faster then [`.float()`](#float), but is less accurate.
-		@param minValue the minimal random value
-		@param maxValue the maximum random value
+		@param rangeLength random values will be into the range from 0 to rangeLength (exclusive), default value is 1.0
 	**/
 	public inline function fast(rangeLength:Float = 1.0):Float {
 		return rangeLength * randomUInt() / 4294967296.0; // 0x1 0000 0000

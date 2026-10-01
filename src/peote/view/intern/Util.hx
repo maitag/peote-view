@@ -23,6 +23,9 @@ class Util
 		return( ! regexp.match(identifier) );
 	}
 	
+
+	// -----------------------------------------------------------------------
+
 	static public function resolveFormulaCyclic(formulas:StringMap<String>) {
 		var resolved = new Array<String>();
 		for (k in formulas.keys())
@@ -73,6 +76,12 @@ class Util
 			}
 			formulas.set(key, formula);
 		}
+	}
+
+	static public function replaceFormulaIdentifier(formula:String, oldVar:String, newVar:String):String {
+		var regexp = regexpIdentifier(oldVar);
+		if (regexp.match(formula)) formula = regexp.replace( formula, '$1' + newVar );
+		return formula;
 	}
 	
 	static public inline function regexpIdentifier(identifier:String):EReg {

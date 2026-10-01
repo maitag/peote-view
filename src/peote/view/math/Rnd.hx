@@ -76,7 +76,7 @@ class Rnd {
 	// ---------------------- Float --------------------------
 
 	/** Returns a random `Float` number. (using `Math.random * rangeLength`)
-		@param rangeLength if not null the random values will be into the range from 0 to rangeLength (exclusive)
+		@param rangeLength random values will be into the range from 0 to rangeLength (exclusive), default value is 1.0
 	**/
 	public static inline function float(rangeLength:Float = 1.0):Float {
 		return Math.random() * rangeLength;
@@ -102,8 +102,7 @@ class Rnd {
 	}
 
 	/** Returns a random `Float` number. This can be faster then [`.float()`](#float), but is less accurate.
-		@param minValue the minimal random value
-		@param maxValue the maximum random value
+		@param rangeLength random values will be into the range from 0 to rangeLength (exclusive), default value is 1.0
 	**/
 	public static inline function fast(rangeLength:Float = 1.0):Float {
 		return rangeLength * _fast();

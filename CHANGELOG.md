@@ -1,6 +1,7 @@
 Changelog
 =========
 
+* Adding `@ease` meta-tag to support time-easing-formulas for `@anim`
 * Fixed glitch in `Element.hx` macro where default values not was set if using @anim
 
 1.08 (04/26/2026)

@@ -20,6 +20,8 @@ interface BufferInterface
 	private function getDefaultFormulaVars():haxe.ds.StringMap<peote.view.Color>;
 	
 	private function getFormulas():haxe.ds.StringMap<String>;
+	private function getEaseFormulas():haxe.ds.StringMap<String>;
+	private function getAnimTimer():haxe.ds.StringMap<String>;
 	private function getAttributes():haxe.ds.StringMap<String>;
 	private function getFormulaNames():haxe.ds.StringMap<String>;
 	private function getFormulaVaryings():Array<String>;
