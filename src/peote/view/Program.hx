@@ -848,14 +848,14 @@ class Program
 	private inline function _removeFormula(name:String, isEase:Bool, autoUpdate:Null<Bool>):Void {		
 		if (isFormulaNotInit) initFormulas();
 		var formulaName = buffer.getFormulaNames().get(name);		
-		if (formulaName != null) {
-			#if peoteview_debug_program trace('  remove ${(isEase) ? "ease " : ""}formula: $formulaName' ); #end
-			if (isEase) easeFormula.remove( "ease_time_" + formulaName) else formula.remove(formulaName);
+		if (formulaName != null) name = formulaName;
+		#if peoteview_debug_program trace('  remove ${(isEase) ? "ease " : ""}formula: $name' ); #end
+		if (isEase) {
+			var timeID = buffer.getAnimTimer().get(name);
+			if (timeID==null) throw('Error: "$name" have no @anim so can not get an ease formula.');
+			easeFormula.set( "ease_time_" + name, timeID);
 		}
-		else {
-			#if peoteview_debug_program trace('  remove ${(isEase) ? "ease " : ""}formula: $name' ); #end
-			if (isEase) easeFormula.remove( "ease_time_" + name) else formula.remove(name);
-		}
+		else formula.remove(name);
 		
 		isFormulaChange = true;
 		checkAutoUpdate(autoUpdate);
@@ -889,32 +889,30 @@ class Program
 			function formulaTemplateValue(x:String, y:String, dx:String, dy:String):String
 			{
 				var nx = buffer.getFormulaNames().get(x);
-				//if (nx == null) nx = x;
 				if (nx == null) nx = "";
 				
 				var ny = buffer.getFormulaNames().get(y);
-				//if (ny == null) ny = y;
 				if (ny == null) ny = "";
 				
 				var fx = formulaResolved.get(nx);
 				var fy = formulaResolved.get(ny);
+
+				var ex = easeFormulaResolved.get("ease_time_"+nx);
+				var ey = easeFormulaResolved.get("ease_time_"+ny);
 				
-				if ( fx != buffer.getFormulas().get(nx) || fy != buffer.getFormulas().get(ny) ) {
-					// if (fx == null) fx = buffer.getAttributes().get(nx);
+				if ( fx != buffer.getFormulas().get(nx) || fy != buffer.getFormulas().get(ny) 
+					|| ex != buffer.getEaseFormulas().get("ease_time_"+nx) || ey != buffer.getEaseFormulas().get("ease_time_"+ny)
+				) {
 					if (fx == null) fx = attrib.get(nx);
 					if (fx == null) fx = dx;
 					
-					// if (fy == null) fy = buffer.getAttributes().get(ny);
 					if (fy == null) fy = attrib.get(ny);
 					if (fy == null) fy = dy;
 					
 					if (x == "rotation" && fx != "0.0") fx = '($fx)/180.0*${Math.PI}';
 					if (y == "zIndex" && fy != "0.0") fy = 'clamp( $fy/${Util.toFloatString(buffer.getMaxZindex())}, -1.0, 1.0)';
 					
-					//trace(' -- replacing Formula $nx, $ny => vec2($fx, $fy)');
-
-					// TODO for EASE: check if extra attrib for the time ("time_"+y.name) exists and then multiplicate it ???
-
+					// trace(' -- replacing Formula $nx, $ny => vec2($fx, $fy)');
 					return('vec2($fx, $fy)');
 				}
 				else return null;
@@ -927,9 +925,8 @@ class Program
 			// formulas for varyings
 			for (n in buffer.getFormulaVaryings()) {				
 				var f = formulaResolved.get(n);
-				if ( f != buffer.getFormulas().get(n) )
+				if ( f != buffer.getFormulas().get(n) || easeFormulaResolved.get("ease_time_"+n) != buffer.getEaseFormulas().get("ease_time_"+n))
 				{
-					// if (f == null) f = buffer.getAttributes().get(n);
 					if (f == null) f = attrib.get(n);
 					Reflect.setField(glShaderConfig.FORMULA_VARYINGS, n, f);
 					// trace(' -- replacing Formula $n => $f');
@@ -939,7 +936,6 @@ class Program
 			// formulas for constants
 			for (n in buffer.getFormulaConstants()) {				
 				var f = formulaResolved.get(n);
-				// if ( f != null && f != buffer.getAttributes().get(n) )
 				if ( f != null && f != attrib.get(n) )
 				{
 					Reflect.setField(glShaderConfig.FORMULA_CONSTANTS, n, f);

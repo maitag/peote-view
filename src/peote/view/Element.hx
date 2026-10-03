@@ -2352,12 +2352,15 @@ class ElementImpl
 		var elemSrc = "class "+Context.getLocalClass() + " {\n";
 		var printer = new Printer();
 		var filterOut = [
-			// "FORMULAS","EASE_FORMULAS","ANIM_TIMER","ATTRIBUTES","FORMULA_NAMES","FORMULA_VARYINGS","FORMULA_CONSTANTS","FORMULA_CUSTOMS",
+			"FORMULAS","EASE_FORMULAS","ANIM_TIMER","ATTRIBUTES","FORMULA_NAMES","FORMULA_VARYINGS","FORMULA_CONSTANTS","FORMULA_CUSTOMS",
 			"IDENTIFIERS_TEXTURE","IDENTIFIERS_COLOR","IDENTIFIERS_CUSTOM","VARYINGS_CUSTOM",
 			"DEFAULT_COLOR_FORMULA","DEFAULT_FORMULA_VARS",
 			"NEED_FRAGMENT_PRECISION","TIME_ENABLED","BLEND_ENABLED","ZINDEX_ENABLED","getZINDEX","PICKING_ENABLED",
 			"MAX_ZINDEX","VERTEX_COUNT","BUFF_SIZE","BUFF_SIZE_INSTANCED",
-			"bytePos","bufferPointer","aPOSITION","aPOS","aTIME0","aTIME1","aTIME2","aTIME3","aTIME4","aTIME5","aTIME6",
+			"bytePos","bufferPointer","aPOSITION","aPOS",
+			"aTIME0","aTIME1","aTIME2","aTIME3","aTIME4","aTIME5","aTIME6",
+			"aSHORT0","aSHORT1","aSHORT2","aSHORT3","aSHORT4","aSHORT5","aSHORT6",
+			"aFLOAT0","aFLOAT1","aFLOAT2","aFLOAT3","aFLOAT4","aFLOAT5","aFLOAT6",
 			"instanceBytes","createInstanceBytes","updateInstanceGLBuffer","writeBytesInstanced","writeBytes","updateGLBuffer",
 			"bindAttribLocations","bindAttribLocationsInstanced",
 			"enableVertexAttribInstanced","enableVertexAttrib","disableVertexAttribInstanced","disableVertexAttrib",
