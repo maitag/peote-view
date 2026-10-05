@@ -1,7 +1,10 @@
 Changelog
 =========
 
-* Adding `@ease` meta-tag to support time-easing-formulas for `@anim`
+* Added `@ease` meta-tag to support time-easing-formulas for `@anim`
+* Added `intern/Ease.hx` helper to easy generate easing formulas
+* Added `setEaseFormula()` to `Program`
+* Added `removeFormula()` and `removeEaseFormula()` to `Program`
 * Fixed glitch in `Element.hx` macro where default values not was set if using @anim
 
 1.08 (04/26/2026)

@@ -69,7 +69,8 @@ enum abstract Ease(Int) {
 		else return 'mix(${ scaleShift(get(ease, false), sOut0, sOut1) },t,step(t,$sOut1))';
 	}
 
-	public static function InOut(easeIn:Ease, ?scaleIn:Float, easeOut:Ease, ?scaleOut:Float):String {
+	public static function InOut(easeIn:Ease, ?scaleIn:Float, ?easeOut:Ease, ?scaleOut:Float):String {
+		if (easeOut==null) easeOut = easeIn;
 		if (scaleIn!=null && scaleOut!=null) {
 			// if (scaleIn + scaleOut > 1.0) throw('Error: scaleIn + scaleOut have to be <= 1.0');
 			var sIn = Util.toFloatString(scaleIn);
