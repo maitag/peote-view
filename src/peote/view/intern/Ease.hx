@@ -5,34 +5,48 @@ enum abstract Ease(Int) {
 	var QUAD;
 	var CUBIC;
 	var QUART;
+	var QUINT;
 	var EXPO;
 	var CIRC;
 	var BACK;
+	var ELASTIC;
+	var BOUNCE;
 
 	static inline var PI = "3.14159265359";
-	static inline function sineIn(t:String):String  return '1.0 - cos(($t * $PI) / 2.0)';
-	static inline function sineOut(t:String):String return 'sin(($t * $PI) / 2.0)';
+	static inline function sineIn(t:String):String  return '1.0-cos(($t*$PI)/2.0)';
+	static inline function sineOut(t:String):String return 'sin(($t*$PI)/2.0)';
 
-	static inline function quadIn(t:String):String  return '$t * $t';
-	static inline function quadOut(t:String):String return '1.0 - (1.0 - $t) * (1.0 - $t)';
+	static inline function quadIn(t:String):String  return '$t*$t';
+	static inline function quadOut(t:String):String return '1.0-(1.0-$t)*(1.0-$t)';
 
-	static inline function cubicIn(t:String):String  return '$t * $t * $t';
-	static inline function cubicOut(t:String):String return '1.0 - pow(1.0 - $t, 3.0)';
+	static inline function cubicIn(t:String):String  return '$t*$t*$t';
+	static inline function cubicOut(t:String):String return '1.0-pow(1.0-$t,3.0)';
 
-	static inline function quartIn(t:String):String  return '$t * $t * $t * $t * $t';
-	static inline function quartOut(t:String):String return '1.0 - pow(1.0 - $t, 5.0)';
+	static inline function quartIn(t:String):String  return '$t*$t*$t*$t';
+	static inline function quartOut(t:String):String return '1.0-pow(1.0-$t,4.0)';
 
-	static inline function expoIn(t:String):String  return '($t == 0.0) ? 0.0 : pow(2.0, 10.0 * $t - 10.0)';
-	static inline function expoOut(t:String):String return '($t == 1.0) ? 1.0 : 1.0 - pow(2.0, -10.0 * $t)';
+	static inline function quintIn(t:String):String  return '$t*$t*$t*$t*$t';
+	static inline function quintOut(t:String):String return '1.0-pow(1.0-$t,5.0)';
 
-	// static inline function circIn(t:String):String  return '1.0 - sqrt(1.0 - pow($t, 2.0))';
-	// static inline function circOut(t:String):String return 'sqrt(1.0 - pow($t - 1.0, 2.0))';
-	static inline function circIn(t:String):String  return '1.0 - sqrt(1.0 - pow(clamp($t,0.0,1.0), 2.0))';
-	static inline function circOut(t:String):String return 'sqrt(1.0 - pow(clamp($t,0.0,1.0) - 1.0, 2.0))';
+	static inline function expoIn(t:String):String  return '($t==0.0) ? 0.0 : pow(2.0,10.0* $t-10.0)';
+	static inline function expoOut(t:String):String return '($t==1.0) ? 1.0 : 1.0-pow(2.0,-10.0*$t)';
+
+	// static inline function circIn(t:String):String  return '1.0-sqrt(1.0-pow($t,2.0))';
+	// static inline function circOut(t:String):String return 'sqrt(1.0-pow($t-1.0,2.0))';
+	static inline function circIn(t:String):String  return '1.0-sqrt(1.0-pow(clamp($t,0.0,1.0),2.0))';
+	static inline function circOut(t:String):String return 'sqrt(1.0-pow(clamp($t,0.0,1.0)-1.0,2.0))';
 
 	static inline var C1 = "3.14159265359";
-	static inline function backIn(t:String):String  return '($C1 + 1.0) * $t * $t * $t - $C1 * $t * $t';
-	static inline function backOut(t:String):String return '1.0 + ($C1 + 1.0) * pow($t - 1.0, 3.0) + $C1 * pow($t - 1.0, 2.0)';
+	static inline function backIn(t:String):String  return '($C1+1.0)*$t*$t*$t-$C1*$t*$t';
+	static inline function backOut(t:String):String return '1.0+($C1+1.0)*pow($t-1.0,3.0)+$C1*pow($t-1.0,2.0)';
+
+	static inline var PIPI = "6.28318530717";
+	static inline function elasticIn(t:String):String  return 'clamp($t,0.0,1.0)*step(1.0,$t)+step(0.0,$t)*step($t,1.0)*(-pow(2.0,10.0*$t-10.0)*sin(($t*10.0-10.75)*($PIPI/3.0)))';
+	static inline function elasticOut(t:String):String return 'clamp($t,0.0,1.0)*step(1.0,$t)+step(0.0,$t)*step($t,1.0)*(pow(2.0,-10.0*$t)*sin(($t*10.0-0.75)*($PIPI/3.0))+1.0)';
+	
+	static inline var PI35 = "10.9955742875";
+	static inline function bounceIn(t:String):String  return 'step(1.0,$t)+step(0.0,$t)*step($t,1.0)*(pow(2.0,6.0*$t-6.0)*abs(cos((1.0-$t)*$PI35)))';
+	static inline function bounceOut(t:String):String return 'step(1.0,$t)+step(0.0,$t)*step($t,1.0)*(1.0-pow(2.0,-6.0*$t)*abs(cos($t*$PI35)))';
 
 	static function get(ease:Ease, i=true):String->String {
 		return switch(ease) {
@@ -40,9 +54,12 @@ enum abstract Ease(Int) {
 			case QUAD:  i ? quadIn : quadOut;
 			case CUBIC: i ? cubicIn : cubicOut;
 			case QUART: i ? quartIn : quartOut;
+			case QUINT: i ? quintIn : quintOut;
 			case EXPO:  i ? expoIn : expoOut;
 			case CIRC:  i ? circIn : circOut;
 			case BACK:  i ? backIn : backOut;
+			case ELASTIC:  i ? elasticIn : elasticOut;
+			case BOUNCE:  i ? bounceIn : bounceOut;
 		}
 	}
 
