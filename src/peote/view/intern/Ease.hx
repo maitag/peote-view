@@ -1,5 +1,9 @@
 package peote.view.intern;
 
+/**
+	Static helper to generate glsl easing functions as a String.  
+	Can be used inside `Program.setEaseFormula` e.g. like this: `Ease.In(SINE)`, `Ease.Out(QUAD)` or `Ease.InOut(CIRC, EXPO, 0.4)`.
+**/
 enum abstract Ease(Int) {
 	var SINE;
 	var QUAD;
@@ -48,7 +52,7 @@ enum abstract Ease(Int) {
 	static inline function bounceIn(t:String):String  return 'step(1.0,$t)+step(0.0,$t)*step($t,1.0)*(pow(2.0,6.0*$t-6.0)*abs(cos((1.0-$t)*$PI35)))';
 	static inline function bounceOut(t:String):String return 'step(1.0,$t)+step(0.0,$t)*step($t,1.0)*(1.0-pow(2.0,-6.0*$t)*abs(cos($t*$PI35)))';
 
-	static function get(ease:Ease, i=true):String->String {
+	static inline function get(ease:Ease, i:Bool=true):String->String {
 		return switch(ease) {
 			case SINE:  i ? sineIn : sineOut;
 			case QUAD:  i ? quadIn : quadOut;
@@ -71,8 +75,37 @@ enum abstract Ease(Int) {
 		return "(" + f('(t-$shift)/$s') + ')*$s+$shift';
 	} 
 
-	// ----------------------------------------
+	// ------------------------------------------------------------------------
 
+	/**
+		Returns a String of an glsl ease-in function.
+		@param ease easing function e.g. SINE, QUAD, etc.
+	**/
+	public static inline function In(ease:Ease):String return get(ease)("t");
+
+	/**
+		Returns a String of an glsl ease-out function.
+		@param ease easing function e.g. SINE, QUAD, etc.
+	**/
+		public static inline function Out(ease:Ease, s:Float = 1.0):String return get(ease, false)("t");
+
+	/**
+		Returns a String of an glsl ease-in and ease-out function.
+		@param easeIn  ease-in function e.g. SINE, QUAD, etc.
+		@param easeOut ease-out function (optional, by default it is using same as easeIn here)
+		@param switchAt a float value (default `0.5`) between `0.0`(full ease-out) and `1.0`(full ease-in) indicating the time at which the function switches between ease-in and ease-out
+	**/
+	public static inline function InOut(easeIn:Ease, ?easeOut:Ease, ?switchAt:Float):String {
+		if (switchAt!=null) {
+			// if (switchAt <= 0.0 || switchAt >= 1.0) throw('Error: switchAt parameter have to be greater then 0.0 and smaller then 1.0');
+			var s = Util.toFloatString(switchAt);
+			return 'mix(${ scaleShift(get((easeOut!=null) ? easeOut : easeIn, false), Util.toFloatString(1.0-switchAt), s) },${ scale(get(easeIn), s) },step(t, $s))';
+		}
+		else return 'mix(${ scaleShift(get((easeOut!=null) ? easeOut : easeIn, false), "0.5", "0.5") },${ scale(get(easeIn), "0.5") },step(t, 0.5))';
+	}
+
+	// here all again by annother parameter to let it ease in/out or inbetween to no-easing(linear) in addition
+	/*
 	public static function In(ease:Ease, s:Float = 1.0):String {
 		var sIn = Util.toFloatString(s);
 		if (s >= 1.0) return get(ease)("t");
@@ -109,5 +142,5 @@ enum abstract Ease(Int) {
 		}
 		else return 'mix(${ scaleShift(get(easeOut, false), "0.5", "0.5") },${ scale(get(easeIn), "0.5") },step(t,0.5))';
 	}
-
+	*/
 }
