@@ -5,6 +5,7 @@ package peote.view.intern;
 	Can be used inside `Program.setEaseFormula` e.g. like this: `Ease.In(SINE)`, `Ease.Out(QUAD)` or `Ease.InOut(CIRC, EXPO, 0.4)`.
 **/
 enum abstract Ease(Int) {
+	var HERMITE;
 	var SINE;
 	var QUAD;
 	var CUBIC;
@@ -15,6 +16,10 @@ enum abstract Ease(Int) {
 	var BACK;
 	var ELASTIC;
 	var BOUNCE;
+
+	static inline function hermiteIn(t:String):String  return 'smoothstep(0.0, 1.0, $t*0.5)*2.0';
+	static inline function hermiteOut(t:String):String return 'smoothstep(0.0, 1.0, 0.5+$t*0.5)*2.0-1.0';
+	static inline var hermiteInOut = 'smoothstep(0.0, 1.0, t)'; // <- optimized
 
 	static inline var PI = "3.14159265359";
 	static inline function sineIn(t:String):String  return '1.0-cos(($t*$PI)/2.0)';
@@ -54,6 +59,7 @@ enum abstract Ease(Int) {
 
 	static inline function get(ease:Ease, i:Bool=true):String->String {
 		return switch(ease) {
+			case HERMITE:  i ? hermiteIn : hermiteOut;
 			case SINE:  i ? sineIn : sineOut;
 			case QUAD:  i ? quadIn : quadOut;
 			case CUBIC: i ? cubicIn : cubicOut;
@@ -87,7 +93,7 @@ enum abstract Ease(Int) {
 		Returns a String of an glsl ease-out function.
 		@param ease easing function e.g. SINE, QUAD, etc.
 	**/
-		public static inline function Out(ease:Ease, s:Float = 1.0):String return get(ease, false)("t");
+		public static inline function Out(ease:Ease):String return get(ease, false)("t");
 
 	/**
 		Returns a String of an glsl ease-in and ease-out function.
@@ -101,7 +107,10 @@ enum abstract Ease(Int) {
 			var s = Util.toFloatString(switchAt);
 			return 'mix(${ scaleShift(get((easeOut!=null) ? easeOut : easeIn, false), Util.toFloatString(1.0-switchAt), s) },${ scale(get(easeIn), s) },step(t, $s))';
 		}
-		else return 'mix(${ scaleShift(get((easeOut!=null) ? easeOut : easeIn, false), "0.5", "0.5") },${ scale(get(easeIn), "0.5") },step(t, 0.5))';
+		else {
+			if (easeIn == HERMITE && (easeOut == null || easeOut == HERMITE)) return hermiteInOut;
+			return 'mix(${ scaleShift(get((easeOut!=null) ? easeOut : easeIn, false), "0.5", "0.5") },${ scale(get(easeIn), "0.5") },step(t, 0.5))';
+		}
 	}
 
 	// here all again by annother parameter to let it ease in/out or inbetween to no-easing(linear) in addition
