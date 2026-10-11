@@ -109,8 +109,12 @@ abstract PeoteGL(LimeGLRenderContext) from LimeGLRenderContext to LimeGLRenderCo
 
 	// -------------------------------------------------------------------------------------------------
 	// ---------------------------- downcasting the gl render context ----------------------------------
+	@:allow(peote.view)
+	static var hasContext:Bool = false;
 
 	@:from private static function fromRenderContext (context:lime.graphics.RenderContext):PeoteGL {
+
+		hasContext = true;
 
 		#if html5
 		

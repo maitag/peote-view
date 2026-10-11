@@ -141,6 +141,8 @@ class $className implements peote.view.intern.BufferInterface
 		
 		_elements = new haxe.ds.Vector<$elementType>(_minSize);
 		
+		if (!peote.view.PeoteGL.hasContext) trace("WARNING, always instantiate a buffer only AFTER the PeoteView has been instantiated; otherwise, the buffer may be set up for ES2, and ES3 may be detected later. ");
+
 		if (peote.view.PeoteGL.Version.isINSTANCED) // TODO can be missing if buffer created before peoteView
 		{
 			$p{elemField}.createInstanceBytes();
@@ -457,7 +459,7 @@ class $className implements peote.view.intern.BufferInterface
 	public function swapElements(element1: $elementType, element2: $elementType):Void
 	{	
 		#if peoteview_debug_buffer
-		trace("Buffer.swapElements", element.bytePos);
+		trace("Buffer.swapElements", element1.bytePos, element2.bytePos);
 		#end
 		
 		if (element1.bytePos == -1) throw("Error: first Element is not inside a Buffer");
