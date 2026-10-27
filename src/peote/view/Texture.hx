@@ -250,7 +250,7 @@ class Texture
 		if (!displays.remove(display)) throw("Error, this texture (Framebuffer) is not used by display anymore");
 		deleteFramebuffer();
 	}
-		
+	
 	private inline function createFramebuffer() {
 		if (displays.length > 0 && framebuffer == null) {
 			#if peoteview_debug_texture 
@@ -261,7 +261,13 @@ class Texture
 			// enables the extension (needs ONLY for ES 3)
 			if (PeoteGL.Version.isES3 && format.isFloat) {
 				if (gl.getExtension("EXT_color_buffer_float") != null) {}
+				// else if (gl.getExtension("EXT_color_buffer_half_float") != null) {}
 				else if (gl.getExtension("OES_texture_float") != null) {}
+				// else if (gl.getExtension("OES_texture_half_float") != null) {}
+
+				// TODO: to use smooth filter also for float32 internal format (RGBA32F) this extension is need:
+				// if(gl.getExtension("OES_texture_float_linear")) {}
+				// if(gl.getExtension("EXT_float_blend")) {}
 			}
 
 			glDepthBuffer = gl.createRenderbuffer();

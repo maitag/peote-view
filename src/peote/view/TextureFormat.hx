@@ -98,7 +98,11 @@ abstract TextureFormat(Int) from Int to Int
 			case LUMINANCE_ALPHA : gl.LUMINANCE_ALPHA;
 
 			case RGBA : gl.RGBA;
+			// TODO: more strictly for ES3/webgl2 ?:
+			// case RGBA : (PeoteGL.Version.isES3) ? gl.RGBA8 : gl.RGBA;
+
 			case RGB  : gl.RGB;
+			// case RGB : (PeoteGL.Version.isES3) ? gl.RGB8 : gl.RGB;
 
 			case RG : gl.RG8;
 			case R  : gl.R8;

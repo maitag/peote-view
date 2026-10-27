@@ -602,6 +602,11 @@ class PeoteView
 		
 		gl.bindFramebuffer(gl.FRAMEBUFFER, display.fbTexture.framebuffer);
 		//gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, display.fbTexture.framebuffer);
+
+		// TODO: endless try to fix glitch with the premultiplyed alpha in ES3
+		// gl.disable(0x8DB9);
+		// gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 0);
+
 		
 		gl.viewport(
 			display.fbTexture.slotWidth * (textureSlot % display.fbTexture.slotsX),
@@ -636,7 +641,7 @@ class PeoteView
 		// TODO: same for stencil buffer!
 		// gl.clearStencil(0);		
 		gl.stencilMask(0xFF);
-		
+
 		display.renderFramebuffer(this); // <-- render display
 		
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);

@@ -99,10 +99,10 @@ class GLTool
 	{
 		#if peoteview_debug_shader
 		if (debug) {
-			trace('------ ${(type==gl.VERTEX_SHADER) ? "vertex":"fragment"} shader ------');
-			trace("\n"+shaderSrc);
-		}
-		#end		
+				trace('------ ${(type==gl.VERTEX_SHADER) ? "vertex":"fragment"} shader ------');
+				trace("\n"+shaderSrc);
+			}
+		#end
 		var glShader:GLShader = gl.createShader(type);
 		gl.shaderSource(glShader, shaderSrc);
 		gl.compileShader(glShader);

@@ -231,6 +231,11 @@ class Program
 	**/
 	public var autoUpdate:Bool = true;
 
+	/**
+		By enabling compilerflag `peoteview_debug_shader` and `true` here, it traced out the glsl shadercode at time where the program (re)compiles.
+	**/
+	public var debugShader:Bool = false;
+
 	var _updateTexture:Bool = false;
 	var _updateColorFormula:Bool = false;
 
@@ -428,11 +433,15 @@ class Program
 			if (gl.getExtension("OES_standard_derivatives") != null)
 				glShaderConfig.FRAGMENT_EXTENSIONS.push({EXTENSION:"GL_OES_standard_derivatives"});
 				
-			if (gl.getExtension("EXT_color_buffer_float") != null)
+			if (gl.getExtension("EXT_color_buffer_float") != null) {
 				glShaderConfig.FRAGMENT_EXTENSIONS.push({EXTENSION:"EXT_color_buffer_float"});
+			}
 			else if (gl.getExtension("OES_texture_float") != null)
 				glShaderConfig.FRAGMENT_EXTENSIONS.push({EXTENSION:"OES_texture_float"});
-			
+
+			// TODO (look at Texture.hx at createFramebuffer()! )
+			// glShaderConfig.FRAGMENT_EXTENSIONS.push({EXTENSION:"EXT_float_blend"});
+
 			buffer.setNewGLContext(gl);
 			createProgram();
 			
@@ -493,8 +502,8 @@ class Program
 		
 		parseAndResolveFormulas();
 				
-		var glVShader = GLTool.compileGLShader(gl, gl.VERTEX_SHADER,   GLTool.parseShader(buffer.getVertexShader(),   glShaderConfig), true );
-		var glFShader = GLTool.compileGLShader(gl, gl.FRAGMENT_SHADER, GLTool.parseShader(buffer.getFragmentShader(), glShaderConfig), true );
+		var glVShader = GLTool.compileGLShader(gl, gl.VERTEX_SHADER,   GLTool.parseShader(buffer.getVertexShader(),   glShaderConfig), (isPicking) ? false : debugShader );
+		var glFShader = GLTool.compileGLShader(gl, gl.FRAGMENT_SHADER, GLTool.parseShader(buffer.getFragmentShader(), glShaderConfig), (isPicking) ? false : debugShader );
 		
 		var glProg = gl.createProgram();
 		
